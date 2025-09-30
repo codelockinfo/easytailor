@@ -1,0 +1,64 @@
+# PHP
+*.log
+*.tmp
+*.cache
+
+# Configuration files with sensitive data
+config/local.php
+.env
+.env.local
+
+# Uploads directory (user-generated content)
+uploads/*
+!uploads/.gitkeep
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Temporary files
+*.tmp
+*.temp
+
+# Database backups
+*.sql.backup
+*.sql.bak
+
+# Log files
+error.log
+access.log
+php_errors.log
+
+# Session files
+sessions/
+
+# Cache directories
+cache/
+temp/
+
+# Node modules (if using any frontend build tools)
+node_modules/
+
+# Composer (if using)
+vendor/
+
+# WAMP/XAMPP specific
+wamp.conf
+xampp.conf

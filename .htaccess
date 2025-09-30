@@ -1,0 +1,7 @@
+# Minimal .htaccess for Tailoring Management System
+RewriteEngine On
+
+# Basic file protection
+<FilesMatch "\.(sql|log|ini|conf)$">
+    Require all denied
+</FilesMatch>

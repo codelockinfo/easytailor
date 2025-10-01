@@ -44,18 +44,22 @@ class Customer extends BaseModel {
      */
     public function searchCustomers($search_term, $limit = 20) {
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE (first_name LIKE :search 
-                      OR last_name LIKE :search 
-                      OR customer_code LIKE :search 
-                      OR email LIKE :search 
-                      OR phone LIKE :search)
+                  WHERE (first_name LIKE :search1 
+                      OR last_name LIKE :search2 
+                      OR customer_code LIKE :search3 
+                      OR email LIKE :search4 
+                      OR phone LIKE :search5)
                   AND status = 'active'
                   ORDER BY first_name, last_name
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
         $search_pattern = '%' . $search_term . '%';
-        $stmt->bindParam(':search', $search_pattern);
+        $stmt->bindParam(':search1', $search_pattern);
+        $stmt->bindParam(':search2', $search_pattern);
+        $stmt->bindParam(':search3', $search_pattern);
+        $stmt->bindParam(':search4', $search_pattern);
+        $stmt->bindParam(':search5', $search_pattern);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         

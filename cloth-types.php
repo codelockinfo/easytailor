@@ -229,42 +229,36 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" class="row g-3">
+        <div class="row g-3">
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" 
+                           id="searchInput"
                            class="form-control" 
-                           name="search" 
                            placeholder="Search cloth types..."
-                           value="<?php echo htmlspecialchars($search); ?>">
+                           autocomplete="off">
                 </div>
             </div>
             <div class="col-md-4">
-                <select class="form-select" name="category">
+                <select class="form-select" id="categoryFilter">
                     <option value="">All Categories</option>
-                    <?php foreach ($clothTypeStats['categories'] as $category): ?>
-                        <option value="<?php echo htmlspecialchars($category); ?>" <?php echo $category_filter === $category ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($category); ?>
-                        </option>
-                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-2">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Filter
-                    </button>
-                    <?php if (!empty($search) || !empty($category_filter)): ?>
-                        <a href="cloth-types.php" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-1"></i>Clear
-                        </a>
-                    <?php endif; ?>
-                </div>
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times"></i> Clear
+                </button>
             </div>
-        </form>
+        </div>
+        <div id="filterResults" class="mt-3" style="display: none;">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <span id="filterCount">0</span> cloth types found
+            </div>
+        </div>
     </div>
 </div>
 
@@ -561,6 +555,206 @@ document.getElementById('clothTypeModal').addEventListener('hidden.bs.modal', fu
     document.getElementById('newChartPreview').style.display = 'none';
     document.getElementById('clothTypeForm').reset();
 });
+
+// AJAX Cloth Type Filtering
+let filterTimeout;
+const searchInput = document.getElementById('searchInput');
+const categoryFilter = document.getElementById('categoryFilter');
+const clearFilters = document.getElementById('clearFilters');
+const filterResults = document.getElementById('filterResults');
+const filterCount = document.getElementById('filterCount');
+const clothTypesTable = document.querySelector('.table tbody');
+
+// Store original table content
+const originalTableContent = clothTypesTable.innerHTML;
+
+// Load filter options on page load
+loadFilterOptions();
+
+function loadFilterOptions() {
+    fetch('ajax/filter_cloth_types.php?page=1&limit=1')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    populateFilterOptions(data.filter_options);
+                } else {
+                    console.error('Filter options error:', data.error);
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateFilterOptions(options) {
+    // Populate categories
+    const categorySelect = document.getElementById('categoryFilter');
+    categorySelect.innerHTML = '<option value="">All Categories</option>';
+    
+    // Ensure categories is an array and decode HTML entities
+    const categories = Array.isArray(options.categories) ? options.categories : Object.values(options.categories);
+    categories.forEach(category => {
+        // Decode HTML entities
+        const decodedCategory = category.replace(/&#039;/g, "'").replace(/&amp;/g, "&");
+        categorySelect.innerHTML += `<option value="${decodedCategory}">${decodedCategory}</option>`;
+    });
+}
+
+// Add event listeners for all filters
+[searchInput, categoryFilter].forEach(element => {
+    element.addEventListener('change', performFilter);
+    if (element === searchInput) {
+        element.addEventListener('input', performFilter);
+    }
+});
+
+clearFilters.addEventListener('click', function() {
+    searchInput.value = '';
+    categoryFilter.value = '';
+    clothTypesTable.innerHTML = originalTableContent;
+    filterResults.style.display = 'none';
+});
+
+function performFilter() {
+    // Clear previous timeout
+    clearTimeout(filterTimeout);
+    
+    // Debounce search input
+    if (this === searchInput) {
+        filterTimeout = setTimeout(() => {
+            executeFilter();
+        }, 300);
+    } else {
+        executeFilter();
+    }
+}
+
+function executeFilter() {
+    const search = searchInput.value.trim();
+    const category = categoryFilter.value;
+    
+    // Show loading state
+    filterResults.style.display = 'block';
+    filterCount.textContent = 'Filtering...';
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    params.append('page', '1');
+    params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
+    
+    fetch(`ajax/filter_cloth_types.php?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    displayFilterResults(data.cloth_types);
+                    filterCount.textContent = data.pagination.total_cloth_types;
+                } else {
+                    console.error('Filter error:', data.error);
+                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                filterCount.textContent = 'Invalid response from server';
+            }
+        })
+        .catch(error => {
+            console.error('Filter error:', error);
+            filterCount.textContent = 'Filter failed: ' + error.message;
+        });
+}
+
+function displayFilterResults(clothTypes) {
+    if (clothTypes.length === 0) {
+        clothTypesTable.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No cloth types found</h5>
+                    <p class="text-muted">Try adjusting your filter criteria</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    clothTypes.forEach(clothType => {
+        // Format currency
+        const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        
+        tableHTML += `
+            <tr>
+                <td>
+                    <div>
+                        <strong>${clothType.name}</strong>
+                        ${clothType.description ? `<br><small class="text-muted">${clothType.description}</small>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-primary">${clothType.category}</span>
+                </td>
+                <td>
+                    <div class="text-end">
+                        <div class="fw-bold">${formatCurrency(clothType.standard_rate)}</div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-info">${clothType.order_count} orders</span>
+                </td>
+                <td>
+                    <span class="badge bg-${clothType.status === 'active' ? 'success' : 'secondary'}">${clothType.status.charAt(0).toUpperCase() + clothType.status.slice(1)}</span>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="editClothType(${JSON.stringify(clothType).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-danger" 
+                                onclick="deleteClothType(${clothType.id}, '${clothType.name.replace(/'/g, "\\'")}')"
+                                title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    clothTypesTable.innerHTML = tableHTML;
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

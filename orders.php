@@ -265,40 +265,56 @@ $orderStats = $orderModel->getOrderStats();
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-4">
+        <div class="row g-3">
+            <div class="col-md-3">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" 
+                           id="searchInput"
                            class="form-control" 
-                           name="search" 
                            placeholder="Search orders..."
-                           value="<?php echo htmlspecialchars($search); ?>">
+                           autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-3">
-                <select class="form-select" name="status">
+            <div class="col-md-2">
+                <select class="form-select" id="statusFilter">
                     <option value="">All Statuses</option>
-                    <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                    <option value="in_progress" <?php echo $status_filter === 'in_progress' ? 'selected' : ''; ?>>In Progress</option>
-                    <option value="completed" <?php echo $status_filter === 'completed' ? 'selected' : ''; ?>>Completed</option>
-                    <option value="delivered" <?php echo $status_filter === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                    <option value="cancelled" <?php echo $status_filter === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
                 </select>
             </div>
-            <div class="col-md-5">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Filter
-                    </button>
-                    <a href="orders.php" class="btn btn-outline-secondary">
-                        <i class="fas fa-times me-1"></i>Clear
-                    </a>
-                </div>
+            <div class="col-md-2">
+                <select class="form-select" id="customerFilter">
+                    <option value="">All Customers</option>
+                </select>
             </div>
-        </form>
+            <div class="col-md-2">
+                <select class="form-select" id="clothTypeFilter">
+                    <option value="">All Cloth Types</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="tailorFilter">
+                    <option value="">All Tailors</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div id="filterResults" class="mt-3" style="display: none;">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <span id="filterCount">0</span> orders found
+            </div>
+        </div>
     </div>
 </div>
 
@@ -675,6 +691,278 @@ document.getElementById('orderModal').addEventListener('hidden.bs.modal', functi
     document.getElementById('orderForm').reset();
     document.getElementById('order_date').value = '<?php echo date('Y-m-d'); ?>';
 });
+
+// AJAX Order Filtering
+let filterTimeout;
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const customerFilter = document.getElementById('customerFilter');
+const clothTypeFilter = document.getElementById('clothTypeFilter');
+const tailorFilter = document.getElementById('tailorFilter');
+const clearFilters = document.getElementById('clearFilters');
+const filterResults = document.getElementById('filterResults');
+const filterCount = document.getElementById('filterCount');
+const ordersTable = document.querySelector('.table tbody');
+
+// Store original table content
+const originalTableContent = ordersTable.innerHTML;
+
+// Load filter options on page load
+loadFilterOptions();
+
+function loadFilterOptions() {
+    fetch('ajax/filter_orders.php?page=1&limit=1')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    populateFilterOptions(data.filter_options);
+                } else {
+                    console.error('Filter options error:', data.error);
+                    // Continue without filter options
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                // Continue without filter options
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+            // Continue without filter options - the page will still work
+        });
+}
+
+function populateFilterOptions(options) {
+    // Populate customers
+    const customerSelect = document.getElementById('customerFilter');
+    customerSelect.innerHTML = '<option value="">All Customers</option>';
+    options.customers.forEach(customer => {
+        customerSelect.innerHTML += `<option value="${customer.id}">${customer.name}</option>`;
+    });
+    
+    // Populate cloth types
+    const clothTypeSelect = document.getElementById('clothTypeFilter');
+    clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
+    options.cloth_types.forEach(clothType => {
+        clothTypeSelect.innerHTML += `<option value="${clothType.id}">${clothType.name}</option>`;
+    });
+    
+    // Populate tailors
+    const tailorSelect = document.getElementById('tailorFilter');
+    tailorSelect.innerHTML = '<option value="">All Tailors</option>';
+    options.tailors.forEach(tailor => {
+        tailorSelect.innerHTML += `<option value="${tailor.id}">${tailor.name}</option>`;
+    });
+}
+
+// Add event listeners for all filters
+[searchInput, statusFilter, customerFilter, clothTypeFilter, tailorFilter].forEach(element => {
+    element.addEventListener('change', performFilter);
+    if (element === searchInput) {
+        element.addEventListener('input', performFilter);
+    }
+});
+
+clearFilters.addEventListener('click', function() {
+    searchInput.value = '';
+    statusFilter.value = '';
+    customerFilter.value = '';
+    clothTypeFilter.value = '';
+    tailorFilter.value = '';
+    ordersTable.innerHTML = originalTableContent;
+    filterResults.style.display = 'none';
+});
+
+function performFilter() {
+    // Clear previous timeout
+    clearTimeout(filterTimeout);
+    
+    // Debounce search input
+    if (this === searchInput) {
+        filterTimeout = setTimeout(() => {
+            executeFilter();
+        }, 300);
+    } else {
+        executeFilter();
+    }
+}
+
+function executeFilter() {
+    const search = searchInput.value.trim();
+    const status = statusFilter.value;
+    const customer = customerFilter.value;
+    const clothType = clothTypeFilter.value;
+    const tailor = tailorFilter.value;
+    
+    // Show loading state
+    filterResults.style.display = 'block';
+    filterCount.textContent = 'Filtering...';
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    if (customer) params.append('customer_id', customer);
+    if (clothType) params.append('cloth_type_id', clothType);
+    if (tailor) params.append('assigned_tailor_id', tailor);
+    params.append('page', '1');
+    params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
+    
+    fetch(`ajax/filter_orders.php?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text(); // Get as text first to check for HTML
+        })
+        .then(text => {
+            // Check if response is HTML (error page)
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    displayFilterResults(data.orders);
+                    filterCount.textContent = data.pagination.total_orders;
+                } else {
+                    console.error('Filter error:', data.error);
+                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                filterCount.textContent = 'Invalid response from server';
+            }
+        })
+        .catch(error => {
+            console.error('Filter error:', error);
+            filterCount.textContent = 'Filter failed: ' + error.message;
+        });
+}
+
+function displayFilterResults(orders) {
+    if (orders.length === 0) {
+        ordersTable.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No orders found</h5>
+                    <p class="text-muted">Try adjusting your filter criteria</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    orders.forEach(order => {
+        // Format dates
+        const orderDate = new Date(order.order_date).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'short', day: 'numeric' 
+        });
+        const dueDate = new Date(order.due_date).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'short', day: 'numeric' 
+        });
+        
+        // Check if overdue
+        const isOverdue = new Date(order.due_date) < new Date() && !['completed', 'delivered', 'cancelled'].includes(order.status);
+        
+        // Status badge colors
+        const statusColors = {
+            'pending': 'warning',
+            'in_progress': 'info', 
+            'completed': 'success',
+            'delivered': 'primary',
+            'cancelled': 'danger'
+        };
+        const statusColor = statusColors[order.status] || 'secondary';
+        
+        // Format currency
+        const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        
+        tableHTML += `
+            <tr>
+                <td>
+                    <span class="badge bg-primary">${order.order_number}</span>
+                </td>
+                <td>
+                    <div>
+                        <strong>${order.first_name} ${order.last_name}</strong>
+                        <br>
+                        <small class="text-muted">${order.customer_code}</small>
+                    </div>
+                </td>
+                <td>${order.cloth_type_name}</td>
+                <td>
+                    ${order.tailor_name ? order.tailor_name : '<span class="text-muted">Unassigned</span>'}
+                </td>
+                <td>${orderDate}</td>
+                <td>
+                    <span class="${isOverdue ? 'text-danger fw-bold' : ''}">${dueDate}</span>
+                </td>
+                <td>
+                    <span class="badge bg-${statusColor}">${order.status.replace('_', ' ').charAt(0).toUpperCase() + order.status.replace('_', ' ').slice(1)}</span>
+                </td>
+                <td>
+                    <div>
+                        <strong>${formatCurrency(order.total_amount)}</strong>
+                        ${order.advance_amount > 0 ? `
+                            <br>
+                            <small class="text-muted">
+                                Advance: ${formatCurrency(order.advance_amount)}
+                            </small>
+                        ` : ''}
+                    </div>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="editOrder(${JSON.stringify(order).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="order-details.php?id=${order.id}" 
+                           class="btn btn-outline-info" 
+                           title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown"
+                                    title="Change Status">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(${order.id}, 'pending')">Pending</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(${order.id}, 'in_progress')">In Progress</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(${order.id}, 'completed')">Completed</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(${order.id}, 'delivered')">Delivered</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(${order.id}, 'cancelled')">Cancelled</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    ordersTable.innerHTML = tableHTML;
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

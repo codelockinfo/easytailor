@@ -194,48 +194,42 @@ if (empty($categories)) {
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" class="row g-3">
+        <div class="row g-3">
             <div class="col-md-3">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" 
+                           id="searchInput"
                            class="form-control" 
-                           name="search" 
                            placeholder="Search expenses..."
-                           value="<?php echo htmlspecialchars($search); ?>">
+                           autocomplete="off">
                 </div>
             </div>
             <div class="col-md-2">
-                <select class="form-select" name="category">
+                <select class="form-select" id="categoryFilter">
                     <option value="">All Categories</option>
-                    <?php foreach ($categories as $category): ?>
-                        <option value="<?php echo htmlspecialchars($category); ?>" <?php echo $category_filter === $category ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($category); ?>
-                        </option>
-                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-2">
-                <input type="date" class="form-control" name="date_from" placeholder="From Date" value="<?php echo htmlspecialchars($date_from); ?>">
+                <input type="date" class="form-control" id="dateFromFilter" placeholder="From Date">
             </div>
             <div class="col-md-2">
-                <input type="date" class="form-control" name="date_to" placeholder="To Date" value="<?php echo htmlspecialchars($date_to); ?>">
+                <input type="date" class="form-control" id="dateToFilter" placeholder="To Date">
             </div>
             <div class="col-md-3">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Filter
-                    </button>
-                    <?php if (!empty($search) || !empty($category_filter) || !empty($date_from) || !empty($date_to)): ?>
-                        <a href="expenses.php" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-1"></i>Clear
-                        </a>
-                    <?php endif; ?>
-                </div>
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times"></i> Clear
+                </button>
             </div>
-        </form>
+        </div>
+        <div id="filterResults" class="mt-3" style="display: none;">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <span id="filterCount">0</span> expenses found
+            </div>
+        </div>
     </div>
 </div>
 
@@ -554,6 +548,224 @@ document.getElementById('expenseModal').addEventListener('hidden.bs.modal', func
     document.getElementById('expenseForm').reset();
     document.getElementById('expense_date').value = '<?php echo date('Y-m-d'); ?>';
 });
+
+// AJAX Expense Filtering
+let filterTimeout;
+const searchInput = document.getElementById('searchInput');
+const categoryFilter = document.getElementById('categoryFilter');
+const dateFromFilter = document.getElementById('dateFromFilter');
+const dateToFilter = document.getElementById('dateToFilter');
+const clearFilters = document.getElementById('clearFilters');
+const filterResults = document.getElementById('filterResults');
+const filterCount = document.getElementById('filterCount');
+const expensesTable = document.querySelector('.table tbody');
+
+// Store original table content
+const originalTableContent = expensesTable.innerHTML;
+
+// Load filter options on page load
+loadFilterOptions();
+
+function loadFilterOptions() {
+    fetch('ajax/filter_expenses.php?page=1&limit=1')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    populateFilterOptions(data.filter_options);
+                } else {
+                    console.error('Filter options error:', data.error);
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateFilterOptions(options) {
+    // Populate categories
+    const categorySelect = document.getElementById('categoryFilter');
+    categorySelect.innerHTML = '<option value="">All Categories</option>';
+    
+    // Ensure categories is an array and decode HTML entities
+    const categories = Array.isArray(options.categories) ? options.categories : Object.values(options.categories);
+    categories.forEach(category => {
+        // Decode HTML entities
+        const decodedCategory = category.replace(/&#039;/g, "'").replace(/&amp;/g, "&");
+        categorySelect.innerHTML += `<option value="${decodedCategory}">${decodedCategory}</option>`;
+    });
+}
+
+// Add event listeners for all filters
+[searchInput, categoryFilter, dateFromFilter, dateToFilter].forEach(element => {
+    element.addEventListener('change', performFilter);
+    if (element === searchInput) {
+        element.addEventListener('input', performFilter);
+    }
+});
+
+clearFilters.addEventListener('click', function() {
+    searchInput.value = '';
+    categoryFilter.value = '';
+    dateFromFilter.value = '';
+    dateToFilter.value = '';
+    expensesTable.innerHTML = originalTableContent;
+    filterResults.style.display = 'none';
+});
+
+function performFilter() {
+    // Clear previous timeout
+    clearTimeout(filterTimeout);
+    
+    // Debounce search input
+    if (this === searchInput) {
+        filterTimeout = setTimeout(() => {
+            executeFilter();
+        }, 300);
+    } else {
+        executeFilter();
+    }
+}
+
+function executeFilter() {
+    const search = searchInput.value.trim();
+    const category = categoryFilter.value;
+    const dateFrom = dateFromFilter.value;
+    const dateTo = dateToFilter.value;
+    
+    // Show loading state
+    filterResults.style.display = 'block';
+    filterCount.textContent = 'Filtering...';
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    params.append('page', '1');
+    params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
+    
+    fetch(`ajax/filter_expenses.php?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    displayFilterResults(data.expenses);
+                    filterCount.textContent = data.pagination.total_expenses;
+                } else {
+                    console.error('Filter error:', data.error);
+                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                filterCount.textContent = 'Invalid response from server';
+            }
+        })
+        .catch(error => {
+            console.error('Filter error:', error);
+            filterCount.textContent = 'Filter failed: ' + error.message;
+        });
+}
+
+function displayFilterResults(expenses) {
+    if (expenses.length === 0) {
+        expensesTable.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No expenses found</h5>
+                    <p class="text-muted">Try adjusting your filter criteria</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    expenses.forEach(expense => {
+        // Format date
+        const expenseDate = new Date(expense.expense_date).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'short', day: 'numeric' 
+        });
+        
+        // Format currency
+        const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        
+        tableHTML += `
+            <tr>
+                <td>
+                    <span class="badge bg-primary">${expense.category}</span>
+                </td>
+                <td>
+                    <div>
+                        <strong>${expense.description}</strong>
+                        ${expense.reference_number ? `<br><small class="text-muted">Ref: ${expense.reference_number}</small>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <div class="text-end">
+                        <div class="fw-bold text-danger">${formatCurrency(expense.amount)}</div>
+                    </div>
+                </td>
+                <td>${expenseDate}</td>
+                <td>
+                    <span class="badge bg-info">${expense.payment_method}</span>
+                </td>
+                <td>
+                    ${expense.receipt_image ? `
+                        <a href="${expense.receipt_image}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-image"></i> View
+                        </a>
+                    ` : '<span class="text-muted">No receipt</span>'}
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="editExpense(${JSON.stringify(expense).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-danger" 
+                                onclick="deleteExpense(${expense.id}, '${expense.description.replace(/'/g, "\\'")}')"
+                                title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    expensesTable.innerHTML = tableHTML;
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

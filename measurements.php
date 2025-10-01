@@ -203,46 +203,40 @@ include 'includes/header.php';
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <form method="GET" class="row g-3">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="search" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   value="<?php echo htmlspecialchars($search); ?>" 
-                                   placeholder="Search by customer, cloth type, or notes">
+                            <label for="searchInput" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Search by customer, cloth type, or notes"
+                                   autocomplete="off">
                         </div>
                         <div class="col-md-3">
-                            <label for="customer_id" class="form-label">Customer</label>
-                            <select class="form-select" id="customer_id" name="customer_id">
+                            <label for="customerFilter" class="form-label">Customer</label>
+                            <select class="form-select" id="customerFilter">
                                 <option value="">All Customers</option>
-                                <?php foreach ($customers as $customer): ?>
-                                    <option value="<?php echo $customer['id']; ?>" 
-                                            <?php echo $customer_id == $customer['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="cloth_type_id" class="form-label">Cloth Type</label>
-                            <select class="form-select" id="cloth_type_id" name="cloth_type_id">
+                            <label for="clothTypeFilter" class="form-label">Cloth Type</label>
+                            <select class="form-select" id="clothTypeFilter">
                                 <option value="">All Cloth Types</option>
-                                <?php foreach ($clothTypes as $clothType): ?>
-                                    <option value="<?php echo $clothType['id']; ?>" 
-                                            <?php echo $cloth_type_id == $clothType['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($clothType['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search me-1"></i>Filter
+                                <button type="button" id="clearFilters" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Clear
                                 </button>
                             </div>
                         </div>
-                    </form>
+                    </div>
+                    <div id="filterResults" class="mt-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="filterCount">0</span> measurements found
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -779,6 +773,214 @@ setTimeout(function() {
         bsAlert.close();
     });
 }, 5000);
+
+// AJAX Measurement Filtering
+let filterTimeout;
+const searchInput = document.getElementById('searchInput');
+const customerFilter = document.getElementById('customerFilter');
+const clothTypeFilter = document.getElementById('clothTypeFilter');
+const clearFilters = document.getElementById('clearFilters');
+const filterResults = document.getElementById('filterResults');
+const filterCount = document.getElementById('filterCount');
+const measurementsTable = document.querySelector('.table tbody');
+
+// Store original table content
+const originalTableContent = measurementsTable.innerHTML;
+
+// Load filter options on page load
+loadFilterOptions();
+
+function loadFilterOptions() {
+    fetch('ajax/filter_measurements.php?page=1&limit=1')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    populateFilterOptions(data.filter_options);
+                } else {
+                    console.error('Filter options error:', data.error);
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateFilterOptions(options) {
+    // Populate customers
+    const customerSelect = document.getElementById('customerFilter');
+    customerSelect.innerHTML = '<option value="">All Customers</option>';
+    options.customers.forEach(customer => {
+        customerSelect.innerHTML += `<option value="${customer.id}">${customer.name}</option>`;
+    });
+    
+    // Populate cloth types
+    const clothTypeSelect = document.getElementById('clothTypeFilter');
+    clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
+    options.cloth_types.forEach(clothType => {
+        clothTypeSelect.innerHTML += `<option value="${clothType.id}">${clothType.name}</option>`;
+    });
+}
+
+// Add event listeners for all filters
+[searchInput, customerFilter, clothTypeFilter].forEach(element => {
+    element.addEventListener('change', performFilter);
+    if (element === searchInput) {
+        element.addEventListener('input', performFilter);
+    }
+});
+
+clearFilters.addEventListener('click', function() {
+    searchInput.value = '';
+    customerFilter.value = '';
+    clothTypeFilter.value = '';
+    measurementsTable.innerHTML = originalTableContent;
+    filterResults.style.display = 'none';
+});
+
+function performFilter() {
+    // Clear previous timeout
+    clearTimeout(filterTimeout);
+    
+    // Debounce search input
+    if (this === searchInput) {
+        filterTimeout = setTimeout(() => {
+            executeFilter();
+        }, 300);
+    } else {
+        executeFilter();
+    }
+}
+
+function executeFilter() {
+    const search = searchInput.value.trim();
+    const customer = customerFilter.value;
+    const clothType = clothTypeFilter.value;
+    
+    // Show loading state
+    filterResults.style.display = 'block';
+    filterCount.textContent = 'Filtering...';
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (customer) params.append('customer_id', customer);
+    if (clothType) params.append('cloth_type_id', clothType);
+    params.append('page', '1');
+    params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
+    
+    fetch(`ajax/filter_measurements.php?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    displayFilterResults(data.measurements);
+                    filterCount.textContent = data.pagination.total_measurements;
+                } else {
+                    console.error('Filter error:', data.error);
+                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                filterCount.textContent = 'Invalid response from server';
+            }
+        })
+        .catch(error => {
+            console.error('Filter error:', error);
+            filterCount.textContent = 'Filter failed: ' + error.message;
+        });
+}
+
+function displayFilterResults(measurements) {
+    if (measurements.length === 0) {
+        measurementsTable.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No measurements found</h5>
+                    <p class="text-muted">Try adjusting your filter criteria</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    measurements.forEach(measurement => {
+        // Parse measurement data
+        const measurementData = measurement.measurement_data ? JSON.parse(measurement.measurement_data) : {};
+        const measurementCount = Object.keys(measurementData).length;
+        
+        tableHTML += `
+            <tr>
+                <td>
+                    <div>
+                        <strong>${measurement.customer_name}</strong>
+                        ${measurement.customer_phone ? `<br><small class="text-muted">${measurement.customer_phone}</small>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-info">${measurement.cloth_type_name}</span>
+                </td>
+                <td>
+                    <span class="badge bg-primary">${measurementCount} measurements</span>
+                </td>
+                <td>
+                    ${measurement.notes ? `<small class="text-muted">${measurement.notes}</small>` : '<span class="text-muted">No notes</span>'}
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-info" 
+                                onclick="viewMeasurement(${measurement.id})"
+                                title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="editMeasurement(${JSON.stringify(measurement).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-danger" 
+                                onclick="deleteMeasurement(${measurement.id}, '${measurement.customer_name.replace(/'/g, "\\'")}')"
+                                title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    measurementsTable.innerHTML = tableHTML;
+}
 </script>
 
 <?php include 'includes/footer.php'; ?>

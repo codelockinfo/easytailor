@@ -142,32 +142,29 @@ if (isset($_GET['edit'])) {
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-8">
+        <div class="row g-3">
+            <div class="col-md-12">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" 
+                           id="searchInput"
                            class="form-control" 
-                           name="search" 
                            placeholder="Search customers by name, code, email, or phone..."
-                           value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Search
+                           autocomplete="off">
+                    <button type="button" id="clearSearch" class="btn btn-outline-secondary" style="display: none;">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <?php if (!empty($search)): ?>
-                        <a href="customers.php" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-1"></i>Clear
-                        </a>
-                    <?php endif; ?>
+                </div>
+                <div id="searchResults" class="mt-3" style="display: none;">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="searchCount">0</span> customers found
+                    </div>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -472,6 +469,151 @@ document.getElementById('customerModal').addEventListener('hidden.bs.modal', fun
     document.getElementById('customerId').value = '';
     document.getElementById('customerForm').reset();
 });
+
+// AJAX Customer Search
+let searchTimeout;
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+const searchCount = document.getElementById('searchCount');
+const clearSearch = document.getElementById('clearSearch');
+const customersTable = document.querySelector('.table tbody');
+
+// Store original table content
+const originalTableContent = customersTable.innerHTML;
+
+searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.trim();
+    
+    // Clear previous timeout
+    clearTimeout(searchTimeout);
+    
+    if (searchTerm.length < 2) {
+        // Show original table
+        customersTable.innerHTML = originalTableContent;
+        searchResults.style.display = 'none';
+        clearSearch.style.display = 'none';
+        return;
+    }
+    
+    // Show loading state
+    searchResults.style.display = 'block';
+    searchCount.textContent = 'Searching...';
+    clearSearch.style.display = 'inline-block';
+    
+    // Debounce search
+    searchTimeout = setTimeout(() => {
+        performSearch(searchTerm);
+    }, 300);
+});
+
+clearSearch.addEventListener('click', function() {
+    searchInput.value = '';
+    customersTable.innerHTML = originalTableContent;
+    searchResults.style.display = 'none';
+    clearSearch.style.display = 'none';
+});
+
+function performSearch(searchTerm) {
+    fetch(`ajax/search_customers.php?search=${encodeURIComponent(searchTerm)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displaySearchResults(data.customers);
+                searchCount.textContent = data.count;
+            } else {
+                console.error('Search error:', data.error);
+                searchCount.textContent = 'Search failed';
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            searchCount.textContent = 'Search failed';
+        });
+}
+
+function displaySearchResults(customers) {
+    if (customers.length === 0) {
+        customersTable.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No customers found</h5>
+                    <p class="text-muted">Try adjusting your search terms</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    customers.forEach(customer => {
+        // Format date of birth if available
+        const dobDisplay = customer.date_of_birth ? 
+            `<br><small class="text-muted"><i class="fas fa-birthday-cake me-1"></i>${customer.date_of_birth}</small>` : '';
+        
+        // Format contact info
+        const phoneDisplay = customer.phone ? 
+            `<div><i class="fas fa-phone me-1"></i>${customer.phone}</div>` : '';
+        const emailDisplay = customer.email ? 
+            `<div><i class="fas fa-envelope me-1"></i>${customer.email}</div>` : '';
+        
+        // Format location
+        const locationDisplay = customer.city || customer.state ? 
+            `${customer.city || ''}${customer.city && customer.state ? ', ' : ''}${customer.state || ''}` : '';
+        
+        tableHTML += `
+            <tr>
+                <td>
+                    <span class="badge bg-primary">${customer.customer_code}</span>
+                </td>
+                <td>
+                    <div>
+                        <strong>${customer.name}</strong>
+                        ${dobDisplay}
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        ${phoneDisplay}
+                        ${emailDisplay}
+                    </div>
+                </td>
+                <td>
+                    ${locationDisplay ? `<div>${locationDisplay}</div>` : ''}
+                </td>
+                <td>
+                    <span class="badge bg-info">${customer.total_orders || 0}</span>
+                </td>
+                <td>
+                    <span class="badge bg-success">${customer.status || 'active'}</span>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="editCustomer(${JSON.stringify(customer).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="customer-details.php?id=${customer.id}" 
+                           class="btn btn-outline-info" 
+                           title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button type="button" 
+                                class="btn btn-outline-danger" 
+                                onclick="deleteCustomer(${customer.id}, '${customer.name.replace(/'/g, "\\'")}')"
+                                title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    customersTable.innerHTML = tableHTML;
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

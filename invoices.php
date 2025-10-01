@@ -262,40 +262,44 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-6">
+        <div class="row g-3">
+            <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" 
+                           id="searchInput"
                            class="form-control" 
-                           name="search" 
                            placeholder="Search invoices..."
-                           value="<?php echo htmlspecialchars($search); ?>">
+                           autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-4">
-                <select class="form-select" name="status">
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
                     <option value="">All Statuses</option>
-                    <option value="paid" <?php echo $status_filter === 'paid' ? 'selected' : ''; ?>>Paid</option>
-                    <option value="partial" <?php echo $status_filter === 'partial' ? 'selected' : ''; ?>>Partial</option>
-                    <option value="due" <?php echo $status_filter === 'due' ? 'selected' : ''; ?>>Due</option>
+                    <option value="paid">Paid</option>
+                    <option value="partial">Partial</option>
+                    <option value="due">Due</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="customerFilter">
+                    <option value="">All Customers</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Filter
-                    </button>
-                    <?php if (!empty($search) || !empty($status_filter)): ?>
-                        <a href="invoices.php" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-1"></i>Clear
-                        </a>
-                    <?php endif; ?>
-                </div>
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-        </form>
+        </div>
+        <div id="filterResults" class="mt-3" style="display: none;">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <span id="filterCount">0</span> invoices found
+            </div>
+        </div>
     </div>
 </div>
 
@@ -678,6 +682,236 @@ document.getElementById('paymentModal').addEventListener('hidden.bs.modal', func
     document.getElementById('paymentForm').reset();
     document.getElementById('paymentDate').value = '<?php echo date('Y-m-d'); ?>';
 });
+
+// AJAX Invoice Filtering
+let filterTimeout;
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const customerFilter = document.getElementById('customerFilter');
+const clearFilters = document.getElementById('clearFilters');
+const filterResults = document.getElementById('filterResults');
+const filterCount = document.getElementById('filterCount');
+const invoicesTable = document.querySelector('.table tbody');
+
+// Store original table content
+const originalTableContent = invoicesTable.innerHTML;
+
+// Load filter options on page load
+loadFilterOptions();
+
+function loadFilterOptions() {
+    fetch('ajax/filter_invoices.php?page=1&limit=1')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    populateFilterOptions(data.filter_options);
+                } else {
+                    console.error('Filter options error:', data.error);
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateFilterOptions(options) {
+    // Populate customers
+    const customerSelect = document.getElementById('customerFilter');
+    customerSelect.innerHTML = '<option value="">All Customers</option>';
+    options.customers.forEach(customer => {
+        customerSelect.innerHTML += `<option value="${customer.id}">${customer.name}</option>`;
+    });
+}
+
+// Add event listeners for all filters
+[searchInput, statusFilter, customerFilter].forEach(element => {
+    element.addEventListener('change', performFilter);
+    if (element === searchInput) {
+        element.addEventListener('input', performFilter);
+    }
+});
+
+clearFilters.addEventListener('click', function() {
+    searchInput.value = '';
+    statusFilter.value = '';
+    customerFilter.value = '';
+    invoicesTable.innerHTML = originalTableContent;
+    filterResults.style.display = 'none';
+});
+
+function performFilter() {
+    // Clear previous timeout
+    clearTimeout(filterTimeout);
+    
+    // Debounce search input
+    if (this === searchInput) {
+        filterTimeout = setTimeout(() => {
+            executeFilter();
+        }, 300);
+    } else {
+        executeFilter();
+    }
+}
+
+function executeFilter() {
+    const search = searchInput.value.trim();
+    const status = statusFilter.value;
+    const customer = customerFilter.value;
+    
+    // Show loading state
+    filterResults.style.display = 'block';
+    filterCount.textContent = 'Filtering...';
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    if (customer) params.append('customer_id', customer);
+    params.append('page', '1');
+    params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
+    
+    fetch(`ajax/filter_invoices.php?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            if (text.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+            }
+            
+            try {
+                const data = JSON.parse(text);
+                if (data.success) {
+                    displayFilterResults(data.invoices);
+                    filterCount.textContent = data.pagination.total_invoices;
+                } else {
+                    console.error('Filter error:', data.error);
+                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                filterCount.textContent = 'Invalid response from server';
+            }
+        })
+        .catch(error => {
+            console.error('Filter error:', error);
+            filterCount.textContent = 'Filter failed: ' + error.message;
+        });
+}
+
+function displayFilterResults(invoices) {
+    if (invoices.length === 0) {
+        invoicesTable.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No invoices found</h5>
+                    <p class="text-muted">Try adjusting your filter criteria</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    invoices.forEach(invoice => {
+        // Format dates
+        const invoiceDate = new Date(invoice.invoice_date).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'short', day: 'numeric' 
+        });
+        const dueDate = new Date(invoice.due_date).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'short', day: 'numeric' 
+        });
+        
+        // Check if overdue
+        const isOverdue = new Date(invoice.due_date) < new Date() && invoice.payment_status !== 'paid';
+        
+        // Status badge colors
+        const statusColors = {
+            'paid': 'success',
+            'partial': 'warning',
+            'due': 'danger'
+        };
+        const statusColor = statusColors[invoice.payment_status] || 'secondary';
+        
+        // Format currency
+        const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        
+        tableHTML += `
+            <tr>
+                <td>
+                    <span class="badge bg-primary">${invoice.invoice_number}</span>
+                </td>
+                <td>
+                    <div>
+                        <strong>${invoice.customer_name}</strong>
+                        ${invoice.customer_phone ? `<br><small class="text-muted">${invoice.customer_phone}</small>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-info">${invoice.order_number}</span>
+                </td>
+                <td>${invoiceDate}</td>
+                <td>
+                    <span class="${isOverdue ? 'text-danger fw-bold' : ''}">${dueDate}</span>
+                </td>
+                <td>
+                    <span class="badge bg-${statusColor}">${invoice.payment_status.charAt(0).toUpperCase() + invoice.payment_status.slice(1)}</span>
+                </td>
+                <td>
+                    <div class="text-end">
+                        <div class="fw-bold">${formatCurrency(invoice.total_amount)}</div>
+                        <small class="text-muted">
+                            Paid: ${formatCurrency(invoice.paid_amount)}
+                        </small>
+                    </div>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="editInvoice(${JSON.stringify(invoice).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="invoice-details.php?id=${invoice.id}" 
+                           class="btn btn-outline-info" 
+                           title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button type="button" 
+                                class="btn btn-outline-success" 
+                                onclick="addPayment(${invoice.id}, '${invoice.invoice_number}', ${invoice.balance_amount})"
+                                title="Add Payment">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    invoicesTable.innerHTML = tableHTML;
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

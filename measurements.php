@@ -100,7 +100,7 @@ if (!empty($search)) {
 
 // Get data for dropdowns
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
-$clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
+$clothTypes = $clothTypeModel->findAll(['status' => 'active']);
 
 // Get measurement for editing
 $editMeasurement = null;
@@ -411,15 +411,30 @@ include 'includes/header.php';
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="cloth_type_id" class="form-label">Cloth Type *</label>
-                                <select class="form-select" id="cloth_type_id" name="cloth_type_id" required <?php echo $editMeasurement ? 'readonly' : ''; ?>>
+                                <select class="form-select" id="cloth_type_id" name="cloth_type_id" required <?php echo $editMeasurement ? 'readonly' : ''; ?> onchange="loadMeasurementChart(this.value)">
                                     <option value="">Select Cloth Type</option>
                                     <?php foreach ($clothTypes as $clothType): ?>
                                         <option value="<?php echo $clothType['id']; ?>" 
+                                                data-chart="<?php echo htmlspecialchars($clothType['measurement_chart_image'] ?? ''); ?>"
                                                 <?php echo ($editMeasurement && $editMeasurement['cloth_type_id'] == $clothType['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($clothType['name']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Measurement Chart Display -->
+                    <div id="measurementChartContainer" class="mb-4" style="display:none;">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-ruler-combined me-2"></i>Measurement Guide
+                                </h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <img id="measurementChartImage" src="" alt="Measurement Guide" class="img-fluid" style="max-height: 500px;">
                             </div>
                         </div>
                     </div>
@@ -453,23 +468,74 @@ include 'includes/header.php';
 
 <!-- View Measurement Modal -->
 <div class="modal fade" id="viewMeasurementModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Measurement Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ruler me-2"></i>Measurement Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="viewMeasurementContent">
-                <!-- Content will be loaded via AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading measurement details...</p>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printMeasurement()">
+                    <i class="fas fa-print me-2"></i>Print
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+// Store cloth type chart data
+const clothTypeCharts = {};
+<?php foreach ($clothTypes as $clothType): ?>
+clothTypeCharts[<?php echo $clothType['id']; ?>] = '<?php echo htmlspecialchars($clothType['measurement_chart_image'] ?? ''); ?>';
+<?php endforeach; ?>
+
+// Load measurement chart based on selected cloth type
+function loadMeasurementChart(clothTypeId) {
+    const chartContainer = document.getElementById('measurementChartContainer');
+    const chartImage = document.getElementById('measurementChartImage');
+    
+    console.log('Loading chart for cloth type ID:', clothTypeId);
+    console.log('Available charts:', clothTypeCharts);
+    
+    if (clothTypeId && clothTypeCharts[clothTypeId] && clothTypeCharts[clothTypeId].trim() !== '') {
+        const chartPath = clothTypeCharts[clothTypeId];
+        console.log('Chart path:', chartPath);
+        
+        chartImage.src = chartPath;
+        chartImage.onerror = function() {
+            console.error('Failed to load chart image:', chartPath);
+        };
+        chartImage.onload = function() {
+            console.log('Chart loaded successfully:', chartPath);
+        };
+        chartContainer.style.display = 'block';
+    } else {
+        console.log('No chart available for this cloth type');
+        chartContainer.style.display = 'none';
+    }
+}
+
+// Load chart on page load if editing
+<?php if ($editMeasurement && !empty($editMeasurement['cloth_type_id'])): ?>
+window.addEventListener('DOMContentLoaded', function() {
+    loadMeasurementChart(<?php echo $editMeasurement['cloth_type_id']; ?>);
+});
+<?php endif; ?>
+
 // Measurement field management
 let measurementFieldCount = 0;
 
@@ -514,9 +580,181 @@ function removeMeasurementField(button) {
 
 // View measurement details
 function viewMeasurement(id) {
-    // This would typically load via AJAX
-    // For now, we'll show a simple alert
-    alert('View measurement details for ID: ' + id);
+    const modal = new bootstrap.Modal(document.getElementById('viewMeasurementModal'));
+    const contentDiv = document.getElementById('viewMeasurementContent');
+    
+    // Show loading state
+    contentDiv.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading measurement details...</p>
+        </div>
+    `;
+    
+    // Show modal
+    modal.show();
+    
+    // Fetch measurement details via AJAX
+    fetch('ajax/get_measurement_details.php?id=' + id)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayMeasurementDetails(data.measurement);
+            } else {
+                contentDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${data.message || 'Failed to load measurement details'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            contentDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    An error occurred while loading measurement details.
+                </div>
+            `;
+        });
+}
+
+function displayMeasurementDetails(measurement) {
+    const contentDiv = document.getElementById('viewMeasurementContent');
+    
+    // Build measurement data HTML
+    let measurementDataHtml = '';
+    if (measurement.measurement_data && typeof measurement.measurement_data === 'object') {
+        const data = measurement.measurement_data;
+        measurementDataHtml = '<div class="row">';
+        for (const [key, value] of Object.entries(data)) {
+            if (value) {
+                measurementDataHtml += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1 text-uppercase" style="font-size: 0.75rem;">
+                                    ${key.replace(/_/g, ' ')}
+                                </h6>
+                                <h4 class="mb-0 text-primary">
+                                    <strong>${value}</strong>
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        measurementDataHtml += '</div>';
+    } else {
+        measurementDataHtml = '<p class="text-muted">No measurement data available</p>';
+    }
+    
+    // Build measurement chart HTML
+    let chartHtml = '';
+    if (measurement.measurement_chart) {
+        chartHtml = `
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-ruler-combined me-2"></i>Measurement Guide
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <img src="${measurement.measurement_chart}" 
+                         alt="Measurement Chart" 
+                         class="img-fluid" 
+                         style="max-height: 400px;">
+                </div>
+            </div>
+        `;
+    }
+    
+    // Build complete HTML
+    contentDiv.innerHTML = `
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Customer Information
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Customer Name</small>
+                            <h5 class="mb-0">${measurement.first_name} ${measurement.last_name}</h5>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Customer Code</small>
+                            <span class="badge bg-primary fs-6">${measurement.customer_code}</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Cloth Type</small>
+                            <span class="badge bg-secondary fs-6">${measurement.cloth_type_name || 'N/A'}</span>
+                            ${measurement.cloth_category ? '<span class="badge bg-info fs-6 ms-1">' + measurement.cloth_category + '</span>' : ''}
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Recorded On</small>
+                            <span><i class="fas fa-calendar me-1"></i>${new Date(measurement.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                ${chartHtml || '<div class="card h-100"><div class="card-body text-center text-muted"><i class="fas fa-ruler fa-3x mb-3"></i><p>No measurement chart available</p></div></div>'}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-tape me-2"></i>Measurements
+                </h6>
+            </div>
+            <div class="card-body">
+                ${measurementDataHtml}
+            </div>
+        </div>
+        
+        ${measurement.notes ? `
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0">
+                    <i class="fas fa-sticky-note me-2"></i>Notes
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">${measurement.notes.replace(/\n/g, '<br>')}</p>
+            </div>
+        </div>
+        ` : ''}
+    `;
+}
+
+function printMeasurement() {
+    const modalBody = document.getElementById('viewMeasurementContent');
+    const printWindow = window.open('', '', 'height=600,width=800');
+    
+    printWindow.document.write('<html><head><title>Measurement Details</title>');
+    printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+    printWindow.document.write('<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">');
+    printWindow.document.write('<style>body { padding: 20px; } @media print { .no-print { display: none; } }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2 class="text-center mb-4">Measurement Details</h2>');
+    printWindow.document.write(modalBody.innerHTML);
+    printWindow.document.write('</body></html>');
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
 }
 
 // Delete measurement

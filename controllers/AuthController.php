@@ -33,10 +33,15 @@ class AuthController {
             $_SESSION['username'] = $user['username'];
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['user_name'] = $user['full_name'];
+            $_SESSION['company_id'] = $user['company_id'];
             $_SESSION['login_time'] = time();
             
-            // Update last login time
-            $this->userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
+            // Note: last_login column is optional - skip if doesn't exist
+            try {
+                $this->userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
+            } catch (Exception $e) {
+                // Column doesn't exist, ignore this error
+            }
             
             return ['success' => true, 'message' => 'Login successful', 'user' => $user];
         } else {

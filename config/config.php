@@ -33,7 +33,7 @@ define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif']);
 define('RECORDS_PER_PAGE', 20);
 
 // Date and time settings
-date_default_timezone_set('UTC');
+date_default_timezone_set('Asia/Kolkata'); // Indian Standard Time
 
 // Autoloader
 spl_autoload_register(function ($class_name) {
@@ -77,8 +77,8 @@ function redirect($url) {
     exit();
 }
 
-function format_currency($amount, $currency = 'USD') {
-    return '$' . number_format($amount, 2);
+function format_currency($amount, $currency = 'INR') {
+    return '₹' . number_format($amount, 2);
 }
 
 function format_date($date, $format = 'Y-m-d') {
@@ -116,6 +116,14 @@ function get_user_role() {
 
 function get_user_name() {
     return $_SESSION['user_name'] ?? null;
+}
+
+function get_company_id() {
+    return $_SESSION['company_id'] ?? null;
+}
+
+function set_company_id($company_id) {
+    $_SESSION['company_id'] = $company_id;
 }
 
 // Create upload directory if it doesn't exist

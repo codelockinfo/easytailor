@@ -25,8 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'description' => sanitize_input($_POST['description']),
                     'standard_rate' => !empty($_POST['standard_rate']) ? (float)$_POST['standard_rate'] : null,
                     'category' => sanitize_input($_POST['category']),
+                    'measurement_chart_image' => sanitize_input($_POST['measurement_chart_image'] ?? ''),
                     'status' => $_POST['status']
                 ];
+                
+                // Handle file upload for measurement chart
+                if (isset($_FILES['chart_file']) && $_FILES['chart_file']['error'] === UPLOAD_ERR_OK) {
+                    $uploadDir = 'uploads/measurement-charts/';
+                    $fileName = time() . '_' . basename($_FILES['chart_file']['name']);
+                    $targetPath = $uploadDir . $fileName;
+                    
+                    if (move_uploaded_file($_FILES['chart_file']['tmp_name'], $targetPath)) {
+                        $data['measurement_chart_image'] = $targetPath;
+                    }
+                }
                 
                 // Validate name uniqueness
                 if ($clothTypeModel->nameExists($data['name'])) {
@@ -53,6 +65,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'category' => sanitize_input($_POST['category']),
                     'status' => $_POST['status']
                 ];
+                
+                // Handle file upload for measurement chart if provided
+                if (isset($_FILES['chart_file']) && $_FILES['chart_file']['error'] === UPLOAD_ERR_OK) {
+                    $uploadDir = 'uploads/measurement-charts/';
+                    $fileName = time() . '_' . basename($_FILES['chart_file']['name']);
+                    $targetPath = $uploadDir . $fileName;
+                    
+                    if (move_uploaded_file($_FILES['chart_file']['tmp_name'], $targetPath)) {
+                        $data['measurement_chart_image'] = $targetPath;
+                    }
+                } elseif (!empty($_POST['measurement_chart_image'])) {
+                    // Keep existing chart if not uploading new one
+                    $data['measurement_chart_image'] = sanitize_input($_POST['measurement_chart_image']);
+                }
                 
                 // Validate name uniqueness
                 if ($clothTypeModel->nameExists($data['name'], $clothTypeId)) {
@@ -371,7 +397,7 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
 <div class="modal fade" id="clothTypeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" id="clothTypeForm">
+            <form method="POST" id="clothTypeForm" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title" id="clothTypeModalTitle">Add Cloth Type</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -380,6 +406,7 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action" id="clothTypeAction" value="create">
                     <input type="hidden" name="cloth_type_id" id="clothTypeId">
+                    <input type="hidden" name="measurement_chart_image" id="existingChartImage">
                     
                     <div class="row">
                         <div class="col-md-8 mb-3">
@@ -412,6 +439,27 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="chart_file" class="form-label">Measurement Chart (Image/SVG)</label>
+                        <input type="file" class="form-control" id="chart_file" name="chart_file" accept="image/*,.svg" onchange="previewChartFile(this)">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Upload a measurement diagram (PNG with transparent background recommended, or SVG)
+                        </small>
+                        <div class="alert alert-info mt-2" style="font-size: 0.875rem;">
+                            <strong>Tip:</strong> For best results, use PNG with transparent background. 
+                            Remove background at: <a href="https://www.remove.bg" target="_blank">remove.bg</a>
+                        </div>
+                        <div id="currentChartPreview" class="mt-2" style="display:none;">
+                            <p class="mb-1"><strong>Current Chart:</strong></p>
+                            <img id="chartPreviewImg" src="" alt="Measurement Chart" class="img-thumbnail" style="max-height: 200px; background: #f8f9fa;">
+                        </div>
+                        <div id="newChartPreview" class="mt-2" style="display:none;">
+                            <p class="mb-1"><strong>New Chart Preview:</strong></p>
+                            <img id="newChartPreviewImg" src="" alt="New Chart Preview" class="img-thumbnail" style="max-height: 200px; background: #f8f9fa;">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -465,6 +513,15 @@ function editClothType(clothType) {
     document.getElementById('standard_rate').value = clothType.standard_rate || '';
     document.getElementById('status').value = clothType.status || 'active';
     
+    // Show existing measurement chart if available
+    if (clothType.measurement_chart_image) {
+        document.getElementById('existingChartImage').value = clothType.measurement_chart_image;
+        document.getElementById('chartPreviewImg').src = clothType.measurement_chart_image;
+        document.getElementById('currentChartPreview').style.display = 'block';
+    } else {
+        document.getElementById('currentChartPreview').style.display = 'none';
+    }
+    
     // Show modal
     new bootstrap.Modal(document.getElementById('clothTypeModal')).show();
 }
@@ -475,11 +532,33 @@ function deleteClothType(clothTypeId, clothTypeName) {
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
+// Preview uploaded chart file
+function previewChartFile(input) {
+    const preview = document.getElementById('newChartPreview');
+    const previewImg = document.getElementById('newChartPreviewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
 // Reset modal when closed
 document.getElementById('clothTypeModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('clothTypeModalTitle').textContent = 'Add Cloth Type';
     document.getElementById('clothTypeAction').value = 'create';
     document.getElementById('clothTypeId').value = '';
+    document.getElementById('existingChartImage').value = '';
+    document.getElementById('currentChartPreview').style.display = 'none';
+    document.getElementById('newChartPreview').style.display = 'none';
     document.getElementById('clothTypeForm').reset();
 });
 </script>

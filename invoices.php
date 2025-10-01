@@ -4,8 +4,11 @@
  * Tailoring Management System
  */
 
-$page_title = 'Invoice Management';
-require_once 'includes/header.php';
+// Include config first (before any output)
+require_once 'config/config.php';
+
+// Check if user is logged in
+require_login();
 
 require_once 'models/Invoice.php';
 require_once 'models/Order.php';
@@ -18,7 +21,7 @@ $paymentModel = new Payment();
 $message = '';
 $messageType = '';
 
-// Handle form submissions
+// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
@@ -42,12 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $invoiceId = $invoiceModel->createInvoice($data);
                 if ($invoiceId) {
-                    $message = 'Invoice created successfully';
-                    $messageType = 'success';
+                    $_SESSION['message'] = 'Invoice created successfully';
+                    $_SESSION['messageType'] = 'success';
                 } else {
-                    $message = 'Failed to create invoice';
-                    $messageType = 'error';
+                    $_SESSION['message'] = 'Failed to create invoice';
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: invoices.php');
+                exit;
                 break;
                 
             case 'add_payment':
@@ -63,30 +68,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $paymentId = $paymentModel->createPayment($data);
                 if ($paymentId) {
-                    $message = 'Payment added successfully';
-                    $messageType = 'success';
+                    $_SESSION['message'] = 'Payment added successfully';
+                    $_SESSION['messageType'] = 'success';
                 } else {
-                    $message = 'Failed to add payment';
-                    $messageType = 'error';
+                    $_SESSION['message'] = 'Failed to add payment';
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: invoices.php');
+                exit;
                 break;
                 
             case 'delete_payment':
                 $paymentId = (int)$_POST['payment_id'];
                 if ($paymentModel->deletePayment($paymentId)) {
-                    $message = 'Payment deleted successfully';
-                    $messageType = 'success';
+                    $_SESSION['message'] = 'Payment deleted successfully';
+                    $_SESSION['messageType'] = 'success';
                 } else {
-                    $message = 'Failed to delete payment';
-                    $messageType = 'error';
+                    $_SESSION['message'] = 'Failed to delete payment';
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: invoices.php');
+                exit;
                 break;
         }
     } else {
-        $message = 'Invalid request';
-        $messageType = 'error';
+        $_SESSION['message'] = 'Invalid request';
+        $_SESSION['messageType'] = 'error';
+        header('Location: invoices.php');
+        exit;
     }
 }
+
+// Get messages from session
+if (isset($_SESSION['message'])) {
+    $message = $_SESSION['message'];
+    $messageType = $_SESSION['messageType'] ?? 'info';
+    unset($_SESSION['message']);
+    unset($_SESSION['messageType']);
+}
+
+// NOW include header (after all redirects are done)
+$page_title = 'Invoice Management';
+require_once 'includes/header.php';
 
 // Get invoices
 $status_filter = $_GET['status'] ?? '';
@@ -104,11 +127,25 @@ $invoices = $invoiceModel->getInvoicesWithDetails($conditions, $limit, $offset);
 $totalInvoices = $invoiceModel->count($conditions);
 $totalPages = ceil($totalInvoices / $limit);
 
-// Get unpaid orders for creating invoices
-$unpaidOrders = $orderModel->getOrdersWithDetails(['status' => 'completed'], 50);
-$unpaidOrders = array_filter($unpaidOrders, function($order) {
-    return $order['balance_amount'] > 0;
-});
+// Get orders that can have invoices (not cancelled and not fully invoiced)
+// Show orders with status: pending, in_progress, completed, or delivered
+$allOrders = $orderModel->getOrdersWithDetails([], 100);
+
+// Filter orders that:
+// 1. Are not cancelled
+// 2. Don't have an invoice yet (or have balance remaining)
+$unpaidOrders = [];
+foreach ($allOrders as $order) {
+    if ($order['status'] !== 'cancelled') {
+        // Check if this order already has an invoice
+        $existingInvoices = $invoiceModel->findAll(['order_id' => $order['id']]);
+        
+        if (empty($existingInvoices)) {
+            // No invoice exists, show this order
+            $unpaidOrders[] = $order;
+        }
+    }
+}
 
 // Get invoice statistics
 $invoiceStats = $invoiceModel->getInvoiceStats();
@@ -427,12 +464,25 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                             <label for="order_id" class="form-label">Order *</label>
                             <select class="form-select" id="order_id" name="order_id" required>
                                 <option value="">Select Order</option>
-                                <?php foreach ($unpaidOrders as $order): ?>
-                                    <option value="<?php echo $order['id']; ?>" data-amount="<?php echo $order['balance_amount']; ?>">
-                                        <?php echo htmlspecialchars($order['order_number'] . ' - ' . $order['first_name'] . ' ' . $order['last_name'] . ' (' . format_currency($order['balance_amount']) . ')'); ?>
-                                    </option>
-                                <?php endforeach; ?>
+                                <?php if (empty($unpaidOrders)): ?>
+                                    <option value="" disabled>No orders available for invoicing</option>
+                                <?php else: ?>
+                                    <?php foreach ($unpaidOrders as $order): ?>
+                                        <option value="<?php echo $order['id']; ?>" 
+                                                data-amount="<?php echo $order['total_amount']; ?>"
+                                                data-status="<?php echo $order['status']; ?>">
+                                            <?php echo htmlspecialchars($order['order_number'] . ' - ' . $order['first_name'] . ' ' . $order['last_name'] . ' - ' . ucfirst($order['status']) . ' (' . format_currency($order['total_amount']) . ')'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </select>
+                            <?php if (empty($unpaidOrders)): ?>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Create an order first, then you can generate an invoice for it.
+                                    <a href="orders.php" class="text-decoration-none">Go to Orders</a>
+                                </small>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="invoice_date" class="form-label">Invoice Date *</label>
@@ -448,7 +498,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                         <div class="col-md-6 mb-3">
                             <label for="subtotal" class="form-label">Subtotal *</label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" id="subtotal" name="subtotal" step="0.01" min="0" required>
                             </div>
                         </div>
@@ -456,20 +506,26 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                     
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label for="tax_rate" class="form-label">Tax Rate (%)</label>
-                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" min="0" max="100" value="0">
+                            <label for="tax_rate" class="form-label">GST Rate (%)</label>
+                            <select class="form-select" id="tax_rate" name="tax_rate">
+                                <option value="0">No GST</option>
+                                <option value="5">5% GST</option>
+                                <option value="12">12% GST</option>
+                                <option value="18" selected>18% GST</option>
+                                <option value="28">28% GST</option>
+                            </select>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="tax_amount" class="form-label">Tax Amount</label>
+                            <label for="tax_amount" class="form-label">GST Amount</label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" id="tax_amount" name="tax_amount" step="0.01" min="0" value="0" readonly>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="discount_amount" class="form-label">Discount Amount</label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" id="discount_amount" name="discount_amount" step="0.01" min="0" value="0">
                             </div>
                         </div>
@@ -479,7 +535,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                         <div class="col-md-12 mb-3">
                             <label for="total_amount" class="form-label">Total Amount</label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" id="total_amount" name="total_amount" step="0.01" min="0" readonly>
                             </div>
                         </div>
@@ -523,10 +579,10 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                     <div class="mb-3">
                         <label for="paymentAmount" class="form-label">Amount *</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">₹</span>
                             <input type="number" class="form-control" id="paymentAmount" name="amount" step="0.01" min="0" required>
                         </div>
-                        <small class="text-muted">Maximum: $<span id="maxPaymentAmount">0.00</span></small>
+                        <small class="text-muted">Maximum: ₹<span id="maxPaymentAmount">0.00</span></small>
                     </div>
                     
                     <div class="mb-3">
@@ -625,4 +681,5 @@ document.getElementById('paymentModal').addEventListener('hidden.bs.modal', func
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+
 

@@ -14,7 +14,7 @@ if (is_logged_in()) {
 $error_message = '';
 $success_message = '';
 
-// Handle login form submission
+// Handle login form submission BEFORE any output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize_input($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -27,16 +27,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result['success']) {
             redirect(APP_URL . '/dashboard.php');
         } else {
-            $error_message = $result['message'];
+            // Store error in session and redirect to prevent form resubmission
+            $_SESSION['login_error'] = $result['message'];
+            header('Location: login.php');
+            exit;
         }
     } else {
-        $error_message = 'Please enter both username and password';
+        // Store error in session and redirect to prevent form resubmission
+        $_SESSION['login_error'] = 'Please enter both username and password';
+        header('Location: login.php');
+        exit;
     }
+}
+
+// Get messages from session
+if (isset($_SESSION['login_error'])) {
+    $error_message = $_SESSION['login_error'];
+    unset($_SESSION['login_error']);
 }
 
 // Handle logout message
 if (isset($_GET['logout'])) {
     $success_message = 'You have been logged out successfully';
+}
+
+// Handle registration success message
+if (isset($_SESSION['reg_success'])) {
+    $success_message = $_SESSION['reg_success'];
+    unset($_SESSION['reg_success']);
 }
 ?>
 <!DOCTYPE html>
@@ -108,7 +126,15 @@ if (isset($_GET['logout'])) {
             <div class="col-md-6 col-lg-4">
                 <div class="card login-card border-0">
                     <div class="login-header">
-                        <i class="fas fa-cut fa-3x mb-3"></i>
+                        <?php
+                        // Check for brand logo
+                        $brandLogo = 'uploads/logos/brand-logo.png';
+                        if (file_exists($brandLogo)):
+                        ?>
+                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
+                        <?php else: ?>
+                            <i class="fas fa-cut fa-3x mb-3"></i>
+                        <?php endif; ?>
                         <h3 class="mb-0"><?php echo APP_NAME; ?></h3>
                         <p class="mb-0 opacity-75">Sign in to your account</p>
                     </div>
@@ -177,9 +203,15 @@ if (isset($_GET['logout'])) {
                         </form>
                         
                         <div class="text-center mt-4">
+                            <p class="text-muted mb-2">
+                                Don't have an account? 
+                                <a href="register.php" class="text-decoration-none fw-bold">
+                                    <i class="fas fa-user-plus me-1"></i>Register Your Tailor Shop
+                                </a>
+                            </p>
                             <small class="text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Default admin: admin / admin123
+                                Free 30-day trial • No credit card required
                             </small>
                         </div>
                     </div>

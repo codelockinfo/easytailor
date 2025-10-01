@@ -4,8 +4,11 @@
  * Tailoring Management System
  */
 
-$page_title = 'Order Management';
-require_once 'includes/header.php';
+// Include config first (before any output)
+require_once 'config/config.php';
+
+// Check if user is logged in
+require_login();
 
 require_once 'models/Order.php';
 require_once 'models/Customer.php';
@@ -20,13 +23,31 @@ $userModel = new User();
 $message = '';
 $messageType = '';
 
-// Handle form submissions
+// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
         
         switch ($action) {
             case 'create':
+                // Validate user ID exists
+                $userId = get_user_id();
+                if (!$userId) {
+                    $_SESSION['message'] = 'Error: User session invalid. Please logout and login again.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                
+                // Verify user exists in database
+                $user = $userModel->find($userId);
+                if (!$user) {
+                    $_SESSION['message'] = 'Error: User account not found. Please contact administrator.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                
                 $data = [
                     'customer_id' => (int)$_POST['customer_id'],
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
@@ -38,17 +59,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'advance_amount' => (float)$_POST['advance_amount'],
                     'balance_amount' => (float)$_POST['total_amount'] - (float)$_POST['advance_amount'],
                     'special_instructions' => sanitize_input($_POST['special_instructions']),
-                    'created_by' => get_user_id()
+                    'created_by' => $userId
                 ];
                 
-                $orderId = $orderModel->createOrder($data);
-                if ($orderId) {
-                    $message = 'Order created successfully';
-                    $messageType = 'success';
-                } else {
-                    $message = 'Failed to create order';
-                    $messageType = 'error';
+                try {
+                    $orderId = $orderModel->createOrder($data);
+                    if ($orderId) {
+                        $_SESSION['message'] = 'Order created successfully';
+                        $_SESSION['messageType'] = 'success';
+                    } else {
+                        $_SESSION['message'] = 'Failed to create order';
+                        $_SESSION['messageType'] = 'error';
+                    }
+                } catch (Exception $e) {
+                    $_SESSION['message'] = 'Error creating order: ' . $e->getMessage();
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: orders.php');
+                exit;
                 break;
                 
             case 'update':
@@ -67,12 +95,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ];
                 
                 if ($orderModel->update($orderId, $data)) {
-                    $message = 'Order updated successfully';
-                    $messageType = 'success';
+                    $_SESSION['message'] = 'Order updated successfully';
+                    $_SESSION['messageType'] = 'success';
                 } else {
-                    $message = 'Failed to update order';
-                    $messageType = 'error';
+                    $_SESSION['message'] = 'Failed to update order';
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: orders.php');
+                exit;
                 break;
                 
             case 'update_status':
@@ -80,30 +110,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $status = $_POST['status'];
                 
                 if ($orderModel->updateOrderStatus($orderId, $status)) {
-                    $message = 'Order status updated successfully';
-                    $messageType = 'success';
+                    $_SESSION['message'] = 'Order status updated successfully';
+                    $_SESSION['messageType'] = 'success';
                 } else {
-                    $message = 'Failed to update order status';
-                    $messageType = 'error';
+                    $_SESSION['message'] = 'Failed to update order status';
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: orders.php');
+                exit;
                 break;
                 
             case 'delete':
                 $orderId = (int)$_POST['order_id'];
                 if ($orderModel->delete($orderId)) {
-                    $message = 'Order deleted successfully';
-                    $messageType = 'success';
+                    $_SESSION['message'] = 'Order deleted successfully';
+                    $_SESSION['messageType'] = 'success';
                 } else {
-                    $message = 'Failed to delete order';
-                    $messageType = 'error';
+                    $_SESSION['message'] = 'Failed to delete order';
+                    $_SESSION['messageType'] = 'error';
                 }
+                header('Location: orders.php');
+                exit;
                 break;
         }
     } else {
-        $message = 'Invalid request';
-        $messageType = 'error';
+        $_SESSION['message'] = 'Invalid request';
+        $_SESSION['messageType'] = 'error';
+        header('Location: orders.php');
+        exit;
     }
 }
+
+// Get messages from session
+if (isset($_SESSION['message'])) {
+    $message = $_SESSION['message'];
+    $messageType = $_SESSION['messageType'] ?? 'info';
+    unset($_SESSION['message']);
+    unset($_SESSION['messageType']);
+}
+
+// NOW include header (after all redirects are done)
+$page_title = 'Order Management';
+require_once 'includes/header.php';
 
 // Get orders
 $status_filter = $_GET['status'] ?? '';
@@ -339,12 +387,11 @@ $orderStats = $orderModel->getOrderStats();
                                             title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button type="button" 
-                                            class="btn btn-outline-info" 
-                                            onclick="viewOrder(<?php echo $order['id']; ?>)"
-                                            title="View Details">
+                                    <a href="order-details.php?id=<?php echo $order['id']; ?>" 
+                                       class="btn btn-outline-info" 
+                                       title="View Details">
                                         <i class="fas fa-eye"></i>
-                                    </button>
+                                    </a>
                                     <div class="dropdown">
                                         <button class="btn btn-outline-secondary dropdown-toggle" 
                                                 type="button" 
@@ -631,4 +678,5 @@ document.getElementById('orderModal').addEventListener('hidden.bs.modal', functi
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+
 

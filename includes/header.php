@@ -62,7 +62,7 @@ $current_user = [
         }
         
         .sidebar-header {
-            padding: 1.5rem;
+            padding: 0.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -288,9 +288,17 @@ $current_user = [
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
-            <a href="dashboard.php" class="sidebar-brand">
-                <i class="fas fa-cut me-2"></i>
-                <?php echo APP_NAME; ?>
+            <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
+                <?php
+                // Check for brand logo
+                $brandLogo = 'uploads/logos/brand-logo.png';
+                if (file_exists($brandLogo)):
+                ?>
+                    <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" style="height: 100px; width: auto; display: block; margin: 0 auto;">
+                <?php else: ?>
+                    <i class="fas fa-cut me-2"></i>
+                    <?php echo APP_NAME; ?>
+                <?php endif; ?>
             </a>
         </div>
         
@@ -304,7 +312,7 @@ $current_user = [
                 </li>
                 
                 <li class="nav-item">
-                    <a href="customers.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'customers.php' ? 'active' : ''; ?>">
+                    <a href="customers.php" class="nav-link <?php echo in_array(basename($_SERVER['PHP_SELF']), ['customers.php', 'customer-details.php']) ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
                         Customers
                     </a>
@@ -360,6 +368,13 @@ $current_user = [
                 </li>
                 
                 <?php if (has_role('admin')): ?>
+                <li class="nav-item">
+                    <a href="company-settings.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'company-settings.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-building"></i>
+                        Company Settings
+                    </a>
+                </li>
+                
                 <li class="nav-item">
                     <a href="users.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-user-cog"></i>

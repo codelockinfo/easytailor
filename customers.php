@@ -370,15 +370,15 @@ if (isset($_GET['edit'])) {
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city">
+                            <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Mumbai">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="state" class="form-label">State</label>
-                            <input type="text" class="form-control" id="state" name="state">
+                            <input type="text" class="form-control" id="state" name="state" placeholder="e.g., Maharashtra">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="postal_code" class="form-label">Postal Code</label>
-                            <input type="text" class="form-control" id="postal_code" name="postal_code">
+                            <label for="postal_code" class="form-label">PIN Code</label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code" placeholder="e.g., 400001" maxlength="6" pattern="[0-9]{6}">
                         </div>
                     </div>
                     

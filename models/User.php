@@ -11,9 +11,10 @@ class User extends BaseModel {
      * Authenticate user
      */
     public function authenticate($username, $password) {
-        $query = "SELECT * FROM " . $this->table . " WHERE (username = :username OR email = :username) AND status = 'active' LIMIT 1";
+        $query = "SELECT * FROM " . $this->table . " WHERE (username = :username OR email = :email) AND status = 'active' LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':email', $username);
         $stmt->execute();
         
         $user = $stmt->fetch();

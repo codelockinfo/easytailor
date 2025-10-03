@@ -1,0 +1,47 @@
+# Tailoring Management System - Error Handling and Security
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Handle 404 errors
+ErrorDocument 404 /tailoring/404.php
+
+# Handle other common errors
+ErrorDocument 403 /tailoring/404.php
+ErrorDocument 500 /tailoring/404.php
+
+# Hide sensitive files
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protect config files
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protect database files
+<Files "*.sql">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevent direct access to includes directory
+<Directory "includes">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Prevent direct access to models directory
+<Directory "models">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Prevent direct access to ajax directory
+<Directory "ajax">
+    Order allow,deny
+    Deny from all
+</Directory>

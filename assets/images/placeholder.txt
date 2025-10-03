@@ -1,0 +1,62 @@
+# Landing Page Images
+
+This directory should contain the following images for the landing page:
+
+## Required Images:
+
+1. **dashboard-preview.png** - Main hero image showing the dashboard
+   - Size: 800x600px recommended
+   - Format: PNG with transparency
+   - Content: Dashboard screenshot or mockup
+
+2. **dashboard-screenshot.png** - Screenshot section image
+   - Size: 400x300px recommended
+   - Format: PNG
+   - Content: Dashboard overview screenshot
+
+3. **orders-screenshot.png** - Orders management screenshot
+   - Size: 400x300px recommended
+   - Format: PNG
+   - Content: Orders management interface
+
+4. **invoice-screenshot.png** - Invoice generation screenshot
+   - Size: 400x300px recommended
+   - Format: PNG
+   - Content: Invoice generation interface
+
+5. **favicon.ico** - Website favicon
+   - Size: 32x32px
+   - Format: ICO
+   - Content: Tailor scissors icon or company logo
+
+6. **og-image.jpg** - Open Graph social media image
+   - Size: 1200x630px
+   - Format: JPG
+   - Content: Landing page preview for social sharing
+
+7. **twitter-image.jpg** - Twitter card image
+   - Size: 1200x675px
+   - Format: JPG
+   - Content: Similar to OG image but optimized for Twitter
+
+## Image Sources:
+
+You can use the following free resources:
+- Unsplash.com for professional business photos
+- Pexels.com for high-quality stock photos
+- Canva.com for creating custom graphics
+- Figma.com for creating mockups
+
+## Image Optimization:
+
+- Use WebP format when possible for better compression
+- Optimize images for web (compress without losing quality)
+- Use appropriate alt text for accessibility
+- Consider lazy loading for better performance
+
+## Placeholder Images:
+
+For development, you can use placeholder services:
+- https://via.placeholder.com/800x600/667eea/ffffff?text=Dashboard+Preview
+- https://via.placeholder.com/400x300/667eea/ffffff?text=Orders+Management
+- https://via.placeholder.com/400x300/667eea/ffffff?text=Invoice+Generation

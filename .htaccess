@@ -1,7 +1,2 @@
-# Minimal .htaccess for Tailoring Management System
-RewriteEngine On
-
-# Basic file protection
-<FilesMatch "\.(sql|log|ini|conf)$">
-    Require all denied
-</FilesMatch>
+# Minimal .htaccess - Only handle 404 errors
+ErrorDocument 404 /tailoring/404.php

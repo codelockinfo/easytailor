@@ -4,7 +4,7 @@
  * Tailoring Management System
  */
 
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 // Check if user is logged in
 if (!is_logged_in()) {
@@ -482,7 +482,7 @@ $current_user = [
             <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
                 <?php
                 // Check for brand logo
-                $brandLogo = 'uploads/logos/brand-logo.png';
+                $brandLogo = '../uploads/logos/brand-logo.png';
                 if (file_exists($brandLogo)):
                 ?>
                     <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" style="height: 100px; width: auto; display: block; margin: 0 auto;">
@@ -629,7 +629,7 @@ $current_user = [
                         <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2"></i>Profile</a></li>
                         <li><a class="dropdown-item" href="change-password.php"><i class="fas fa-key me-2"></i>Change Password</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        <li><a class="dropdown-item text-danger" href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                     </ul>
                 </div>
             </div>

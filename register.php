@@ -9,7 +9,7 @@ require_once 'config/config.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    redirect(APP_URL . '/dashboard.php');
+    redirect(APP_URL . '/admin/dashboard.php');
 }
 
 $error_message = '';

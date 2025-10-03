@@ -8,7 +8,7 @@ require_once 'config/config.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    redirect(APP_URL . '/dashboard.php');
+    redirect(APP_URL . '/admin/dashboard.php');
 }
 
 $error_message = '';
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $authController->login($username, $password);
         
         if ($result['success']) {
-            redirect(APP_URL . '/dashboard.php');
+            redirect(APP_URL . '/admin/dashboard.php');
         } else {
             // Store error in session and redirect to prevent form resubmission
             $_SESSION['login_error'] = $result['message'];
@@ -135,7 +135,6 @@ if (isset($_SESSION['reg_success'])) {
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
-                        <h3 class="mb-0"><?php echo APP_NAME; ?></h3>
                         <p class="mb-0 opacity-75">Sign in to your account</p>
                     </div>
                     <div class="card-body p-4">

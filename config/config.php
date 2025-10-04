@@ -145,6 +145,35 @@ function set_company_id($company_id) {
 }
 
 /**
+ * Get logo path that works on any deployment
+ */
+function get_logo_path($logo_name = 'brand-logo.png') {
+    // Try different possible paths
+    $possible_paths = [
+        'uploads/logos/' . $logo_name,
+        '../uploads/logos/' . $logo_name,
+        __DIR__ . '/../uploads/logos/' . $logo_name
+    ];
+    
+    foreach ($possible_paths as $path) {
+        if (file_exists($path)) {
+            // Return relative path for web access
+            if (strpos($path, '../') === 0) {
+                return $path;
+            } elseif (strpos($path, 'uploads/') === 0) {
+                return $path;
+            } else {
+                // Convert absolute path to relative
+                $relative_path = str_replace(__DIR__ . '/../', '', $path);
+                return $relative_path;
+            }
+        }
+    }
+    
+    return null; // Logo not found
+}
+
+/**
  * Smart redirect function that works on any deployment
  */
 function smart_redirect($url) {

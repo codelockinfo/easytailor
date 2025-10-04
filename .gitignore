@@ -11,6 +11,14 @@ config/local.php
 # Uploads directory (user-generated content)
 uploads/*
 !uploads/.gitkeep
+# Allow logo files for branding
+!uploads/logos/
+uploads/logos/*
+!uploads/logos/*.png
+!uploads/logos/*.jpg
+!uploads/logos/*.jpeg
+!uploads/logos/*.svg
+!uploads/logos/*.gif
 
 # IDE and editor files
 .vscode/

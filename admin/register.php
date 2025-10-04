@@ -265,9 +265,9 @@ if (isset($_SESSION['reg_form_data'])) {
                 <div class="card register-card border-0">
                     <div class="register-header">
                         <?php
-                        // Check for brand logo
-                        $brandLogo = '../uploads/logos/brand-logo.png';
-                        if (file_exists($brandLogo)):
+                        // Get brand logo using smart path detection
+                        $brandLogo = get_logo_path('brand-logo.png');
+                        if ($brandLogo):
                         ?>
                             <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
                         <?php else: ?>

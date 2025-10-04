@@ -481,9 +481,9 @@ $current_user = [
         <div class="sidebar-header">
             <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
                 <?php
-                // Check for brand logo
-                $brandLogo = 'uploads/logos/brand-logo.png';
-                if (file_exists($brandLogo)):
+                // Get brand logo using smart path detection
+                $brandLogo = get_logo_path('brand-logo.png');
+                if ($brandLogo):
                 ?>
                     <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" style="height: 100px; width: auto; display: block; margin: 0 auto;">
                 <?php else: ?>

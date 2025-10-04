@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../config/config.php';
 
 // Check if user is logged in
 if (!is_logged_in()) {
-    redirect(APP_URL . '/login.php');
+    smart_redirect('login.php');
 }
 
 $current_user = [

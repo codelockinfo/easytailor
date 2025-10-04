@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Redirect to prevent form resubmission
-        redirect(APP_URL . '/admin/measurements.php');
+        smart_redirect('measurements.php');
     }
 }
 

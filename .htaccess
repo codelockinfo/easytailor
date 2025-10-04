@@ -5,24 +5,24 @@
 RewriteEngine On
 
 # Redirect old authentication URLs to admin folder
-RewriteRule ^login\.php$ /tailoring/admin/login.php [R=301,L]
-RewriteRule ^register\.php$ /tailoring/admin/register.php [R=301,L]
-RewriteRule ^logout\.php$ /tailoring/admin/logout.php [R=301,L]
-RewriteRule ^settings\.php$ /tailoring/admin/settings.php [R=301,L]
+RewriteRule ^login\.php$ admin/login.php [R=301,L]
+RewriteRule ^register\.php$ admin/register.php [R=301,L]
+RewriteRule ^logout\.php$ admin/logout.php [R=301,L]
+RewriteRule ^settings\.php$ admin/settings.php [R=301,L]
 
 # Redirect admin utility files to admin folder
-RewriteRule ^setup_measurement_charts\.php$ /tailoring/admin/setup_measurement_charts.php [R=301,L]
-RewriteRule ^setup_multi_tenant\.php$ /tailoring/admin/setup_multi_tenant.php [R=301,L]
-RewriteRule ^auto_fix_user\.php$ /tailoring/admin/auto_fix_user.php [R=301,L]
-RewriteRule ^fix_measurement_charts\.php$ /tailoring/admin/fix_measurement_charts.php [R=301,L]
-RewriteRule ^fix_user_session\.php$ /tailoring/admin/fix_user_session.php [R=301,L]
-RewriteRule ^force_reset_password\.php$ /tailoring/admin/force_reset_password.php [R=301,L]
-RewriteRule ^check_measurement_charts\.php$ /tailoring/admin/check_measurement_charts.php [R=301,L]
-RewriteRule ^test_login\.php$ /tailoring/admin/test_login.php [R=301,L]
-RewriteRule ^info\.php$ /tailoring/admin/info.php [R=301,L]
+RewriteRule ^setup_measurement_charts\.php$ admin/setup_measurement_charts.php [R=301,L]
+RewriteRule ^setup_multi_tenant\.php$ admin/setup_multi_tenant.php [R=301,L]
+RewriteRule ^auto_fix_user\.php$ admin/auto_fix_user.php [R=301,L]
+RewriteRule ^fix_measurement_charts\.php$ admin/fix_measurement_charts.php [R=301,L]
+RewriteRule ^fix_user_session\.php$ admin/fix_user_session.php [R=301,L]
+RewriteRule ^force_reset_password\.php$ admin/force_reset_password.php [R=301,L]
+RewriteRule ^check_measurement_charts\.php$ admin/check_measurement_charts.php [R=301,L]
+RewriteRule ^test_login\.php$ admin/test_login.php [R=301,L]
+RewriteRule ^info\.php$ admin/info.php [R=301,L]
 
 # Handle 404 errors
-ErrorDocument 404 /tailoring/404.php
+ErrorDocument 404 404.php
 
 # Protect sensitive files (WAMP compatible syntax)
 <Files "*.sql">

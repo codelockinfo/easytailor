@@ -17,7 +17,13 @@ session_start();
 // Application constants
 define('APP_NAME', 'Tailoring Management System');
 define('APP_VERSION', '1.0.0');
-define('APP_URL', 'http://localhost/tailoring');
+// Auto-detect APP_URL based on current request
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$script_name = $_SERVER['SCRIPT_NAME'] ?? '';
+$path = dirname($script_name);
+$path = $path === '/' ? '' : $path;
+define('APP_URL', $protocol . '://' . $host . $path);
 define('APP_PATH', __DIR__ . '/../');
 
 // Security constants

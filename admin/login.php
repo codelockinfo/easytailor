@@ -135,7 +135,7 @@ if (isset($_SESSION['reg_success'])) {
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
-                        <p class="mb-0 opacity-75">Sign in to your account</p>
+                        <p class="mb-0 opacity-75"><?php echo __t('sign_in_to_account', 'Sign in to your account'); ?></p>
                     </div>
                     <div class="card-body p-4">
                         <?php if ($error_message): ?>

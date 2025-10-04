@@ -19,7 +19,7 @@ $current_user = [
 ];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo getHtmlLang(); ?>" dir="<?php echo getTextDirection(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -598,27 +598,7 @@ $current_user = [
             
             <div class="d-flex align-items-center">
                 <!-- Language Switcher -->
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-globe me-1"></i>
-                        <span id="currentLanguage">EN</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" data-lang="en">🇺🇸 English</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="hi">🇮🇳 हिन्दी</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="gu">🇮🇳 ગુજરાતી</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="mr">🇮🇳 मराठी</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ta">🇮🇳 தமிழ்</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="te">🇮🇳 తెలుగు</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="kn">🇮🇳 ಕನ್ನಡ</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ml">🇮🇳 മലയാളം</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="bn">🇮🇳 বাংলা</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="pa">🇮🇳 ਪੰਜਾਬੀ</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="ur">🇮🇳 اردو</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="or">🇮🇳 ଓଡ଼ିଆ</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="as">🇮🇳 অসমীয়া</a></li>
-                    </ul>
-                </div>
+                <?php include __DIR__ . '/../../lang/language_switcher.php'; ?>
                 
                 <!-- User Dropdown -->
                 <div class="dropdown">

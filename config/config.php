@@ -17,6 +17,9 @@ session_start();
 // Application constants
 define('APP_NAME', 'Tailoring Management System');
 define('APP_VERSION', '1.0.0');
+
+// Include language loader
+require_once __DIR__ . '/../lang/language_loader.php';
 // Auto-detect APP_URL based on current request
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';

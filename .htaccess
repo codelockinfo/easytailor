@@ -1,24 +1,81 @@
-# Tailoring Management System - WAMP Compatible Configuration
-# Minimal .htaccess for WAMP server compatibility
+# Tailoring Management System - Universal Configuration
+# Works on any server and deployment structure
 
 # Enable URL rewriting
 RewriteEngine On
 
-# Redirect old authentication URLs to admin folder
+# Get the base directory dynamically
+RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
+RewriteRule ^(.*)$ - [E=BASE:%1]
+
+# Only redirect if the file doesn't exist in admin folder
+# This prevents double redirects when files are already in admin folder
+
+# Redirect old authentication URLs to admin folder (only if not already in admin)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^login\.php$ admin/login.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^register\.php$ admin/register.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^logout\.php$ admin/logout.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^settings\.php$ admin/settings.php [R=301,L]
 
-# Redirect admin utility files to admin folder
+# Redirect admin utility files to admin folder (only if not already in admin)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^setup_measurement_charts\.php$ admin/setup_measurement_charts.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^setup_multi_tenant\.php$ admin/setup_multi_tenant.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^auto_fix_user\.php$ admin/auto_fix_user.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^fix_measurement_charts\.php$ admin/fix_measurement_charts.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^fix_user_session\.php$ admin/fix_user_session.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^force_reset_password\.php$ admin/force_reset_password.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^check_measurement_charts\.php$ admin/check_measurement_charts.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^test_login\.php$ admin/test_login.php [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^info\.php$ admin/info.php [R=301,L]
 
 # Handle 404 errors

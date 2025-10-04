@@ -97,7 +97,7 @@ function is_logged_in() {
 
 function require_login() {
     if (!is_logged_in()) {
-        redirect(APP_URL . '/admin/login.php');
+        smart_redirect('admin/login.php');
     }
 }
 
@@ -108,7 +108,7 @@ function has_role($role) {
 function require_role($role) {
     require_login();
     if (!has_role($role) && !has_role('admin')) {
-        redirect(APP_URL . '/admin/unauthorized.php');
+        smart_redirect('admin/unauthorized.php');
     }
 }
 
@@ -130,6 +130,32 @@ function get_company_id() {
 
 function set_company_id($company_id) {
     $_SESSION['company_id'] = $company_id;
+}
+
+/**
+ * Smart redirect function that works on any deployment
+ */
+function smart_redirect($url) {
+    // Remove any leading slashes and admin/admin duplicates
+    $url = ltrim($url, '/');
+    $url = preg_replace('#admin/admin/#', 'admin/', $url);
+    
+    // If URL doesn't start with http, make it relative to current directory
+    if (!preg_match('/^https?:\/\//', $url)) {
+        // Get current directory structure
+        $current_path = dirname($_SERVER['SCRIPT_NAME']);
+        $current_path = $current_path === '/' ? '' : $current_path;
+        
+        // Build the full URL
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $full_url = $protocol . '://' . $host . $current_path . '/' . $url;
+    } else {
+        $full_url = $url;
+    }
+    
+    header('Location: ' . $full_url);
+    exit;
 }
 
 // Create upload directory if it doesn't exist

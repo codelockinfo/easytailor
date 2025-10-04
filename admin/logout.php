@@ -11,6 +11,6 @@ $authController = new AuthController();
 $authController->logout();
 
 // Redirect to login page with logout message
-redirect(APP_URL . '/admin/login.php?logout=1');
+smart_redirect('login.php?logout=1');
 ?>
 

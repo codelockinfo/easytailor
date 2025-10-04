@@ -9,7 +9,7 @@ require_once '../config/config.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    redirect(APP_URL . '/admin/dashboard.php');
+    smart_redirect('dashboard.php');
 }
 
 $error_message = '';
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Success - redirect to login
             $_SESSION['reg_success'] = 'Registration successful! Please login with your credentials.';
-            header('Location: admin/login.php');
+            smart_redirect('login.php');
             exit;
             
         } catch (Exception $e) {

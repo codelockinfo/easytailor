@@ -8,7 +8,7 @@ require_once '../config/config.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    redirect(APP_URL . '/admin/dashboard.php');
+    smart_redirect('dashboard.php');
 }
 
 $error_message = '';
@@ -25,17 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $authController->login($username, $password);
         
         if ($result['success']) {
-            redirect(APP_URL . '/admin/dashboard.php');
+            smart_redirect('dashboard.php');
         } else {
             // Store error in session and redirect to prevent form resubmission
             $_SESSION['login_error'] = $result['message'];
-            header('Location: login.php');
+            smart_redirect('login.php');
             exit;
         }
     } else {
         // Store error in session and redirect to prevent form resubmission
         $_SESSION['login_error'] = 'Please enter both username and password';
-        header('Location: login.php');
+        smart_redirect('login.php');
         exit;
     }
 }

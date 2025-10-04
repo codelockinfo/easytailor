@@ -4,7 +4,8 @@
  * Tailoring Management System
  */
 
-$page_title = __t('dashboard');
+// Set page title before including header
+$page_title = 'Dashboard'; // Will be translated in header
 require_once 'includes/header.php';
 
 // Include models

@@ -23,7 +23,7 @@ $current_user = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title ?? 'Dashboard'; ?> - <?php echo APP_NAME; ?></title>
+    <title><?php echo __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard'))); ?> - <?php echo APP_NAME; ?></title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -599,7 +599,7 @@ $current_user = [
                 <button class="btn btn-link d-md-none me-3" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="mb-0"><?php echo $page_title ?? 'Dashboard'; ?></h4>
+                <h4 class="mb-0"><?php echo __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard'))); ?></h4>
             </div>
             
             <div class="d-flex align-items-center">

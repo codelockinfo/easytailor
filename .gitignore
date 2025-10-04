@@ -11,6 +11,7 @@ config/local.php
 # Uploads directory (user-generated content)
 uploads/*
 !uploads/.gitkeep
+
 # Allow logo files for branding
 !uploads/logos/
 uploads/logos/*
@@ -19,6 +20,56 @@ uploads/logos/*
 !uploads/logos/*.jpeg
 !uploads/logos/*.svg
 !uploads/logos/*.gif
+
+# Allow measurement chart images
+!uploads/measurement-charts/
+uploads/measurement-charts/*
+!uploads/measurement-charts/*.png
+!uploads/measurement-charts/*.jpg
+!uploads/measurement-charts/*.jpeg
+!uploads/measurement-charts/*.svg
+!uploads/measurement-charts/*.gif
+!uploads/measurement-charts/*.webp
+
+# Allow customer images
+!uploads/customers/
+uploads/customers/*
+!uploads/customers/*.png
+!uploads/customers/*.jpg
+!uploads/customers/*.jpeg
+!uploads/customers/*.svg
+!uploads/customers/*.gif
+!uploads/customers/*.webp
+
+# Allow measurement images
+!uploads/measurements/
+uploads/measurements/*
+!uploads/measurements/*.png
+!uploads/measurements/*.jpg
+!uploads/measurements/*.jpeg
+!uploads/measurements/*.svg
+!uploads/measurements/*.gif
+!uploads/measurements/*.webp
+
+# Allow order images
+!uploads/orders/
+uploads/orders/*
+!uploads/orders/*.png
+!uploads/orders/*.jpg
+!uploads/orders/*.jpeg
+!uploads/orders/*.svg
+!uploads/orders/*.gif
+!uploads/orders/*.webp
+
+# Allow receipt images
+!uploads/receipts/
+uploads/receipts/*
+!uploads/receipts/*.png
+!uploads/receipts/*.jpg
+!uploads/receipts/*.jpeg
+!uploads/receipts/*.svg
+!uploads/receipts/*.gif
+!uploads/receipts/*.webp
 
 # IDE and editor files
 .vscode/

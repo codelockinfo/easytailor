@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <!-- Suit Jacket Outline -->
+  <path d="M 200 100 L 180 150 L 150 180 L 150 300 L 200 300 L 210 700 L 280 700 L 280 350 L 320 350 L 320 700 L 390 700 L 400 300 L 450 300 L 450 180 L 420 150 L 400 100 L 350 120 L 300 80 L 250 120 Z" 
+        fill="#1a1a2e" stroke="#333" stroke-width="3"/>
+  
+  <!-- Lapels -->
+  <path d="M 260 150 L 240 200 L 270 350" fill="#16213e" stroke="#333" stroke-width="2"/>
+  <path d="M 340 150 L 360 200 L 330 350" fill="#16213e" stroke="#333" stroke-width="2"/>
+  
+  <!-- Buttons -->
+  <circle cx="300" cy="300" r="8" fill="#c0c0c0" stroke="#333" stroke-width="1"/>
+  <circle cx="300" cy="350" r="8" fill="#c0c0c0" stroke="#333" stroke-width="1"/>
+  <circle cx="300" cy="400" r="8" fill="#c0c0c0" stroke="#333" stroke-width="1"/>
+  
+  <!-- A: Chest Measurement -->
+  <circle cx="120" cy="320" r="30" fill="#3498db" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="330" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">A</text>
+  <line x1="210" y1="320" x2="140" y2="320" stroke="#3498db" stroke-width="3" marker-end="url(#arrowSuitA)"/>
+  <line x1="390" y1="320" x2="480" y2="320" stroke="#3498db" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="30" y="325" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Chest</text>
+  <text x="30" y="345" font-family="Arial, sans-serif" font-size="12" fill="#666">Around fullest part</text>
+  
+  <!-- B: Waist Measurement -->
+  <circle cx="120" cy="500" r="30" fill="#3498db" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="510" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">B</text>
+  <line x1="220" y1="500" x2="140" y2="500" stroke="#3498db" stroke-width="3" marker-end="url(#arrowSuitB)"/>
+  <line x1="380" y1="500" x2="480" y2="500" stroke="#3498db" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="30" y="505" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Waist</text>
+  <text x="30" y="525" font-family="Arial, sans-serif" font-size="12" fill="#666">Natural waistline</text>
+  
+  <!-- C: Jacket Length -->
+  <circle cx="500" cy="400" r="30" fill="#e74c3c" stroke="#fff" stroke-width="3"/>
+  <text x="500" y="410" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">C</text>
+  <line x1="470" y1="100" x2="470" y2="700" stroke="#e74c3c" stroke-width="3" stroke-dasharray="8,4" marker-end="url(#arrowSuitC)"/>
+  <line x1="460" y1="100" x2="480" y2="100" stroke="#e74c3c" stroke-width="2"/>
+  <line x1="460" y1="700" x2="480" y2="700" stroke="#e74c3c" stroke-width="2"/>
+  <text x="30" y="405" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Jacket Length</text>
+  <text x="30" y="425" font-family="Arial, sans-serif" font-size="12" fill="#666">From collar to hem</text>
+  
+  <!-- D: Shoulder Width -->
+  <circle cx="130" cy="150" r="30" fill="#9b59b6" stroke="#fff" stroke-width="3"/>
+  <text x="130" y="160" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">D</text>
+  <line x1="180" y1="135" x2="420" y2="135" stroke="#9b59b6" stroke-width="3" marker-end="url(#arrowSuitD)"/>
+  <line x1="180" y1="125" x2="180" y2="145" stroke="#9b59b6" stroke-width="2"/>
+  <line x1="420" y1="125" x2="420" y2="145" stroke="#9b59b6" stroke-width="2"/>
+  <text x="30" y="155" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Shoulder</text>
+  <text x="30" y="175" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to shoulder</text>
+  
+  <!-- E: Sleeve Length -->
+  <circle cx="550" cy="200" r="30" fill="#27ae60" stroke="#fff" stroke-width="3"/>
+  <text x="550" y="210" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">E</text>
+  <line x1="420" y1="150" x2="450" y2="200" stroke="#27ae60" stroke-width="3" marker-end="url(#arrowSuitE)" stroke-dasharray="5,5"/>
+  <text x="30" y="605" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Sleeve</text>
+  <text x="30" y="625" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to wrist</text>
+  
+  <!-- F: Lapel Width -->
+  <circle cx="130" cy="220" r="25" fill="#f39c12" stroke="#fff" stroke-width="3"/>
+  <text x="130" y="228" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">F</text>
+  <line x1="240" y1="200" x2="200" y2="200" stroke="#f39c12" stroke-width="2" marker-end="url(#arrowSuitF)"/>
+  <text x="30" y="225" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Lapel Width</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowSuitA" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3498db" />
+    </marker>
+    <marker id="arrowSuitB" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3498db" />
+    </marker>
+    <marker id="arrowSuitC" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#e74c3c" />
+    </marker>
+    <marker id="arrowSuitD" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#9b59b6" />
+    </marker>
+    <marker id="arrowSuitE" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#27ae60" />
+    </marker>
+    <marker id="arrowSuitF" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f39c12" />
+    </marker>
+  </defs>
+</svg>
+

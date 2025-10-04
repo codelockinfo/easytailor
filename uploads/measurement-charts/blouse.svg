@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <!-- Blouse Outline -->
+  <path d="M 200 100 L 180 140 L 150 170 L 150 250 L 190 250 L 190 450 L 410 450 L 410 250 L 450 250 L 450 170 L 420 140 L 400 100 L 360 120 L 300 80 L 240 120 Z" 
+        fill="#ffb6c1" stroke="#333" stroke-width="3"/>
+  
+  <!-- Neckline -->
+  <path d="M 280 95 Q 300 80 320 95 L 320 130 Q 300 145 280 130 Z" fill="#ff69b4" stroke="#333" stroke-width="2"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="220" cy="180" r="5" fill="#ff1493"/>
+  <circle cx="380" cy="180" r="5" fill="#ff1493"/>
+  <circle cx="300" cy="200" r="6" fill="#ff1493"/>
+  
+  <!-- A: Bust Measurement -->
+  <circle cx="110" cy="260" r="30" fill="#ff1493" stroke="#fff" stroke-width="3"/>
+  <text x="110" y="270" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">A</text>
+  <line x1="190" y1="260" x2="130" y2="260" stroke="#ff1493" stroke-width="3" marker-end="url(#arrowBlouseA)"/>
+  <line x1="410" y1="260" x2="490" y2="260" stroke="#ff1493" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="20" y="265" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Bust</text>
+  <text x="20" y="285" font-family="Arial, sans-serif" font-size="12" fill="#666">Full circumference</text>
+  
+  <!-- B: Waist Measurement -->
+  <circle cx="110" cy="380" r="30" fill="#ff1493" stroke="#fff" stroke-width="3"/>
+  <text x="110" y="390" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">B</text>
+  <line x1="195" y1="380" x2="130" y2="380" stroke="#ff1493" stroke-width="3" marker-end="url(#arrowBlouseB)"/>
+  <line x1="405" y1="380" x2="490" y2="380" stroke="#ff1493" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="20" y="385" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Waist</text>
+  <text x="20" y="405" font-family="Arial, sans-serif" font-size="12" fill="#666">Natural waistline</text>
+  
+  <!-- C: Blouse Length -->
+  <circle cx="520" cy="275" r="30" fill="#8b008b" stroke="#fff" stroke-width="3"/>
+  <text x="520" y="285" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">C</text>
+  <line x1="490" y1="95" x2="490" y2="450" stroke="#8b008b" stroke-width="3" stroke-dasharray="8,4" marker-end="url(#arrowBlouseC)"/>
+  <line x1="480" y1="95" x2="500" y2="95" stroke="#8b008b" stroke-width="2"/>
+  <line x1="480" y1="450" x2="500" y2="450" stroke="#8b008b" stroke-width="2"/>
+  <text x="20" y="505" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Length</text>
+  <text x="20" y="525" font-family="Arial, sans-serif" font-size="12" fill="#666">From shoulder to hem</text>
+  
+  <!-- D: Shoulder Width -->
+  <circle cx="120" cy="135" r="30" fill="#4169e1" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="145" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">D</text>
+  <line x1="180" y1="125" x2="420" y2="125" stroke="#4169e1" stroke-width="3" marker-end="url(#arrowBlouseD)"/>
+  <text x="20" y="140" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Shoulder</text>
+  <text x="20" y="160" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to shoulder</text>
+  
+  <!-- E: Sleeve Length -->
+  <circle cx="560" cy="195" r="25" fill="#32cd32" stroke="#fff" stroke-width="3"/>
+  <text x="560" y="203" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">E</text>
+  <line x1="420" y1="140" x2="530" y2="180" stroke="#32cd32" stroke-width="3" marker-end="url(#arrowBlouseE)" stroke-dasharray="5,5"/>
+  <text x="20" y="565" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Sleeve</text>
+  <text x="20" y="585" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to wrist</text>
+  
+  <!-- F: Armhole -->
+  <circle cx="120" cy="190" r="25" fill="#ffa500" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="198" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">F</text>
+  <ellipse cx="160" cy="190" rx="30" ry="50" fill="none" stroke="#ffa500" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="20" y="195" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Armhole</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowBlouseA" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff1493" />
+    </marker>
+    <marker id="arrowBlouseB" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff1493" />
+    </marker>
+    <marker id="arrowBlouseC" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8b008b" />
+    </marker>
+    <marker id="arrowBlouseD" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4169e1" />
+    </marker>
+    <marker id="arrowBlouseE" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#32cd32" />
+    </marker>
+  </defs>
+</svg>
+

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900">
+  <!-- Lehenga Skirt Outline -->
+  <path d="M 240 300 L 220 400 L 180 650 L 150 900 L 450 900 L 420 650 L 380 400 L 360 300 Z" 
+        fill="#ffe4e1" stroke="#333" stroke-width="3"/>
+  
+  <!-- Waistband -->
+  <ellipse cx="300" cy="300" rx="60" ry="15" fill="#ff69b4" stroke="#333" stroke-width="2"/>
+  
+  <!-- Decorative Patterns -->
+  <path d="M 180 650 Q 300 680 420 650" fill="none" stroke="#ff1493" stroke-width="2" stroke-dasharray="5,5"/>
+  <path d="M 165 750 Q 300 780 435 750" fill="none" stroke="#ff1493" stroke-width="2" stroke-dasharray="5,5"/>
+  <path d="M 157 850 Q 300 880 442 850" fill="none" stroke="#ff1493" stroke-width="2" stroke-dasharray="5,5"/>
+  
+  <!-- A: Waist Measurement -->
+  <circle cx="120" cy="300" r="30" fill="#ff1493" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="310" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">A</text>
+  <line x1="240" y1="300" x2="140" y2="300" stroke="#ff1493" stroke-width="3" marker-end="url(#arrowLehengaA)"/>
+  <line x1="360" y1="300" x2="480" y2="300" stroke="#ff1493" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="30" y="305" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Waist</text>
+  <text x="30" y="325" font-family="Arial, sans-serif" font-size="12" fill="#666">Around natural waist</text>
+  
+  <!-- B: Hip Measurement -->
+  <circle cx="120" cy="450" r="30" fill="#ff1493" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="460" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">B</text>
+  <line x1="225" y1="450" x2="140" y2="450" stroke="#ff1493" stroke-width="3" marker-end="url(#arrowLehengaB)"/>
+  <line x1="375" y1="450" x2="480" y2="450" stroke="#ff1493" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="30" y="455" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Hip</text>
+  <text x="30" y="475" font-family="Arial, sans-serif" font-size="12" fill="#666">Fullest part of hips</text>
+  
+  <!-- C: Length Measurement -->
+  <circle cx="540" cy="600" r="30" fill="#8b008b" stroke="#fff" stroke-width="3"/>
+  <text x="540" y="610" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">C</text>
+  <line x1="520" y1="300" x2="520" y2="900" stroke="#8b008b" stroke-width="3" stroke-dasharray="8,4" marker-end="url(#arrowLehengaC)"/>
+  <line x1="510" y1="300" x2="530" y2="300" stroke="#8b008b" stroke-width="2"/>
+  <line x1="510" y1="900" x2="530" y2="900" stroke="#8b008b" stroke-width="2"/>
+  <text x="30" y="605" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Length</text>
+  <text x="30" y="625" font-family="Arial, sans-serif" font-size="12" fill="#666">Waist to floor</text>
+  
+  <!-- D: Bottom Flair -->
+  <circle cx="540" cy="870" r="30" fill="#9370db" stroke="#fff" stroke-width="3"/>
+  <text x="540" y="880" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">D</text>
+  <line x1="150" y1="900" x2="450" y2="900" stroke="#9370db" stroke-width="3" marker-end="url(#arrowLehengaD)"/>
+  <line x1="150" y1="890" x2="150" y2="910" stroke="#9370db" stroke-width="2"/>
+  <line x1="450" y1="890" x2="450" y2="910" stroke="#9370db" stroke-width="2"/>
+  <text x="30" y="755" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Bottom Flair</text>
+  <text x="30" y="775" font-family="Arial, sans-serif" font-size="12" fill="#666">Hem circumference</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowLehengaA" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff1493" />
+    </marker>
+    <marker id="arrowLehengaB" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff1493" />
+    </marker>
+    <marker id="arrowLehengaC" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8b008b" />
+    </marker>
+    <marker id="arrowLehengaD" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#9370db" />
+    </marker>
+  </defs>
+</svg>
+

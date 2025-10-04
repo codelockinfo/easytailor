@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 850" width="600" height="850">
+  <!-- Kurta Outline -->
+  <path d="M 200 100 L 180 140 L 150 170 L 150 350 L 190 350 L 190 750 L 250 800 L 350 800 L 410 750 L 410 350 L 450 350 L 450 170 L 420 140 L 400 100 L 360 115 L 300 75 L 240 115 Z" 
+        fill="#fff8dc" stroke="#333" stroke-width="3"/>
+  
+  <!-- Collar/Neckline -->
+  <path d="M 280 90 Q 300 75 320 90 L 320 130 L 280 130 Z" fill="#f0e68c" stroke="#333" stroke-width="2"/>
+  
+  <!-- Decorative Border -->
+  <line x1="190" y1="350" x2="190" y2="750" stroke="#ff6347" stroke-width="4" stroke-dasharray="10,5"/>
+  <line x1="410" y1="350" x2="410" y2="750" stroke="#ff6347" stroke-width="4" stroke-dasharray="10,5"/>
+  
+  <!-- A: Chest Measurement -->
+  <circle cx="120" cy="300" r="30" fill="#ff6347" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="310" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">A</text>
+  <line x1="190" y1="300" x2="140" y2="300" stroke="#ff6347" stroke-width="3" marker-end="url(#arrowKurtaA)"/>
+  <line x1="410" y1="300" x2="480" y2="300" stroke="#ff6347" stroke-width="3" stroke-dasharray="5,5"/>
+  <line x1="190" y1="290" x2="190" y2="310" stroke="#ff6347" stroke-width="2"/>
+  <line x1="410" y1="290" x2="410" y2="310" stroke="#ff6347" stroke-width="2"/>
+  <text x="30" y="305" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Chest</text>
+  <text x="30" y="325" font-family="Arial, sans-serif" font-size="12" fill="#666">Around fullest part</text>
+  
+  <!-- B: Waist Measurement -->
+  <circle cx="120" cy="480" r="30" fill="#ff6347" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="490" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">B</text>
+  <line x1="195" y1="480" x2="140" y2="480" stroke="#ff6347" stroke-width="3" marker-end="url(#arrowKurtaB)"/>
+  <line x1="405" y1="480" x2="480" y2="480" stroke="#ff6347" stroke-width="3" stroke-dasharray="5,5"/>
+  <line x1="195" y1="470" x2="195" y2="490" stroke="#ff6347" stroke-width="2"/>
+  <line x1="405" y1="470" x2="405" y2="490" stroke="#ff6347" stroke-width="2"/>
+  <text x="30" y="485" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Waist</text>
+  <text x="30" y="505" font-family="Arial, sans-serif" font-size="12" fill="#666">Natural waistline</text>
+  
+  <!-- C: Length Measurement -->
+  <circle cx="500" cy="425" r="30" fill="#4169e1" stroke="#fff" stroke-width="3"/>
+  <text x="500" y="435" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">C</text>
+  <line x1="470" y1="95" x2="470" y2="790" stroke="#4169e1" stroke-width="3" stroke-dasharray="8,4" marker-end="url(#arrowKurtaC)"/>
+  <line x1="460" y1="95" x2="480" y2="95" stroke="#4169e1" stroke-width="2"/>
+  <line x1="460" y1="790" x2="480" y2="790" stroke="#4169e1" stroke-width="2"/>
+  <text x="30" y="430" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Length</text>
+  <text x="30" y="450" font-family="Arial, sans-serif" font-size="12" fill="#666">From shoulder to hem</text>
+  
+  <!-- D: Shoulder Width -->
+  <circle cx="130" cy="145" r="30" fill="#32cd32" stroke="#fff" stroke-width="3"/>
+  <text x="130" y="155" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">D</text>
+  <line x1="180" y1="130" x2="420" y2="130" stroke="#32cd32" stroke-width="3" marker-end="url(#arrowKurtaD)"/>
+  <line x1="180" y1="120" x2="180" y2="140" stroke="#32cd32" stroke-width="2"/>
+  <line x1="420" y1="120" x2="420" y2="140" stroke="#32cd32" stroke-width="2"/>
+  <text x="30" y="150" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Shoulder</text>
+  <text x="30" y="170" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to shoulder</text>
+  
+  <!-- E: Sleeve Length -->
+  <circle cx="550" cy="240" r="30" fill="#ffa500" stroke="#fff" stroke-width="3"/>
+  <text x="550" y="250" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">E</text>
+  <line x1="420" y1="140" x2="450" y2="220" stroke="#ffa500" stroke-width="3" marker-end="url(#arrowKurtaE)" stroke-dasharray="5,5"/>
+  <text x="30" y="605" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Sleeve</text>
+  <text x="30" y="625" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to wrist</text>
+  
+  <!-- F: Neck Size -->
+  <circle cx="130" cy="90" r="25" fill="#9370db" stroke="#fff" stroke-width="3"/>
+  <text x="130" y="98" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">F</text>
+  <ellipse cx="300" cy="95" rx="40" ry="20" fill="none" stroke="#9370db" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="30" y="95" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Neck</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowKurtaA" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff6347" />
+    </marker>
+    <marker id="arrowKurtaB" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff6347" />
+    </marker>
+    <marker id="arrowKurtaC" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4169e1" />
+    </marker>
+    <marker id="arrowKurtaD" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#32cd32" />
+    </marker>
+    <marker id="arrowKurtaE" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ffa500" />
+    </marker>
+  </defs>
+</svg>
+

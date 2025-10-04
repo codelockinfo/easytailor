@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <!-- Saree Blouse Outline -->
+  <path d="M 200 120 L 180 160 L 160 190 L 160 350 L 200 350 L 200 500 L 400 500 L 400 350 L 440 350 L 440 190 L 420 160 L 400 120 L 350 140 L 300 100 L 250 140 Z" 
+        fill="#ffd700" stroke="#333" stroke-width="3"/>
+  
+  <!-- Decorative Pattern -->
+  <path d="M 250 180 Q 300 200 350 180" fill="none" stroke="#ff6347" stroke-width="2"/>
+  <circle cx="300" cy="250" r="8" fill="#ff6347"/>
+  <circle cx="270" cy="280" r="6" fill="#ff6347"/>
+  <circle cx="330" cy="280" r="6" fill="#ff6347"/>
+  
+  <!-- A: Bust Measurement -->
+  <circle cx="120" cy="280" r="30" fill="#ff6347" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="290" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">A</text>
+  <line x1="160" y1="280" x2="140" y2="280" stroke="#ff6347" stroke-width="3" marker-end="url(#arrowSareeA)"/>
+  <line x1="440" y1="280" x2="480" y2="280" stroke="#ff6347" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="30" y="285" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Bust</text>
+  <text x="30" y="305" font-family="Arial, sans-serif" font-size="12" fill="#666">Around fullest part</text>
+  
+  <!-- B: Waist Measurement -->
+  <circle cx="120" cy="420" r="30" fill="#ff6347" stroke="#fff" stroke-width="3"/>
+  <text x="120" y="430" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">B</text>
+  <line x1="170" y1="420" x2="140" y2="420" stroke="#ff6347" stroke-width="3" marker-end="url(#arrowSareeB)"/>
+  <line x1="430" y1="420" x2="480" y2="420" stroke="#ff6347" stroke-width="3" stroke-dasharray="5,5"/>
+  <text x="30" y="425" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Waist</text>
+  <text x="30" y="445" font-family="Arial, sans-serif" font-size="12" fill="#666">Natural waistline</text>
+  
+  <!-- C: Blouse Length -->
+  <circle cx="510" cy="310" r="30" fill="#8b4513" stroke="#fff" stroke-width="3"/>
+  <text x="510" y="320" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">C</text>
+  <line x1="480" y1="115" x2="480" y2="500" stroke="#8b4513" stroke-width="3" stroke-dasharray="8,4" marker-end="url(#arrowSareeC)"/>
+  <line x1="470" y1="115" x2="490" y2="115" stroke="#8b4513" stroke-width="2"/>
+  <line x1="470" y1="500" x2="490" y2="500" stroke="#8b4513" stroke-width="2"/>
+  <text x="30" y="565" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Blouse Length</text>
+  <text x="30" y="585" font-family="Arial, sans-serif" font-size="12" fill="#666">From shoulder to waist</text>
+  
+  <!-- D: Shoulder Width -->
+  <circle cx="130" cy="160" r="30" fill="#4169e1" stroke="#fff" stroke-width="3"/>
+  <text x="130" y="170" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">D</text>
+  <line x1="180" y1="145" x2="420" y2="145" stroke="#4169e1" stroke-width="3" marker-end="url(#arrowSareeD)"/>
+  <text x="30" y="165" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Shoulder</text>
+  <text x="30" y="185" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to shoulder</text>
+  
+  <!-- E: Sleeve Length -->
+  <circle cx="550" cy="220" r="25" fill="#32cd32" stroke="#fff" stroke-width="3"/>
+  <text x="550" y="228" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">E</text>
+  <line x1="420" y1="160" x2="520" y2="200" stroke="#32cd32" stroke-width="3" marker-end="url(#arrowSareeE)" stroke-dasharray="5,5"/>
+  <text x="30" y="685" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Sleeve</text>
+  <text x="30" y="705" font-family="Arial, sans-serif" font-size="12" fill="#666">Shoulder to wrist</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowSareeA" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff6347" />
+    </marker>
+    <marker id="arrowSareeB" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff6347" />
+    </marker>
+    <marker id="arrowSareeC" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8b4513" />
+    </marker>
+    <marker id="arrowSareeD" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4169e1" />
+    </marker>
+    <marker id="arrowSareeE" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#32cd32" />
+    </marker>
+  </defs>
+</svg>
+

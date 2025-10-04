@@ -39,7 +39,7 @@ $measurement['images'] = json_decode($measurement['images'], true);
 
 // Get cloth type to get the measurement chart
 $clothType = $clothTypeModel->find($measurement['cloth_type_id']);
-$measurement['measurement_chart'] = $clothType['measurement_chart_image'] ? '../' . $clothType['measurement_chart_image'] : '';
+$measurement['measurement_chart'] = $clothType['measurement_chart_image'] ? '../' . ltrim($clothType['measurement_chart_image'], './') : '';
 
 echo json_encode([
     'success' => true,

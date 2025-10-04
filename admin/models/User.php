@@ -114,6 +114,18 @@ class User extends BaseModel {
         
         return $stats;
     }
+    
+    /**
+     * Get user by ID
+     */
+    public function getUserById($id) {
+        $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
 }
 ?>
 

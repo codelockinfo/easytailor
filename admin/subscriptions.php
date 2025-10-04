@@ -151,12 +151,6 @@ if ($company['subscription_expiry']) {
 }
 ?>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="h3 mb-0">Subscription Plans</h1>
-        <p class="text-muted">Choose the plan that best fits your business needs</p>
-    </div>
-</div>
 
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">

@@ -211,6 +211,90 @@ class Expense extends BaseModel {
         
         return $stmt->fetchAll();
     }
+    
+    /**
+     * Get all expenses for export
+     */
+    public function getAllExpenses() {
+        $query = "SELECT * FROM " . $this->table . " ORDER BY expense_date DESC, created_at DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get expense statistics by date range
+     */
+    public function getExpenseStatsByDateRange($date_from, $date_to) {
+        $stats = [];
+        
+        // Total expenses in date range
+        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE DATE(expense_date) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['total'] = $result['count'];
+        
+        // Total expense amount in date range
+        $query = "SELECT SUM(amount) as total FROM " . $this->table . " WHERE DATE(expense_date) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['total_amount'] = $result['total'] ?? 0;
+        
+        // Expenses by category in date range
+        $query = "SELECT category, COUNT(*) as count, SUM(amount) as total 
+                  FROM " . $this->table . " 
+                  WHERE DATE(expense_date) BETWEEN :date_from AND :date_to
+                  GROUP BY category 
+                  ORDER BY total DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $stats['by_category'] = $stmt->fetchAll();
+        
+        // Expenses by payment method in date range
+        $query = "SELECT payment_method, COUNT(*) as count, SUM(amount) as total 
+                  FROM " . $this->table . " 
+                  WHERE DATE(expense_date) BETWEEN :date_from AND :date_to
+                  GROUP BY payment_method 
+                  ORDER BY total DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $stats['by_payment_method'] = $stmt->fetchAll();
+        
+        return $stats;
+    }
+
+    /**
+     * Get monthly expense statistics by date range
+     */
+    public function getMonthlyExpenseStatsByDateRange($year, $month, $date_from, $date_to) {
+        $query = "SELECT 
+                    COUNT(*) as expense_count,
+                    SUM(amount) as total_amount
+                  FROM " . $this->table . " 
+                  WHERE YEAR(expense_date) = :year 
+                  AND MONTH(expense_date) = :month
+                  AND DATE(expense_date) BETWEEN :date_from AND :date_to";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+        $stmt->bindParam(':month', $month, PDO::PARAM_INT);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
 }
 ?>
 

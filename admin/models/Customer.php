@@ -13,6 +13,12 @@ class Customer extends BaseModel {
     public function createCustomer($data) {
         // Generate customer code
         $data['customer_code'] = $this->generateCustomerCode();
+        
+        // Set company_id from session if not provided
+        if (!isset($data['company_id']) && isset($_SESSION['company_id'])) {
+            $data['company_id'] = $_SESSION['company_id'];
+        }
+        
         return $this->create($data);
     }
 
@@ -155,6 +161,65 @@ class Customer extends BaseModel {
         $stmt->execute();
         
         return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get all customers for export
+     */
+    public function getAllCustomers() {
+        $query = "SELECT * FROM " . $this->table . " ORDER BY first_name, last_name";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get customer by ID
+     */
+    public function getCustomerById($id) {
+        $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+
+    /**
+     * Get customer statistics by date range
+     */
+    public function getCustomerStatsByDateRange($date_from, $date_to) {
+        $stats = [];
+        
+        // Total customers in date range
+        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['total'] = $result['count'];
+        
+        // Active customers in date range
+        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE status = 'active' AND DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['active'] = $result['count'];
+        
+        // New customers this month (for comparison)
+        $this_month = date('Y-m-01');
+        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':this_month', $this_month);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['this_month'] = $result['count'];
+        
+        return $stats;
     }
 }
 ?>

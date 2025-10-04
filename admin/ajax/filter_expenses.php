@@ -33,6 +33,16 @@ try {
     $date_to = $_GET['date_to'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
+    
+    // Validate and fix limit parameter
+    if ($limit <= 0) {
+        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+    }
+    
+    // Validate page parameter
+    if ($page <= 0) {
+        $page = 1; // Default to page 1 if page is 0 or negative
+    }
 
     $expenseModel = new Expense();
     
@@ -64,7 +74,7 @@ try {
     }
     
     $totalExpenses = count($expenses);
-    $totalPages = ceil($totalExpenses / $limit);
+    $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
     
     // Get filter options - get unique categories from database
     $allExpenses = $expenseModel->findAll([], 'category');

@@ -31,6 +31,16 @@ try {
     $search = $_GET['search'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
+    
+    // Validate and fix limit parameter
+    if ($limit <= 0) {
+        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+    }
+    
+    // Validate page parameter
+    if ($page <= 0) {
+        $page = 1; // Default to page 1 if page is 0 or negative
+    }
 
     $contactModel = new Contact();
     
@@ -56,7 +66,7 @@ try {
     }
     
     $totalContacts = count($contacts);
-    $totalPages = ceil($totalContacts / $limit);
+    $totalPages = $limit > 0 ? ceil($totalContacts / $limit) : 1;
     
     // Get categories
     $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];

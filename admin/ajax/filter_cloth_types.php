@@ -31,6 +31,16 @@ try {
     $search = $_GET['search'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
+    
+    // Validate and fix limit parameter
+    if ($limit <= 0) {
+        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+    }
+    
+    // Validate page parameter
+    if ($page <= 0) {
+        $page = 1; // Default to page 1 if page is 0 or negative
+    }
 
     $clothTypeModel = new ClothType();
     
@@ -64,7 +74,7 @@ try {
     // Apply pagination
     $totalClothTypes = count($clothTypes);
     $clothTypes = array_slice($clothTypes, $offset, $limit);
-    $totalPages = ceil($totalClothTypes / $limit);
+    $totalPages = $limit > 0 ? ceil($totalClothTypes / $limit) : 1;
     
     // Get filter options - get unique categories from database
     $allClothTypes = $clothTypeModel->findAll([], 'category');

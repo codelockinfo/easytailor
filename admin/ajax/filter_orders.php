@@ -37,6 +37,16 @@ try {
     $assigned_tailor_id = $_GET['assigned_tailor_id'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
+    
+    // Validate and fix limit parameter
+    if ($limit <= 0) {
+        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+    }
+    
+    // Validate page parameter
+    if ($page <= 0) {
+        $page = 1; // Default to page 1 if page is 0 or negative
+    }
 
     $orderModel = new Order();
     $customerModel = new Customer();
@@ -74,7 +84,7 @@ try {
     }
     
     $totalOrders = count($orders);
-    $totalPages = ceil($totalOrders / $limit);
+    $totalPages = $limit > 0 ? ceil($totalOrders / $limit) : 1;
     
     // Get filter options
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');

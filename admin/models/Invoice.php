@@ -242,6 +242,75 @@ class Invoice extends BaseModel {
         
         return $stmt->execute();
     }
+    
+    /**
+     * Get all invoices for export
+     */
+    public function getAllInvoices() {
+        $query = "SELECT * FROM " . $this->table . " ORDER BY invoice_date DESC, created_at DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get invoice statistics by date range
+     */
+    public function getInvoiceStatsByDateRange($date_from, $date_to) {
+        $stats = [];
+        
+        // Total invoices in date range
+        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['total'] = $result['count'];
+        
+        // Invoices by payment status in date range
+        $statuses = ['paid', 'partial', 'due'];
+        foreach ($statuses as $status) {
+            $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE payment_status = :status AND DATE(created_at) BETWEEN :date_from AND :date_to";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':status', $status);
+            $stmt->bindParam(':date_from', $date_from);
+            $stmt->bindParam(':date_to', $date_to);
+            $stmt->execute();
+            $result = $stmt->fetch();
+            $stats[$status] = $result['count'];
+        }
+        
+        // Total invoice amount in date range
+        $query = "SELECT SUM(total_amount) as total FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['total_amount'] = $result['total'] ?? 0;
+        
+        // Paid amount in date range
+        $query = "SELECT SUM(paid_amount) as total FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['paid_amount'] = $result['total'] ?? 0;
+        
+        // Due amount in date range
+        $query = "SELECT SUM(balance_amount) as total FROM " . $this->table . " WHERE payment_status IN ('partial', 'due') AND DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['due_amount'] = $result['total'] ?? 0;
+        
+        return $stats;
+    }
 }
 ?>
 

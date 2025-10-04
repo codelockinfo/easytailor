@@ -13,6 +13,12 @@ class Order extends BaseModel {
     public function createOrder($data) {
         // Generate order number
         $data['order_number'] = $this->generateOrderNumber();
+        
+        // Set company_id from session if not provided
+        if (!isset($data['company_id']) && isset($_SESSION['company_id'])) {
+            $data['company_id'] = $_SESSION['company_id'];
+        }
+        
         return $this->create($data);
     }
 
@@ -220,6 +226,117 @@ class Order extends BaseModel {
         
         $result = $stmt->fetch();
         return $result['total'] ?? 0;
+    }
+    
+    /**
+     * Get order by ID
+     */
+    public function getOrderById($id) {
+        $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Get cloth type by ID
+     */
+    public function getClothTypeById($id) {
+        $query = "SELECT * FROM cloth_types WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+
+    /**
+     * Get order statistics by date range
+     */
+    public function getOrderStatsByDateRange($date_from, $date_to) {
+        $stats = [];
+        
+        // Total orders in date range
+        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stats['total'] = $result['count'];
+        
+        // Orders by status in date range
+        $statuses = ['pending', 'in_progress', 'completed', 'delivered', 'cancelled'];
+        foreach ($statuses as $status) {
+            $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE status = :status AND DATE(created_at) BETWEEN :date_from AND :date_to";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':status', $status);
+            $stmt->bindParam(':date_from', $date_from);
+            $stmt->bindParam(':date_to', $date_to);
+            $stmt->execute();
+            $result = $stmt->fetch();
+            $stats[$status] = $result['count'];
+        }
+        
+        return $stats;
+    }
+
+    /**
+     * Get monthly revenue by date range
+     */
+    public function getMonthlyRevenueByDateRange($year, $month, $date_from, $date_to) {
+        $query = "SELECT SUM(total_amount) as total 
+                  FROM " . $this->table . " 
+                  WHERE YEAR(created_at) = :year 
+                  AND MONTH(created_at) = :month 
+                  AND DATE(created_at) BETWEEN :date_from AND :date_to
+                  AND status IN ('completed', 'delivered')";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+        $stmt->bindParam(':month', $month, PDO::PARAM_INT);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+
+    /**
+     * Get orders with details by date range
+     */
+    public function getOrdersWithDetailsByDateRange($date_from, $date_to, $limit = null) {
+        $query = "SELECT o.*, 
+                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
+                         ct.name as cloth_type_name,
+                         u.full_name as tailor_name,
+                         creator.full_name as created_by_name
+                  FROM " . $this->table . " o
+                  LEFT JOIN customers c ON o.customer_id = c.id
+                  LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
+                  LEFT JOIN users u ON o.assigned_tailor_id = u.id
+                  LEFT JOIN users creator ON o.created_by = creator.id
+                  WHERE DATE(o.created_at) BETWEEN :date_from AND :date_to
+                  ORDER BY o.created_at DESC";
+        
+        if ($limit) {
+            $query .= " LIMIT :limit";
+        }
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':date_from', $date_from);
+        $stmt->bindParam(':date_to', $date_to);
+        
+        if ($limit) {
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        }
+        
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
     }
 }
 ?>

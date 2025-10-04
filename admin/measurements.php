@@ -423,7 +423,7 @@ include 'includes/header.php';
                                     <option value="">Select Cloth Type</option>
                                     <?php foreach ($clothTypes as $clothType): ?>
                                         <option value="<?php echo $clothType['id']; ?>" 
-                                                data-chart="<?php echo htmlspecialchars($clothType['measurement_chart_image'] ? '../' . $clothType['measurement_chart_image'] : ''); ?>"
+                                                data-chart="<?php echo htmlspecialchars($clothType['measurement_chart_image'] ? '../' . ltrim($clothType['measurement_chart_image'], './') : ''); ?>"
                                                 <?php echo ($editMeasurement && $editMeasurement['cloth_type_id'] == $clothType['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($clothType['name']); ?>
                                         </option>
@@ -504,11 +504,64 @@ include 'includes/header.php';
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Modal Header -->
+            <div class="modal-header bg-danger text-white border-0">
+                <div class="d-flex align-items-center w-100">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1 text-center">
+                        <h5 class="modal-title mb-0" id="deleteModalLabel">
+                            <strong>Confirm Deletion</strong>
+                        </h5>
+                        <small class="opacity-75">This action cannot be undone</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <i class="fas fa-ruler-combined fa-4x text-danger mb-3"></i>
+                </div>
+                <h6 class="mb-3">Are you sure you want to delete this measurement?</h6>
+                <div class="alert alert-light border">
+                    <strong id="deleteMeasurementInfo" class="text-primary"></strong>
+                </div>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    All measurement data will be permanently removed from the system.
+                </p>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <form method="POST" class="d-inline" id="deleteMeasurementForm">
+                    <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="measurement_id" id="deleteMeasurementId">
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="fas fa-trash me-2"></i>Delete Measurement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Store cloth type chart data
 const clothTypeCharts = {};
 <?php foreach ($clothTypes as $clothType): ?>
-clothTypeCharts[<?php echo $clothType['id']; ?>] = '<?php echo htmlspecialchars($clothType['measurement_chart_image'] ? '../' . $clothType['measurement_chart_image'] : ''); ?>';
+clothTypeCharts[<?php echo $clothType['id']; ?>] = '<?php echo htmlspecialchars($clothType['measurement_chart_image'] ? '../' . ltrim($clothType['measurement_chart_image'], './') : ''); ?>';
 <?php endforeach; ?>
 
 // Store cloth type names for field detection
@@ -880,16 +933,17 @@ function printMeasurement() {
 
 // Delete measurement
 function deleteMeasurement(id) {
-    if (confirm('Are you sure you want to delete this measurement? This action cannot be undone.')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.innerHTML = `
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="measurement_id" value="${id}">
-        `;
-        document.body.appendChild(form);
-        form.submit();
-    }
+    // Find the measurement data to display in the modal
+    const measurementRow = document.querySelector(`button[onclick="deleteMeasurement(${id})"]`).closest('tr');
+    const customerName = measurementRow.querySelector('td:nth-child(2)').textContent.trim();
+    const clothType = measurementRow.querySelector('td:nth-child(3)').textContent.trim();
+    
+    // Set the measurement info in the modal
+    document.getElementById('deleteMeasurementInfo').textContent = `${customerName} - ${clothType}`;
+    document.getElementById('deleteMeasurementId').value = id;
+    
+    // Show the modal
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
 // Auto-dismiss alerts

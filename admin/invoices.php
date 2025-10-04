@@ -636,7 +636,62 @@ function printInvoice(invoiceId) {
 }
 
 function exportInvoices() {
-    showToast('Export functionality will be implemented', 'info');
+    // Show initial progress message
+    showToast('🔄 Preparing your invoice export... Please wait.', 'info');
+    
+    // Disable the export button temporarily
+    const exportBtn = document.querySelector('button[onclick="exportInvoices()"]');
+    const originalText = exportBtn.innerHTML;
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Exporting...';
+    
+    // Create FormData for AJAX request
+    const formData = new FormData();
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+    
+    // Show progress message
+    setTimeout(() => {
+        showToast('📊 Generating Excel file with all invoice details...', 'info');
+    }, 500);
+    
+    // Make AJAX request
+    fetch('ajax/export_invoices.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'invoices_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        // Show success message
+        showToast('✅ Export completed! Your Excel file has been downloaded.', 'success');
+        
+        // Re-enable the export button
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalText;
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        showToast('❌ Export failed. Please try again.', 'error');
+        
+        // Re-enable the export button
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalText;
+    });
 }
 
 // Calculate totals when values change

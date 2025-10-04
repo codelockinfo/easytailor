@@ -333,7 +333,7 @@ const revenueChart = new Chart(revenueCtx, {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        return '$' + value.toLocaleString();
+                        return '₹' + value.toLocaleString();
                     }
                 }
             }

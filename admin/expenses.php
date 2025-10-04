@@ -572,7 +572,62 @@ function viewReceipt(imagePath) {
 }
 
 function exportExpenses() {
-    showToast('Export functionality will be implemented', 'info');
+    // Show initial progress message
+    showToast('🔄 Preparing your expense export... Please wait.', 'info');
+    
+    // Disable the export button temporarily
+    const exportBtn = document.querySelector('button[onclick="exportExpenses()"]');
+    const originalText = exportBtn.innerHTML;
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Exporting...';
+    
+    // Create FormData for AJAX request
+    const formData = new FormData();
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+    
+    // Show progress message
+    setTimeout(() => {
+        showToast('📊 Generating Excel file with all expense details...', 'info');
+    }, 500);
+    
+    // Make AJAX request
+    fetch('ajax/export_expenses.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'expenses_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        // Show success message
+        showToast('✅ Export completed! Your Excel file has been downloaded.', 'success');
+        
+        // Re-enable the export button
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalText;
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        showToast('❌ Export failed. Please try again.', 'error');
+        
+        // Re-enable the export button
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalText;
+    });
 }
 
 // Reset modal when closed
@@ -684,6 +739,12 @@ clearFilters.addEventListener('click', function() {
     dateToFilter.value = '';
     expensesTable.innerHTML = originalTableContent;
     filterResults.style.display = 'none';
+    
+    // Restore the "Created By" column header
+    const tableHeaders = document.querySelectorAll('.table thead th');
+    if (tableHeaders.length >= 7) {
+        tableHeaders[6].style.display = ''; // Show "Created By" column (7th column)
+    }
 });
 
 function performFilter() {
@@ -754,6 +815,13 @@ function executeFilter() {
 
 function displayFilterResults(expenses) {
     console.log('displayFilterResults called with:', expenses.length, 'expenses');
+    
+    // Hide the "Created By" column header during filtering
+    const tableHeaders = document.querySelectorAll('.table thead th');
+    if (tableHeaders.length >= 7) {
+        tableHeaders[6].style.display = 'none'; // Hide "Created By" column (7th column)
+    }
+    
     if (expenses.length === 0) {
         expensesTable.innerHTML = `
             <tr>
@@ -773,36 +841,60 @@ function displayFilterResults(expenses) {
         const expenseDate = new Date(expense.expense_date).toLocaleDateString('en-US', { 
             year: 'numeric', month: 'short', day: 'numeric' 
         });
+        const createdTime = new Date(expense.created_at).toLocaleTimeString('en-US', { 
+            hour: '2-digit', minute: '2-digit' 
+        });
         
         // Format currency
         const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
         
+        // Format payment method badge
+        const getPaymentMethodBadge = (method) => {
+            const badges = {
+                'cash': 'success',
+                'bank_transfer': 'primary', 
+                'card': 'info',
+                'cheque': 'warning'
+            };
+            return badges[method] || 'secondary';
+        };
+        
         tableHTML += `
             <tr>
                 <td>
-                    <span class="badge bg-primary">${expense.category}</span>
+                    <div>
+                        ${expenseDate}
+                        <br>
+                        <small class="text-muted">${createdTime}</small>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-info">${expense.category}</span>
                 </td>
                 <td>
                     <div>
-                        <strong>${expense.description}</strong>
-                        ${expense.reference_number ? `<br><small class="text-muted">Ref: ${expense.reference_number}</small>` : ''}
+                        ${expense.description}
+                        ${expense.receipt_image ? `
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-paperclip"></i> Receipt attached
+                            </small>
+                        ` : ''}
                     </div>
                 </td>
                 <td>
-                    <div class="text-end">
-                        <div class="fw-bold text-danger">${formatCurrency(expense.amount)}</div>
-                    </div>
-                </td>
-                <td>${expenseDate}</td>
-                <td>
-                    <span class="badge bg-info">${expense.payment_method}</span>
+                    <strong class="text-danger">${formatCurrency(expense.amount)}</strong>
                 </td>
                 <td>
-                    ${expense.receipt_image ? `
-                        <a href="${expense.receipt_image}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-image"></i> View
-                        </a>
-                    ` : '<span class="text-muted">No receipt</span>'}
+                    <span class="badge bg-${getPaymentMethodBadge(expense.payment_method)}">
+                        ${expense.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
+                </td>
+                <td>
+                    ${expense.reference_number ? expense.reference_number : '<span class="text-muted">-</span>'}
+                </td>
+                <td style="display: none;">
+                    <!-- Hidden "Created By" column to maintain table structure -->
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
@@ -812,6 +904,14 @@ function displayFilterResults(expenses) {
                                 title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
+                        ${expense.receipt_image ? `
+                            <button type="button" 
+                                    class="btn btn-outline-info" 
+                                    onclick="viewReceipt('${expense.receipt_image}')"
+                                    title="View Receipt">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        ` : ''}
                         <button type="button" 
                                 class="btn btn-outline-danger" 
                                 onclick="deleteExpense(${expense.id}, '${expense.description.replace(/'/g, "\\'")}')"

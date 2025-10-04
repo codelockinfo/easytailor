@@ -34,6 +34,16 @@ try {
     $cloth_type_id = $_GET['cloth_type_id'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
+    
+    // Validate and fix limit parameter
+    if ($limit <= 0) {
+        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+    }
+    
+    // Validate page parameter
+    if ($page <= 0) {
+        $page = 1; // Default to page 1 if page is 0 or negative
+    }
 
     $measurementModel = new Measurement();
     $customerModel = new Customer();
@@ -64,7 +74,7 @@ try {
         } else {
             $measurements = $measurementModel->getMeasurementsWithDetails($conditions, $limit, $offset);
             $totalMeasurements = $measurementModel->count($conditions);
-            $totalPages = ceil($totalMeasurements / $limit);
+            $totalPages = $limit > 0 ? ceil($totalMeasurements / $limit) : 1;
         }
     }
     

@@ -31,6 +31,16 @@ try {
     $role = $_GET['role'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? 20);
+    
+    // Validate and fix limit parameter
+    if ($limit <= 0) {
+        $limit = 20; // Default to 20 if limit is 0 or negative
+    }
+    
+    // Validate page parameter
+    if ($page <= 0) {
+        $page = 1; // Default to page 1 if page is 0 or negative
+    }
 
     $userModel = new User();
     
@@ -55,7 +65,7 @@ try {
     }
     
     $totalUsers = count($users);
-    $totalPages = ceil($totalUsers / $limit);
+    $totalPages = $limit > 0 ? ceil($totalUsers / $limit) : 1;
     
     // Get filter options
     $allUsers = $userModel->findAll([], 'id, full_name, username, email, role, status, created_at');

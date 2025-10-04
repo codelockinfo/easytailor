@@ -100,12 +100,6 @@ if (!$company) {
 $companyStats = $companyModel->getCompanyStats($companyId);
 ?>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="h3 mb-0">Company Settings</h1>
-        <p class="text-muted">Manage your tailor shop information</p>
-    </div>
-</div>
 
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">

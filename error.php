@@ -152,3 +152,4 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
 </style>
 
 <?php require_once 'includes/footer.php'; ?>
+

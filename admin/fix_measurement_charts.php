@@ -3,7 +3,7 @@
  * Auto-assign measurement charts to cloth types
  */
 
-require_once 'config/config.php';
+require_once '../config/config.php';
 require_login();
 
 // Check if user is admin
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         die('Invalid CSRF token');
     }
     
-    require_once 'models/ClothType.php';
+    require_once '../models/ClothType.php';
     $clothTypeModel = new ClothType();
     
     // Get all cloth types

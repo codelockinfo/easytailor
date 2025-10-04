@@ -4,7 +4,7 @@
  * Automatically converts system to multi-tenant
  */
 
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 $steps = [];
 $errors = [];

@@ -4,7 +4,7 @@
  * This script helps diagnose and fix user session problems
  */
 
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 session_start();
 

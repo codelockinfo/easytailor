@@ -5,7 +5,7 @@
  * Allows tailor shop owners to register their business
  */
 
-require_once 'config/config.php';
+require_once '../config/config.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
@@ -47,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        require_once 'models/Company.php';
-        require_once 'models/User.php';
+        require_once '../models/Company.php';
+        require_once '../models/User.php';
         
         $companyModel = new Company();
         $userModel = new User();
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Handle logo upload
             if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = 'uploads/logos/';
+                $uploadDir = '../uploads/logos/';
                 $fileName = time() . '_' . basename($_FILES['logo']['name']);
                 $targetPath = $uploadDir . $fileName;
                 
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Success - redirect to login
             $_SESSION['reg_success'] = 'Registration successful! Please login with your credentials.';
-            header('Location: login.php');
+            header('Location: admin/login.php');
             exit;
             
         } catch (Exception $e) {
@@ -266,7 +266,7 @@ if (isset($_SESSION['reg_form_data'])) {
                     <div class="register-header">
                         <?php
                         // Check for brand logo
-                        $brandLogo = 'uploads/logos/brand-logo.png';
+                        $brandLogo = '../uploads/logos/brand-logo.png';
                         if (file_exists($brandLogo)):
                         ?>
                             <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
@@ -536,7 +536,7 @@ if (isset($_SESSION['reg_form_data'])) {
                         <div class="text-center mt-4">
                             <p class="text-muted">
                                 Already have an account? 
-                                <a href="login.php" class="text-decoration-none fw-bold">
+                                <a href="admin/login.php" class="text-decoration-none fw-bold">
                                     Sign In
                                 </a>
                             </p>

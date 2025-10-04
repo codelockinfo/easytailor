@@ -4,8 +4,8 @@
  * Tests login credentials and shows what's happening
  */
 
-require_once 'config/database.php';
-require_once 'models/User.php';
+require_once '../config/database.php';
+require_once '../models/User.php';
 
 $testResults = [];
 $testUsername = $_POST['test_username'] ?? 'admin';

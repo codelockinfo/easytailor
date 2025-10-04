@@ -91,7 +91,7 @@ function is_logged_in() {
 
 function require_login() {
     if (!is_logged_in()) {
-        redirect(APP_URL . '/login.php');
+        redirect(APP_URL . '/admin/login.php');
     }
 }
 
@@ -102,7 +102,7 @@ function has_role($role) {
 function require_role($role) {
     require_login();
     if (!has_role($role) && !has_role('admin')) {
-        redirect(APP_URL . '/unauthorized.php');
+        redirect(APP_URL . '/admin/unauthorized.php');
     }
 }
 

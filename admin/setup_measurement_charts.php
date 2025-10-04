@@ -4,7 +4,7 @@
  * Run this script once to set up everything
  */
 
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 // Initialize response
 $response = [

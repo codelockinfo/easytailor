@@ -90,10 +90,10 @@
                         <a class="nav-link" href="#contact">Contact</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="login.php" class="btn btn-outline-primary btn-sm">Login</a>
+                        <a href="admin/login.php" class="btn btn-outline-primary btn-sm">Login</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a href="register.php" class="btn btn-primary btn-sm">Register</a>
+                        <a href="admin/register.php" class="btn btn-primary btn-sm">Register</a>
                     </li>
                 </ul>
             </div>
@@ -113,10 +113,10 @@
                             Digitalize your tailoring business with our comprehensive management system.
                         </p>
                         <div class="hero-cta">
-                            <a href="register.php" class="btn btn-primary btn-lg me-3">
+                            <a href="admin/register.php" class="btn btn-primary btn-lg me-3">
                                 <i class="fas fa-rocket me-2"></i>Register Your Business
                             </a>
-                            <a href="login.php" class="btn btn-outline-primary btn-lg">
+                            <a href="admin/login.php" class="btn btn-outline-primary btn-lg">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
                             </a>
                         </div>
@@ -608,7 +608,7 @@
                             </ul>
                         </div>
                         <div class="pricing-footer">
-                            <a href="register.php" class="btn btn-outline-primary w-100">Get Started Free</a>
+                            <a href="admin/register.php" class="btn btn-outline-primary w-100">Get Started Free</a>
                         </div>
                     </div>
                 </div>
@@ -635,7 +635,7 @@
                             </ul>
                         </div>
                         <div class="pricing-footer">
-                            <a href="register.php" class="btn btn-primary w-100">Choose Professional</a>
+                            <a href="admin/register.php" class="btn btn-primary w-100">Choose Professional</a>
                         </div>
                     </div>
                 </div>
@@ -680,10 +680,10 @@
                         Start your free trial today and see the difference.
                     </p>
                     <div class="cta-buttons">
-                        <a href="register.php" class="btn btn-primary btn-lg me-3">
+                        <a href="admin/register.php" class="btn btn-primary btn-lg me-3">
                             <i class="fas fa-rocket me-2"></i>Register Your Business
                         </a>
-                        <a href="login.php" class="btn btn-outline-light btn-lg">
+                        <a href="admin/login.php" class="btn btn-outline-light btn-lg">
                             <i class="fas fa-sign-in-alt me-2"></i>Login Now
                         </a>
                     </div>
@@ -731,8 +731,8 @@
                     <div class="footer-links">
                         <h5 class="link-title">Platform</h5>
                         <ul class="link-list">
-                            <li><a href="login.php">Login</a></li>
-                            <li><a href="register.php">Register</a></li>
+                            <li><a href="admin/login.php">Login</a></li>
+                            <li><a href="admin/register.php">Register</a></li>
                             <li><a href="#how-it-works">How It Works</a></li>
                             <li><a href="#testimonials">Testimonials</a></li>
                             <li><a href="#screenshots">Screenshots</a></li>
@@ -777,7 +777,7 @@
 
     <!-- Sticky CTA Button -->
     <div class="sticky-cta">
-        <a href="register.php" class="btn btn-primary btn-floating">
+        <a href="admin/register.php" class="btn btn-primary btn-floating">
             <i class="fas fa-rocket"></i>
             <span>Get Started</span>
         </a>

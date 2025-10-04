@@ -4,7 +4,7 @@
  * This script helps verify that measurement charts are properly configured
  */
 
-require_once 'config/config.php';
+require_once '../config/config.php';
 require_login();
 
 // Check if user is admin
@@ -12,7 +12,7 @@ if (!has_role('admin')) {
     die('Access denied. Admin only.');
 }
 
-require_once 'models/ClothType.php';
+require_once '../models/ClothType.php';
 $clothTypeModel = new ClothType();
 
 ?>

@@ -4,13 +4,13 @@
  * Tailoring Management System
  */
 
-require_once 'config/config.php';
-require_once 'controllers/AuthController.php';
+require_once '../config/config.php';
+require_once '../controllers/AuthController.php';
 
 $authController = new AuthController();
 $authController->logout();
 
 // Redirect to login page with logout message
-redirect(APP_URL . '/login.php?logout=1');
+redirect(APP_URL . '/admin/login.php?logout=1');
 ?>
 

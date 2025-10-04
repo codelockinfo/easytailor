@@ -4,7 +4,7 @@
  * Tailoring Management System
  */
 
-require_once 'config/config.php';
+require_once '../config/config.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     
     if (!empty($username) && !empty($password)) {
-        require_once 'controllers/AuthController.php';
+        require_once '../controllers/AuthController.php';
         $authController = new AuthController();
         $result = $authController->login($username, $password);
         
@@ -128,7 +128,7 @@ if (isset($_SESSION['reg_success'])) {
                     <div class="login-header">
                         <?php
                         // Check for brand logo
-                        $brandLogo = 'uploads/logos/brand-logo.png';
+                        $brandLogo = '../uploads/logos/brand-logo.png';
                         if (file_exists($brandLogo)):
                         ?>
                             <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">

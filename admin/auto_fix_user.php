@@ -4,7 +4,7 @@
  * This will automatically fix the user session issue
  */
 
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 session_start();
 

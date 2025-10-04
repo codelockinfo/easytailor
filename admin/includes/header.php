@@ -580,12 +580,6 @@ $current_user = [
                     </a>
                 </li>
                 
-                <li class="nav-item">
-                    <a href="settings.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-cog"></i>
-                        Settings
-                    </a>
-                </li>
                 <?php endif; ?>
             </ul>
         </div>

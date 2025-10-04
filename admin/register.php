@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Check if business email already exists
         if ($companyModel->emailExists($businessEmail)) {
-            $_SESSION['reg_error'] = 'This business email is already registered. Please use a different email or <a href="login.php">login here</a>';
+            $_SESSION['reg_error'] = 'This business email is already registered. Please use a different email or <a href="login.php">login here</a>.';
             $_SESSION['reg_form_data'] = $_POST;
             header('Location: register.php');
             exit;
@@ -536,7 +536,7 @@ if (isset($_SESSION['reg_form_data'])) {
                         <div class="text-center mt-4">
                             <p class="text-muted">
                                 Already have an account? 
-                                <a href="admin/login.php" class="text-decoration-none fw-bold">
+                                <a href="login.php" class="text-decoration-none fw-bold">
                                     Sign In
                                 </a>
                             </p>

@@ -97,7 +97,13 @@ function is_logged_in() {
 
 function require_login() {
     if (!is_logged_in()) {
-        smart_redirect('admin/login.php');
+        // Check if we're already in admin folder
+        $current_script = $_SERVER['SCRIPT_NAME'] ?? '';
+        if (strpos($current_script, '/admin/') !== false) {
+            smart_redirect('login.php');
+        } else {
+            smart_redirect('admin/login.php');
+        }
     }
 }
 
@@ -108,7 +114,13 @@ function has_role($role) {
 function require_role($role) {
     require_login();
     if (!has_role($role) && !has_role('admin')) {
-        smart_redirect('admin/unauthorized.php');
+        // Check if we're already in admin folder
+        $current_script = $_SERVER['SCRIPT_NAME'] ?? '';
+        if (strpos($current_script, '/admin/') !== false) {
+            smart_redirect('unauthorized.php');
+        } else {
+            smart_redirect('admin/unauthorized.php');
+        }
     }
 }
 

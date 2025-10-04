@@ -611,9 +611,18 @@ $current_user = [
                     </button>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#" data-lang="en">🇺🇸 English</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="es">🇪🇸 Español</a></li>
-                        <li><a class="dropdown-item" href="#" data-lang="fr">🇫🇷 Français</a></li>
                         <li><a class="dropdown-item" href="#" data-lang="hi">🇮🇳 हिन्दी</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="gu">🇮🇳 ગુજરાતી</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="mr">🇮🇳 मराठी</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="ta">🇮🇳 தமிழ்</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="te">🇮🇳 తెలుగు</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="kn">🇮🇳 ಕನ್ನಡ</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="ml">🇮🇳 മലയാളം</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="bn">🇮🇳 বাংলা</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="pa">🇮🇳 ਪੰਜਾਬੀ</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="ur">🇮🇳 اردو</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="or">🇮🇳 ଓଡ଼ିଆ</a></li>
+                        <li><a class="dropdown-item" href="#" data-lang="as">🇮🇳 অসমীয়া</a></li>
                     </ul>
                 </div>
                 

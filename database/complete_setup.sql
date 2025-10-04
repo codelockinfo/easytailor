@@ -440,12 +440,21 @@ SET @company_id = LAST_INSERT_ID();
 INSERT INTO `users` (`company_id`, `username`, `email`, `password`, `full_name`, `role`, `status`) VALUES
 (@company_id, 'admin', 'admin@tailoring.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'admin', 'active');
 
--- Insert default languages
+-- Insert default languages (Indian languages focus)
 INSERT INTO `languages` (`code`, `name`, `flag`, `is_default`, `status`) VALUES
 ('en', 'English', '🇺🇸', 1, 'active'),
-('es', 'Spanish', '🇪🇸', 0, 'active'),
-('fr', 'French', '🇫🇷', 0, 'active'),
-('hi', 'Hindi', '🇮🇳', 0, 'active');
+('hi', 'Hindi', '🇮🇳', 0, 'active'),
+('gu', 'Gujarati', '🇮🇳', 0, 'active'),
+('mr', 'Marathi', '🇮🇳', 0, 'active'),
+('ta', 'Tamil', '🇮🇳', 0, 'active'),
+('te', 'Telugu', '🇮🇳', 0, 'active'),
+('kn', 'Kannada', '🇮🇳', 0, 'active'),
+('ml', 'Malayalam', '🇮🇳', 0, 'active'),
+('bn', 'Bengali', '🇮🇳', 0, 'active'),
+('pa', 'Punjabi', '🇮🇳', 0, 'active'),
+('ur', 'Urdu', '🇮🇳', 0, 'active'),
+('or', 'Odia', '🇮🇳', 0, 'active'),
+('as', 'Assamese', '🇮🇳', 0, 'active');
 
 -- Insert default subscription packages
 INSERT INTO `subscription_packages` (`name`, `description`, `price`, `duration_days`, `max_customers`, `max_orders`, `features`) VALUES

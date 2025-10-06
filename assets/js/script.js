@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initParallax();
     initTestimonials();
     initPricingCards();
+    initScrollIndicator();
     
     // Add loading animation
     setTimeout(() => {
@@ -219,6 +220,70 @@ function initPricingCards() {
 }
 
 /**
+ * Scroll Progress Indicator
+ */
+function initScrollIndicator() {
+    console.log('Initializing scroll indicator...');
+    
+    const scrollIndicator = document.getElementById('scrollProgressBar');
+    
+    if (!scrollIndicator) {
+        console.error('Scroll indicator element not found!');
+        return;
+    }
+    
+    console.log('Scroll indicator element found:', scrollIndicator);
+    
+    function updateScrollProgress() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        
+        console.log('Scroll values:', { scrollTop, docHeight });
+        
+        if (docHeight <= 0) {
+            console.log('Document height is 0, skipping update');
+            return;
+        }
+        
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        const progress = Math.min(Math.max(scrollPercent, 0), 100);
+        
+        console.log('Setting progress to:', progress + '%');
+        scrollIndicator.style.width = progress + '%';
+    }
+    
+    // Use a more reliable scroll event handler
+    let ticking = false;
+    
+    function onScroll() {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                updateScrollProgress();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+    
+    // Add multiple event listeners for better compatibility
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('scroll', onScroll, { passive: true });
+    
+    // Initial call after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        console.log('Initial scroll progress update');
+        updateScrollProgress();
+    }, 100);
+    
+    // Also call on window load
+    window.addEventListener('load', () => {
+        console.log('Window loaded, updating scroll progress');
+        updateScrollProgress();
+    });
+    
+}
+
+/**
  * Form validation and submission
  */
 function initForms() {
@@ -353,45 +418,45 @@ function optimizePerformance() {
 /**
  * Accessibility improvements
  */
-function initAccessibility() {
-    // Skip to main content
-    const skipLink = document.createElement('a');
-    skipLink.href = '#main-content';
-    skipLink.textContent = 'Skip to main content';
-    skipLink.className = 'skip-link';
-    skipLink.style.cssText = `
-        position: absolute;
-        top: -40px;
-        left: 6px;
-        background: #000;
-        color: #fff;
-        padding: 8px;
-        text-decoration: none;
-        z-index: 10000;
-        transition: top 0.3s;
-    `;
+// function initAccessibility() {
+//     // Skip to main content
+//     const skipLink = document.createElement('a');
+//     skipLink.href = '#main-content';
+//     skipLink.textContent = 'Skip to main content';
+//     skipLink.className = 'skip-link';
+//     skipLink.style.cssText = `
+//         position: absolute;
+//         top: -40px;
+//         left: 6px;
+//         background: #000;
+//         color: #fff;
+//         padding: 8px;
+//         text-decoration: none;
+//         z-index: 10000;
+//         transition: top 0.3s;
+//     `;
     
-    skipLink.addEventListener('focus', () => {
-        skipLink.style.top = '6px';
-    });
+//     skipLink.addEventListener('focus', () => {
+//         skipLink.style.top = '6px';
+//     });
     
-    skipLink.addEventListener('blur', () => {
-        skipLink.style.top = '-40px';
-    });
+//     skipLink.addEventListener('blur', () => {
+//         skipLink.style.top = '-40px';
+//     });
     
-    document.body.insertBefore(skipLink, document.body.firstChild);
+//     document.body.insertBefore(skipLink, document.body.firstChild);
     
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Tab') {
-            document.body.classList.add('keyboard-navigation');
-        }
-    });
+//     // Keyboard navigation
+//     document.addEventListener('keydown', (e) => {
+//         if (e.key === 'Tab') {
+//             document.body.classList.add('keyboard-navigation');
+//         }
+//     });
     
-    document.addEventListener('mousedown', () => {
-        document.body.classList.remove('keyboard-navigation');
-    });
-}
+//     document.addEventListener('mousedown', () => {
+//         document.body.classList.remove('keyboard-navigation');
+//     });
+// }
 
 /**
  * Analytics and tracking

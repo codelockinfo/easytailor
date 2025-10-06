@@ -62,11 +62,16 @@
     </script>
 </head>
 <body>
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-indicator" id="scrollIndicator">
+        <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+    </div>
+
     <!-- Sticky Header -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="#home">
-                <img src="uploads/logos/brand-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <img src="uploads/logos/logo3.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                 <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
                 TailorPro
             </a>
@@ -140,13 +145,13 @@
                 </div>
                 <div class="col-lg-6">
                         <div class="hero-image">
-                            <div class="hero-logo-section">
+                            <!-- <div class="hero-logo-section">
                                 <img src="uploads/logos/brand-logo.png" alt="TailorPro" class="hero-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                 <i class="fas fa-cut fa-4x mb-3" style="display: none; color: white;"></i>
                                 <h4 class="hero-logo-text">Powered by TailorPro</h4>
-                            </div>
+                            </div> -->
                             <div class="dashboard-preview">
-                                <img src="assets/images/dashboard-preview.png" alt="Tailoring Management System Dashboard" class="img-fluid rounded shadow-lg">
+                                <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  shadow-lg">
                             </div>
                         </div>
                 </div>
@@ -464,7 +469,7 @@
             <div class="row g-4">
                 <div class="col-lg-4 col-md-6">
                     <div class="screenshot-card">
-                        <img src="assets/images/dashboard-screenshot.png" alt="Dashboard Preview" class="img-fluid rounded shadow">
+                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded shadow">
                         <div class="screenshot-overlay">
                             <h4>Dashboard Overview</h4>
                             <p>Comprehensive business overview at a glance</p>
@@ -473,7 +478,7 @@
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <div class="screenshot-card">
-                        <img src="assets/images/orders-screenshot.png" alt="Orders Management" class="img-fluid rounded shadow">
+                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded shadow">
                         <div class="screenshot-overlay">
                             <h4>Order Management</h4>
                             <p>Track and manage all your orders efficiently</p>
@@ -482,7 +487,7 @@
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <div class="screenshot-card">
-                        <img src="assets/images/invoice-screenshot.png" alt="Invoice Generation" class="img-fluid rounded shadow">
+                        <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded shadow">
                         <div class="screenshot-overlay">
                             <h4>Invoice Generation</h4>
                             <p>Professional invoices with payment tracking</p>
@@ -680,10 +685,10 @@
                         Start your free trial today and see the difference.
                     </p>
                     <div class="cta-buttons">
-                        <a href="admin/register.php" class="btn btn-primary btn-lg me-3">
+                        <a href="admin/register.php" class="btn btn-primary btn-lg register">
                             <i class="fas fa-rocket me-2"></i>Register Your Business
                         </a>
-                        <a href="admin/login.php" class="btn btn-outline-light btn-lg">
+                        <a href="admin/login.php" class="btn btn-outline-light btn-lg loginbtn">
                             <i class="fas fa-sign-in-alt me-2"></i>Login Now
                         </a>
                     </div>

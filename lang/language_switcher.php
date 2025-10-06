@@ -259,6 +259,30 @@ function saveLanguagePreference(langCode) {
 }
 
 /**
+ * Get current language from URL or default
+ */
+function getCurrentLanguage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const langFromUrl = urlParams.get('lang');
+    if (langFromUrl) {
+        return langFromUrl;
+    }
+    
+    // Check if there's a language indicator in the current language display
+    const currentLangElement = document.querySelector('.current-language');
+    if (currentLangElement) {
+        const text = currentLangElement.textContent.trim();
+        const match = text.match(/[A-Z]{2}/);
+        if (match) {
+            return match[0].toLowerCase();
+        }
+    }
+    
+    // Default fallback
+    return 'en';
+}
+
+/**
  * Load saved language preference
  */
 function loadLanguagePreference() {

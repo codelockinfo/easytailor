@@ -146,15 +146,19 @@
             return confirm(message);
         }
 
-        // Language switcher
+        // Language switcher - updated to work with the new language switcher component
         document.querySelectorAll('[data-lang]').forEach(function(element) {
             element.addEventListener('click', function(e) {
                 e.preventDefault();
                 const lang = this.getAttribute('data-lang');
                 const langText = this.textContent.trim();
                 
-                // Update current language display
-                document.getElementById('currentLanguage').textContent = lang.toUpperCase();
+                // Update current language display in the language switcher
+                const currentLangElement = document.querySelector('.current-language');
+                if (currentLangElement) {
+                    // Simply update the text content - let the language switcher handle flags
+                    currentLangElement.textContent = lang.toUpperCase();
+                }
                 
                 // Store language preference
                 localStorage.setItem('preferred_language', lang);
@@ -169,8 +173,10 @@
             const savedLang = localStorage.getItem('preferred_language');
             if (savedLang) {
                 const langElement = document.querySelector(`[data-lang="${savedLang}"]`);
-                if (langElement) {
-                    document.getElementById('currentLanguage').textContent = savedLang.toUpperCase();
+                const currentLangElement = document.querySelector('.current-language');
+                if (langElement && currentLangElement) {
+                    // Simply update the text content - let the language switcher handle flags
+                    currentLangElement.textContent = savedLang.toUpperCase();
                 }
             }
         });

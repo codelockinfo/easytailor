@@ -54,37 +54,40 @@ $plans = [
     'free' => [
         'name' => 'Free Trial',
         'price' => 0,
+        'price_annual' => 0,
         'duration' => '30 days',
         'features' => [
-            'Up to 50 customers',
-            'Up to 100 orders',
+            'Up to 30 customers',
+            'Up to 50 orders',
             'Basic reporting',
             'Email support',
             '1 user account'
         ],
         'limits' => [
-            'customers' => 50,
-            'orders' => 100,
+            'customers' => 30,
+            'orders' => 50,
             'users' => 1
         ],
         'color' => 'secondary'
     ],
     'basic' => [
         'name' => 'Basic Plan',
-        'price' => 2499,
+        'price' => 99,
+        'price_annual' => 89, // 10% discount
         'duration' => 'per month',
         'features' => [
-            'Up to 200 customers',
-            'Up to 500 orders',
+            'Up to 100 customers',
+            'Up to 150 orders',
             'Advanced reporting',
             'Priority email support',
             'Up to 3 users',
             'Custom cloth types',
-            'Invoice generation'
+            'Invoice generation',
+            'SMS notifications'
         ],
         'limits' => [
-            'customers' => 200,
-            'orders' => 500,
+            'customers' => 100,
+            'orders' => 150,
             'users' => 3
         ],
         'color' => 'info',
@@ -92,22 +95,23 @@ $plans = [
     ],
     'premium' => [
         'name' => 'Premium Plan',
-        'price' => 4999,
+        'price' => 199,
+        'price_annual' => 179, // 10% discount
         'duration' => 'per month',
         'features' => [
-            'Up to 1,000 customers',
-            'Up to 2,000 orders',
+            'Up to 500 customers',
+            'Up to 1,000 orders',
             'Advanced reporting & analytics',
             'Priority support (24/7)',
             'Up to 10 users',
-            'Custom branding',
             'SMS notifications',
             'Export data',
-            'API access'
+            'Custom integrations',
+            'Training & onboarding'
         ],
         'limits' => [
-            'customers' => 1000,
-            'orders' => 2000,
+            'customers' => 500,
+            'orders' => 1000,
             'users' => 10
         ],
         'color' => 'primary',
@@ -115,7 +119,8 @@ $plans = [
     ],
     'enterprise' => [
         'name' => 'Enterprise Plan',
-        'price' => 8299,
+        'price' => 999,
+        'price_annual' => 899, // 10% discount
         'duration' => 'per month',
         'features' => [
             'Unlimited customers',
@@ -123,11 +128,11 @@ $plans = [
             'Premium analytics & insights',
             'Dedicated account manager',
             'Unlimited users',
-            'White-label solution',
             'Custom integrations',
             'Training & onboarding',
             'SLA guarantee',
-            'Data migration support'
+            'Data migration support',
+            'Priority support (24/7)'
         ],
         'limits' => [
             'customers' => -1,
@@ -258,14 +263,38 @@ if ($company['subscription_expiry']) {
             </div>
             <div class="card-body d-flex flex-column">
                 <div class="text-center mb-4">
-                    <h2 class="mb-0">
+                    <?php if ($planKey !== 'free'): ?>
+                    <div class="pricing-toggle mb-3">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="monthly-<?php echo $planKey; ?>" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="monthly-<?php echo $planKey; ?>">Monthly</label>
+                            
+                            <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="annual-<?php echo $planKey; ?>">
+                            <label class="btn btn-outline-primary btn-sm" for="annual-<?php echo $planKey; ?>">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <h2 class="mb-0 monthly-price">
                         <?php if ($plan['price'] > 0): ?>
                             ₹<?php echo number_format($plan['price'], 0); ?>
                         <?php else: ?>
                             FREE
                         <?php endif; ?>
                     </h2>
-                    <small class="text-muted"><?php echo $plan['duration']; ?></small>
+                    <?php if ($planKey !== 'free'): ?>
+                    <h2 class="mb-0 annual-price" style="display: none;">
+                        <?php if ($plan['price_annual'] > 0): ?>
+                            ₹<?php echo number_format($plan['price_annual'], 0); ?>
+                        <?php else: ?>
+                            FREE
+                        <?php endif; ?>
+                    </h2>
+                    <?php endif; ?>
+                    <small class="text-muted monthly-duration"><?php echo $plan['duration']; ?></small>
+                    <?php if ($planKey !== 'free'): ?>
+                    <small class="text-muted annual-duration" style="display: none;">per year</small>
+                    <?php endif; ?>
                 </div>
                 
                 <ul class="list-unstyled mb-4 flex-grow-1">
@@ -319,24 +348,31 @@ if ($company['subscription_expiry']) {
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Price</strong></td>
+                        <td><strong>Price (Monthly)</strong></td>
                         <td class="text-center">Free</td>
-                        <td class="text-center">₹2,499/mo</td>
-                        <td class="text-center bg-light">₹4,999/mo</td>
-                        <td class="text-center">₹8,299/mo</td>
+                        <td class="text-center">₹99/mo</td>
+                        <td class="text-center bg-light">₹199/mo</td>
+                        <td class="text-center">₹999/mo</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Price (Annual)</strong></td>
+                        <td class="text-center">Free</td>
+                        <td class="text-center">₹89/yr <small class="text-success">(10% OFF)</small></td>
+                        <td class="text-center bg-light">₹179/yr <small class="text-success">(10% OFF)</small></td>
+                        <td class="text-center">₹899/yr <small class="text-success">(10% OFF)</small></td>
                     </tr>
                     <tr>
                         <td>Customers</td>
-                        <td class="text-center">50</td>
-                        <td class="text-center">200</td>
-                        <td class="text-center bg-light">1,000</td>
+                        <td class="text-center">30</td>
+                        <td class="text-center">100</td>
+                        <td class="text-center bg-light">500</td>
                         <td class="text-center">Unlimited</td>
                     </tr>
                     <tr>
                         <td>Orders</td>
-                        <td class="text-center">100</td>
-                        <td class="text-center">500</td>
-                        <td class="text-center bg-light">2,000</td>
+                        <td class="text-center">50</td>
+                        <td class="text-center">150</td>
+                        <td class="text-center bg-light">1,000</td>
                         <td class="text-center">Unlimited</td>
                     </tr>
                     <tr>
@@ -354,31 +390,31 @@ if ($company['subscription_expiry']) {
                         <td class="text-center">Dedicated Manager</td>
                     </tr>
                     <tr>
-                        <td>Custom Branding</td>
-                        <td class="text-center"><i class="fas fa-times text-danger"></i></td>
-                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
-                        <td class="text-center bg-light"><i class="fas fa-check text-success"></i></td>
-                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
                         <td>SMS Notifications</td>
                         <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        <td class="text-center bg-light"><i class="fas fa-check text-success"></i></td>
+                        <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Export Data</td>
+                        <td class="text-center"><i class="fas fa-times text-danger"></i></td>
                         <td class="text-center"><i class="fas fa-times text-danger"></i></td>
                         <td class="text-center bg-light"><i class="fas fa-check text-success"></i></td>
                         <td class="text-center"><i class="fas fa-check text-success"></i></td>
                     </tr>
                     <tr>
-                        <td>API Access</td>
+                        <td>Custom Integrations</td>
                         <td class="text-center"><i class="fas fa-times text-danger"></i></td>
                         <td class="text-center"><i class="fas fa-times text-danger"></i></td>
                         <td class="text-center bg-light"><i class="fas fa-check text-success"></i></td>
                         <td class="text-center"><i class="fas fa-check text-success"></i></td>
                     </tr>
                     <tr>
-                        <td>White-label</td>
+                        <td>Training & Onboarding</td>
                         <td class="text-center"><i class="fas fa-times text-danger"></i></td>
                         <td class="text-center"><i class="fas fa-times text-danger"></i></td>
-                        <td class="text-center bg-light"><i class="fas fa-times text-danger"></i></td>
+                        <td class="text-center bg-light"><i class="fas fa-check text-success"></i></td>
                         <td class="text-center"><i class="fas fa-check text-success"></i></td>
                     </tr>
                 </tbody>
@@ -401,7 +437,18 @@ if ($company['subscription_expiry']) {
                 <div class="text-center mb-4">
                     <i class="fas fa-crown fa-3x text-warning mb-3"></i>
                     <h4 id="selectedPlanName">Premium Plan</h4>
-                    <h2 class="text-primary mb-0">₹<span id="selectedPlanPrice">4999</span>/month</h2>
+                    
+                    <div class="pricing-toggle mb-3">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="modal-pricing" id="modal-monthly" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="modal-monthly">Monthly</label>
+                            
+                            <input type="radio" class="btn-check" name="modal-pricing" id="modal-annual">
+                            <label class="btn btn-outline-primary btn-sm" for="modal-annual">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-primary mb-0">₹<span id="selectedPlanPrice">199</span><span id="selectedPlanDuration">/month</span></h2>
                 </div>
                 
                 <div class="alert alert-info">
@@ -449,22 +496,91 @@ if ($company['subscription_expiry']) {
 
 <script>
 let selectedPlan = '';
+let selectedPlanData = {};
+
+// Plan data for JavaScript
+const planData = {
+    <?php foreach ($plans as $key => $plan): ?>
+    '<?php echo $key; ?>': {
+        name: '<?php echo $plan['name']; ?>',
+        price: <?php echo $plan['price']; ?>,
+        price_annual: <?php echo $plan['price_annual']; ?>
+    },
+    <?php endforeach; ?>
+};
 
 function selectPlan(planKey, planName, planPrice) {
     selectedPlan = planKey;
+    selectedPlanData = planData[planKey];
+    
     document.getElementById('selectedPlanName').textContent = planName;
-    document.getElementById('selectedPlanPrice').textContent = planPrice.toLocaleString('en-IN');
+    updateModalPricing();
     
     const modal = new bootstrap.Modal(document.getElementById('upgradeModal'));
     modal.show();
 }
 
+function updateModalPricing() {
+    const monthlyRadio = document.getElementById('modal-monthly');
+    const annualRadio = document.getElementById('modal-annual');
+    const priceElement = document.getElementById('selectedPlanPrice');
+    const durationElement = document.getElementById('selectedPlanDuration');
+    
+    if (monthlyRadio.checked) {
+        priceElement.textContent = selectedPlanData.price.toLocaleString('en-IN');
+        durationElement.textContent = '/month';
+    } else {
+        priceElement.textContent = selectedPlanData.price_annual.toLocaleString('en-IN');
+        durationElement.textContent = '/year';
+    }
+}
+
 function simulateUpgrade() {
-    alert('Payment Gateway Integration Required\n\nIn production, this would:\n1. Redirect to payment gateway (Stripe/PayPal)\n2. Process payment\n3. Update subscription\n4. Send confirmation email\n\nFor demo purposes, please contact administrator to manually upgrade your plan.');
+    const annualRadio = document.getElementById('modal-annual');
+    const isAnnual = annualRadio.checked;
+    const price = isAnnual ? selectedPlanData.price_annual : selectedPlanData.price;
+    const duration = isAnnual ? 'yearly' : 'monthly';
+    
+    alert(`Payment Gateway Integration Required\n\nPlan: ${selectedPlanData.name}\nDuration: ${duration}\nPrice: ₹${price.toLocaleString('en-IN')}\n\nIn production, this would:\n1. Redirect to payment gateway (Stripe/PayPal)\n2. Process payment\n3. Update subscription\n4. Send confirmation email\n\nFor demo purposes, please contact administrator to manually upgrade your plan.`);
     
     const modal = bootstrap.Modal.getInstance(document.getElementById('upgradeModal'));
     modal.hide();
 }
+
+// Handle pricing toggle in modal
+document.addEventListener('DOMContentLoaded', function() {
+    const monthlyRadio = document.getElementById('modal-monthly');
+    const annualRadio = document.getElementById('modal-annual');
+    
+    if (monthlyRadio && annualRadio) {
+        monthlyRadio.addEventListener('change', updateModalPricing);
+        annualRadio.addEventListener('change', updateModalPricing);
+    }
+    
+    // Handle pricing toggles in plan cards (skip free plan)
+    document.querySelectorAll('input[name^="pricing-"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const planKey = this.name.replace('pricing-', '');
+            const card = this.closest('.card');
+            const monthlyPrice = card.querySelector('.monthly-price');
+            const annualPrice = card.querySelector('.annual-price');
+            const monthlyDuration = card.querySelector('.monthly-duration');
+            const annualDuration = card.querySelector('.annual-duration');
+            
+            if (this.id.includes('monthly')) {
+                monthlyPrice.style.display = 'block';
+                if (annualPrice) annualPrice.style.display = 'none';
+                monthlyDuration.style.display = 'inline';
+                if (annualDuration) annualDuration.style.display = 'none';
+            } else {
+                monthlyPrice.style.display = 'none';
+                if (annualPrice) annualPrice.style.display = 'block';
+                monthlyDuration.style.display = 'none';
+                if (annualDuration) annualDuration.style.display = 'inline';
+            }
+        });
+    });
+});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

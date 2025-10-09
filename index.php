@@ -25,7 +25,7 @@
     <meta name="twitter:image" content="assets/images/twitter-image.jpg">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -38,6 +38,14 @@
     
     <!-- Custom CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
+
+    <!-- Swiper CSS -->
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script> 
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -71,9 +79,9 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="#home">
-                <img src="uploads/logos/logo3.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <img src="uploads/logos/tailor-header.png" alt="TailorPro" class="navbar-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                 <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-                TailorPro
+                
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -95,10 +103,10 @@
                         <a class="nav-link" href="#contact">Contact</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="admin/login.php" class="btn btn-outline-primary btn-sm">Login</a>
+                        <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a href="admin/register.php" class="btn btn-primary btn-sm">Register</a>
+                        <a href="admin/register.php" class="btn  btn-sm register-header-btn">Register</a>
                     </li>
                 </ul>
             </div>
@@ -108,7 +116,7 @@
     <!-- Hero Section -->
     <section id="home" class="hero-section">
         <div class="container">
-            <div class="row align-items-center min-vh-100">
+            <div class="row align-items-center min-vh-100 dashboard">
                 <div class="col-lg-6">
                     <div class="hero-content">
                         <h1 class="hero-title">Smart Tailoring Management System</h1>
@@ -136,7 +144,7 @@
                                     <p class="stat-label">Orders Managed</p>
                                 </div>
                                 <div class="col-4">
-                                    <h3 class="stat-number">98%</h3>
+                                    <h3 class="stat-number">99%</h3>
                                     <p class="stat-label">Satisfaction</p>
                                 </div>
                             </div>
@@ -151,7 +159,7 @@
                                 <h4 class="hero-logo-text">Powered by TailorPro</h4>
                             </div> -->
                             <div class="dashboard-preview">
-                                <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  shadow-lg">
+                                <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  ">
                             </div>
                         </div>
                 </div>
@@ -393,67 +401,66 @@
 
     <!-- How It Works Section -->
     <section id="how-it-works" class="how-it-works-section py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
-                    <h2 class="section-title">How It Works</h2>
-                    <p class="section-description">
-                        Get started with our platform in just a few simple steps.
-                    </p>
-                </div>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="step-card">
-                        <div class="step-number">1</div>
-                        <div class="step-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <h3 class="step-title">Register Your Business</h3>
-                        <p class="step-description">
-                            Create your account and set up your tailoring business profile in minutes.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="step-card">
-                        <div class="step-number">2</div>
-                        <div class="step-icon">
-                            <i class="fas fa-users-cog"></i>
-                        </div>
-                        <h3 class="step-title">Add Your Team</h3>
-                        <p class="step-description">
-                            Add customers, employees, and configure cloth types for your business.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="step-card">
-                        <div class="step-number">3</div>
-                        <div class="step-icon">
-                            <i class="fas fa-clipboard-list"></i>
-                        </div>
-                        <h3 class="step-title">Manage Operations</h3>
-                        <p class="step-description">
-                            Handle orders, generate invoices, and track payments seamlessly.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="step-card">
-                        <div class="step-number">4</div>
-                        <div class="step-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="step-title">Track Growth</h3>
-                        <p class="step-description">
-                            Monitor income, expenses, and business growth with detailed reports.
-                        </p>
-                    </div>
-                </div>
-            </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center mb-5">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-description">
+          Get started with our platform in just a few simple steps.
+        </p>
+      </div>
+    </div>
+
+    <!-- Swiper wrapper -->
+    <div class="swiper how-it-works-swiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+            <h3 class="step-title">Register Your Business</h3>
+            <p class="step-description">
+              Create your account and set up your tailoring business profile in minutes.
+            </p>
+          </div>
         </div>
-    </section>
+        <div class="swiper-slide">
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon"><i class="fas fa-users-cog"></i></div>
+            <h3 class="step-title">Add Your Team</h3>
+            <p class="step-description">
+              Add customers, employees, and configure cloth types for your business.
+            </p>
+          </div>
+        </div>
+        <div class="swiper-slide">
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon"><i class="fas fa-clipboard-list"></i></div>
+            <h3 class="step-title">Manage Operations</h3>
+            <p class="step-description">
+              Handle orders, generate invoices, and track payments seamlessly.
+            </p>
+          </div>
+        </div>
+        <div class="swiper-slide">
+          <div class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-icon"><i class="fas fa-chart-line"></i></div>
+            <h3 class="step-title">Track Growth</h3>
+            <p class="step-description">
+              Monitor income, expenses, and business growth with detailed reports.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swiper pagination (for mobile only) -->
+      <div class="swiper-pagination d-lg-none"></div>
+    </div>
+  </div>
+</section>
 
     <!-- Screenshots Section -->
     <section id="screenshots" class="screenshots-section py-5">
@@ -466,34 +473,41 @@
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded shadow">
-                        <div class="screenshot-overlay">
-                            <h4>Dashboard Overview</h4>
-                            <p>Comprehensive business overview at a glance</p>
+            
+            <!-- Swiper wrapper for screenshots -->
+            <div class="swiper screenshots-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="screenshot-card">
+                            <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded shadow">
+                            <div class="screenshot-overlay">
+                                <h4>Dashboard Overview</h4>
+                                <p>Comprehensive business overview at a glance</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="screenshot-card">
+                            <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded shadow">
+                            <div class="screenshot-overlay">
+                                <h4>Order Management</h4>
+                                <p>Track and manage all your orders efficiently</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="screenshot-card">
+                            <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded shadow">
+                            <div class="screenshot-overlay">
+                                <h4>Invoice Generation</h4>
+                                <p>Professional invoices with payment tracking</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded shadow">
-                        <div class="screenshot-overlay">
-                            <h4>Order Management</h4>
-                            <p>Track and manage all your orders efficiently</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded shadow">
-                        <div class="screenshot-overlay">
-                            <h4>Invoice Generation</h4>
-                            <p>Professional invoices with payment tracking</p>
-                        </div>
-                    </div>
-                </div>
+                
+                <!-- Swiper pagination -->
+                <div class="swiper-pagination"></div>
             </div>
         </div>
     </section>
@@ -509,73 +523,80 @@
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
+            
+            <!-- Swiper wrapper for testimonials -->
+            <div class="swiper testimonials-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="testimonial-card">
+                            <div class="testimonial-content">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p class="testimonial-text">
+                                    "This system has revolutionized our tailoring business. Managing customers and orders has never been easier. Highly recommended!"
+                                </p>
                             </div>
-                            <p class="testimonial-text">
-                                "This system has revolutionized our tailoring business. Managing customers and orders has never been easier. Highly recommended!"
-                            </p>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <h5 class="author-name">Rajesh Kumar</h5>
+                                    <p class="author-title">Owner, StyleCraft Tailors</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="testimonial-author">
-                            <div class="author-info">
-                                <h5 class="author-name">Rajesh Kumar</h5>
-                                <p class="author-title">Owner, StyleCraft Tailors</p>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="testimonial-card">
+                            <div class="testimonial-content">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p class="testimonial-text">
+                                    "The measurement management feature is fantastic. No more lost measurements or confused orders. Our accuracy has improved significantly."
+                                </p>
+                            </div>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <h5 class="author-name">Priya Sharma</h5>
+                                    <p class="author-title">Manager, Elegant Stitches</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="testimonial-card">
+                            <div class="testimonial-content">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p class="testimonial-text">
+                                    "Customer support is excellent, and the platform is very user-friendly. Our team learned to use it in just one day."
+                                </p>
+                            </div>
+                            <div class="testimonial-author">
+                                <div class="author-info">
+                                    <h5 class="author-name">Amit Patel</h5>
+                                    <p class="author-title">CEO, Fashion Forward</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p class="testimonial-text">
-                                "The measurement management feature is fantastic. No more lost measurements or confused orders. Our accuracy has improved significantly."
-                            </p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-info">
-                                <h5 class="author-name">Priya Sharma</h5>
-                                <p class="author-title">Manager, Elegant Stitches</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p class="testimonial-text">
-                                "Customer support is excellent, and the platform is very user-friendly. Our team learned to use it in just one day."
-                            </p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-info">
-                                <h5 class="author-name">Amit Patel</h5>
-                                <p class="author-title">CEO, Fashion Forward</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
+                <!-- Swiper pagination -->
+                <div class="swiper-pagination"></div>
             </div>
         </div>
     </section>
@@ -591,85 +612,92 @@
                     </p>
                 </div>
             </div>
-            <div class="row g-4 justify-content-center">
-                <div class="col-lg-4 col-md-6">
-                    <div class="pricing-card">
-                        <div class="pricing-header">
-                            <h3 class="plan-name">Starter</h3>
-                            <div class="plan-price">
-                                <span class="currency">$</span>
-                                <span class="amount">0</span>
-                                <span class="period">/month</span>
+            
+            <!-- Swiper wrapper for pricing -->
+            <div class="swiper pricing-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="pricing-card">
+                            <div class="pricing-header">
+                                <h3 class="plan-name">Starter</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">0</span>
+                                    <span class="period">/month</span>
+                                </div>
+                                <p class="plan-description">Perfect for small tailoring shops</p>
                             </div>
-                            <p class="plan-description">Perfect for small tailoring shops</p>
+                            <div class="pricing-features">
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check"></i> Up to 50 customers</li>
+                                    <li><i class="fas fa-check"></i> Basic order management</li>
+                                    <li><i class="fas fa-check"></i> Simple invoicing</li>
+                                    <li><i class="fas fa-check"></i> Email support</li>
+                                    <li><i class="fas fa-check"></i> Mobile responsive</li>
+                                </ul>
+                            </div>
+                            <div class="pricing-footer">
+                                <a href="admin/register.php" class="btn btn-outline-primary w-100">Get Started Free</a>
+                            </div>
                         </div>
-                        <div class="pricing-features">
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Up to 50 customers</li>
-                                <li><i class="fas fa-check"></i> Basic order management</li>
-                                <li><i class="fas fa-check"></i> Simple invoicing</li>
-                                <li><i class="fas fa-check"></i> Email support</li>
-                                <li><i class="fas fa-check"></i> Mobile responsive</li>
-                            </ul>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="pricing-card featured">
+                            <div class="pricing-badge">Most Popular</div>
+                            <div class="pricing-header">
+                                <h3 class="plan-name">Professional</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">29</span>
+                                    <span class="period">/month</span>
+                                </div>
+                                <p class="plan-description">Ideal for growing businesses</p>
+                            </div>
+                            <div class="pricing-features">
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check"></i> Unlimited customers</li>
+                                    <li><i class="fas fa-check"></i> Advanced order tracking</li>
+                                    <li><i class="fas fa-check"></i> Professional invoicing</li>
+                                    <li><i class="fas fa-check"></i> Employee management</li>
+                                    <li><i class="fas fa-check"></i> Analytics & reports</li>
+                                    <li><i class="fas fa-check"></i> Priority support</li>
+                                </ul>
+                            </div>
+                            <div class="pricing-footer">
+                                <a href="admin/register.php" class="btn btn-primary w-100">Choose Professional</a>
+                            </div>
                         </div>
-                        <div class="pricing-footer">
-                            <a href="admin/register.php" class="btn btn-outline-primary w-100">Get Started Free</a>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="pricing-card">
+                            <div class="pricing-header">
+                                <h3 class="plan-name">Enterprise</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">99</span>
+                                    <span class="period">/month</span>
+                                </div>
+                                <p class="plan-description">For large tailoring units</p>
+                            </div>
+                            <div class="pricing-features">
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check"></i> Everything in Professional</li>
+                                    <li><i class="fas fa-check"></i> Multi-location support</li>
+                                    <li><i class="fas fa-check"></i> Advanced analytics</li>
+                                    <li><i class="fas fa-check"></i> API access</li>
+                                    <li><i class="fas fa-check"></i> Custom integrations</li>
+                                    <li><i class="fas fa-check"></i> 24/7 phone support</li>
+                                </ul>
+                            </div>
+                            <div class="pricing-footer">
+                                <a href="#contact" class="btn btn-outline-primary w-100">Contact Sales</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="pricing-card featured">
-                        <div class="pricing-badge">Most Popular</div>
-                        <div class="pricing-header">
-                            <h3 class="plan-name">Professional</h3>
-                            <div class="plan-price">
-                                <span class="currency">$</span>
-                                <span class="amount">29</span>
-                                <span class="period">/month</span>
-                            </div>
-                            <p class="plan-description">Ideal for growing businesses</p>
-                        </div>
-                        <div class="pricing-features">
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Unlimited customers</li>
-                                <li><i class="fas fa-check"></i> Advanced order tracking</li>
-                                <li><i class="fas fa-check"></i> Professional invoicing</li>
-                                <li><i class="fas fa-check"></i> Employee management</li>
-                                <li><i class="fas fa-check"></i> Analytics & reports</li>
-                                <li><i class="fas fa-check"></i> Priority support</li>
-                            </ul>
-                        </div>
-                        <div class="pricing-footer">
-                            <a href="admin/register.php" class="btn btn-primary w-100">Choose Professional</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="pricing-card">
-                        <div class="pricing-header">
-                            <h3 class="plan-name">Enterprise</h3>
-                            <div class="plan-price">
-                                <span class="currency">$</span>
-                                <span class="amount">99</span>
-                                <span class="period">/month</span>
-                            </div>
-                            <p class="plan-description">For large tailoring units</p>
-                        </div>
-                        <div class="pricing-features">
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Everything in Professional</li>
-                                <li><i class="fas fa-check"></i> Multi-location support</li>
-                                <li><i class="fas fa-check"></i> Advanced analytics</li>
-                                <li><i class="fas fa-check"></i> API access</li>
-                                <li><i class="fas fa-check"></i> Custom integrations</li>
-                                <li><i class="fas fa-check"></i> 24/7 phone support</li>
-                            </ul>
-                        </div>
-                        <div class="pricing-footer">
-                            <a href="#contact" class="btn btn-outline-primary w-100">Contact Sales</a>
-                        </div>
-                    </div>
-                </div>
+                
+                <!-- Swiper pagination -->
+                <div class="swiper-pagination"></div>
             </div>
         </div>
     </section>
@@ -704,9 +732,9 @@
                 <div class="col-lg-4">
                     <div class="footer-brand">
                         <h3 class="brand-name">
-                            <img src="uploads/logos/brand-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                            <img src="uploads/logos/tailor-footer.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                             <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-                            TailorPro
+                       
                         </h3>
                         <p class="brand-description">
                             The complete tailoring management system for modern businesses. 
@@ -749,15 +777,15 @@
                         <h5 class="link-title">Contact Info</h5>
                         <div class="contact-item">
                             <i class="fas fa-envelope me-2"></i>
-                            <span>support@tailorpro.com</span>
+                            <span>codelockinfo@gmail.com</span>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-phone me-2"></i>
-                            <span>+1 (555) 123-4567</span>
+                            <span>+917600464414</span>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-map-marker-alt me-2"></i>
-                            <span>123 Business St, City, State 12345</span>
+                            <span>Silver business point, near vip circle, utran, Surat - 394105</span>
                         </div>
                     </div>
                 </div>
@@ -766,14 +794,14 @@
             <div class="row">
                 <div class="col-md-6">
                     <p class="copyright">
-                        &copy; 2024 TailorPro. All rights reserved.
+                        &copy; 2025 TailorPro. All rights reserved by <a href="https://codelocksolutions.com/" target="_blank" class="legal-link">Codelock Solutions</a>
                     </p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="footer-legal">
-                        <a href="#" class="legal-link">Privacy Policy</a>
-                        <a href="#" class="legal-link">Terms of Service</a>
-                        <a href="#" class="legal-link">Cookie Policy</a>
+                        <a href="privacy-policy.php" class="legal-link">Privacy Policy</a>
+                        <a href="terms-of-service.php" class="legal-link">Terms of Service</a>
+                        <!-- <a href="#" class="legal-link">Cookie Policy</a> -->
                     </div>
                 </div>
             </div>
@@ -782,11 +810,11 @@
 
     <!-- Sticky CTA Button -->
     <div class="sticky-cta">
-        <a href="admin/register.php" class="btn btn-primary btn-floating">
-            <i class="fas fa-rocket"></i>
-            <span>Get Started</span>
-        </a>
-    </div>
+    <a href="admin/register.php" class="btn btn-floating">
+        <i class="fas fa-rocket"></i>
+        <span>Get Started</span>
+    </a>
+</div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -3,6 +3,8 @@
  * Interactive JavaScript for modern user experience
  */
 
+
+
 document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize all components
@@ -14,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initTestimonials();
     initPricingCards();
     initScrollIndicator();
-    
+    initAllSwipers(); // Initialize all swipers (testimonials, pricing, screenshots, how-it-works)
+  
     // Add loading animation
     setTimeout(() => {
         document.body.classList.add('loaded');
@@ -567,3 +570,99 @@ window.LandingPage = {
     trackEvent,
     utils
 };
+
+// Unified Swiper Configuration
+const swiperConfigs = {
+  howItWorks: {
+    selector: ".how-it-works-swiper",
+    slidesPerView: 1,
+    spaceBetween: 20,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 20 },
+      992: { slidesPerView: 4, spaceBetween: 30 }
+    }
+  },
+  testimonials: {
+    selector: ".testimonials-swiper",
+    slidesPerView: 1,
+    spaceBetween: 20,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 20 },
+      992: { slidesPerView: 3, spaceBetween: 30 }
+    }
+  },
+  pricing: {
+    selector: ".pricing-swiper",
+    slidesPerView: 1,
+    spaceBetween: 20,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 20 },
+      992: { slidesPerView: 3, spaceBetween: 30 }
+    }
+  },
+  screenshots: {
+    selector: ".screenshots-swiper",
+    slidesPerView: 1,
+    spaceBetween: 20,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 20 },
+      992: { slidesPerView: 3, spaceBetween: 30 }
+    }
+  }
+};
+
+// Initialize a single swiper
+function initSwiper(config) {
+  const swiperElement = document.querySelector(config.selector);
+  if (swiperElement && typeof Swiper !== 'undefined') {
+    const swiperConfig = {
+      slidesPerView: config.slidesPerView,
+      spaceBetween: config.spaceBetween,
+      pagination: {
+        el: config.selector + " .swiper-pagination",
+        clickable: true,
+      },
+      breakpoints: config.breakpoints,
+      observer: true,
+      observeParents: true,
+      on: {
+        init: function () {
+          console.log(`${config.selector} Swiper initialized successfully`);
+        }
+      }
+    };
+    
+    return new Swiper(config.selector, swiperConfig);
+  } else {
+    console.error(`Swiper element ${config.selector} or Swiper library not found`);
+    return null;
+  }
+}
+
+// Initialize all swipers
+function initAllSwipers() {
+  // Wait for DOM to be fully loaded
+  setTimeout(() => {
+    Object.keys(swiperConfigs).forEach(key => {
+      initSwiper(swiperConfigs[key]);
+    });
+  }, 100);
+}
+
+// Legacy function for backward compatibility
+function initHowItWorksSwiper() {
+  initAllSwipers();
+}
+
+let stickyBtn = document.querySelector(".sticky-cta");
+
+// Show button when user scrolls down 100px
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+        stickyBtn.style.display = "flex";
+    } else {
+        stickyBtn.style.display = "none";
+    }
+}

@@ -79,7 +79,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="#home">
-                <img src="uploads/logos/tailor-header.png" alt="TailorPro" class="navbar-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                 <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
                 
             </a>
@@ -201,106 +201,113 @@
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-users"></i>
+            
+            <!-- Swiper wrapper for features -->
+            <div class="swiper features-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="feature-title">Customer Management</h3>
+                            <p class="feature-description">
+                                Store customer information, track their preferences, and maintain detailed profiles for better service.
+                            </p>
                         </div>
-                        <h3 class="feature-title">Customer Management</h3>
-                        <p class="feature-description">
-                            Store customer information, track their preferences, and maintain detailed profiles for better service.
-                        </p>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <h3 class="feature-title">Smart Invoicing & Payments</h3>
+                            <p class="feature-description">
+                                Generate professional invoices, track payments, and manage your cash flow effortlessly.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h3 class="feature-title">Employee & Staff Management</h3>
+                            <p class="feature-description">
+                                Manage your team, assign tasks, track performance, and handle payroll efficiently.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
+                            <h3 class="feature-title">Order Tracking & Delivery</h3>
+                            <p class="feature-description">
+                                Track orders from start to finish, set delivery dates, and keep customers informed.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="feature-title">Expense & Income Management</h3>
+                            <p class="feature-description">
+                                Monitor your business finances, track expenses, and analyze profit margins.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-ruler"></i>
+                            </div>
+                            <h3 class="feature-title">Cloth & Measurement Management</h3>
+                            <p class="feature-description">
+                                Store fabric details, manage measurements, and maintain quality standards.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-percent"></i>
+                            </div>
+                            <h3 class="feature-title">Subscription & Coupon Management</h3>
+                            <p class="feature-description">
+                                Create and manage subscription plans, offer discounts, and boost customer loyalty.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <h3 class="feature-title">Multi-Language Support</h3>
+                            <p class="feature-description">
+                                Support multiple languages to serve diverse customers and expand your reach.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3 class="feature-title">Informative Dashboard & Reports</h3>
+                            <p class="feature-description">
+                                Get insights with comprehensive reports and analytics to make informed decisions.
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
-                        <h3 class="feature-title">Smart Invoicing & Payments</h3>
-                        <p class="feature-description">
-                            Generate professional invoices, track payments, and manage your cash flow effortlessly.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-user-tie"></i>
-                        </div>
-                        <h3 class="feature-title">Employee & Staff Management</h3>
-                        <p class="feature-description">
-                            Manage your team, assign tasks, track performance, and handle payroll efficiently.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-shipping-fast"></i>
-                        </div>
-                        <h3 class="feature-title">Order Tracking & Delivery</h3>
-                        <p class="feature-description">
-                            Track orders from start to finish, set delivery dates, and keep customers informed.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="feature-title">Expense & Income Management</h3>
-                        <p class="feature-description">
-                            Monitor your business finances, track expenses, and analyze profit margins.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-ruler"></i>
-                        </div>
-                        <h3 class="feature-title">Cloth & Measurement Management</h3>
-                        <p class="feature-description">
-                            Store fabric details, manage measurements, and maintain quality standards.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-percent"></i>
-                        </div>
-                        <h3 class="feature-title">Subscription & Coupon Management</h3>
-                        <p class="feature-description">
-                            Create and manage subscription plans, offer discounts, and boost customer loyalty.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-globe"></i>
-                        </div>
-                        <h3 class="feature-title">Multi-Language Support</h3>
-                        <p class="feature-description">
-                            Support multiple languages to serve diverse customers and expand your reach.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <h3 class="feature-title">Informative Dashboard & Reports</h3>
-                        <p class="feature-description">
-                            Get insights with comprehensive reports and analytics to make informed decisions.
-                        </p>
-                    </div>
-                </div>
+                
+                <!-- Swiper pagination (for mobile only) -->
+                <div class="swiper-pagination d-lg-none"></div>
             </div>
         </div>
     </section>
@@ -316,85 +323,92 @@
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-clock"></i>
+            
+            <!-- Swiper wrapper for benefits -->
+            <div class="swiper benefits-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="benefit-content">
+                                <h3 class="benefit-title">Save Time & Reduce Manual Work</h3>
+                                <p class="benefit-description">
+                                    Automate repetitive tasks and streamline your workflow to focus on what matters most - creating beautiful garments.
+                                </p>
+                            </div>
                         </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Save Time & Reduce Manual Work</h3>
-                            <p class="benefit-description">
-                                Automate repetitive tasks and streamline your workflow to focus on what matters most - creating beautiful garments.
-                            </p>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="benefit-content">
+                                <h3 class="benefit-title">Improve Measurement Accuracy</h3>
+                                <p class="benefit-description">
+                                    Digital measurement storage ensures precision and consistency in every piece you create.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="benefit-content">
+                                <h3 class="benefit-title">Track Orders & Payments Effortlessly</h3>
+                                <p class="benefit-description">
+                                    Real-time tracking of orders and payments keeps you and your customers always informed.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div class="benefit-content">
+                                <h3 class="benefit-title">Grow Your Business Digitally</h3>
+                                <p class="benefit-description">
+                                    Scale your tailoring business with digital tools that grow with your success.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="benefit-content">
+                                <h3 class="benefit-title">Access Anywhere, Anytime</h3>
+                                <p class="benefit-description">
+                                    Cloud-based platform ensures you can manage your business from anywhere in the world.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="benefit-content">
+                                <h3 class="benefit-title">Secure & Reliable Platform</h3>
+                                <p class="benefit-description">
+                                    Your data is protected with enterprise-grade security and 99.9% uptime guarantee.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Improve Measurement Accuracy</h3>
-                            <p class="benefit-description">
-                                Digital measurement storage ensures precision and consistency in every piece you create.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Track Orders & Payments Effortlessly</h3>
-                            <p class="benefit-description">
-                                Real-time tracking of orders and payments keeps you and your customers always informed.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Grow Your Business Digitally</h3>
-                            <p class="benefit-description">
-                                Scale your tailoring business with digital tools that grow with your success.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-cloud"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Access Anywhere, Anytime</h3>
-                            <p class="benefit-description">
-                                Cloud-based platform ensures you can manage your business from anywhere in the world.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Secure & Reliable Platform</h3>
-                            <p class="benefit-description">
-                                Your data is protected with enterprise-grade security and 99.9% uptime guarantee.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                
+                <!-- Swiper pagination (for mobile only) -->
+                <div class="swiper-pagination d-lg-none"></div>
             </div>
         </div>
     </section>
@@ -621,7 +635,7 @@
                             <div class="pricing-header">
                                 <h3 class="plan-name">Starter</h3>
                                 <div class="plan-price">
-                                    <span class="currency">$</span>
+                                    <span class="currency">₹</span>
                                     <span class="amount">0</span>
                                     <span class="period">/month</span>
                                 </div>
@@ -647,7 +661,7 @@
                             <div class="pricing-header">
                                 <h3 class="plan-name">Professional</h3>
                                 <div class="plan-price">
-                                    <span class="currency">$</span>
+                                    <span class="currency">₹</span>
                                     <span class="amount">29</span>
                                     <span class="period">/month</span>
                                 </div>
@@ -673,7 +687,7 @@
                             <div class="pricing-header">
                                 <h3 class="plan-name">Enterprise</h3>
                                 <div class="plan-price">
-                                    <span class="currency">$</span>
+                                    <span class="currency">₹</span>
                                     <span class="amount">99</span>
                                     <span class="period">/month</span>
                                 </div>
@@ -732,7 +746,7 @@
                 <div class="col-lg-4">
                     <div class="footer-brand">
                         <h3 class="brand-name">
-                            <img src="uploads/logos/tailor-footer.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                            <img src="uploads/logos/main-f-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                             <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
                        
                         </h3>

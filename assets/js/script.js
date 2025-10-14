@@ -573,6 +573,28 @@ window.LandingPage = {
 
 // Unified Swiper Configuration
 const swiperConfigs = {
+  features: {
+    selector: ".features-swiper",
+    slidesPerView: 1,
+    spaceBetween: 20,
+    centeredSlides: false,
+    watchOverflow: true,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 20 },
+      992: { slidesPerView: 3, spaceBetween: 30 }
+    }
+  },
+  benefits: {
+    selector: ".benefits-swiper",
+    slidesPerView: 1,
+    spaceBetween: 20,
+    centeredSlides: false,
+    watchOverflow: true,
+    breakpoints: {
+      768: { slidesPerView: 2, spaceBetween: 20 },
+      992: { slidesPerView: 2, spaceBetween: 30 }
+    }
+  },
   howItWorks: {
     selector: ".how-it-works-swiper",
     slidesPerView: 1,
@@ -618,6 +640,8 @@ function initSwiper(config) {
     const swiperConfig = {
       slidesPerView: config.slidesPerView,
       spaceBetween: config.spaceBetween,
+      centeredSlides: config.centeredSlides || false,
+      watchOverflow: config.watchOverflow || false,
       pagination: {
         el: config.selector + " .swiper-pagination",
         clickable: true,
@@ -625,9 +649,14 @@ function initSwiper(config) {
       breakpoints: config.breakpoints,
       observer: true,
       observeParents: true,
+      preventInteractionOnTransition: true,
+      allowTouchMove: true,
       on: {
         init: function () {
           console.log(`${config.selector} Swiper initialized successfully`);
+          // Ensure proper container styling
+          this.el.style.overflow = 'hidden';
+          this.el.style.width = '100%';
         }
       }
     };

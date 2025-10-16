@@ -159,7 +159,7 @@ $stats = [
 
 <!-- User Statistics -->
 <div class="row mb-4">
-    <div class="col-xl-2 col-md-4 mb-3">
+    <div class="col-xl-2 col-md-4">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -173,7 +173,7 @@ $stats = [
         </div>
     </div>
     
-    <div class="col-xl-2 col-md-4 mb-3">
+    <div class="col-xl-2 col-md-4">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -187,7 +187,7 @@ $stats = [
         </div>
     </div>
     
-    <div class="col-xl-2 col-md-4 mb-3">
+    <div class="col-xl-2 col-md-4">
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -201,7 +201,7 @@ $stats = [
         </div>
     </div>
     
-    <div class="col-xl-2 col-md-4 mb-3">
+    <div class="col-xl-2 col-md-4">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -215,7 +215,7 @@ $stats = [
         </div>
     </div>
     
-    <div class="col-xl-2 col-md-4 mb-3">
+    <div class="col-xl-2 col-md-4">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -229,7 +229,7 @@ $stats = [
         </div>
     </div>
     
-    <div class="col-xl-2 col-md-4 mb-3">
+    <div class="col-xl-2 col-md-4">
         <div class="stat-card" style="background: linear-gradient(135deg, #6610f2 0%, #520dc2 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -286,7 +286,7 @@ $stats = [
             <i class="fas fa-users me-2"></i>
             Users (<?php echo number_format($totalUsers); ?>)
         </h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal">
+        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#userModal">
             <i class="fas fa-plus me-1"></i>Add User
         </button>
     </div>

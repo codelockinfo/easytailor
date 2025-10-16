@@ -194,8 +194,8 @@ $orderStats = $orderModel->getOrderStats();
 <?php endif; ?>
 
 <!-- Order Statistics -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-3">
+<div class="row">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -209,7 +209,7 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -223,7 +223,7 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -237,7 +237,7 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #007bff 0%, #6f42c1 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -315,7 +315,7 @@ $orderStats = $orderModel->getOrderStats();
             <i class="fas fa-clipboard-list me-2"></i>
             Orders (<?php echo number_format($totalOrders); ?>)
         </h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#orderModal">
+        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#orderModal">
             <i class="fas fa-plus me-1"></i>New Order
         </button>
     </div>

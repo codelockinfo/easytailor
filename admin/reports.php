@@ -85,7 +85,7 @@ for ($i = 11; $i >= 0; $i--) {
 
 <!-- Key Metrics -->
 <div id="keyMetrics" class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -100,7 +100,7 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -115,7 +115,7 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -130,7 +130,7 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -179,7 +179,7 @@ for ($i = 11; $i >= 0; $i--) {
 
 <!-- Detailed Reports -->
 <div class="row">
-    <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="col-xl-8 col-lg-7 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -193,14 +193,14 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="col-xl-4 col-lg-5 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-chart-pie me-2"></i>
                     Payment Methods
                 </h5>
-            </div>
+            </div>  
             <div class="card-body">
                 <canvas id="paymentMethodChart"></canvas>
             </div>

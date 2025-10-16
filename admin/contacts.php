@@ -159,7 +159,7 @@ $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
             <i class="fas fa-address-book me-2"></i>
             Contacts (<?php echo number_format($totalContacts); ?>)
         </h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#contactModal">
+        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#contactModal">
             <i class="fas fa-plus me-1"></i>Add Contact
         </button>
     </div>

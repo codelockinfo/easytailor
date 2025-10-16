@@ -129,9 +129,9 @@ $current_user = [
             top: 0;
             z-index: 999;
         }
-        
+
         .content-area {
-            padding: 2rem;
+            padding: 1rem;
         }
         
         /* Cards */

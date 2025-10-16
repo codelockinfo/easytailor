@@ -173,7 +173,7 @@ if (isset($_GET['edit'])) {
             Customers (<?php echo number_format($totalCustomers); ?>)
         </h5>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportCustomers()">
+            <button type="button" class="btn btn-sm btn-light" onclick="exportCustomers()">
                 <i class="fas fa-download me-1"></i>Export
             </button>
         </div>

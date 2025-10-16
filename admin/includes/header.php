@@ -131,7 +131,7 @@ $current_user = [
         }
         
         .content-area {
-            padding: 2rem;
+            padding: 1rem;
         }
         
         /* Cards */
@@ -436,11 +436,11 @@ $current_user = [
             }
             
             .top-header {
-                padding: 0 1rem;
+                padding: 0rem;
             }
-            
-            .content-area {
-                padding: 1rem;
+            .dropdown .btn {
+                border-radius: 5px;
+                padding: 0.5rem 1rem;
             }
         }
         
@@ -590,13 +590,13 @@ $current_user = [
         <!-- Top Header -->
         <header class="top-header">
             <div class="d-flex align-items-center">
-                <button class="btn btn-link d-md-none me-3" id="sidebarToggle">
+                <button class="btn btn-link d-md-none" style="padding: 5px 15px;" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="mb-0"><?php echo __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard'))); ?></h4>
+                <h4 class="mb-0" style="text-transform: capitalize;"><?php echo __t(strtolower(str_replace('_', ' ', $page_title ?? 'dashboard'))); ?></h4>
             </div>
             
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center" style="gap: 10px;">
                 <!-- Language Switcher -->
                 <?php include __DIR__ . '/../../lang/language_switcher.php'; ?>
                 

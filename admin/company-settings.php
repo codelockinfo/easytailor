@@ -111,7 +111,7 @@ $companyStats = $companyModel->getCompanyStats($companyId);
 
 <!-- Company Statistics -->
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-primary text-white">
             <div class="card-body">
                 <h4><?php echo number_format($companyStats['total_customers']); ?></h4>
@@ -119,7 +119,7 @@ $companyStats = $companyModel->getCompanyStats($companyId);
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-success text-white">
             <div class="card-body">
                 <h4><?php echo number_format($companyStats['total_orders']); ?></h4>
@@ -127,7 +127,7 @@ $companyStats = $companyModel->getCompanyStats($companyId);
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-info text-white">
             <div class="card-body">
                 <h4><?php echo number_format($companyStats['total_users']); ?></h4>
@@ -135,7 +135,7 @@ $companyStats = $companyModel->getCompanyStats($companyId);
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
                 <h4><?php echo ucfirst($company['subscription_plan']); ?></h4>

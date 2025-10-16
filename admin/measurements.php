@@ -259,7 +259,7 @@ include 'includes/header.php';
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Measurements (<?php echo number_format($totalMeasurements); ?>)</h5>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
+                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
                         <i class="fas fa-plus me-1"></i>Add Measurement
                     </button>
                 </div>

@@ -13,7 +13,7 @@ $page_title = 'Terms of Service';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?> - Tailoring Management System</title>
-    
+    <link href="assets/css/style.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -109,20 +109,43 @@ $page_title = 'Terms of Service';
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="landing-page.php">
-                <i class="fas fa-cut me-2"></i>Tailoring Management System
+            <a class="navbar-brand fw-bold" href="index.php">
+                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="landing-page.php">Home</a>
-                <a class="nav-link" href="login.php">Login</a>
-                <a class="nav-link" href="register.php">Register</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#benefits">Benefits</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="admin/register.php" class="btn  btn-sm register-header-btn">Register</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
 
-<div class="container py-5">
+<div class="container py-5"  style="padding-top: 8rem!important;">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="card shadow-sm">

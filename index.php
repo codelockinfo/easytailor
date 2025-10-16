@@ -25,7 +25,7 @@
     <meta name="twitter:image" content="assets/images/twitter-image.jpg">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -35,6 +35,10 @@
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Slick Carousel CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
     <!-- Custom CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
@@ -71,9 +75,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="#home">
-                <img src="uploads/logos/logo3.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                 <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-                TailorPro
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -95,10 +98,10 @@
                         <a class="nav-link" href="#contact">Contact</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="admin/login.php" class="btn btn-outline-primary btn-sm">Login</a>
+                        <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a href="admin/register.php" class="btn btn-primary btn-sm">Register</a>
+                        <a href="admin/register.php" class="btn  btn-sm register-header-btn">Register</a>
                     </li>
                 </ul>
             </div>
@@ -151,7 +154,7 @@
                                 <h4 class="hero-logo-text">Powered by TailorPro</h4>
                             </div> -->
                             <div class="dashboard-preview">
-                                <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  shadow-lg">
+                                <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  ">
                             </div>
                         </div>
                 </div>
@@ -183,18 +186,18 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features-section py-5 bg-light">
+    <section id="features" class="features-section bg-light ">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center">
                     <h2 class="section-title">Comprehensive Features</h2>
                     <p class="section-description">
                         Everything you need to run your tailoring business efficiently and professionally.
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
+            <div class="features-slider">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-users"></i>
@@ -205,7 +208,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-file-invoice-dollar"></i>
@@ -216,7 +219,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-user-tie"></i>
@@ -227,7 +230,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-shipping-fast"></i>
@@ -238,7 +241,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-chart-line"></i>
@@ -249,7 +252,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-ruler"></i>
@@ -260,7 +263,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-percent"></i>
@@ -271,7 +274,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-globe"></i>
@@ -282,7 +285,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="feature-slide">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-chart-bar"></i>
@@ -301,15 +304,15 @@
     <section id="benefits" class="benefits-section py-5">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center">
                     <h2 class="section-title">Why Choose Our Platform?</h2>
                     <p class="section-description">
                         Discover the advantages that make our tailoring management system the best choice for your business.
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
+            <div class="benefits-slider">
+                <div class="benefit-slide">
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="fas fa-clock"></i>
@@ -322,7 +325,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="benefit-slide">
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="fas fa-bullseye"></i>
@@ -335,7 +338,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="benefit-slide">
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="fas fa-search"></i>
@@ -348,7 +351,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="benefit-slide">
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="fas fa-rocket"></i>
@@ -361,7 +364,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="benefit-slide">
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="fas fa-cloud"></i>
@@ -374,7 +377,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="benefit-slide">
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="fas fa-shield-alt"></i>
@@ -395,15 +398,15 @@
     <section id="how-it-works" class="how-it-works-section py-5 bg-light">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center ">
                     <h2 class="section-title">How It Works</h2>
                     <p class="section-description">
                         Get started with our platform in just a few simple steps.
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
+            <div class="steps-slider">
+                <div class="step-slide">
                     <div class="step-card">
                         <div class="step-number">1</div>
                         <div class="step-icon">
@@ -415,7 +418,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="step-slide">
                     <div class="step-card">
                         <div class="step-number">2</div>
                         <div class="step-icon">
@@ -427,7 +430,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="step-slide">
                     <div class="step-card">
                         <div class="step-number">3</div>
                         <div class="step-icon">
@@ -439,7 +442,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="step-slide">
                     <div class="step-card">
                         <div class="step-number">4</div>
                         <div class="step-icon">
@@ -459,15 +462,15 @@
     <section id="screenshots" class="screenshots-section py-5">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center">
                     <h2 class="section-title">See It In Action</h2>
                     <p class="section-description">
                         Explore our platform with these preview screenshots of key features.
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
+            <div class="screenshots-slider">
+                <div class="screenshot-slide">
                     <div class="screenshot-card">
                         <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded shadow">
                         <div class="screenshot-overlay">
@@ -476,7 +479,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="screenshot-slide">
                     <div class="screenshot-card">
                         <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded shadow">
                         <div class="screenshot-overlay">
@@ -485,7 +488,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="screenshot-slide">
                     <div class="screenshot-card">
                         <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded shadow">
                         <div class="screenshot-overlay">
@@ -502,15 +505,15 @@
     <section id="testimonials" class="testimonials-section py-5 bg-light">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center">
                     <h2 class="section-title">What Our Customers Say</h2>
                     <p class="section-description">
                         Join hundreds of successful tailoring businesses that trust our platform.
                     </p>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-lg-4">
+            <div class="testimonials-slider">
+                <div class="testimonial-slide">
                     <div class="testimonial-card">
                         <div class="testimonial-content">
                             <div class="stars">
@@ -532,7 +535,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="testimonial-slide">
                     <div class="testimonial-card">
                         <div class="testimonial-content">
                             <div class="stars">
@@ -554,7 +557,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="testimonial-slide">
                     <div class="testimonial-card">
                         <div class="testimonial-content">
                             <div class="stars">
@@ -584,20 +587,20 @@
     <section id="pricing" class="pricing-section py-5">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center">
                     <h2 class="section-title">Choose Your Plan</h2>
                     <p class="section-description">
                         Start with our free plan and upgrade as your business grows.
                     </p>
                 </div>
             </div>
-            <div class="row g-4 justify-content-center">
-                <div class="col-lg-4 col-md-6">
+            <div class="pricing-slider">
+                <div class="pricing-slide">
                     <div class="pricing-card">
                         <div class="pricing-header">
                             <h3 class="plan-name">Starter</h3>
                             <div class="plan-price">
-                                <span class="currency">$</span>
+                                <span class="currency">₹</span>
                                 <span class="amount">0</span>
                                 <span class="period">/month</span>
                             </div>
@@ -617,13 +620,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="pricing-slide">
                     <div class="pricing-card featured">
                         <div class="pricing-badge">Most Popular</div>
                         <div class="pricing-header">
                             <h3 class="plan-name">Professional</h3>
                             <div class="plan-price">
-                                <span class="currency">$</span>
+                                <span class="currency">₹</span>
                                 <span class="amount">29</span>
                                 <span class="period">/month</span>
                             </div>
@@ -644,12 +647,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="pricing-slide">
                     <div class="pricing-card">
                         <div class="pricing-header">
                             <h3 class="plan-name">Enterprise</h3>
                             <div class="plan-price">
-                                <span class="currency">$</span>
+                                <span class="currency">₹</span>
                                 <span class="amount">99</span>
                                 <span class="period">/month</span>
                             </div>
@@ -704,9 +707,8 @@
                 <div class="col-lg-4">
                     <div class="footer-brand">
                         <h3 class="brand-name">
-                            <img src="uploads/logos/brand-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                            <img src="uploads/logos/main-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                             <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-                            TailorPro
                         </h3>
                         <p class="brand-description">
                             The complete tailoring management system for modern businesses. 
@@ -749,15 +751,15 @@
                         <h5 class="link-title">Contact Info</h5>
                         <div class="contact-item">
                             <i class="fas fa-envelope me-2"></i>
-                            <span>support@tailorpro.com</span>
+                            <span>codelockinfo@gmail.com</span>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-phone me-2"></i>
-                            <span>+1 (555) 123-4567</span>
+                            <span>+917600464414</span>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-map-marker-alt me-2"></i>
-                            <span>123 Business St, City, State 12345</span>
+                            <span>Silver business point, near vip circle, utran, Surat - 394105</span>
                         </div>
                     </div>
                 </div>
@@ -766,14 +768,14 @@
             <div class="row">
                 <div class="col-md-6">
                     <p class="copyright">
-                        &copy; 2024 TailorPro. All rights reserved.
+                        &copy; 2025 TailorPro. All rights reserved by <a href="https://codelocksolutions.com/" target="_blank" class="legal-link">Codelock Solutions</a>
                     </p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="footer-legal">
-                        <a href="#" class="legal-link">Privacy Policy</a>
-                        <a href="#" class="legal-link">Terms of Service</a>
-                        <a href="#" class="legal-link">Cookie Policy</a>
+                        <a href="privacy-policy.php" class="legal-link">Privacy Policy</a>
+                        <a href="terms-of-service.php" class="legal-link">Terms of Service</a>
+                        <!-- <a href="#" class="legal-link">Cookie Policy</a> -->
                     </div>
                 </div>
             </div>
@@ -790,6 +792,12 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (required for Slick) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Slick Carousel JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
     <!-- Custom JS -->
     <script src="assets/js/script.js"></script>

@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initTestimonials();
     initPricingCards();
     initScrollIndicator();
+    initFeaturesSlider();
+    initBenefitsSlider();
+    initStepsSlider();
+    initScreenshotsSlider();
+    initTestimonialsSlider();
+    initPricingSlider();
     
     // Add loading animation
     setTimeout(() => {
@@ -167,9 +173,9 @@ function initParallax() {
         const scrolled = window.pageYOffset;
         const rate = scrolled * -0.5;
         
-        if (heroImage) {
-            heroImage.style.transform = `translateY(${rate}px)`;
-        }
+        // if (heroImage) {
+        //     heroImage.style.transform = `translateY(${rate}px)`;
+        // }
     });
 }
 
@@ -217,6 +223,542 @@ function initPricingCards() {
             }
         });
     });
+}
+
+/**
+ * Features Slider Initialization
+ */
+function initFeaturesSlider() {
+    // Check if jQuery and Slick are loaded
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+        // Only initialize slider on mobile/tablet devices
+        if (window.innerWidth < 1024) {
+            jQuery('.features-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                pauseOnHover: true,
+                arrows: window.innerWidth >= 768,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true,
+                            arrows: true
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false
+                        }
+                    }
+                ]
+            });
+        }
+        
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 1024) {
+                    // Destroy slider on desktop
+                    if (jQuery('.features-slider').hasClass('slick-initialized')) {
+                        jQuery('.features-slider').slick('unslick');
+                    }
+                } else {
+                    // Initialize slider on mobile/tablet
+                    if (!jQuery('.features-slider').hasClass('slick-initialized')) {
+                        jQuery('.features-slider').slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: window.innerWidth >= 768,
+                            responsive: [
+                                {
+                                    breakpoint: 1024,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1,
+                                        infinite: true,
+                                        dots: true,
+                                        arrows: true
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
+            }, 250);
+        });
+    } else {
+        console.error('jQuery or Slick Carousel not loaded');
+    }
+}
+
+/**
+ * Benefits Slider Initialization
+ */
+function initBenefitsSlider() {
+    // Check if jQuery and Slick are loaded
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+        // Only initialize slider on mobile/tablet devices
+        if (window.innerWidth < 1024) {
+            jQuery('.benefits-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                pauseOnHover: true,
+                arrows: window.innerWidth >= 768,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true,
+                            arrows: true
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false
+                        }
+                    }
+                ]
+            });
+        }
+        
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 1024) {
+                    // Destroy slider on desktop
+                    if (jQuery('.benefits-slider').hasClass('slick-initialized')) {
+                        jQuery('.benefits-slider').slick('unslick');
+                    }
+                } else {
+                    // Initialize slider on mobile/tablet
+                    if (!jQuery('.benefits-slider').hasClass('slick-initialized')) {
+                        jQuery('.benefits-slider').slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: window.innerWidth >= 768,
+                            responsive: [
+                                {
+                                    breakpoint: 1024,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1,
+                                        infinite: true,
+                                        dots: true,
+                                        arrows: true
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
+            }, 250);
+        });
+    } else {
+        console.error('jQuery or Slick Carousel not loaded');
+    }
+}
+
+/**
+ * Steps Slider Initialization
+ */
+function initStepsSlider() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+        if (window.innerWidth < 1024) {
+            jQuery('.steps-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                pauseOnHover: true,
+                arrows: window.innerWidth >= 768,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true,
+                            arrows: true
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false
+                        }
+                    }
+                ]
+            });
+        }
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 1024) {
+                    if (jQuery('.steps-slider').hasClass('slick-initialized')) {
+                        jQuery('.steps-slider').slick('unslick');
+                    }
+                } else {
+                    if (!jQuery('.steps-slider').hasClass('slick-initialized')) {
+                        jQuery('.steps-slider').slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: window.innerWidth >= 768,
+                            responsive: [
+                                {
+                                    breakpoint: 1024,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1,
+                                        infinite: true,
+                                        dots: true,
+                                        arrows: true
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
+            }, 250);
+        });
+    }
+}
+
+/**
+ * Screenshots Slider Initialization
+ */
+function initScreenshotsSlider() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+        if (window.innerWidth < 1024) {
+            jQuery('.screenshots-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                pauseOnHover: true,
+                arrows: window.innerWidth >= 768,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true,
+                            arrows: true
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false
+                        }
+                    }
+                ]
+            });
+        }
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 1024) {
+                    if (jQuery('.screenshots-slider').hasClass('slick-initialized')) {
+                        jQuery('.screenshots-slider').slick('unslick');
+                    }
+                } else {
+                    if (!jQuery('.screenshots-slider').hasClass('slick-initialized')) {
+                        jQuery('.screenshots-slider').slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: window.innerWidth >= 768,
+                            responsive: [
+                                {
+                                    breakpoint: 1024,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1,
+                                        infinite: true,
+                                        dots: true,
+                                        arrows: true
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
+            }, 250);
+        });
+    }
+}
+
+/**
+ * Testimonials Slider Initialization
+ */
+function initTestimonialsSlider() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+        if (window.innerWidth < 1024) {
+            jQuery('.testimonials-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                pauseOnHover: true,
+                arrows: window.innerWidth >= 768,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true,
+                            arrows: true
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false
+                        }
+                    }
+                ]
+            });
+        }
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 1024) {
+                    if (jQuery('.testimonials-slider').hasClass('slick-initialized')) {
+                        jQuery('.testimonials-slider').slick('unslick');
+                    }
+                } else {
+                    if (!jQuery('.testimonials-slider').hasClass('slick-initialized')) {
+                        jQuery('.testimonials-slider').slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: window.innerWidth >= 768,
+                            responsive: [
+                                {
+                                    breakpoint: 1024,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1,
+                                        infinite: true,
+                                        dots: true,
+                                        arrows: true
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
+            }, 250);
+        });
+    }
+}
+
+/**
+ * Pricing Slider Initialization
+ */
+function initPricingSlider() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+        if (window.innerWidth < 1024) {
+            jQuery('.pricing-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                pauseOnHover: true,
+                arrows: window.innerWidth >= 768,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true,
+                            arrows: true
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false
+                        }
+                    }
+                ]
+            });
+        }
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 1024) {
+                    if (jQuery('.pricing-slider').hasClass('slick-initialized')) {
+                        jQuery('.pricing-slider').slick('unslick');
+                    }
+                } else {
+                    if (!jQuery('.pricing-slider').hasClass('slick-initialized')) {
+                        jQuery('.pricing-slider').slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: window.innerWidth < 768 ? 1 : 2,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: window.innerWidth >= 768,
+                            responsive: [
+                                {
+                                    breakpoint: 1024,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1,
+                                        infinite: true,
+                                        dots: true,
+                                        arrows: true
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                }
+            }, 250);
+        });
+    }
 }
 
 /**

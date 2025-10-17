@@ -255,7 +255,7 @@ $current_user = [
             border-color: #cbd5e0;
             background: linear-gradient(145deg, #ffffff, #f7fafc);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            transform: none!important;
         }
         
         .form-select:focus {
@@ -300,7 +300,7 @@ $current_user = [
         .form-select option:checked,
         .form-select option:focus {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+            color:rgb(0, 0, 0);
             font-weight: 600;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
@@ -602,7 +602,7 @@ $current_user = [
                 
                 <!-- User Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="text-transform: capitalize;">
                         <i class="fas fa-user-circle me-1"></i>
                         <?php echo htmlspecialchars($current_user['name']); ?>
                     </button>
@@ -742,7 +742,7 @@ $current_user = [
                 .form-select option:checked,
                 .form-select option:focus {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                    color: white !important;
+                    color: Black !important;
                     font-weight: 600 !important;
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
                 }

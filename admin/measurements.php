@@ -20,6 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'add':
+                // Debug: Log the POST data
+                error_log('POST data: ' . print_r($_POST, true));
+                
                 // Process measurement data from form
                 $measurement_data = [];
                 if (isset($_POST['measurement_keys']) && isset($_POST['measurement_values'])) {
@@ -32,6 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
+                // Debug: Log processed measurement data
+                error_log('Processed measurement data: ' . print_r($measurement_data, true));
+                
                 $data = [
                     'customer_id' => (int)$_POST['customer_id'],
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
@@ -40,10 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'images' => $_POST['images'] ?? []
                 ];
                 
+                // Debug: Log final data
+                error_log('Final data for database: ' . print_r($data, true));
+                
                 if ($measurementModel->createMeasurement($data)) {
-                    $_SESSION['success_message'] = 'Measurement added successfully!';
+                    $_SESSION['success_message'] = 'Measurement added successfully! Data: ' . json_encode($measurement_data);
                 } else {
-                    $_SESSION['error_message'] = 'Failed to add measurement.';
+                    $_SESSION['error_message'] = 'Failed to add measurement. Please check the logs for details.';
                 }
                 break;
                 
@@ -140,7 +149,9 @@ if (isset($_GET['edit'])) {
 // Get measurement statistics
 $stats = $measurementModel->getMeasurementStats();
 
-include 'includes/header.php';
+// Set page title for header
+$page_title = 'Measurements';
+require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
@@ -336,9 +347,9 @@ include 'includes/header.php';
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
-                                                    <a href="?edit=<?php echo $measurement['id']; ?>" class="btn btn-outline-primary" title="Edit">
+                                                    <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(<?php echo htmlspecialchars(json_encode($measurement)); ?>)" title="Edit">
                                                         <i class="fas fa-edit"></i>
-                                                    </a>
+                                                    </button>
                                                     <button class="btn btn-outline-info" onclick="viewMeasurement(<?php echo $measurement['id']; ?>)" title="View Details">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
@@ -388,7 +399,7 @@ include 'includes/header.php';
 <div class="modal fade" id="addMeasurementModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST">
+            <form method="POST" id="measurementForm" onsubmit="debugFormSubmission(event)">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <?php echo $editMeasurement ? 'Edit Measurement' : 'Add New Measurement'; ?>
@@ -449,7 +460,7 @@ include 'includes/header.php';
                     
                     <div class="mb-3">
                         <label class="form-label">Measurements</label>
-                        <div id="measurementsContainer">
+                        <div id="measurementFieldsContainer">
                             <!-- Dynamic measurement fields will be added here -->
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomMeasurementField()">
@@ -613,12 +624,76 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 <?php endif; ?>
 
+// Debug function for form submission
+function debugFormSubmission(event) {
+    console.log('Form submission started...');
+    
+    // Get all form data
+    const formData = new FormData(event.target);
+    console.log('Form data:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ': ' + value);
+    }
+    
+    // Check measurement fields specifically
+    const measurementKeys = document.querySelectorAll('input[name="measurement_keys[]"]');
+    const measurementValues = document.querySelectorAll('input[name="measurement_values[]"], select[name="measurement_values[]"]');
+    
+    console.log('Measurement fields found:');
+    console.log('Keys:', measurementKeys.length);
+    console.log('Values:', measurementValues.length);
+    
+    measurementKeys.forEach((input, index) => {
+        console.log(`Key ${index}: "${input.value}"`);
+    });
+    
+    measurementValues.forEach((input, index) => {
+        console.log(`Value ${index}: "${input.value}"`);
+    });
+    
+    // Basic validation
+    const customerId = document.getElementById('customer_id').value;
+    const clothTypeId = document.getElementById('cloth_type_id').value;
+    
+    if (!customerId) {
+        alert('Please select a customer.');
+        event.preventDefault();
+        return false;
+    }
+    
+    if (!clothTypeId) {
+        alert('Please select a cloth type.');
+        event.preventDefault();
+        return false;
+    }
+    
+    // Check if at least one measurement field has both key and value
+    let hasValidMeasurement = false;
+    for (let i = 0; i < measurementKeys.length; i++) {
+        const key = measurementKeys[i].value.trim();
+        const value = measurementValues[i].value.trim();
+        if (key && value) {
+            hasValidMeasurement = true;
+            break;
+        }
+    }
+    
+    if (!hasValidMeasurement) {
+        alert('Please add at least one measurement with both name and value.');
+        event.preventDefault();
+        return false;
+    }
+    
+    console.log('Form validation passed, submitting...');
+    return true;
+}
+
 // Measurement field management
 let measurementFieldCount = 0;
 
 function addMeasurementField(key = '', value = '', fieldType = 'text') {
     measurementFieldCount++;
-    const container = document.getElementById('measurementsContainer');
+    const container = document.getElementById('measurementFieldsContainer');
     const fieldDiv = document.createElement('div');
     fieldDiv.className = 'row mb-2';
     
@@ -657,7 +732,7 @@ function addMeasurementField(key = '', value = '', fieldType = 'text') {
 
 function loadShirtFields() {
     // Clear existing fields
-    const container = document.getElementById('measurementsContainer');
+    const container = document.getElementById('measurementFieldsContainer');
     container.innerHTML = '';
     measurementFieldCount = 0;
     
@@ -675,7 +750,7 @@ function loadShirtFields() {
 
 function loadPentFields() {
     // Clear existing fields
-    const container = document.getElementById('measurementsContainer');
+    const container = document.getElementById('measurementFieldsContainer');
     container.innerHTML = '';
     measurementFieldCount = 0;
     
@@ -709,7 +784,7 @@ function loadFieldsForClothType(clothTypeId) {
 
 function addCustomMeasurementField() {
     measurementFieldCount++;
-    const container = document.getElementById('measurementsContainer');
+    const container = document.getElementById('measurementFieldsContainer');
     const fieldDiv = document.createElement('div');
     fieldDiv.className = 'row mb-2';
     
@@ -753,6 +828,89 @@ function removeMeasurementField(button) {
 <?php endif; ?>
 
 // View measurement details
+function editMeasurement(measurement) {
+    // Set modal title
+    document.querySelector('#addMeasurementModal .modal-title').textContent = 'Edit Measurement';
+    
+    // Set form action
+    document.querySelector('#addMeasurementModal form input[name="action"]').value = 'update';
+    
+    // Add hidden measurement ID field if not exists
+    let measurementIdField = document.querySelector('input[name="measurement_id"]');
+    if (!measurementIdField) {
+        measurementIdField = document.createElement('input');
+        measurementIdField.type = 'hidden';
+        measurementIdField.name = 'measurement_id';
+        document.querySelector('#addMeasurementModal form').appendChild(measurementIdField);
+    }
+    measurementIdField.value = measurement.id;
+    
+    // Populate form fields
+    document.getElementById('customer_id').value = measurement.customer_id || '';
+    document.getElementById('cloth_type_id').value = measurement.cloth_type_id || '';
+    document.getElementById('notes').value = measurement.notes || '';
+    
+    // Load cloth type chart if available
+    if (measurement.cloth_type_id) {
+        loadMeasurementChart(measurement.cloth_type_id);
+    }
+    
+    // Clear existing measurement fields
+    const container = document.getElementById('measurementFieldsContainer');
+    if (container) {
+        container.innerHTML = '';
+    }
+    
+    // Add existing measurement data
+    if (measurement.measurement_data) {
+        // Parse measurement_data if it's a string
+        let measurementData = measurement.measurement_data;
+        if (typeof measurementData === 'string') {
+            try {
+                measurementData = JSON.parse(measurementData);
+            } catch (e) {
+                console.error('Error parsing measurement data:', e);
+                measurementData = {};
+            }
+        }
+        
+        if (measurementData && Object.keys(measurementData).length > 0) {
+            Object.entries(measurementData).forEach(([key, value]) => {
+                addMeasurementField(key, value);
+            });
+        }
+    }
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('addMeasurementModal'));
+    modal.show();
+}
+
+
+// Reset modal when closed
+document.getElementById('addMeasurementModal').addEventListener('hidden.bs.modal', function() {
+    // Reset modal title
+    document.querySelector('#addMeasurementModal .modal-title').textContent = 'Add New Measurement';
+    
+    // Reset form action
+    document.querySelector('#addMeasurementModal form input[name="action"]').value = 'add';
+    
+    // Remove measurement ID field if exists
+    const measurementIdField = document.querySelector('input[name="measurement_id"]');
+    if (measurementIdField) {
+        measurementIdField.remove();
+    }
+    
+    // Reset form
+    document.getElementById('addMeasurementModal').querySelector('form').reset();
+    
+    // Clear measurement fields
+    document.getElementById('measurementFieldsContainer').innerHTML = '';
+    
+    // Clear chart
+    document.getElementById('measurementChart').style.display = 'none';
+});
+
 function viewMeasurement(id) {
     const modal = new bootstrap.Modal(document.getElementById('viewMeasurementModal'));
     const contentDiv = document.getElementById('viewMeasurementContent');
@@ -1194,9 +1352,9 @@ function displayFilterResults(measurements) {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <a href="?edit=${measurement.id}" class="btn btn-outline-primary" title="Edit">
+                        <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(${JSON.stringify(measurement).replace(/"/g, '&quot;')})" title="Edit">
                             <i class="fas fa-edit"></i>
-                        </a>
+                        </button>
                         <button class="btn btn-outline-info" onclick="viewMeasurement(${measurement.id})" title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>

@@ -1103,9 +1103,56 @@ const utils = {
     }
 };
 
+// Go to Top Button Functionality
+function initGoToTopButton() {
+    const goToTopBtn = document.getElementById('goToTopBtn');
+    
+    if (!goToTopBtn) return;
+    
+    // Show/hide button based on scroll position
+    function toggleGoToTopButton() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        // Show button when user has scrolled more than 300px OR when near bottom
+        const showButton = scrollTop > 300 || (scrollTop + windowHeight) >= (documentHeight - 100);
+        
+        if (showButton) {
+            goToTopBtn.classList.add('show');
+        } else {
+            goToTopBtn.classList.remove('show');
+        }
+    }
+    
+    // Smooth scroll to top
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+        
+        // Track the event
+        if (typeof trackEvent === 'function') {
+            trackEvent('button_click', 'go_to_top', 'navigation');
+        }
+    }
+    
+    // Event listeners
+    window.addEventListener('scroll', toggleGoToTopButton, { passive: true });
+    goToTopBtn.addEventListener('click', scrollToTop);
+    
+    // Initial check
+    toggleGoToTopButton();
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initGoToTopButton);
+
 // Export for use in other scripts
 window.LandingPage = {
     showNotification,
     trackEvent,
-    utils
+    utils,
+    initGoToTopButton
 };

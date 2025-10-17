@@ -56,6 +56,12 @@ if (isset($_SESSION['reg_success'])) {
     $success_message = $_SESSION['reg_success'];
     unset($_SESSION['reg_success']);
 }
+
+// Handle password reset success message
+if (isset($_SESSION['login_success'])) {
+    $success_message = $_SESSION['login_success'];
+    unset($_SESSION['login_success']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -198,6 +204,12 @@ if (isset($_SESSION['reg_success'])) {
                                     <i class="fas fa-sign-in-alt me-2"></i>
                                     Sign In
                                 </button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <a href="forgot-password.php" class="text-decoration-none">
+                                    <i class="fas fa-key me-1"></i>Forgot Password?
+                                </a>
                             </div>
                         </form>
                         

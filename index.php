@@ -472,7 +472,7 @@
             <div class="screenshots-slider">
                 <div class="screenshot-slide">
                     <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded shadow">
+                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded">
                         <div class="screenshot-overlay">
                             <h4>Dashboard Overview</h4>
                             <p>Comprehensive business overview at a glance</p>
@@ -481,7 +481,7 @@
                 </div>
                 <div class="screenshot-slide">
                     <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded shadow">
+                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded">
                         <div class="screenshot-overlay">
                             <h4>Order Management</h4>
                             <p>Track and manage all your orders efficiently</p>
@@ -490,7 +490,7 @@
                 </div>
                 <div class="screenshot-slide">
                     <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded shadow">
+                        <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded">
                         <div class="screenshot-overlay">
                             <h4>Invoice Generation</h4>
                             <p>Professional invoices with payment tracking</p>
@@ -799,6 +799,11 @@
     <!-- Slick Carousel JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
+    <!-- Go to Top Button -->
+    <button id="goToTopBtn" class="go-to-top-btn" title="Go to Top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <!-- Custom JS -->
     <script src="assets/js/script.js"></script>
 </body>

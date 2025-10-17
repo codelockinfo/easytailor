@@ -21,6 +21,39 @@ $paymentModel = new Payment();
 $message = '';
 $messageType = '';
 
+// Handle fixing existing invoices with advance payments
+if (isset($_GET['fix_advance']) && $_GET['fix_advance'] === '1') {
+    // Get all invoices that need fixing
+    $invoices = $invoiceModel->getInvoicesWithDetails();
+    $fixed = 0;
+    
+    foreach ($invoices as $invoice) {
+        $order = $orderModel->find($invoice['order_id']);
+        if ($order && $order['advance_amount'] > 0) {
+            $totalAmount = $invoice['total_amount'];
+            $advanceAmount = (float)$order['advance_amount'];
+            $balanceAmount = $totalAmount - $advanceAmount;
+            
+            // Only update if the invoice doesn't already have the advance payment
+            if ($invoice['paid_amount'] == 0 && $invoice['balance_amount'] == $totalAmount) {
+                $invoiceModel->update($invoice['id'], [
+                    'paid_amount' => $advanceAmount,
+                    'balance_amount' => $balanceAmount
+                ]);
+                
+                // Update payment status
+                $invoiceModel->updatePaymentStatus($invoice['id']);
+                $fixed++;
+            }
+        }
+    }
+    
+    $_SESSION['message'] = "Fixed {$fixed} invoices with advance payments";
+    $_SESSION['messageType'] = 'success';
+    header('Location: invoices.php');
+    exit;
+}
+
 // Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -28,6 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         switch ($action) {
             case 'create':
+                // Get order details to include advance payment
+                $order = $orderModel->find((int)$_POST['order_id']);
+                $advanceAmount = $order ? (float)$order['advance_amount'] : 0;
+                $totalAmount = (float)$_POST['total_amount'];
+                $balanceAmount = $totalAmount - $advanceAmount;
+                
                 $data = [
                     'order_id' => (int)$_POST['order_id'],
                     'invoice_date' => $_POST['invoice_date'],
@@ -36,15 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'tax_rate' => (float)$_POST['tax_rate'],
                     'tax_amount' => (float)$_POST['tax_amount'],
                     'discount_amount' => (float)$_POST['discount_amount'],
-                    'total_amount' => (float)$_POST['total_amount'],
-                    'paid_amount' => 0,
-                    'balance_amount' => (float)$_POST['total_amount'],
+                    'total_amount' => $totalAmount,
+                    'paid_amount' => $advanceAmount, // Include advance payment from order
+                    'balance_amount' => $balanceAmount, // Calculate balance after advance
                     'notes' => sanitize_input($_POST['notes']),
                     'created_by' => get_user_id()
                 ];
                 
                 $invoiceId = $invoiceModel->createInvoice($data);
                 if ($invoiceId) {
+                    // Update payment status based on advance payment
+                    $invoiceModel->updatePaymentStatus($invoiceId);
                     $_SESSION['message'] = 'Invoice created successfully';
                     $_SESSION['messageType'] = 'success';
                 } else {
@@ -162,7 +203,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
 
 <!-- Invoice Statistics -->
 <div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -176,7 +217,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -190,7 +231,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -204,7 +245,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -301,10 +342,10 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
             Invoices (<?php echo number_format($totalInvoices); ?>)
         </h5>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#invoiceModal">
                 <i class="fas fa-plus me-1"></i>Create Invoice
             </button>
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportInvoices()">
+            <button type="button" class="btn btn-sm btn-outline-light" onclick="exportInvoices()">
                 <i class="fas fa-download me-1"></i>Export
             </button>
         </div>
@@ -558,7 +599,7 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
 <div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" id="paymentForm">
+            <form id="paymentForm" onsubmit="submitPaymentForm(event)">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Payment</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -627,6 +668,61 @@ function addPayment(invoiceId, invoiceNumber, balanceAmount) {
     new bootstrap.Modal(document.getElementById('paymentModal')).show();
 }
 
+// Handle payment form submission via AJAX
+function submitPaymentForm(event) {
+    event.preventDefault();
+    
+    console.log('Payment form submission started...');
+    
+    const form = document.getElementById('paymentForm');
+    const formData = new FormData(form);
+    
+    // Debug: Log form data
+    console.log('Form data:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ': ' + value);
+    }
+    
+    // Add loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    submitBtn.disabled = true;
+    
+    // Make AJAX request
+    fetch('ajax/add_payment.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            
+            // Show success message
+            showToast('Success', data.message || 'Payment added successfully!', 'success');
+            
+            // Reload page to show updated data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            // Show error message
+            showToast('Error', data.error || 'Failed to add payment', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding payment:', error);
+        showToast('Error', 'Network error occurred. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
 function viewInvoice(invoiceId) {
     window.location.href = 'invoice-details.php?id=' + invoiceId;
 }
@@ -635,9 +731,61 @@ function printInvoice(invoiceId) {
     window.open('print-invoice.php?id=' + invoiceId, '_blank');
 }
 
+function fixAdvancePayments() {
+    if (confirm('This will fix all existing invoices to include advance payments from their orders. Continue?')) {
+        window.location.href = 'invoices.php?fix_advance=1';
+    }
+}
+
+// Toast notification function
+function showToast(title, message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast element
+    const toastId = 'toast-' + Date.now();
+    const toastElement = document.createElement('div');
+    toastElement.id = toastId;
+    toastElement.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} border-0`;
+    toastElement.setAttribute('role', 'alert');
+    toastElement.setAttribute('aria-live', 'assertive');
+    toastElement.setAttribute('aria-atomic', 'true');
+    
+    toastElement.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toastElement);
+    
+    // Show toast
+    const toast = new bootstrap.Toast(toastElement, {
+        autohide: true,
+        delay: 3000
+    });
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
 function exportInvoices() {
     // Show initial progress message
-    showToast('🔄 Preparing your invoice export... Please wait.', 'info');
+    showToast('Export', '🔄 Preparing your invoice export... Please wait.', 'info');
     
     // Disable the export button temporarily
     const exportBtn = document.querySelector('button[onclick="exportInvoices()"]');

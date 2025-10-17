@@ -280,7 +280,7 @@ $company = $companyId ? $companyModel->find($companyId) : null;
                     </table>
                 </div>
                 
-                <div class="text-center mt-3">
+                <div class="text-end mt-3">
                     <span class="payment-status status-<?php echo $invoice['payment_status']; ?>">
                         <?php echo strtoupper($invoice['payment_status']); ?>
                     </span>

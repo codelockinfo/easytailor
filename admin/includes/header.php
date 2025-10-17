@@ -131,7 +131,7 @@ $current_user = [
         }
         
         .content-area {
-            padding: 2rem;
+            padding: 1rem;
         }
         
         /* Cards */
@@ -255,7 +255,7 @@ $current_user = [
             border-color: #cbd5e0;
             background: linear-gradient(145deg, #ffffff, #f7fafc);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            transform: none!important;
         }
         
         .form-select:focus {
@@ -300,7 +300,7 @@ $current_user = [
         .form-select option:checked,
         .form-select option:focus {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+            color:rgb(0, 0, 0);
             font-weight: 600;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
@@ -436,11 +436,11 @@ $current_user = [
             }
             
             .top-header {
-                padding: 0 1rem;
+                padding: 0rem;
             }
-            
-            .content-area {
-                padding: 1rem;
+            .dropdown .btn {
+                border-radius: 5px;
+                padding: 0.5rem 1rem;
             }
         }
         
@@ -590,19 +590,19 @@ $current_user = [
         <!-- Top Header -->
         <header class="top-header">
             <div class="d-flex align-items-center">
-                <button class="btn btn-link d-md-none me-3" id="sidebarToggle">
+                <button class="btn btn-link d-md-none" style="padding: 5px 15px;" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="mb-0"><?php echo __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard'))); ?></h4>
+                <h4 class="mb-0" style="text-transform: capitalize;"><?php echo __t(strtolower(str_replace('_', ' ', $page_title ?? 'dashboard'))); ?></h4>
             </div>
             
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center" style="gap: 10px;">
                 <!-- Language Switcher -->
                 <?php include __DIR__ . '/../../lang/language_switcher.php'; ?>
                 
                 <!-- User Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="text-transform: capitalize;">
                         <i class="fas fa-user-circle me-1"></i>
                         <?php echo htmlspecialchars($current_user['name']); ?>
                     </button>
@@ -742,7 +742,7 @@ $current_user = [
                 .form-select option:checked,
                 .form-select option:focus {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                    color: white !important;
+                    color: Black !important;
                     font-weight: 600 !important;
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
                 }

@@ -51,8 +51,8 @@ for ($i = 11; $i >= 0; $i--) {
 
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
+<div class="row">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -67,7 +67,7 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -82,7 +82,7 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -154,7 +154,7 @@ for ($i = 11; $i >= 0; $i--) {
                     <i class="fas fa-clock me-2"></i>
                     Recent Orders
                 </h5>
-                <a href="orders.php" class="btn btn-sm btn-outline-primary">View All</a>
+                <a href="orders.php" class="btn btn-sm btn-light">View All</a>
             </div>
             <div class="card-body">
                 <?php if (!empty($recentOrders)): ?>

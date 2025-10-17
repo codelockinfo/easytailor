@@ -194,8 +194,8 @@ $orderStats = $orderModel->getOrderStats();
 <?php endif; ?>
 
 <!-- Order Statistics -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-3">
+<div class="row">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -209,7 +209,7 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -223,7 +223,7 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -237,7 +237,7 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #007bff 0%, #6f42c1 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -315,7 +315,7 @@ $orderStats = $orderModel->getOrderStats();
             <i class="fas fa-clipboard-list me-2"></i>
             Orders (<?php echo number_format($totalOrders); ?>)
         </h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#orderModal">
+        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#orderModal">
             <i class="fas fa-plus me-1"></i>New Order
         </button>
     </div>
@@ -392,7 +392,18 @@ $orderStats = $orderModel->getOrderStats();
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
-                                            onclick="editOrder(<?php echo htmlspecialchars(json_encode($order)); ?>)"
+                                            onclick="editOrder(<?php echo htmlspecialchars(json_encode([
+                                                'id' => $order['id'],
+                                                'customer_id' => $order['customer_id'],
+                                                'cloth_type_id' => $order['cloth_type_id'],
+                                                'measurement_id' => $order['measurement_id'],
+                                                'assigned_tailor_id' => $order['assigned_tailor_id'],
+                                                'order_date' => $order['order_date'],
+                                                'due_date' => $order['due_date'],
+                                                'total_amount' => $order['total_amount'],
+                                                'advance_amount' => $order['advance_amount'],
+                                                'special_instructions' => $order['special_instructions']
+                                            ])); ?>)"
                                             title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -404,6 +415,7 @@ $orderStats = $orderModel->getOrderStats();
                                     <div class="dropdown">
                                         <button class="btn btn-outline-secondary dropdown-toggle" 
                                                 type="button" 
+                                                style="border-top-left-radius: 0; border-bottom-left-radius: 0; "
                                                 data-bs-toggle="dropdown"
                                                 title="Change Status">
                                             <i class="fas fa-cog"></i>
@@ -629,6 +641,55 @@ function editOrder(order) {
     document.getElementById('advance_amount').value = order.advance_amount || '';
     document.getElementById('special_instructions').value = order.special_instructions || '';
     
+    // Load measurements for the selected customer
+    const customerId = order.customer_id;
+    const measurementSelect = document.getElementById('measurement_id');
+    
+    if (customerId) {
+        // Show loading state
+        measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
+        
+        // Load measurements via AJAX
+        fetch(`ajax/get_customer_measurements.php?customer_id=${customerId}`)
+            .then(response => response.json())
+            .then(data => {
+                measurementSelect.innerHTML = '<option value="">No Measurement</option>';
+                
+                if (data && data.length > 0) {
+                    data.forEach(measurement => {
+                        const option = document.createElement('option');
+                        option.value = measurement.id;
+                        option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
+                        measurementSelect.appendChild(option);
+                    });
+                } else {
+                    // Add option to show no measurements available
+                    const noMeasurementsOption = document.createElement('option');
+                    noMeasurementsOption.value = '';
+                    noMeasurementsOption.textContent = 'No measurements available for this customer';
+                    noMeasurementsOption.disabled = true;
+                    measurementSelect.appendChild(noMeasurementsOption);
+                }
+                
+                // Set the existing measurement if available
+                if (order.measurement_id) {
+                    measurementSelect.value = order.measurement_id;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading measurements:', error);
+                measurementSelect.innerHTML = '<option value="">Error loading measurements</option>';
+                if (order.measurement_id) {
+                    measurementSelect.value = order.measurement_id;
+                }
+            });
+    } else {
+        measurementSelect.innerHTML = '<option value="">No Measurement</option>';
+        if (order.measurement_id) {
+            measurementSelect.value = order.measurement_id;
+        }
+    }
+    
     // Show modal
     new bootstrap.Modal(document.getElementById('orderModal')).show();
 }
@@ -782,19 +843,35 @@ document.getElementById('customer_id').addEventListener('change', function() {
     const measurementSelect = document.getElementById('measurement_id');
     
     if (customerId) {
+        // Show loading state
+        measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
+        
         // Load measurements via AJAX
         fetch(`ajax/get_customer_measurements.php?customer_id=${customerId}`)
             .then(response => response.json())
             .then(data => {
                 measurementSelect.innerHTML = '<option value="">No Measurement</option>';
-                data.forEach(measurement => {
-                    const option = document.createElement('option');
-                    option.value = measurement.id;
-                    option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
-                    measurementSelect.appendChild(option);
-                });
+                
+                if (data && data.length > 0) {
+                    data.forEach(measurement => {
+                        const option = document.createElement('option');
+                        option.value = measurement.id;
+                        option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
+                        measurementSelect.appendChild(option);
+                    });
+                } else {
+                    // Add option to show no measurements available
+                    const noMeasurementsOption = document.createElement('option');
+                    noMeasurementsOption.value = '';
+                    noMeasurementsOption.textContent = 'No measurements available for this customer';
+                    noMeasurementsOption.disabled = true;
+                    measurementSelect.appendChild(noMeasurementsOption);
+                }
             })
-            .catch(error => console.error('Error loading measurements:', error));
+            .catch(error => {
+                console.error('Error loading measurements:', error);
+                measurementSelect.innerHTML = '<option value="">Error loading measurements</option>';
+            });
     } else {
         measurementSelect.innerHTML = '<option value="">No Measurement</option>';
     }
@@ -1048,7 +1125,18 @@ function displayFilterResults(orders) {
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" 
                                 class="btn btn-outline-primary" 
-                                onclick="editOrder(${JSON.stringify(order).replace(/"/g, '&quot;')})"
+                                onclick="editOrder(${JSON.stringify({
+                                    id: order.id,
+                                    customer_id: order.customer_id,
+                                    cloth_type_id: order.cloth_type_id,
+                                    measurement_id: order.measurement_id,
+                                    assigned_tailor_id: order.assigned_tailor_id,
+                                    order_date: order.order_date,
+                                    due_date: order.due_date,
+                                    total_amount: order.total_amount,
+                                    advance_amount: order.advance_amount,
+                                    special_instructions: order.special_instructions
+                                }).replace(/"/g, '&quot;')})"
                                 title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>

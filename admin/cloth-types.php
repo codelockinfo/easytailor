@@ -158,8 +158,8 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
 <?php endif; ?>
 
 <!-- Cloth Type Statistics -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-3">
+<div class="row mb-2">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -173,7 +173,7 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -187,7 +187,7 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -201,7 +201,7 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -259,10 +259,10 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
             <i class="fas fa-tshirt me-2"></i>
             Cloth Types (<?php echo number_format($totalClothTypes); ?>)
         </h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#clothTypeModal">
+        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#clothTypeModal">
             <i class="fas fa-plus me-1"></i>Add Cloth Type
         </button>
-    </div>
+    </div>  
     <div class="card-body">
         <?php if (!empty($clothTypes)): ?>
             <div class="table-responsive">

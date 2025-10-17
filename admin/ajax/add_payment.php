@@ -115,6 +115,9 @@ try {
         
         $invoiceModel->updateInvoiceAmounts($invoiceId, $newPaidAmount, $newBalanceAmount);
         
+        // Update payment status
+        $invoiceModel->updatePaymentStatus($invoiceId);
+        
         echo json_encode([
             'success' => true,
             'message' => 'Payment added successfully',

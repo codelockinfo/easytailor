@@ -158,6 +158,16 @@ require_once 'includes/header.php';
                             <td><strong>Total Amount:</strong></td>
                             <td class="text-end"><h5 class="mb-0"><?php echo format_currency($invoice['total_amount']); ?></h5></td>
                         </tr>
+                        <?php if ($invoice['paid_amount'] > 0): ?>
+                        <tr>
+                            <td><strong>Advance Paid:</strong></td>
+                            <td class="text-end text-success"><strong><?php echo format_currency($invoice['paid_amount']); ?></strong></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>Balance Due:</strong></td>
+                            <td class="text-end"><h5 class="mb-0 text-danger"><?php echo format_currency($invoice['balance_amount']); ?></h5></td>
+                        </tr>
+                        <?php endif; ?>
                     </table>
                 </div>
                 

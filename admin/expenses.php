@@ -123,8 +123,8 @@ if (empty($categories)) {
 <?php endif; ?>
 
 <!-- Expense Statistics -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-3">
+<div class="row mb-2">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -138,7 +138,7 @@ if (empty($categories)) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -152,7 +152,7 @@ if (empty($categories)) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -166,7 +166,7 @@ if (empty($categories)) {
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-3">
+    <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -231,10 +231,10 @@ if (empty($categories)) {
             Expenses (<?php echo number_format($totalExpenses); ?>)
         </h5>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#expenseModal">
+            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#expenseModal">
                 <i class="fas fa-plus me-1"></i>Record Expense
             </button>
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportExpenses()">
+            <button type="button" class="btn btn-sm btn-outline-light" onclick="exportExpenses()">
                 <i class="fas fa-download me-1"></i>Export
             </button>
         </div>

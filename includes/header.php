@@ -129,9 +129,9 @@ $current_user = [
             top: 0;
             z-index: 999;
         }
-        
+
         .content-area {
-            padding: 2rem;
+            padding: 1rem;
         }
         
         /* Cards */
@@ -255,7 +255,7 @@ $current_user = [
             border-color: #cbd5e0;
             background: linear-gradient(145deg, #ffffff, #f7fafc);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            transform: translateY(0px)!;
         }
         
         .form-select:focus {
@@ -300,7 +300,7 @@ $current_user = [
         .form-select option:checked,
         .form-select option:focus {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+            color:rgb(0, 0, 0);
             font-weight: 600;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }

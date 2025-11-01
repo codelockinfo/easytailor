@@ -28,10 +28,31 @@ $page_title = 'Privacy Policy';
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
         }
+
+        .navbar.fixed-top {
+            top: 0 !important;
+        }
         
         .navbar-brand {
             font-weight: 700;
             color: #667eea !important;
+        }
+
+        .btn {
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            transition: var(--transition);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-header-btn {
+            border: 2px solid var(--primary-color) !important;
+            color: var(--primary-color) !important;
+            background: transparent !important;
+            border-radius: 50px !important;
         }
         
         .card {
@@ -44,12 +65,17 @@ $page_title = 'Privacy Policy';
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px 15px 0 0 !important;
         }
+
+        .card-header h1 {
+            font-size: 24px;
+        }
         
         .content h2 {
             color: #2d3748;
             margin-top: 2rem;
             margin-bottom: 1rem;
             font-weight: 600;
+            font-size: 24px;
         }
         
         .content h3 {
@@ -57,6 +83,7 @@ $page_title = 'Privacy Policy';
             margin-top: 1.5rem;
             margin-bottom: 0.75rem;
             font-weight: 500;
+            font-size: 20px;
         }
         
         .content ul {
@@ -74,6 +101,7 @@ $page_title = 'Privacy Policy';
         .contact-info h4 {
             color: #667eea;
             font-weight: 600;
+            font-size: 20px;
         }
         
         .btn-primary {
@@ -123,16 +151,16 @@ $page_title = 'Privacy Policy';
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
+                        <a class="nav-link" href="index.php#features">Features</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#benefits">Benefits</a>
+                        <a class="nav-link" href="index.php#benefits">Benefits</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#pricing">Pricing</a>
+                        <a class="nav-link" href="index.php#pricing">Pricing</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#contact">Contact</a>
+                        <a class="nav-link" href="index.php#contact">Contact</a>
                     </li>
                     <li class="nav-item ms-3">
                         <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>

@@ -134,7 +134,7 @@ if (isset($_SESSION['login_success'])) {
                     <div class="login-header">
                         <?php
                         // Get brand logo using smart path detection
-                        $brandLogo = get_logo_path('brand-logo.png');
+                        $brandLogo = get_logo_path('footer-logo.png');
                         if ($brandLogo):
                         ?>
                             <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
@@ -215,7 +215,7 @@ if (isset($_SESSION['login_success'])) {
                         
                         <div class="text-center mt-4">
                             <p class="text-muted mb-2">
-                                Don't have an account? 
+                                Don't have an account? <br><br>
                                 <a href="register.php" class="text-decoration-none fw-bold">
                                     <i class="fas fa-user-plus me-1"></i>Register Your Tailor Shop
                                 </a>

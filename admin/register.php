@@ -266,7 +266,7 @@ if (isset($_SESSION['reg_form_data'])) {
                     <div class="register-header">
                         <?php
                         // Get brand logo using smart path detection
-                        $brandLogo = get_logo_path('brand-logo.png');
+                        $brandLogo = get_logo_path('footer-logo.png');
                         if ($brandLogo):
                         ?>
                             <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
@@ -510,7 +510,7 @@ if (isset($_SESSION['reg_form_data'])) {
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>What you get:</strong>
                                 <ul class="mb-0 mt-2">
-                                    <li>30-day free trial</li>
+                                    <li>Free plan available</li>
                                     <li>Manage unlimited customers</li>
                                     <li>Track orders and measurements</li>
                                     <li>Generate invoices and reports</li>

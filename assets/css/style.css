@@ -144,7 +144,7 @@ h1, h2, h3, h4, h5, h6 {
 .section-description {
     font-size: 1.125rem;
     color: var(--text-light);
-    margin-bottom: 2rem;
+    /* margin-bottom: 2rem; */
 }
 
 /* Navigation */
@@ -328,6 +328,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-stats {
     margin-top: 2rem;
+}
+
+.hero-stats .col-4 {
+    padding: 0;
 }
 
 .stat-number {
@@ -1789,6 +1793,37 @@ h1, h2, h3, h4, h5, h6 {
         z-index: 1020;
     } */
 
+    .about-section {
+        padding: 2rem 0 !important;
+    }
+
+    .features-section {
+        padding: 2rem 0 3rem;
+    }
+
+    .benefits-section {
+        padding: 2rem 0 3rem !important;
+    }
+
+    .how-it-works-section {
+        padding: 2rem 0 3rem !important;
+    }
+
+    .screenshots-section {
+        padding: 2rem 0 3rem !important;
+    }
+
+    .screenshots-section .slick-track {
+        height: 325px;
+    }
+
+    .testimonials-section {
+        padding: 2rem 0 3rem !important;
+    }
+
+    .pricing-section {
+        padding: 2rem 0 3rem !important;
+    }
     
     .nav-item.ms-3 {
         margin-left: 0 !important;
@@ -1801,6 +1836,7 @@ h1, h2, h3, h4, h5, h6 {
 
     .hero-title {
         font-size: 28px;
+        padding-top: 2rem;
     }
     
     .hero-shape svg {
@@ -1923,7 +1959,7 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .screenshot-overlay {
-        top: 188px;
+        top: 210px;
         background: none;
         color: black;
         transform: none;

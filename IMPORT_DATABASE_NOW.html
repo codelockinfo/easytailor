@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Database Error - Import SQL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #dc3545;
+            border-bottom: 3px solid #dc3545;
+            padding-bottom: 15px;
+        }
+        .error-box {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .solution {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .step {
+            background: #e7f3ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #007bff;
+            border-radius: 5px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        code {
+            background: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #e83e8c;
+            font-family: 'Courier New', monospace;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>❌ Database Error - Need to Import SQL</h1>
+        
+        <div class="error-box">
+            <strong>Error:</strong><br>
+            Table 'tailoring_management.tailor_profiles' doesn't exist
+        </div>
+
+        <div class="solution">
+            <h2>✅ Solution: Import SQL File in phpMyAdmin</h2>
+            <p>You need to create the database table. It takes only 2 minutes!</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Open phpMyAdmin</h3>
+            <p>Click the button below or visit the URL manually:</p>
+            <a href="http://localhost/phpmyadmin" target="_blank" class="button">
+                🔗 Open phpMyAdmin
+            </a>
+            <p><small>URL: <code>http://localhost/phpmyadmin</code></small></p>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Select Your Database</h3>
+            <p>In the left sidebar, click on: <code>tailoring_management</code></p>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Go to Import Tab</h3>
+            <p>At the top of the page, click the <strong>"Import"</strong> tab</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Choose SQL File</h3>
+            <p>1. Click the <strong>"Choose File"</strong> button</p>
+            <p>2. Navigate to: <code>C:\wamp64\www\tailoring\database\add_tailor_profiles.sql</code></p>
+            <p>3. Select the file and click Open</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 5: Import!</h3>
+            <p>1. Scroll down to the bottom of the page</p>
+            <p>2. Click the <strong>"Go"</strong> button</p>
+            <p>3. Wait a few seconds...</p>
+            <p>4. You should see a success message! ✅</p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Alternative Method - Copy & Paste:</strong><br><br>
+            If the import doesn't work:
+            <ol>
+                <li>Open file: <code>database\add_tailor_profiles.sql</code> in Notepad</li>
+                <li>Select ALL (Ctrl+A) and Copy (Ctrl+C)</li>
+                <li>In phpMyAdmin, click <strong>"SQL"</strong> tab (not Import)</li>
+                <li>Paste the content in the text box (Ctrl+V)</li>
+                <li>Click <strong>"Go"</strong> button</li>
+            </ol>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <h2>🧪 After Import, Test These:</h2>
+        
+        <div style="margin: 20px 0;">
+            <a href="http://localhost/tailoring/" target="_blank" class="button">
+                🏠 Landing Page
+            </a>
+            <p><small>Should show "Tailors Near You" slider</small></p>
+        </div>
+
+        <div style="margin: 20px 0;">
+            <a href="http://localhost/tailoring/tailors.php" target="_blank" class="button">
+                📋 All Tailors Page
+            </a>
+            <p><small>Should show 8 sample tailors</small></p>
+        </div>
+
+        <div style="margin: 40px 0; padding: 20px; background: #e8f5e9; border-radius: 10px;">
+            <h3 style="color: #2e7d32; margin-top: 0;">📊 What You'll Get:</h3>
+            <ul>
+                <li>✅ Table created: <code>tailor_profiles</code></li>
+                <li>✅ 8 sample tailors added</li>
+                <li>✅ Slider will work on landing page</li>
+                <li>✅ Tailor listing page will work</li>
+                <li>✅ No more errors!</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <h3>Ready? Let's do it!</h3>
+            <a href="http://localhost/phpmyadmin" target="_blank" class="button" style="font-size: 18px; padding: 20px 40px;">
+                🚀 Open phpMyAdmin Now
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+
+

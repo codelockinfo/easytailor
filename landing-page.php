@@ -1,10 +1,10 @@
 <?php
 /**
  * Landing Page Redirect
- * Redirects to the landing page
+ * Redirects to the main landing page
  */
 
-header('Location: landing/index.html');
+header('Location: index.php');
 exit();
 ?>
 

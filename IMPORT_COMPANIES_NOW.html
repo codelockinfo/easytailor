@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Setup Companies Listing - Import SQL</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            color: #004085;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            border-radius: 5px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 35px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        code {
+            background: #f4f4f4;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #e83e8c;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        .highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        ul {
+            line-height: 2;
+        }
+        .feature-list {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏪 Setup Companies Listing Feature</h1>
+        
+        <div class="info-box">
+            <h3>✅ Better Approach!</h3>
+            <p>We're now using the existing <strong>companies</strong> table instead of creating a separate tailor_profiles table. This shows real registered tailor shops on your landing page!</p>
+        </div>
+
+        <div class="highlight">
+            <strong>📁 Import This File:</strong> 
+            <code>database/setup_companies_for_listing.sql</code>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <h2 style="color: #333; text-align: center; margin-bottom: 30px;">📋 Step-by-Step Guide</h2>
+
+        <div class="step">
+            <h3><span class="number">1</span> Open phpMyAdmin</h3>
+            <p>Click the button below or visit the URL manually:</p>
+            <div style="text-align: center;">
+                <a href="http://localhost/phpmyadmin" target="_blank" class="button">
+                    🔗 Open phpMyAdmin
+                </a>
+            </div>
+            <p style="margin-top: 15px;"><small>URL: <code>http://localhost/phpmyadmin</code></small></p>
+        </div>
+
+        <div class="step">
+            <h3><span class="number">2</span> Select Database</h3>
+            <p>In the <strong>left sidebar</strong>, click on:</p>
+            <p><code>tailoring_management</code></p>
+        </div>
+
+        <div class="step">
+            <h3><span class="number">3</span> Go to Import Tab</h3>
+            <p>At the <strong>top of the page</strong>, click the <strong>"Import"</strong> tab</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="number">4</span> Choose SQL File</h3>
+            <p><strong>1.</strong> Click the <strong>"Choose File"</strong> button</p>
+            <p><strong>2.</strong> Navigate to:</p>
+            <p><code>C:\wamp64\www\tailoring\database\setup_companies_for_listing.sql</code></p>
+            <p><strong>3.</strong> Select the file and click <strong>Open</strong></p>
+        </div>
+
+        <div class="step">
+            <h3><span class="number">5</span> Import!</h3>
+            <p><strong>1.</strong> Scroll down to the bottom of the page</p>
+            <p><strong>2.</strong> Click the big blue <strong>"Go"</strong> button</p>
+            <p><strong>3.</strong> Wait a few seconds...</p>
+            <p><strong>4.</strong> You should see <span style="color: green;">✅ Import has been successfully finished</span></p>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <div class="success">
+            <h2 style="margin-top: 0;">🎉 What You'll Get:</h2>
+            <div class="feature-list">
+                <ul>
+                    <li>✅ Companies table created/updated with new fields</li>
+                    <li>✅ 8 sample tailor shops added</li>
+                    <li>✅ Shops from different cities across India</li>
+                    <li>✅ Each shop has rating, reviews, specialties</li>
+                    <li>✅ Working hours, contact info, WhatsApp numbers</li>
+                    <li>✅ Featured and verified badges</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <h2 style="color: #333;">🧪 Test After Import:</h2>
+        
+        <div style="margin: 30px 0;">
+            <h3 style="color: #667eea;">Landing Page Slider:</h3>
+            <a href="http://localhost/tailoring/" target="_blank" class="button">
+                🏠 View Landing Page
+            </a>
+            <p><small>Scroll to "Tailors Near You" section - should show company slider</small></p>
+        </div>
+
+        <div style="margin: 30px 0;">
+            <h3 style="color: #667eea;">Full Company Listing:</h3>
+            <a href="http://localhost/tailoring/tailors.php" target="_blank" class="button">
+                📋 View All Shops
+            </a>
+            <p><small>Should show 8 sample companies with search/filter</small></p>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <div class="info-box">
+            <h3>💡 Future: Add Real Companies</h3>
+            <p>When users register their tailor shops through the registration page, they create company records. You can set:</p>
+            <ul>
+                <li><code>show_on_listing = 1</code> to display on public listing</li>
+                <li><code>is_featured = 1</code> to show on homepage slider</li>
+                <li><code>is_verified = 1</code> to show verified badge</li>
+            </ul>
+            <p>These can be managed in the admin panel's company settings!</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <h3 style="color: #667eea;">Ready? Let's do it!</h3>
+            <a href="http://localhost/phpmyadmin" target="_blank" class="button" style="font-size: 18px; padding: 20px 40px;">
+                🚀 Open phpMyAdmin Now
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #666;">
+            <p><small>After import, you can close this page.</small></p>
+        </div>
+    </div>
+</body>
+</html>
+
+

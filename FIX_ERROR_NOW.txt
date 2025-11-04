@@ -1,0 +1,72 @@
+================================================================================
+❌ ERROR: Table 'tailor_profiles' doesn't exist
+================================================================================
+
+✅ QUICK FIX (Takes 2 minutes):
+
+1. Open: http://localhost/phpmyadmin
+2. Click on: tailoring_management (left sidebar)
+3. Click: "Import" tab (at top)
+4. Click: "Choose File" button
+5. Select: C:\wamp64\www\tailoring\database\add_tailor_profiles.sql
+6. Click: "Go" button at bottom
+7. Done! ✅
+
+================================================================================
+🔄 ALTERNATIVE METHOD (Copy-Paste):
+================================================================================
+
+1. Open: database\add_tailor_profiles.sql in Notepad
+2. Select ALL (Ctrl+A) and Copy (Ctrl+C)
+3. Open phpMyAdmin: http://localhost/phpmyadmin
+4. Select database: tailoring_management
+5. Click: "SQL" tab
+6. Paste in the box (Ctrl+V)
+7. Click: "Go"
+8. Done! ✅
+
+================================================================================
+🧪 AFTER IMPORT, TEST:
+================================================================================
+
+Landing Page: http://localhost/tailoring/
+  → Should see "Tailors Near You" slider
+
+Tailor Listing: http://localhost/tailoring/tailors.php
+  → Should show 8 sample tailors
+
+================================================================================
+📊 WHAT YOU'LL GET:
+================================================================================
+
+✅ Table created
+✅ 8 sample tailors:
+   - Elite Tailors (Mumbai) - 4.8★
+   - Fashion Stitch (Delhi) - 4.6★
+   - Stitch Perfect (Ahmedabad) - 4.7★
+   - Royal Tailors (Jaipur) - 4.9★
+   - Modern Stitches (Bangalore) - 4.5★
+   - Classic Cuts (Hyderabad) - 4.7★
+   - Trendy Threads (Kochi) - 4.8★
+   - Perfect Fit Tailors (Pune) - 4.6★
+
+================================================================================
+❓ STILL HAVING ISSUES?
+================================================================================
+
+Make sure:
+  ☑ WAMP is running (green icon in system tray)
+  ☑ You selected the correct database
+  ☑ SQL file path is correct
+  ☑ No syntax errors in phpMyAdmin
+
+================================================================================
+🚀 READY? DO THIS NOW:
+================================================================================
+
+Open: http://localhost/phpmyadmin
+Then follow steps 2-7 above!
+
+================================================================================
+
+

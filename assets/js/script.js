@@ -1056,8 +1056,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initForms();
     initLazyLoading();
     optimizePerformance();
-    initAccessibility();
-    initAnalytics();
+    // initAccessibility(); // Not implemented yet
+    // initAnalytics(); // Not implemented yet
 });
 
 /**

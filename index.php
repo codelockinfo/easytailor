@@ -40,6 +40,9 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
+    <!-- Swiper CSS (for Tailors Section) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+    
     <!-- Custom CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
     
@@ -296,6 +299,48 @@
                         </p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tailors Near You Section -->
+    <section id="tailors-near-you" class="tailors-section py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center mb-5">
+                    <h2 class="section-title">Tailor Shops Near You</h2>
+                    <p class="section-description">
+                        Find experienced and verified tailor shops in your area. Connect with professional tailoring businesses for all your stitching needs.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tailors Slider -->
+            <div class="tailors-slider-container">
+                <div class="swiper tailorsSwiper">
+                    <div class="swiper-wrapper" id="tailorsSlider">
+                        <!-- Loading skeleton -->
+                        <div class="swiper-slide">
+                            <div class="tailor-slider-card loading-skeleton">
+                                <div class="skeleton-image"></div>
+                                <div class="skeleton-content">
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line short"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+
+            <!-- Show All Button -->
+            <div class="text-center mt-4">
+                <a href="tailors.php" class="btn btn-primary btn-lg">
+                    <i class="fas fa-th-large me-2"></i>Show All Tailors
+                </a>
             </div>
         </div>
     </section>
@@ -799,10 +844,152 @@
     <!-- Slick Carousel JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
+    <!-- Swiper JS (for Tailors Section) -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    
     <!-- Go to Top Button -->
     <button id="goToTopBtn" class="go-to-top-btn" title="Go to Top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <!-- Tailors Slider Script -->
+    <script>
+        // Load featured tailors on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFeaturedTailors();
+        });
+
+        function loadFeaturedTailors() {
+            fetch('ajax/filter_tailors.php?limit=8&sort=rating')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Server error');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        displayTailorsSlider(data.data);
+                    } else {
+                        // Hide the section if no tailors
+                        const section = document.getElementById('tailors-near-you');
+                        if (section) {
+                            section.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Tailors feature not yet configured');
+                    // Hide the section on error (table doesn't exist yet)
+                    const section = document.getElementById('tailors-near-you');
+                    if (section) {
+                        section.style.display = 'none';
+                    }
+                });
+        }
+
+        function displayTailorsSlider(tailors) {
+            const slider = document.getElementById('tailorsSlider');
+            let html = '';
+
+            tailors.forEach(tailor => {
+                const stars = generateStars(tailor.rating);
+                const specialties = (tailor.specialties || []).slice(0, 2);
+
+                html += `
+                    <div class="swiper-slide">
+                        <div class="tailor-slider-card">
+                            <div class="tailor-slider-image">
+                                <img src="${tailor.shop_image}" alt="${tailor.shop_name}" onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
+                                ${tailor.is_featured ? '<span class="featured-badge-slider"><i class="fas fa-star"></i></span>' : ''}
+                                ${tailor.is_verified ? '<span class="verified-badge-slider"><i class="fas fa-check-circle"></i></span>' : ''}
+                            </div>
+                            <div class="tailor-slider-body">
+                                <h4 class="tailor-slider-name">${tailor.shop_name}</h4>
+                                <p class="tailor-slider-owner">${tailor.owner_name}</p>
+                                <div class="tailor-slider-rating">
+                                    <span class="stars">${stars}</span>
+                                    <span class="rating-text">${tailor.rating} (${tailor.total_reviews})</span>
+                                </div>
+                                <p class="tailor-slider-location">
+                                    <i class="fas fa-map-marker-alt me-1"></i>${tailor.city}, ${tailor.state}
+                                </p>
+                                ${specialties.length > 0 ? `
+                                <div class="tailor-slider-specialties">
+                                    ${specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('')}
+                                </div>
+                                ` : ''}
+                                <div class="tailor-slider-actions">
+                                    <a href="tel:${tailor.phone}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-phone"></i>
+                                    </a>
+                                    ${tailor.whatsapp ? `
+                                    <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-success">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            slider.innerHTML = html;
+
+            // Initialize Swiper
+            new Swiper('.tailorsSwiper', {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                loop: tailors.length > 3,
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                breakpoints: {
+                    640: {
+                        slidesPerView: 2,
+                        spaceBetween: 20,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                        spaceBetween: 25,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                        spaceBetween: 30,
+                    },
+                }
+            });
+        }
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            
+            let stars = '';
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            if (halfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+    </script>
 
     <!-- Custom JS -->
     <script src="assets/js/script.js"></script>

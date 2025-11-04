@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Why 500 Error? - Quick Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #dc3545;
+            border-bottom: 3px solid #dc3545;
+            padding-bottom: 15px;
+        }
+        .error-box {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .solution {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .step {
+            background: #e7f3ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #2196F3;
+            border-radius: 5px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #e83e8c;
+        }
+        .number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>❌ Why 500 Internal Server Error?</h1>
+        
+        <div class="error-box">
+            <strong>Error You're Seeing:</strong><br>
+            GET http://localhost/tailoring/ajax/filter_tailors.php?keyword=roy... 500 (Internal Server Error)
+        </div>
+
+        <div class="solution">
+            <h2 style="margin-top: 0;">✅ The Cause:</h2>
+            <p>The <strong>companies</strong> table doesn't have the required fields for the listing feature yet.</p>
+            <p>You need to add new columns: <code>show_on_listing</code>, <code>is_featured</code>, <code>rating</code>, etc.</p>
+        </div>
+
+        <h2 style="color: #667eea;">🔍 Quick Diagnostic:</h2>
+        
+        <div class="step">
+            <p><strong>Run this diagnostic test:</strong></p>
+            <a href="test_companies_ajax.php" target="_blank" class="button">
+                🔍 Run Diagnostic Test
+            </a>
+            <p style="margin-top: 15px;"><small>This will show you exactly what's wrong</small></p>
+        </div>
+
+        <h2 style="color: #28a745; margin-top: 40px;">✅ The Fix (2 Minutes):</h2>
+
+        <div class="step">
+            <h3 style="margin-top: 0;"><span class="number">1</span> Import SQL File</h3>
+            <p><strong>File:</strong> <code>database/setup_companies_for_listing.sql</code></p>
+            <p>This adds the missing fields to your companies table.</p>
+        </div>
+
+        <div class="step">
+            <h3 style="margin-top: 0;"><span class="number">2</span> How to Import:</h3>
+            <ol style="margin-left: 20px; line-height: 2;">
+                <li>Open <a href="http://localhost/phpmyadmin" target="_blank">phpMyAdmin</a></li>
+                <li>Click <code>tailoring_management</code> (left sidebar)</li>
+                <li>Click <strong>"Import"</strong> tab</li>
+                <li>Choose file: <code>setup_companies_for_listing.sql</code></li>
+                <li>Click <strong>"Go"</strong> button</li>
+                <li>Done! ✅</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3 style="margin-top: 0;"><span class="number">3</span> Test Again</h3>
+            <p>After importing, refresh <code>tailors.php</code> and try searching!</p>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <div style="text-align: center;">
+            <h2 style="color: #667eea;">📖 Need Visual Guide?</h2>
+            <a href="IMPORT_COMPANIES_NOW.html" class="button" style="font-size: 1.2rem; padding: 20px 40px;">
+                📖 Open Setup Guide
+            </a>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <div class="solution">
+            <h3 style="margin-top: 0;">🎁 After Import, You'll Get:</h3>
+            <ul style="line-height: 2;">
+                <li>✅ Companies table with new fields</li>
+                <li>✅ 8 sample tailor shops</li>
+                <li>✅ Search will work via AJAX</li>
+                <li>✅ Filters will work instantly</li>
+                <li>✅ Sorting will work</li>
+                <li>✅ No more 500 errors!</li>
+                <li>✅ Section will appear on landing page</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <h3 style="color: #333;">Quick Actions:</h3>
+            <a href="test_companies_ajax.php" class="button">🔍 Run Diagnostic</a>
+            <a href="http://localhost/phpmyadmin" target="_blank" class="button">🔗 Open phpMyAdmin</a>
+            <a href="IMPORT_COMPANIES_NOW.html" class="button">📖 Setup Guide</a>
+        </div>
+    </div>
+</body>
+</html>
+
+

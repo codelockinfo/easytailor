@@ -124,6 +124,10 @@ if (isset($_SESSION['login_success'])) {
             border-left: none;
             border-radius: 0 10px 10px 0;
         }
+
+        .mt-4 {
+            margin-top: 0.5rem !important;
+        }
     </style>
 </head>
 <body>
@@ -215,11 +219,13 @@ if (isset($_SESSION['login_success'])) {
                         
                         <div class="text-center mt-4">
                             <p class="text-muted mb-2">
-                                Don't have an account? <br><br>
-                                <a href="register.php" class="text-decoration-none fw-bold">
-                                    <i class="fas fa-user-plus me-1"></i>Register Your Tailor Shop
-                                </a>
+                                Don't have an account? 
                             </p>
+                                
+                            <a href="register.php" class="text-decoration-none fw-bold">
+                                <i class="fas fa-user-plus me-1"></i>Register Your Tailor Shop
+                            </a><br><br>
+                            
                             <small class="text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Free 30-day trial • No credit card required

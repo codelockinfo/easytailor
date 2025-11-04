@@ -74,7 +74,7 @@ $stats = $company->getListingStats();
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 60px 0 40px;
+            padding: 40px 0 40px;
             margin-bottom: 40px;
         }
 
@@ -383,11 +383,19 @@ $stats = $company->getListingStats();
         /* Responsive */
         @media (max-width: 768px) {
             .page-header h1 {
-                font-size: 2rem;
+                font-size: 24px;
+            }
+
+            .page-header p {
+                font-size: 16px;
             }
 
             .filter-section {
                 padding: 15px;
+            }
+
+            .filter-header h5 {
+                font-size: 18px;
             }
 
             .tailor-card-body {

@@ -482,7 +482,7 @@ $current_user = [
             <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
                 <?php
                 // Get brand logo using smart path detection
-                $brandLogo = get_logo_path('brand-logo.png');
+                $brandLogo = get_logo_path('footer-logo.png');
                 if ($brandLogo):
                 ?>
                     <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" style="height: 100px; width: auto; display: block; margin: 0 auto;">

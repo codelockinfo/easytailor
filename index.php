@@ -40,9 +40,6 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
-    <!-- Swiper CSS (for Tailors Section) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
-    
     <!-- Custom CSS -->
     <link href="assets/css/style.css" rel="stylesheet">
     
@@ -304,7 +301,7 @@
     </section>
 
     <!-- Tailors Near You Section -->
-    <section id="tailors-near-you" class="tailors-section py-5 bg-light">
+    <section id="tailors-near-you" class="tailors-section py-5">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center mb-5">
@@ -316,23 +313,16 @@
             </div>
 
             <!-- Tailors Slider -->
-            <div class="tailors-slider-container">
-                <div class="swiper tailorsSwiper">
-                    <div class="swiper-wrapper" id="tailorsSlider">
-                        <!-- Loading skeleton -->
-                        <div class="swiper-slide">
-                            <div class="tailor-slider-card loading-skeleton">
-                                <div class="skeleton-image"></div>
-                                <div class="skeleton-content">
-                                    <div class="skeleton-line"></div>
-                                    <div class="skeleton-line short"></div>
-                                </div>
-                            </div>
+            <div class="tailors-slider" id="tailorsSlider">
+                <!-- Loading skeleton -->
+                <div class="tailor-slide">
+                    <div class="tailor-slider-card loading-skeleton">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line short"></div>
                         </div>
                     </div>
-                    <div class="swiper-button-next"></div>
-                    <div class="swiper-button-prev"></div>
-                    <div class="swiper-pagination"></div>
                 </div>
             </div>
 
@@ -346,7 +336,7 @@
     </section>
 
     <!-- Benefits Section -->
-    <section id="benefits" class="benefits-section py-5">
+    <section id="benefits" class="benefits-section py-5 bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -440,7 +430,7 @@
     </section>
 
     <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works-section py-5 bg-light">
+    <section id="how-it-works" class="how-it-works-section py-5">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center ">
@@ -504,7 +494,7 @@
     </section>
 
     <!-- Screenshots Section -->
-    <section id="screenshots" class="screenshots-section py-5">
+    <section id="screenshots" class="screenshots-section py-5 bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -547,7 +537,7 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials-section py-5 bg-light">
+    <section id="testimonials" class="testimonials-section py-5">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -629,7 +619,7 @@
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="pricing-section py-5">
+    <section id="pricing" class="pricing-section py-5 bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -844,9 +834,6 @@
     <!-- Slick Carousel JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
-    <!-- Swiper JS (for Tailors Section) -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    
     <!-- Go to Top Button -->
     <button id="goToTopBtn" class="go-to-top-btn" title="Go to Top">
         <i class="fas fa-arrow-up"></i>
@@ -889,7 +876,7 @@
         }
 
         function displayTailorsSlider(tailors) {
-            const slider = document.getElementById('tailorsSlider');
+            const slider = $('#tailorsSlider');
             let html = '';
 
             tailors.forEach(tailor => {
@@ -897,7 +884,7 @@
                 const specialties = (tailor.specialties || []).slice(0, 2);
 
                 html += `
-                    <div class="swiper-slide">
+                    <div class="tailor-slide">
                         <div class="tailor-slider-card">
                             <div class="tailor-slider-image">
                                 <img src="${tailor.shop_image}" alt="${tailor.shop_name}" onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
@@ -935,40 +922,113 @@
                 `;
             });
 
-            slider.innerHTML = html;
+            slider.html(html);
 
-            // Initialize Swiper
-            new Swiper('.tailorsSwiper', {
-                slidesPerView: 1,
-                spaceBetween: 20,
-                loop: tailors.length > 3,
-                autoplay: {
-                    delay: 3000,
-                    disableOnInteraction: false,
-                },
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-                breakpoints: {
-                    640: {
-                        slidesPerView: 2,
-                        spaceBetween: 20,
-                    },
-                    768: {
-                        slidesPerView: 3,
-                        spaceBetween: 25,
-                    },
-                    1024: {
-                        slidesPerView: 4,
-                        spaceBetween: 30,
-                    },
+            // Initialize Slick Slider (like other sections)
+            initTailorsSlider();
+        }
+
+        function initTailorsSlider() {
+            if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+                const slider = jQuery('.tailors-slider');
+                
+                // Destroy existing slider if any
+                if (slider.hasClass('slick-initialized')) {
+                    slider.slick('unslick');
                 }
-            });
+                
+                // Initialize slider on mobile/tablet only
+                if (window.innerWidth < 1200) {
+                    slider.slick({
+                        dots: true,
+                        infinite: true,
+                        speed: 500,
+                        slidesToShow: 4,
+                        slidesToScroll: 1,
+                        autoplay: true,
+                        autoplaySpeed: 3000,
+                        pauseOnHover: true,
+                        arrows: true,
+                        responsive: [
+                            {
+                                breakpoint: 1200,
+                                settings: {
+                                    slidesToShow: 3,
+                                    slidesToScroll: 1,
+                                }
+                            },
+                            {
+                                breakpoint: 992,
+                                settings: {
+                                    slidesToShow: 2,
+                                    slidesToScroll: 1,
+                                }
+                            },
+                            {
+                                breakpoint: 768,
+                                settings: {
+                                    slidesToShow: 1,
+                                    slidesToScroll: 1,
+                                    arrows: false
+                                }
+                            }
+                        ]
+                    });
+                }
+                
+                // Handle window resize
+                let resizeTimeout;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        if (window.innerWidth >= 1200) {
+                            // Destroy slider on large desktop
+                            if (slider.hasClass('slick-initialized')) {
+                                slider.slick('unslick');
+                            }
+                        } else {
+                            // Initialize slider on smaller screens
+                            if (!slider.hasClass('slick-initialized')) {
+                                slider.slick({
+                                    dots: true,
+                                    infinite: true,
+                                    speed: 500,
+                                    slidesToShow: 4,
+                                    slidesToScroll: 1,
+                                    autoplay: true,
+                                    autoplaySpeed: 3000,
+                                    pauseOnHover: true,
+                                    arrows: true,
+                                    responsive: [
+                                        {
+                                            breakpoint: 1200,
+                                            settings: {
+                                                slidesToShow: 3,
+                                                slidesToScroll: 1,
+                                            }
+                                        },
+                                        {
+                                            breakpoint: 992,
+                                            settings: {
+                                                slidesToShow: 2,
+                                                slidesToScroll: 1,
+                                            }
+                                        },
+                                        {
+                                            breakpoint: 768,
+                                            settings: {
+                                                slidesToShow: 1,
+                                                slidesToScroll: 1,
+                                                arrows: false
+                                            }
+                                        }
+                                    ]
+                                });
+                            }
+                        }
+                    }, 250);
+                });
+            }
         }
 
         function generateStars(rating) {

@@ -313,16 +313,33 @@ h1, h2, h3, h4, h5, h6 {
     color: #667eea;
 }
 
+.tailors-section .btn-outline-primary {
+    background: transparent;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
+}
+
 .btn-outline-primary {
     background: transparent;
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
+.tailors-section .btn-primary:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.tailors-section .btn-primary {
+    margin-top: 20px;
+}
+
 .btn-outline-primary:hover {
     background: white;
-    color: var(--primary-color);
-    border-color: white;
+    color: #0d6efd;
+    border-color: #0d6efd;
     transform: translateY(-2px);
 }
 
@@ -605,6 +622,10 @@ h1, h2, h3, h4, h5, h6 {
 .features-slider .slick-dots li.slick-active button:before {
     opacity: 1;
     color: var(--primary-color);
+}
+
+.tailors-near-you .btn-primary:hover {
+    background: #667eea;
 }
 
 /* Benefits Section */
@@ -1801,6 +1822,14 @@ h1, h2, h3, h4, h5, h6 {
         padding: 2rem 0 3rem;
     }
 
+    .tailors-section {
+        padding: 2rem 0 3rem !important;
+    }
+
+    .tailors-section .mb-5 {
+        margin-bottom: 0 !important;
+    }
+
     .benefits-section {
         padding: 2rem 0 3rem !important;
     }
@@ -2184,9 +2213,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .tailor-slider-rating {
     display: flex;
-    align-items: center;
+    /* align-items: center; */
     gap: 8px;
-    margin-bottom: 10px;
+    /* margin-botto m: 10px; */
 }
 
 .tailor-slider-rating .stars {
@@ -2221,7 +2250,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--gray-700);
     padding: 4px 10px;
     border-radius: 12px;
-    font-size: 0.7rem;
+    font-size: 12px;
     font-weight: 500;
 }
 
@@ -2284,46 +2313,71 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
-/* Swiper Customization */
-.tailorsSwiper {
-    padding-bottom: 50px !important;
+/* Slick Slider Customization for Tailors */
+.tailors-slider {
+    padding-bottom: 30px !important;
 }
 
-.tailorsSwiper .swiper-button-next,
-.tailorsSwiper .swiper-button-prev {
-    color: var(--primary-color);
-    background: white;
+.tailors-slider .slick-arrow {
     width: 45px;
     height: 45px;
     border-radius: 50%;
+    background: white;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
-.tailorsSwiper .swiper-button-next:after,
-.tailorsSwiper .swiper-button-prev:after {
+.tailors-slider .slick-arrow:before {
     font-size: 20px;
     font-weight: bold;
+    color: var(--primary-color);
 }
 
-.tailorsSwiper .swiper-button-next:hover,
-.tailorsSwiper .swiper-button-prev:hover {
+.tailors-slider .slick-arrow:hover {
     background: var(--primary-color);
-    color: white;
     transform: scale(1.1);
 }
 
-.tailorsSwiper .swiper-pagination-bullet {
-    background: var(--gray-400);
-    opacity: 1;
-    width: 10px;
-    height: 10px;
+.tailors-slider .slick-arrow:hover:before {
+    color: white;
 }
 
-.tailorsSwiper .swiper-pagination-bullet-active {
-    background: var(--primary-color);
-    width: 25px;
-    border-radius: 5px;
+.tailors-slider .slick-prev {
+    left: -20px;
+}
+
+.tailors-slider .slick-next {
+    right: -20px;
+}
+
+.tailors-slider .slick-dots li button:before {
+    font-size: 12px;
+    color: #9fb0ff;
+    opacity: 1;
+}
+
+.tailors-slider .slick-dots li.slick-active button:before {
+    color: var(--primary-color);
+}
+
+/* Grid layout for desktop (when slider is not active) */
+@media (min-width: 1200px) {
+    .tailors-slider {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        padding-bottom: 0 !important;
+    }
+    
+    .tailors-slider .tailor-slide {
+        width: 100% !important;
+    }
+    
+    /* Hide items after the first 4 (second row and beyond) */
+    .tailors-slider .tailor-slide:nth-child(n+5) {
+        display: none !important;
+    }
 }
 
 /* Responsive Styles for Tailors Section */
@@ -2340,14 +2394,13 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 1rem;
     }
 
-    .tailorsSwiper .swiper-button-next,
-    .tailorsSwiper .swiper-button-prev {
+    .tailors-slider .slick-arrow {
         width: 35px;
         height: 35px;
     }
 
-    .tailorsSwiper .swiper-button-next:after,
-    .tailorsSwiper .swiper-button-prev:after {
+    .tailors-slider .slick-arrow:before {
         font-size: 16px;
     }
 }
+

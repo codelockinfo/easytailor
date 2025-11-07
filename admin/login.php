@@ -79,6 +79,7 @@ if (isset($_SESSION['login_success'])) {
             align-items: center;
         }
         .login-card {
+            margin-top: 15px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;

@@ -14,6 +14,16 @@ if (is_logged_in()) {
 $error_message = '';
 $success_message = '';
 
+if (isset($_SESSION['reset_error'])) {
+    $error_message = $_SESSION['reset_error'];
+    unset($_SESSION['reset_error']);
+}
+
+if (isset($_SESSION['reset_success'])) {
+    $success_message = $_SESSION['reset_success'];
+    unset($_SESSION['reset_success']);
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = sanitize_input($_POST['email'] ?? '');

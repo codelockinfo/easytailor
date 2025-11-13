@@ -16,8 +16,16 @@ require_role('admin');
 require_once 'models/User.php';
 
 $userModel = new User();
+$companyId = get_company_id();
 $message = '';
 $messageType = '';
+
+if (!$companyId) {
+    $_SESSION['message'] = 'Your company information is missing. Please contact support.';
+    $_SESSION['messageType'] = 'error';
+    header('Location: dashboard.php');
+    exit;
+}
 
 // Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,7 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'role' => $_POST['role'],
                     'phone' => sanitize_input($_POST['phone']),
                     'address' => sanitize_input($_POST['address']),
-                    'status' => $_POST['status']
+                    'status' => $_POST['status'],
+                    'company_id' => $companyId
                 ];
                 
                 $userId = $userModel->createUser($data);
@@ -51,6 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'update':
                 $userId = (int)$_POST['user_id'];
+                $existingUser = $userModel->findByIdAndCompany($userId, $companyId);
+
+                if (!$existingUser) {
+                    $_SESSION['message'] = 'User not found or access denied';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+
                 $data = [
                     'username' => sanitize_input($_POST['username']),
                     'email' => sanitize_input($_POST['email']),
@@ -79,6 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'delete':
                 $userId = (int)$_POST['user_id'];
+                $existingUser = $userModel->findByIdAndCompany($userId, $companyId);
+
+                if (!$existingUser) {
+                    $_SESSION['message'] = 'User not found or access denied';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+
                 // Don't allow deleting yourself
                 if ($userId == get_user_id()) {
                     $_SESSION['message'] = 'You cannot delete your own account';
@@ -126,7 +153,7 @@ if (!empty($role_filter)) {
     $conditions['role'] = $role_filter;
 }
 
-$users = $userModel->findAll($conditions, 'full_name ASC');
+$users = $userModel->getCompanyUsers($companyId, $conditions, 'full_name ASC');
 $totalUsers = count($users);
 $users = array_slice($users, $offset, $limit);
 $totalPages = ceil($totalUsers / $limit);
@@ -134,17 +161,17 @@ $totalPages = ceil($totalUsers / $limit);
 // Get user for editing
 $editUser = null;
 if (isset($_GET['edit'])) {
-    $editUser = $userModel->find((int)$_GET['edit']);
+    $editUser = $userModel->findByIdAndCompany((int)$_GET['edit'], $companyId);
 }
 
 // Get user statistics
 $stats = [
-    'total' => $userModel->count([]),
-    'active' => $userModel->count(['status' => 'active']),
-    'admins' => $userModel->count(['role' => 'admin']),
-    'tailors' => $userModel->count(['role' => 'tailor']),
-    'staff' => $userModel->count(['role' => 'staff']),
-    'cashiers' => $userModel->count(['role' => 'cashier'])
+    'total' => $userModel->countByCompany($companyId),
+    'active' => $userModel->countByCompany($companyId, ['status' => 'active']),
+    'admins' => $userModel->countByCompany($companyId, ['role' => 'admin']),
+    'tailors' => $userModel->countByCompany($companyId, ['role' => 'tailor']),
+    'staff' => $userModel->countByCompany($companyId, ['role' => 'staff']),
+    'cashiers' => $userModel->countByCompany($companyId, ['role' => 'cashier'])
 ];
 ?>
 

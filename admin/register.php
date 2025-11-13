@@ -6,6 +6,7 @@
  */
 
 require_once '../config/config.php';
+require_once '../helpers/MailService.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
@@ -140,9 +141,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Commit transaction
             $db->commit();
-            
+
+            // Attempt to send welcome email (non-blocking)
+            $mailService = new MailService();
+            $welcomeMessage = 'Registration successful! Please login with your credentials.';
+
+            $emailSent = false;
+            $mailError = '';
+
+            if ($mailService->isEnabled()) {
+                $emailSent = $mailService->sendWelcomeEmail([
+                    'email' => $businessEmail,
+                    'name' => $ownerName,
+                    'companyName' => $companyName,
+                    'username' => $username
+                ]);
+                $mailError = $mailService->getLastError();
+            }
+
+            if (!$emailSent) {
+                // Fallback to native mail() with inline template
+                $baseUrl = rtrim(APP_URL, '/');
+                if (substr($baseUrl, -6) === '/admin') {
+                    $baseUrl = substr($baseUrl, 0, -6);
+                }
+                $manageUrl = $baseUrl . '/admin/login.php';
+                $logoPath = get_logo_path('footer-logo.png') ?: get_logo_path('brand-logo.png') ?: 'assets/images/logo.png';
+                $logoUrl = $baseUrl . '/' . ltrim(str_replace(['../', './'], '', $logoPath), '/');
+
+                $subject = 'Welcome to ' . APP_NAME;
+                $body = "
+                <html>
+                    <head>
+                        <meta charset='UTF-8'>
+                        <style>
+                            body { background:#f5f6fa; font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; }
+                            .wrapper { padding:32px 0; }
+                            .card { max-width:600px; margin:0 auto; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 12px 40px rgba(17,24,39,0.12); }
+                            .header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:40px 40px 24px; text-align:center; }
+                            .header img { max-width:180px; height:auto; margin-bottom:20px; }
+                            .header h1 { color:#ffffff; margin:0; font-size:28px; }
+                            .content { padding:32px 40px 24px; color:#2d3748; }
+                            .content p { font-size:16px; line-height:1.6; margin:0 0 16px; }
+                            .button { display:inline-block; padding:16px 32px; background:linear-gradient(135deg,#4c51bf 0%,#667eea 100%); color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; }
+                            .footer { padding:24px 40px 40px; border-top:1px solid #edf2f7; text-align:center; color:#718096; font-size:13px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='wrapper'>
+                            <div class='card'>
+                                <div class='header'>
+                                    <img src='{$logoUrl}' alt='" . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . "'>
+                                    <h1>Welcome to " . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . "!</h1>
+                                </div>
+                                <div class='content'>
+                                    <p>Hi " . htmlspecialchars($ownerName, ENT_QUOTES, 'UTF-8') . ",</p>
+                                    <p>Thanks for registering <strong>" . htmlspecialchars($companyName, ENT_QUOTES, 'UTF-8') . "</strong> with " . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . ". Your dashboard is ready to manage orders, customers, tailors, and payments in one place.</p>";
+
+                if (!empty($username)) {
+                    $body .= "<p><strong>Username:</strong> " . htmlspecialchars($username, ENT_QUOTES, 'UTF-8') . "</p>";
+                }
+
+                $supportEmail = SMTP_FROM_EMAIL ?: 'support@' . ($_SERVER['SERVER_NAME'] ?? 'example.com');
+
+                $body .= "
+                                    <p>Click the button below to start managing your tailor shop right away.</p>
+                                    <p style='text-align:center; margin:32px 0;'>
+                                        <a class='button' href='" . htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') . "'>Manage Your Tailor</a>
+                                    </p>
+                                    <p>If you need help, reply to this email or contact us at <a href='mailto:" . htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') . "</a>.</p>
+                                </div>
+                                <div class='footer'>
+                                    <p>Cheers,<br>" . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . " Team</p>
+                                    <p>&copy; " . date('Y') . ' ' . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . ". All rights reserved.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                </html>";
+
+                $headers = "MIME-Version: 1.0\r\n";
+                $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+                $fromEmail = SMTP_FROM_EMAIL ?: 'no-reply@' . ($_SERVER['SERVER_NAME'] ?? 'example.com');
+                $fromName = SMTP_FROM_NAME ?: APP_NAME;
+                $headers .= "From: " . $fromName . " <" . $fromEmail . ">\r\n";
+
+                $emailSent = mail($businessEmail, $subject, $body, $headers);
+
+                if (!$emailSent) {
+                    $welcomeMessage .= ' (We could not deliver the welcome email. Please verify SMTP settings.)';
+                    $fallbackError = $mailError ?: 'mail() fallback failed';
+                    error_log('Welcome email failed: ' . $fallbackError);
+                }
+            }
+
+
             // Success - redirect to login
-            $_SESSION['reg_success'] = 'Registration successful! Please login with your credentials.';
+            $_SESSION['reg_success'] = $welcomeMessage;
             smart_redirect('login.php');
             exit;
             

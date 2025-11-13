@@ -30,6 +30,11 @@ class User extends BaseModel {
      * Create new user
      */
     public function createUser($data) {
+        // Assign current company if not explicitly provided
+        if (!isset($data['company_id']) && isset($_SESSION['company_id'])) {
+            $data['company_id'] = $_SESSION['company_id'];
+        }
+
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         return $this->create($data);
     }
@@ -125,6 +130,43 @@ class User extends BaseModel {
         $stmt->execute();
         
         return $stmt->fetch();
+    }
+
+    /**
+     * Get all users for a specific company
+     */
+    public function getCompanyUsers($company_id, $conditions = [], $order_by = null) {
+        if (!$company_id) {
+            return [];
+        }
+
+        $conditions['company_id'] = $company_id;
+        return $this->findAll($conditions, $order_by);
+    }
+
+    /**
+     * Find a user by ID within a company
+     */
+    public function findByIdAndCompany($id, $company_id) {
+        $query = "SELECT * FROM " . $this->table . " WHERE id = :id AND company_id = :company_id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':company_id', $company_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch();
+    }
+
+    /**
+     * Count users for a specific company with optional conditions
+     */
+    public function countByCompany($company_id, $conditions = []) {
+        if (!$company_id) {
+            return 0;
+        }
+
+        $conditions['company_id'] = $company_id;
+        return $this->count($conditions);
     }
 }
 ?>

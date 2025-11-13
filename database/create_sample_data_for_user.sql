@@ -25,3 +25,5 @@ INSERT INTO `expenses` (`created_by`, `category`, `description`, `amount`, `expe
 COMMIT;
 
 
+
+

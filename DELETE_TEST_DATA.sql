@@ -39,3 +39,5 @@ ALTER TABLE contacts AUTO_INCREMENT = 1;
 -- Test data is cleared
 
 
+
+

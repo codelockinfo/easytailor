@@ -24,6 +24,13 @@ try {
         exit;
     }
 
+    $companyId = get_company_id();
+    if (!$companyId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Company context missing']);
+        exit;
+    }
+
     require_once $rootDir . '/../models/User.php';
 
     // Get parameters
@@ -50,25 +57,30 @@ try {
         $conditions['role'] = $role;
     }
     
-    // Get users
+    // Fetch users for the company
+    $allUsers = $userModel->getCompanyUsers($companyId, $conditions, 'full_name ASC');
+    
     $offset = ($page - 1) * $limit;
-    $users = $userModel->findAll($conditions, '*', $limit, $offset);
     
     // If search is provided, filter results manually
+    $filteredUsers = $allUsers;
     if (!empty($search)) {
         $searchLower = strtolower($search);
-        $users = array_filter($users, function($user) use ($searchLower) {
+        $filteredUsers = array_filter($filteredUsers, function($user) use ($searchLower) {
             return strpos(strtolower($user['full_name']), $searchLower) !== false ||
                    strpos(strtolower($user['username']), $searchLower) !== false ||
                    strpos(strtolower($user['email']), $searchLower) !== false;
         });
     }
+
+    $filteredUsers = array_values($filteredUsers);
+    $totalUsers = count($filteredUsers);
+    $users = array_slice($filteredUsers, $offset, $limit);
     
-    $totalUsers = count($users);
     $totalPages = $limit > 0 ? ceil($totalUsers / $limit) : 1;
     
     // Get filter options
-    $allUsers = $userModel->findAll([], 'id, full_name, username, email, role, status, created_at');
+    $allRolesUsers = $userModel->getCompanyUsers($companyId);
     
     // Format users for display
     $formattedUsers = [];
@@ -88,7 +100,7 @@ try {
     
     // Format filter options
     $filterOptions = [
-        'roles' => array_unique(array_column($allUsers, 'role'))
+        'roles' => array_unique(array_column($allRolesUsers, 'role'))
     ];
     
     echo json_encode([

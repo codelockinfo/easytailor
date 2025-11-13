@@ -44,6 +44,34 @@ define('RECORDS_PER_PAGE', 20);
 // Date and time settings
 date_default_timezone_set('Asia/Kolkata'); // Indian Standard Time
 
+// Load mail configuration if available, otherwise fall back to environment/defaults
+$mailConfigFile = __DIR__ . '/mail.php';
+if (file_exists($mailConfigFile)) {
+    require_once $mailConfigFile;
+}
+
+if (!defined('SMTP_HOST')) {
+    define('SMTP_HOST', getenv('SMTP_HOST') ?: '');
+}
+if (!defined('SMTP_PORT')) {
+    define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
+}
+if (!defined('SMTP_ENCRYPTION')) {
+    define('SMTP_ENCRYPTION', getenv('SMTP_ENCRYPTION') ?: 'tls');
+}
+if (!defined('SMTP_USERNAME')) {
+    define('SMTP_USERNAME', getenv('SMTP_USERNAME') ?: '');
+}
+if (!defined('SMTP_PASSWORD')) {
+    define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: '');
+}
+if (!defined('SMTP_FROM_EMAIL')) {
+    define('SMTP_FROM_EMAIL', getenv('SMTP_FROM_EMAIL') ?: '');
+}
+if (!defined('SMTP_FROM_NAME')) {
+    define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: APP_NAME);
+}
+
 // Autoloader
 spl_autoload_register(function ($class_name) {
     $directories = [
@@ -208,7 +236,7 @@ if (!file_exists(UPLOAD_PATH)) {
 }
 
 // Create subdirectories for different file types
-$upload_subdirs = ['customers', 'orders', 'measurements', 'receipts', 'logos'];
+$upload_subdirs = ['customers', 'orders', 'measurements', 'receipts', 'logos', 'reviews'];
 foreach ($upload_subdirs as $subdir) {
     $dir = UPLOAD_PATH . $subdir . '/';
     if (!file_exists($dir)) {

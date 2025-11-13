@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/BaseModel.php';
+require_once __DIR__ . '/CompanyReview.php';
 
 class Company extends BaseModel {
     protected $table = 'companies';
@@ -77,7 +78,7 @@ class Company extends BaseModel {
     public function getPublicCompanies($limit = null, $offset = 0) {
         $query = "SELECT * FROM " . $this->table . " 
                   WHERE status = 'active' AND show_on_listing = 1 
-                  ORDER BY is_featured DESC, rating DESC, created_at DESC";
+                  ORDER BY is_featured DESC, created_at DESC";
         
         if ($limit) {
             $query .= " LIMIT :limit OFFSET :offset";
@@ -100,7 +101,7 @@ class Company extends BaseModel {
     public function getFeaturedCompanies($limit = 8) {
         $query = "SELECT * FROM " . $this->table . " 
                   WHERE status = 'active' AND is_featured = 1 AND show_on_listing = 1 
-                  ORDER BY rating DESC, created_at DESC 
+                  ORDER BY created_at DESC 
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
@@ -148,12 +149,18 @@ class Company extends BaseModel {
         }
 
         // Sort order
-        $sort = $filters['sort'] ?? 'rating';
+        $sort = $filters['sort'] ?? 'newest';
         $order = $filters['order'] ?? 'DESC';
         
         switch($sort) {
             case 'name':
                 $query .= " ORDER BY company_name " . $order;
+                break;
+            case 'newest':
+                $query .= " ORDER BY created_at DESC";
+                break;
+            case 'oldest':
+                $query .= " ORDER BY created_at ASC";
                 break;
             case 'rating':
                 $query .= " ORDER BY rating " . $order . ", total_reviews DESC";
@@ -165,7 +172,7 @@ class Company extends BaseModel {
                 $query .= " ORDER BY years_experience " . $order;
                 break;
             default:
-                $query .= " ORDER BY is_featured DESC, rating DESC";
+                $query .= " ORDER BY is_featured DESC, created_at DESC";
         }
 
         // Pagination
@@ -282,6 +289,35 @@ class Company extends BaseModel {
         $stmt->execute();
         
         return $stmt->fetch();
+    }
+
+    /**
+     * Get a single company for public display
+     */
+    public function getPublicCompanyById($companyId) {
+        $query = "SELECT * FROM " . $this->table . " 
+                  WHERE id = :id AND status = 'active' AND show_on_listing = 1 
+                  LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':id', $companyId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch();
+    }
+
+    /**
+     * Refresh rating and review counts from review table
+     */
+    public function refreshReviewStats($companyId) {
+        $reviewModel = new CompanyReview();
+        $stats = $reviewModel->getRatingStats($companyId);
+
+        $this->update($companyId, [
+            'rating' => $stats['average_rating'],
+            'total_reviews' => $stats['review_count']
+        ]);
+
+        return $stats;
     }
 }
 ?>

@@ -34,7 +34,7 @@ try {
         'state' => $_GET['state'] ?? '',
         'min_rating' => $_GET['min_rating'] ?? '',
         'specialty' => $_GET['specialty'] ?? '',
-        'sort' => $_GET['sort'] ?? 'rating',
+        'sort' => $_GET['sort'] ?? 'newest',
         'order' => $_GET['order'] ?? 'DESC',
         'limit' => isset($_GET['limit']) ? (int)$_GET['limit'] : 12,
         'offset' => isset($_GET['offset']) ? (int)$_GET['offset'] : 0

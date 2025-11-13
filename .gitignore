@@ -5,6 +5,7 @@
 
 # Configuration files with sensitive data
 config/local.php
+config/mail.php
 .env
 .env.local
 

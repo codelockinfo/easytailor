@@ -309,6 +309,7 @@
                     <p class="section-description">
                         Find experienced and verified tailor shops in your area. Connect with professional tailoring businesses for all your stitching needs.
                     </p>
+                    <p class="section-description text-muted" id="tailorsCityNotice" style="display:none;"></p>
                 </div>
             </div>
 
@@ -825,6 +826,7 @@
         </a>
     </div>
 
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -847,32 +849,160 @@
         });
 
         function loadFeaturedTailors() {
-            fetch('ajax/filter_tailors.php?limit=8&sort=rating')
+            const fallback = () => {
+                fetchTailorsForSlider().then(result => handleTailorResults(result, false));
+            };
+
+            if (!('geolocation' in navigator)) {
+                fallback();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    resolveCity(position.coords.latitude, position.coords.longitude)
+                        .then(city => {
+                            if (city) {
+                                fetchTailorsForSlider(city)
+                                    .then(result => handleTailorResults(result, true))
+                                    .catch(() => fallback());
+                            } else {
+                                fallback();
+                            }
+                        })
+                        .catch(() => fallback());
+                },
+                () => fallback(),
+                { timeout: 7000 }
+            );
+        }
+
+        function resolveCity(lat, lon) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+            return fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.address || {};
+                    return address.city || address.town || address.village || address.state_district || address.state || '';
+                })
+                .catch(() => '');
+        }
+
+        function fetchTailorsForSlider(city = '') {
+            const params = new URLSearchParams({ limit: 8, sort: 'newest' });
+            if (city) {
+                params.append('city', city);
+            }
+
+            return fetch(`ajax/filter_tailors.php?${params.toString()}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Server error');
                     }
                     return response.json();
                 })
-                .then(data => {
-                    if (data.success && data.data.length > 0) {
-                        displayTailorsSlider(data.data);
+                .then(data => ({
+                    success: data.success,
+                    tailors: data.data || [],
+                    city
+                }))
+                .catch(() => ({
+                    success: false,
+                    tailors: [],
+                    city
+                }));
+        }
+
+        function handleTailorResults(result, triedCity) {
+            const { success, tailors, city } = result;
+
+            if (success && tailors.length > 0) {
+                if (triedCity) {
+                    updateCityNotice(city, true);
+                    if (tailors.length < 8) {
+                        fetchTailorsForSlider()
+                            .then(fallbackResult => {
+                                if (fallbackResult.success && fallbackResult.tailors.length > 0) {
+                                    const combined = mergeTailorLists(tailors, fallbackResult.tailors);
+                                    displayTailorsSlider(combined.slice(0, 8));
                     } else {
-                        // Hide the section if no tailors
-                        const section = document.getElementById('tailors-near-you');
-                        if (section) {
-                            section.style.display = 'none';
-                        }
+                                    displayTailorsSlider(tailors);
+                                }
+                            })
+                            .catch(() => displayTailorsSlider(tailors));
+                    } else {
+                        displayTailorsSlider(tailors);
                     }
-                })
-                .catch(error => {
-                    console.log('Tailors feature not yet configured');
-                    // Hide the section on error (table doesn't exist yet)
+                } else {
+                    updateCityNotice('', false);
+                    displayTailorsSlider(tailors);
+                }
+                return;
+            }
+
+            if (triedCity) {
+                updateCityNotice(city, false);
+                fetchTailorsForSlider()
+                    .then(fallbackResult => {
+                        if (fallbackResult.success && fallbackResult.tailors.length > 0) {
+                            displayTailorsSlider(fallbackResult.tailors);
+                        } else {
+                            hideTailorsSection();
+                        }
+                    })
+                    .catch(() => hideTailorsSection());
+            } else {
+                hideTailorsSection();
+            }
+        }
+
+        function mergeTailorLists(primary, secondary) {
+            const seen = new Set();
+            const combined = [];
+
+            primary.forEach(item => {
+                if (!seen.has(item.id)) {
+                    seen.add(item.id);
+                    combined.push(item);
+                }
+            });
+
+            secondary.forEach(item => {
+                if (!seen.has(item.id)) {
+                    seen.add(item.id);
+                    combined.push(item);
+                }
+            });
+
+            return combined;
+        }
+
+        function updateCityNotice(city, hasMatches) {
+            const notice = document.getElementById('tailorsCityNotice');
+            if (!notice) {
+                return;
+            }
+
+            if (!city) {
+                notice.style.display = 'none';
+                notice.textContent = '';
+                return;
+            }
+
+            if (hasMatches) {
+                notice.textContent = `Showing tailor shops in ${city} first.`;
+            } else {
+                notice.textContent = `We couldn't find tailor shops in ${city} yet. Showing the latest registered shops instead.`;
+            }
+            notice.style.display = 'block';
+        }
+
+        function hideTailorsSection() {
+            updateCityNotice('', false);
                     const section = document.getElementById('tailors-near-you');
                     if (section) {
                         section.style.display = 'none';
                     }
-                });
         }
 
         function displayTailorsSlider(tailors) {
@@ -906,12 +1036,15 @@
                                     ${specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('')}
                                 </div>
                                 ` : ''}
-                                <div class="tailor-slider-actions">
-                                    <a href="tel:${tailor.phone}" class="btn btn-sm btn-outline-primary">
+                                <div class="tailor-slider-actions d-flex gap-2">
+                                    <a href="tailor.php?id=${tailor.id}" class="btn btn-outline-primary btn-icon" title="View Profile" aria-label="View Profile">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="tel:${tailor.phone}" class="btn btn-outline-primary btn-icon" title="Call" aria-label="Call">
                                         <i class="fas fa-phone"></i>
                                     </a>
                                     ${tailor.whatsapp ? `
-                                    <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-success">
+                                    <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-success btn-icon text-white" title="WhatsApp" aria-label="WhatsApp">
                                         <i class="fab fa-whatsapp"></i>
                                     </a>
                                     ` : ''}
@@ -929,105 +1062,68 @@
         }
 
         function initTailorsSlider() {
-            if (typeof jQuery !== 'undefined' && typeof jQuery.fn.slick !== 'undefined') {
+            if (typeof jQuery === 'undefined' || typeof jQuery.fn.slick === 'undefined') {
+                return;
+            }
+
+            const applySliderConfig = () => {
                 const slider = jQuery('.tailors-slider');
-                
-                // Destroy existing slider if any
-                if (slider.hasClass('slick-initialized')) {
+                if (!slider.length) {
+                    return;
+                }
+
+                if (window.innerWidth < 1200) {
+                    if (!slider.hasClass('slick-initialized')) {
+                        slider.slick({
+                            dots: true,
+                            infinite: true,
+                            speed: 500,
+                            slidesToShow: 4,
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 3000,
+                            pauseOnHover: true,
+                            arrows: true,
+                            responsive: [
+                                {
+                                    breakpoint: 1200,
+                                    settings: {
+                                        slidesToShow: 3,
+                                        slidesToScroll: 1
+                                    }
+                                },
+                                {
+                                    breakpoint: 992,
+                                    settings: {
+                                        slidesToShow: 2,
+                                        slidesToScroll: 1
+                                    }
+                                },
+                                {
+                                    breakpoint: 768,
+                                    settings: {
+                                        slidesToShow: 1,
+                                        slidesToScroll: 1,
+                                        arrows: false
+                                    }
+                                }
+                            ]
+                        });
+                    }
+                } else if (slider.hasClass('slick-initialized')) {
                     slider.slick('unslick');
                 }
-                
-                // Initialize slider on mobile/tablet only
-                if (window.innerWidth < 1200) {
-                    slider.slick({
-                        dots: true,
-                        infinite: true,
-                        speed: 500,
-                        slidesToShow: 4,
-                        slidesToScroll: 1,
-                        autoplay: true,
-                        autoplaySpeed: 3000,
-                        pauseOnHover: true,
-                        arrows: true,
-                        responsive: [
-                            {
-                                breakpoint: 1200,
-                                settings: {
-                                    slidesToShow: 3,
-                                    slidesToScroll: 1,
-                                }
-                            },
-                            {
-                                breakpoint: 992,
-                                settings: {
-                                    slidesToShow: 2,
-                                    slidesToScroll: 1,
-                                }
-                            },
-                            {
-                                breakpoint: 768,
-                                settings: {
-                                    slidesToShow: 1,
-                                    slidesToScroll: 1,
-                                    arrows: false
-                                }
-                            }
-                        ]
-                    });
-                }
-                
-                // Handle window resize
+            };
+
+            applySliderConfig();
+
+            if (!window._tailorsSliderResizeBound) {
                 let resizeTimeout;
                 window.addEventListener('resize', () => {
                     clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(() => {
-                        if (window.innerWidth >= 1200) {
-                            // Destroy slider on large desktop
-                            if (slider.hasClass('slick-initialized')) {
-                                slider.slick('unslick');
-                            }
-                        } else {
-                            // Initialize slider on smaller screens
-                            if (!slider.hasClass('slick-initialized')) {
-                                slider.slick({
-                                    dots: true,
-                                    infinite: true,
-                                    speed: 500,
-                                    slidesToShow: 4,
-                                    slidesToScroll: 1,
-                                    autoplay: true,
-                                    autoplaySpeed: 3000,
-                                    pauseOnHover: true,
-                                    arrows: true,
-                                    responsive: [
-                                        {
-                                            breakpoint: 1200,
-                                            settings: {
-                                                slidesToShow: 3,
-                                                slidesToScroll: 1,
-                                            }
-                                        },
-                                        {
-                                            breakpoint: 992,
-                                            settings: {
-                                                slidesToShow: 2,
-                                                slidesToScroll: 1,
-                                            }
-                                        },
-                                        {
-                                            breakpoint: 768,
-                                            settings: {
-                                                slidesToShow: 1,
-                                                slidesToScroll: 1,
-                                                arrows: false
-                                            }
-                                        }
-                                    ]
-                                });
-                            }
-                        }
-                    }, 250);
+                    resizeTimeout = setTimeout(applySliderConfig, 200);
                 });
+                window._tailorsSliderResizeBound = true;
             }
         }
 

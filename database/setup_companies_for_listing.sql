@@ -66,3 +66,5 @@ INSERT INTO `companies` (`company_name`, `owner_name`, `business_email`, `busine
 COMMIT;
 
 
+
+

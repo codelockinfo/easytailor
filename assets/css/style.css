@@ -2261,8 +2261,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tailor-slider-actions .btn {
-    flex: 1;
-    font-size: 0.85rem;
+    flex: 0 0 auto;
+}
+
+.btn-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon i {
+    font-size: 1.1rem;
 }
 
 /* Loading Skeleton */

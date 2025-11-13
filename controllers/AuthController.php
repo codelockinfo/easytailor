@@ -7,14 +7,17 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/PasswordReset.php';
+require_once __DIR__ . '/../helpers/MailService.php';
 
 class AuthController {
     private $userModel;
     private $passwordResetModel;
+    private $mailService;
 
     public function __construct() {
         $this->userModel = new User();
         $this->passwordResetModel = new PasswordReset();
+        $this->mailService = new MailService();
     }
 
     /**
@@ -209,13 +212,33 @@ class AuthController {
         }
 
         // Send email with code
-        $emailSent = $this->sendPasswordResetEmail($user['email'], $user['full_name'], $code);
+        $emailSent = false;
+        $mailError = '';
+
+        if ($this->mailService->isEnabled()) {
+            $emailSent = $this->mailService->sendPasswordResetEmail([
+                'email' => $user['email'],
+                'name' => $user['full_name'],
+                'code' => $code,
+                'token' => $token
+            ]);
+            $mailError = $this->mailService->getLastError();
+        }
+
+        if (!$emailSent) {
+            $emailSent = $this->sendPasswordResetEmailFallback($user['email'], $user['full_name'], $code, $token);
+            if (!$emailSent && empty($mailError)) {
+                $mailError = 'Unable to dispatch email via SMTP or fallback mail().';
+            }
+        }
 
         // Development mode: Show code if email fails
         $message = 'Password reset code has been sent to your email';
         if (!$emailSent) {
-            // In development, show the code directly
             $message = "EMAIL NOT CONFIGURED - Your verification code is: <strong>$code</strong> (Valid for 15 minutes)";
+            if (!empty($mailError)) {
+                error_log('Password reset email failed: ' . $mailError);
+            }
         }
 
         return [
@@ -304,10 +327,41 @@ class AuthController {
     }
 
     /**
+     * Validate reset token without updating password
+     */
+    public function validateResetToken($token) {
+        if (empty($token)) {
+            return ['success' => false, 'message' => 'Reset token is required'];
+        }
+
+        $reset = $this->passwordResetModel->findByToken($token);
+
+        if (!$reset) {
+            return ['success' => false, 'message' => 'Invalid or expired reset token'];
+        }
+
+        if (strtotime($reset['expires_at']) < time()) {
+            return ['success' => false, 'message' => 'Reset token has expired. Please request a new one.'];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Token is valid',
+            'email' => $reset['email']
+        ];
+    }
+
+    /**
      * Send password reset email
      */
-    private function sendPasswordResetEmail($email, $name, $code) {
+    private function sendPasswordResetEmailFallback($email, $name, $code, $token) {
         $subject = "Password Reset Code - " . APP_NAME;
+
+        $baseUrl = rtrim(APP_URL, '/');
+        if (substr($baseUrl, -6) === '/admin') {
+            $baseUrl = substr($baseUrl, 0, -6);
+        }
+        $resetUrl = $baseUrl . '/admin/reset-password.php?token=' . urlencode($token);
         
         $message = "
         <html>
@@ -336,6 +390,10 @@ class AuthController {
                     <div class='code-box'>
                         <div class='code'>" . $code . "</div>
                     </div>
+                    
+                    <p style='text-align:center;'>
+                        <a href='" . $resetUrl . "' class='button'>Reset Password</a>
+                    </p>
                     
                     <p><strong>This code will expire in 15 minutes.</strong></p>
                     <p>If you didn't request this password reset, please ignore this email or contact support if you have concerns.</p>

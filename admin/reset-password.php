@@ -11,9 +11,23 @@ if (is_logged_in()) {
     smart_redirect('dashboard.php');
 }
 
-// Redirect if no verified token in session
+// Redirect if no verified token in session or via link
 if (!isset($_SESSION['verified_reset_token'])) {
-    smart_redirect('forgot-password.php');
+    $incomingToken = sanitize_input($_GET['token'] ?? '');
+    if ($incomingToken) {
+        require_once '../controllers/AuthController.php';
+        $authController = new AuthController();
+        $validation = $authController->validateResetToken($incomingToken);
+        if ($validation['success']) {
+            $_SESSION['verified_reset_token'] = $incomingToken;
+            $_SESSION['reset_email'] = $validation['email'];
+        } else {
+            $_SESSION['reset_error'] = $validation['message'];
+            smart_redirect('forgot-password.php');
+        }
+    } else {
+        smart_redirect('forgot-password.php');
+    }
 }
 
 $error_message = '';

@@ -158,7 +158,7 @@ class Company extends BaseModel {
         
         switch($sort) {
             case 'name':
-                $query .= " ORDER BY company_name " . $order;
+                $query .= " ORDER BY company_name ASC";
                 break;
             case 'newest':
                 $query .= " ORDER BY created_at DESC";

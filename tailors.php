@@ -74,7 +74,7 @@ $stats = $company->getListingStats();
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px 0 30px;
+            padding: 15px 0 30px;
             margin-bottom: 30px;
         }
 
@@ -158,6 +158,12 @@ $stats = $company->getListingStats();
             background: #28a745;
             border-radius: 50%;
             border: 2px solid white;
+        }
+        .search {
+            margin-bottom: 16px;
+        }
+        .alert-info {
+            margin-top: 16px;
         }
 
         /* Tailor Cards */
@@ -496,12 +502,12 @@ $stats = $company->getListingStats();
                     <i class="fas fa-times-circle me-1"></i>Clear Filters
                 </span>
             </div>
-            
+            <div class="search">
+                <label class="form-label">Search <small class="text-muted">(auto-filters as you type)</small></label>
+                <input type="text" class="form-control" id="keyword" placeholder="Shop name, city, specialty...">
+            </div>
+
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Search <small class="text-muted">(auto-filters as you type)</small></label>
-                    <input type="text" class="form-control" id="keyword" placeholder="Shop name, city, specialty...">
-                </div>
                 <div class="col-md-3">
                     <label class="form-label">City</label>
                     <select class="form-select" id="city">
@@ -520,7 +526,7 @@ $stats = $company->getListingStats();
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label">Min Rating</label>
                     <select class="form-select" id="min_rating">
                         <option value="">Any</option>
@@ -530,9 +536,6 @@ $stats = $company->getListingStats();
                         <option value="3.0">3.0+</option>
                     </select>
                 </div>
-            </div>
-            
-            <div class="row g-3 mt-2">
                 <div class="col-md-3">
                     <label class="form-label">Sort By <small class="text-muted">(auto-sorts)</small></label>
                     <select class="form-select" id="sort">
@@ -543,13 +546,12 @@ $stats = $company->getListingStats();
                         <option value="name">Name (A-Z)</option>
                     </select>
                 </div>
-                <div class="col-md-9 d-flex align-items-end">
+            </div>
+            
                     <div class="alert alert-info mb-0 py-2 px-3">
                         <i class="fas fa-info-circle me-2"></i>
                         <small>Filters apply automatically as you change selections</small>
                     </div>
-                </div>
-            </div>
         </div>
 
         <!-- Results Section -->

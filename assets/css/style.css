@@ -2410,6 +2410,7 @@ h1, h2, h3, h4, h5, h6 {
     .tailors-slider .slick-arrow {
         width: 35px;
         height: 35px;
+        display: none !important;
     }
 
     .tailors-slider .slick-arrow:before {

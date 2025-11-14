@@ -83,7 +83,7 @@ function escape($value) {
         .profile-hero {
             background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
             color: #fff;
-            padding: 60px 0;
+            padding: 30px 0;
         }
         .profile-rating {
             display: inline-flex;
@@ -124,6 +124,10 @@ function escape($value) {
         .star-rating-input label:hover ~ label {
             color: #f59e0b;
         }
+        .container.py-5 {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
 
         @media (max-width: 767px) {
             .navbar .container {
@@ -133,6 +137,15 @@ function escape($value) {
             .navbar .ms-auto {
                 flex-direction: column;
                 width: 100%;
+            }
+            .display-5.mb-2 {
+                font-size: 24px;
+            }
+            .lead.mb-3 {
+                font-size: 16px;
+            }
+            .card-title {
+                font-size: 18px;
             }
         }
         @media (max-width: 576px) {
@@ -147,6 +160,15 @@ function escape($value) {
             }
             .contact-buttons {
                 flex-direction: column;
+            }
+        }
+        @media (max-width: 422px) {
+            .review-stats {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            .profile-rating {
+                width: 100%;
             }
         }
     </style>
@@ -169,12 +191,12 @@ function escape($value) {
         <div class="container">
             <div class="row align-items-center g-4">
                 <div class="col-md-4 text-center">
-                    <img src="<?php echo escape($company['logo'] ?: 'uploads/logos/default-shop.jpg'); ?>" alt="<?php echo escape($company['company_name']); ?>" class="img-fluid rounded shadow" style="max-height:220px; object-fit:cover;">
+                    <img src="<?php echo escape($company['logo'] ?: 'uploads/logos/default-shop.jpg'); ?>" alt="<?php echo escape($company['company_name']); ?>" class="img-fluid rounded shadow" style="max-height:370px; object-fit:cover;">
                 </div>
                 <div class="col-md-8">
                     <h1 class="display-5 mb-2"><?php echo escape($company['company_name']); ?></h1>
                     <p class="lead mb-3"><?php echo escape($company['description'] ?? ''); ?></p>
-                    <div class="d-flex flex-wrap align-items-center gap-3">
+                    <div class="d-flex flex-wrap align-items-center gap-3 review-stats">
                         <div class="profile-rating">
                             <i class="fas fa-star text-warning"></i>
                             <strong><?php echo number_format($stats['average_rating'], 1); ?></strong>

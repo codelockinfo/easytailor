@@ -434,44 +434,58 @@ if ($company['subscription_expiry']) {
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-4">
-                    <i class="fas fa-crown fa-3x text-warning mb-3"></i>
-                    <h4 id="selectedPlanName">Premium Plan</h4>
-                    
-                    <div class="pricing-toggle mb-3">
-                        <div class="btn-group" role="group">
-                            <input type="radio" class="btn-check" name="modal-pricing" id="modal-monthly" checked>
-                            <label class="btn btn-outline-primary btn-sm" for="modal-monthly">Monthly</label>
-                            
-                            <input type="radio" class="btn-check" name="modal-pricing" id="modal-annual">
-                            <label class="btn btn-outline-primary btn-sm" for="modal-annual">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
+                <form id="subscriptionForm">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-crown fa-3x text-warning mb-3"></i>
+                        <h4 id="selectedPlanName">Premium Plan</h4>
+                        
+                        <div class="pricing-toggle mb-3">
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="modal-pricing" id="modal-monthly" checked>
+                                <label class="btn btn-outline-primary btn-sm" for="modal-monthly">Monthly</label>
+                                
+                                <input type="radio" class="btn-check" name="modal-pricing" id="modal-annual">
+                                <label class="btn btn-outline-primary btn-sm" for="modal-annual">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
+                            </div>
                         </div>
+                        
+                        <h2 class="text-primary mb-0">₹<span id="selectedPlanPrice">199</span><span id="selectedPlanDuration">/month</span></h2>
                     </div>
                     
-                    <h2 class="text-primary mb-0">₹<span id="selectedPlanPrice">199</span><span id="selectedPlanDuration">/month</span></h2>
-                </div>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Demo Mode:</strong> This is a demonstration. In production, you would integrate with a payment gateway (Stripe, PayPal, etc.) to process payments.
-                </div>
-                
-                <div class="alert alert-warning mb-0">
-                    <h6>To enable real payments:</h6>
-                    <ol class="mb-0">
-                        <li>Integrate Stripe or PayPal</li>
-                        <li>Configure payment gateway in settings</li>
-                        <li>Add webhook handlers</li>
-                        <li>Enable subscription billing</li>
-                    </ol>
-                </div>
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3"><i class="fas fa-user me-2"></i>Customer Details</h6>
+                    
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="customerName" name="customerName" required placeholder="Enter your full name">
+                        <div class="invalid-feedback">Please provide your full name.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="customerEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="customerEmail" name="customerEmail" required placeholder="Enter your email address">
+                        <div class="invalid-feedback">Please provide a valid email address.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="customerPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="customerPhone" name="customerPhone" required placeholder="Enter your phone number" pattern="[0-9]{10}" maxlength="10">
+                        <div class="invalid-feedback">Please provide a valid 10-digit phone number.</div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>You will be redirected to Razorpay secure payment gateway to complete the transaction.</small>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancel
                 </button>
-                <button type="button" class="btn btn-primary" onclick="simulateUpgrade()">
-                    <i class="fas fa-credit-card me-2"></i>Proceed to Payment (Demo)
+                <button type="button" class="btn btn-primary" id="payNowBtn" onclick="proceedToPayment()">
+                    <i class="fas fa-credit-card me-2"></i>Pay Now
                 </button>
             </div>
         </div>
@@ -535,16 +549,167 @@ function updateModalPricing() {
     }
 }
 
-function simulateUpgrade() {
+function proceedToPayment() {
+    // Validate form
+    const form = document.getElementById('subscriptionForm');
+    const customerName = document.getElementById('customerName').value.trim();
+    const customerEmail = document.getElementById('customerEmail').value.trim();
+    const customerPhone = document.getElementById('customerPhone').value.trim();
+    
+    // Reset validation
+    form.classList.remove('was-validated');
+    document.getElementById('customerName').classList.remove('is-invalid');
+    document.getElementById('customerEmail').classList.remove('is-invalid');
+    document.getElementById('customerPhone').classList.remove('is-invalid');
+    
+    // Validate fields
+    let isValid = true;
+    
+    if (!customerName) {
+        document.getElementById('customerName').classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (!customerEmail || !isValidEmail(customerEmail)) {
+        document.getElementById('customerEmail').classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (!customerPhone || !/^[0-9]{10}$/.test(customerPhone)) {
+        document.getElementById('customerPhone').classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (!isValid) {
+        form.classList.add('was-validated');
+        return;
+    }
+    
+    // Get pricing details
     const annualRadio = document.getElementById('modal-annual');
     const isAnnual = annualRadio.checked;
     const price = isAnnual ? selectedPlanData.price_annual : selectedPlanData.price;
     const duration = isAnnual ? 'yearly' : 'monthly';
     
-    alert(`Payment Gateway Integration Required\n\nPlan: ${selectedPlanData.name}\nDuration: ${duration}\nPrice: ₹${price.toLocaleString('en-IN')}\n\nIn production, this would:\n1. Redirect to payment gateway (Stripe/PayPal)\n2. Process payment\n3. Update subscription\n4. Send confirmation email\n\nFor demo purposes, please contact administrator to manually upgrade your plan.`);
+    // Disable button to prevent double submission
+    const payBtn = document.getElementById('payNowBtn');
+    payBtn.disabled = true;
+    payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
-    const modal = bootstrap.Modal.getInstance(document.getElementById('upgradeModal'));
-    modal.hide();
+    // Create Razorpay order
+    fetch('ajax/create_razorpay_order.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            plan_key: selectedPlan,
+            plan_name: selectedPlanData.name,
+            amount: price,
+            duration: duration,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Initialize Razorpay checkout
+            const options = {
+                key: data.razorpay_key,
+                amount: data.amount,
+                currency: 'INR',
+                name: 'Tailoring Management System',
+                description: `${selectedPlanData.name} - ${duration}`,
+                image: '', // Add your logo URL here if needed
+                order_id: data.order_id,
+                handler: function(response) {
+                    // Payment successful
+                    handlePaymentSuccess(response, {
+                        plan_key: selectedPlan,
+                        plan_name: selectedPlanData.name,
+                        amount: price,
+                        duration: duration,
+                        customer_name: customerName,
+                        customer_email: customerEmail,
+                        customer_phone: customerPhone
+                    });
+                },
+                prefill: {
+                    name: customerName,
+                    email: customerEmail,
+                    contact: customerPhone
+                },
+                notes: {
+                    plan_key: selectedPlan,
+                    duration: duration
+                },
+                theme: {
+                    color: '#0d6efd'
+                },
+                modal: {
+                    ondismiss: function() {
+                        // Re-enable button if user closes the modal
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+                    }
+                }
+            };
+            
+            const razorpay = new Razorpay(options);
+            razorpay.open();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to create payment order. Please try again.'));
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        payBtn.disabled = false;
+        payBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+    });
+}
+
+function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function handlePaymentSuccess(response, paymentData) {
+    // Verify payment on server
+    fetch('ajax/verify_razorpay_payment.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            ...paymentData
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('upgradeModal'));
+            modal.hide();
+            
+            // Show success message and reload page
+            alert('Payment successful! Your subscription has been upgraded.');
+            window.location.reload();
+        } else {
+            alert('Payment verification failed: ' + (data.message || 'Please contact support.'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Payment verification error. Please contact support with your payment ID: ' + response.razorpay_payment_id);
+    });
 }
 
 // Handle pricing toggle in modal
@@ -555,6 +720,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (monthlyRadio && annualRadio) {
         monthlyRadio.addEventListener('change', updateModalPricing);
         annualRadio.addEventListener('change', updateModalPricing);
+    }
+    
+    // Reset form when modal is closed
+    const upgradeModal = document.getElementById('upgradeModal');
+    if (upgradeModal) {
+        upgradeModal.addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('subscriptionForm');
+            if (form) {
+                form.reset();
+                form.classList.remove('was-validated');
+                document.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+            }
+            const payBtn = document.getElementById('payNowBtn');
+            if (payBtn) {
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+            }
+        });
     }
     
     // Handle pricing toggles in plan cards (skip free plan)
@@ -582,6 +767,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <?php require_once 'includes/footer.php'; ?>
 

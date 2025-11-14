@@ -243,5 +243,13 @@ foreach ($upload_subdirs as $subdir) {
         mkdir($dir, 0755, true);
     }
 }
+
+// Razorpay Configuration (Test Mode)
+// IMPORTANT: Replace these with your actual Razorpay test keys from https://dashboard.razorpay.com/app/keys
+// For test mode, use keys starting with 'rzp_test_'
+// You can also set these via environment variables: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET
+define('RAZORPAY_KEY_ID', getenv('RAZORPAY_KEY_ID') ?: 'rzp_test_YOUR_KEY_ID_HERE');
+define('RAZORPAY_KEY_SECRET', getenv('RAZORPAY_KEY_SECRET') ?: 'YOUR_KEY_SECRET_HERE');
+define('RAZORPAY_MODE', getenv('RAZORPAY_MODE') ?: 'test'); // 'test' or 'live'
 ?>
 

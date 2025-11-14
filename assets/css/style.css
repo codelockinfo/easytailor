@@ -2339,6 +2339,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     z-index: 10;
+    display: none !important;
 }
 
 .tailors-slider .slick-arrow:before {
@@ -2390,6 +2391,21 @@ h1, h2, h3, h4, h5, h6 {
     /* Hide items after the first 4 (second row and beyond) */
     .tailors-slider .tailor-slide:nth-child(n+5) {
         display: none !important;
+    }
+}
+
+/* Add gap between tailor cards on medium screens (768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .tailors-slider .tailor-slide {
+        padding: 0 15px !important;
+    }
+    
+    .tailors-slider.slick-slider {
+        margin: 0 -15px;
+    }
+    
+    .tailors-slider .slick-list {
+        padding: 0 15px !important;
     }
 }
 

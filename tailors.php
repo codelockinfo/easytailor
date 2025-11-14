@@ -74,8 +74,8 @@ $stats = $company->getListingStats();
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 40px 0 40px;
-            margin-bottom: 40px;
+            padding: 30px 0 30px;
+            margin-bottom: 30px;
         }
 
         .page-header h1 {
@@ -371,7 +371,7 @@ $stats = $company->getListingStats();
 
         /* Back Button */
         .back-to-home {
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
 
         .back-to-home a {
@@ -407,6 +407,37 @@ $stats = $company->getListingStats();
 
             .tailor-card-body {
                 padding: 15px;
+            }
+            .page-header {
+                padding: 15px 0 20px;
+            }
+            .stats-bar {
+                margin-top: 15px;
+            }
+        }
+        @media (max-width: 576px) {
+            .modal-title {
+                font-size: 24px;
+            }
+            .tailorModalName {
+                font-size: 24px;
+            }
+            .mb-3 {
+                font-size: 18px;
+            }  
+        }
+        @media (max-width: 320px) {
+            .filter-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+        }
+        @media (min-width: 768px) {
+            .modal-dialog {
+                width: 100% !important;
+                max-width: 700px !important;
             }
         }
     </style>

@@ -51,6 +51,35 @@ function escape($value) {
             font-family: 'Inter', sans-serif;
             background: #f8f9fa;
         }
+        .navbar-logo {
+            width: 120px;
+            height: 70px;
+            transition: var(--transition);
+        }
+        .btn {
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            transition: var(--transition);
+        }
+        .header-browse-tailors-btn {
+            border: 2px solid  #667eea !important;
+            color: #667eea !important;
+            background: transparent !important;
+            border-radius: 50px !important;
+        }
+        .login-header-btn {
+            border: 2px solid #667eea !important;
+            color: white !important;
+            background: #667eea !important;
+            border-radius: 50px !important;
+        }
+        .ms-auto {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-outline-light:hover {
+            color: #667eea;
+        }
         .profile-hero {
             background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
             color: #fff;
@@ -95,15 +124,43 @@ function escape($value) {
         .star-rating-input label:hover ~ label {
             color: #f59e0b;
         }
+
+        @media (max-width: 767px) {
+            .navbar .container {
+                flex-direction: column;
+                max-width: 100%;
+            }
+            .navbar .ms-auto {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+        @media (max-width: 576px) {
+            .display-5.mb-2 {
+                font-size: 24px;
+            }
+            .lead.mb-3 {
+                font-size: 16px;
+            }
+            .card-title {
+                font-size: 18px;
+            }
+            .contact-buttons {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.php"><i class="fas fa-cut me-2 text-primary"></i>TailorPro</a>
+            <a class="navbar-brand fw-bold" href="index.php">
+                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
+            </a>
             <div class="ms-auto">
-                <a href="tailors.php" class="btn btn-outline-primary btn-sm">Browse Tailors</a>
-                <a href="admin/login.php" class="btn btn-primary btn-sm ms-2">Login</a>
+                <a href="tailors.php" class="btn  btn-sm header-browse-tailors-btn">Browse Tailors</a>
+                <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
             </div>
         </div>
     </nav>
@@ -130,7 +187,7 @@ function escape($value) {
                             <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
                         <?php endif; ?>
                     </div>
-                    <div class="mt-3 d-flex flex-wrap gap-2">
+                    <div class="mt-3 d-flex flex-wrap gap-2 contact-buttons">
                         <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $company['business_phone']); ?>" class="btn btn-outline-light">
                             <i class="fas fa-phone me-2"></i>Call
                         </a>
@@ -249,7 +306,7 @@ function escape($value) {
                                 <input type="file" name="review_image" class="form-control" accept="image/*">
                                 <div class="form-text">Maximum size 3MB.</div>
                             </div>
-                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Review</button>
                             <p id="profileReviewMessage" class="small mt-3"></p>
                         </form>
                     </div>

@@ -28,6 +28,9 @@ try {
     $company = new Company($db);
 
     // Get filter parameters
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 12;
+    $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+    
     $filters = [
         'keyword' => $_GET['keyword'] ?? '',
         'city' => $_GET['city'] ?? '',
@@ -36,14 +39,18 @@ try {
         'specialty' => $_GET['specialty'] ?? '',
         'sort' => $_GET['sort'] ?? 'newest',
         'order' => $_GET['order'] ?? 'DESC',
-        'limit' => isset($_GET['limit']) ? (int)$_GET['limit'] : 12,
-        'offset' => isset($_GET['offset']) ? (int)$_GET['offset'] : 0
+        'limit' => $limit,
+        'offset' => $offset
     ];
 
-    // Remove empty filters
-    $filters = array_filter($filters, function($value) {
+    // Remove empty filters (but always keep limit and offset)
+    $filters = array_filter($filters, function($key, $value) {
+        // Always keep limit and offset
+        if ($key === 'limit' || $key === 'offset') {
+            return true;
+        }
         return $value !== '' && $value !== null;
-    });
+    }, ARRAY_FILTER_USE_BOTH);
 
     // Get companies
     $companies = $company->searchCompanies($filters);

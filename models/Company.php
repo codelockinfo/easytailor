@@ -176,9 +176,9 @@ class Company extends BaseModel {
         }
 
         // Pagination
-        if (!empty($filters['limit'])) {
+        if (isset($filters['limit']) && $filters['limit'] > 0) {
             $query .= " LIMIT :limit";
-            if (!empty($filters['offset'])) {
+            if (isset($filters['offset']) && $filters['offset'] >= 0) {
                 $query .= " OFFSET :offset";
             }
         }
@@ -190,9 +190,9 @@ class Company extends BaseModel {
             $stmt->bindValue($key, $value);
         }
         
-        if (!empty($filters['limit'])) {
+        if (isset($filters['limit']) && $filters['limit'] > 0) {
             $stmt->bindValue(':limit', (int)$filters['limit'], PDO::PARAM_INT);
-            if (!empty($filters['offset'])) {
+            if (isset($filters['offset']) && $filters['offset'] >= 0) {
                 $stmt->bindValue(':offset', (int)$filters['offset'], PDO::PARAM_INT);
             }
         }

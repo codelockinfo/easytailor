@@ -120,32 +120,36 @@ class Company extends BaseModel {
 
         // Search by keyword
         if (!empty($filters['keyword'])) {
-            $query .= " AND (company_name LIKE :keyword OR owner_name LIKE :keyword OR city LIKE :keyword OR description LIKE :keyword)";
-            $params[':keyword'] = '%' . $filters['keyword'] . '%';
+            $keywordValue = '%' . $filters['keyword'] . '%';
+            $query .= " AND (company_name LIKE :keyword1 OR owner_name LIKE :keyword2 OR city LIKE :keyword3 OR description LIKE :keyword4)";
+            $params['keyword1'] = $keywordValue;
+            $params['keyword2'] = $keywordValue;
+            $params['keyword3'] = $keywordValue;
+            $params['keyword4'] = $keywordValue;
         }
 
         // Filter by city
         if (!empty($filters['city'])) {
             $query .= " AND city = :city";
-            $params[':city'] = $filters['city'];
+            $params['city'] = $filters['city'];
         }
 
         // Filter by state
         if (!empty($filters['state'])) {
             $query .= " AND state = :state";
-            $params[':state'] = $filters['state'];
+            $params['state'] = $filters['state'];
         }
 
         // Filter by minimum rating
         if (!empty($filters['min_rating'])) {
             $query .= " AND rating >= :min_rating";
-            $params[':min_rating'] = $filters['min_rating'];
+            $params['min_rating'] = $filters['min_rating'];
         }
 
         // Filter by specialty
         if (!empty($filters['specialty'])) {
             $query .= " AND JSON_SEARCH(specialties, 'one', :specialty) IS NOT NULL";
-            $params[':specialty'] = $filters['specialty'];
+            $params['specialty'] = $filters['specialty'];
         }
 
         // Sort order
@@ -185,11 +189,12 @@ class Company extends BaseModel {
 
         $stmt = $this->conn->prepare($query);
         
-        // Bind parameters
+        // Bind all parameters including pagination
         foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
+            $stmt->bindValue(':' . $key, $value);
         }
         
+        // Bind pagination parameters separately (they need to be integers)
         if (isset($filters['limit']) && $filters['limit'] > 0) {
             $stmt->bindValue(':limit', (int)$filters['limit'], PDO::PARAM_INT);
             if (isset($filters['offset']) && $filters['offset'] >= 0) {
@@ -209,34 +214,38 @@ class Company extends BaseModel {
         $params = [];
 
         if (!empty($filters['keyword'])) {
-            $query .= " AND (company_name LIKE :keyword OR owner_name LIKE :keyword OR city LIKE :keyword OR description LIKE :keyword)";
-            $params[':keyword'] = '%' . $filters['keyword'] . '%';
+            $keywordValue = '%' . $filters['keyword'] . '%';
+            $query .= " AND (company_name LIKE :keyword1 OR owner_name LIKE :keyword2 OR city LIKE :keyword3 OR description LIKE :keyword4)";
+            $params['keyword1'] = $keywordValue;
+            $params['keyword2'] = $keywordValue;
+            $params['keyword3'] = $keywordValue;
+            $params['keyword4'] = $keywordValue;
         }
 
         if (!empty($filters['city'])) {
             $query .= " AND city = :city";
-            $params[':city'] = $filters['city'];
+            $params['city'] = $filters['city'];
         }
 
         if (!empty($filters['state'])) {
             $query .= " AND state = :state";
-            $params[':state'] = $filters['state'];
+            $params['state'] = $filters['state'];
         }
 
         if (!empty($filters['min_rating'])) {
             $query .= " AND rating >= :min_rating";
-            $params[':min_rating'] = $filters['min_rating'];
+            $params['min_rating'] = $filters['min_rating'];
         }
 
         if (!empty($filters['specialty'])) {
             $query .= " AND JSON_SEARCH(specialties, 'one', :specialty) IS NOT NULL";
-            $params[':specialty'] = $filters['specialty'];
+            $params['specialty'] = $filters['specialty'];
         }
 
         $stmt = $this->conn->prepare($query);
         
         foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
+            $stmt->bindValue(':' . $key, $value);
         }
 
         $stmt->execute();

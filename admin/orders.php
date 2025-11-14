@@ -14,6 +14,7 @@ require_once 'models/Order.php';
 require_once 'models/Customer.php';
 require_once 'models/ClothType.php';
 require_once 'models/User.php';
+require_once '../helpers/SubscriptionHelper.php';
 
 $orderModel = new Order();
 $customerModel = new Customer();
@@ -22,6 +23,7 @@ $userModel = new User();
 
 $message = '';
 $messageType = '';
+$companyId = get_company_id();
 
 // Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,6 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         switch ($action) {
             case 'create':
+                // Check subscription limit for orders
+                $limitCheck = SubscriptionHelper::canAddOrder($companyId);
+                if (!$limitCheck['allowed']) {
+                    $_SESSION['message'] = $limitCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('orders', SubscriptionHelper::getCurrentPlan($companyId));
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                
                 // Validate user ID exists
                 $userId = get_user_id();
                 if (!$userId) {
@@ -61,6 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'special_instructions' => sanitize_input($_POST['special_instructions']),
                     'created_by' => $userId
                 ];
+                
+                // Add company_id if not present
+                if ($companyId && !isset($data['company_id'])) {
+                    $data['company_id'] = $companyId;
+                }
                 
                 try {
                     $orderId = $orderModel->createOrder($data);
@@ -180,6 +196,10 @@ if (isset($_GET['edit'])) {
     $editOrder = $orderModel->find((int)$_GET['edit']);
 }
 
+// Check subscription limits
+$currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
+$orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
+
 // Get order statistics
 $orderStats = $orderModel->getOrderStats();
 ?>
@@ -189,6 +209,22 @@ $orderStats = $orderModel->getOrderStats();
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($orderLimitCheck['remaining']) && $orderLimitCheck['remaining'] <= 10 && $orderLimitCheck['remaining'] > 0): ?>
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Order Limit Warning:</strong> You have <?php echo $orderLimitCheck['remaining']; ?> order slot(s) remaining in your <?php echo ucfirst($currentPlan); ?> plan. 
+        <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more orders.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php elseif (!$orderLimitCheck['allowed']): ?>
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-ban me-2"></i>
+        <strong>Order Limit Reached:</strong> <?php echo $orderLimitCheck['message']; ?> 
+        <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more orders.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>

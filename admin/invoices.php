@@ -13,6 +13,7 @@ require_login();
 require_once 'models/Invoice.php';
 require_once 'models/Order.php';
 require_once 'models/Payment.php';
+require_once '../helpers/SubscriptionHelper.php';
 
 $invoiceModel = new Invoice();
 $orderModel = new Order();
@@ -20,6 +21,7 @@ $paymentModel = new Payment();
 
 $message = '';
 $messageType = '';
+$companyId = get_company_id();
 
 // Handle fixing existing invoices with advance payments
 if (isset($_GET['fix_advance']) && $_GET['fix_advance'] === '1') {
@@ -61,6 +63,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         switch ($action) {
             case 'create':
+                // Check if invoice generation is allowed for this plan
+                $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
+                if (!$invoiceCheck['allowed']) {
+                    $_SESSION['message'] = $invoiceCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('invoices', SubscriptionHelper::getCurrentPlan($companyId));
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: invoices.php');
+                    exit;
+                }
+                
                 // Get order details to include advance payment
                 $order = $orderModel->find((int)$_POST['order_id']);
                 $advanceAmount = $order ? (float)$order['advance_amount'] : 0;
@@ -190,6 +201,10 @@ foreach ($allOrders as $order) {
 
 // Get invoice statistics
 $invoiceStats = $invoiceModel->getInvoiceStats();
+
+// Check subscription for invoice generation
+$currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
+$invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
 ?>
 
 
@@ -197,6 +212,15 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<?php if (!$invoiceCheck['allowed']): ?>
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Invoice Generation Not Available:</strong> Invoice generation is not available in the Free plan. 
+        <a href="subscriptions.php" class="alert-link">Upgrade to Basic, Premium, or Enterprise plan</a> to use this feature.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
@@ -342,8 +366,11 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
             Invoices (<?php echo number_format($totalInvoices); ?>)
         </h5>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#invoiceModal" <?php echo !$invoiceCheck['allowed'] ? 'disabled title="Upgrade required to create invoices"' : ''; ?>>
                 <i class="fas fa-plus me-1"></i>Create Invoice
+                <?php if (!$invoiceCheck['allowed']): ?>
+                    <span class="badge bg-warning ms-2">Upgrade Required</span>
+                <?php endif; ?>
             </button>
             <button type="button" class="btn btn-sm btn-outline-light" onclick="exportInvoices()">
                 <i class="fas fa-download me-1"></i>Export
@@ -475,8 +502,11 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                     <?php endif; ?>
                 </p>
                 <?php if (empty($search) && empty($status_filter)): ?>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal" <?php echo !$invoiceCheck['allowed'] ? 'disabled title="Upgrade required to create invoices"' : ''; ?>>
                         <i class="fas fa-plus me-2"></i>Create Invoice
+                        <?php if (!$invoiceCheck['allowed']): ?>
+                            <span class="badge bg-warning ms-2">Upgrade Required</span>
+                        <?php endif; ?>
                     </button>
                 <?php endif; ?>
             </div>
@@ -494,6 +524,13 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <?php if (!$invoiceCheck['allowed']): ?>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Invoice generation is not available in the Free plan.</strong> 
+                            Please <a href="subscriptions.php" class="alert-link">upgrade your subscription</a> to use this feature.
+                        </div>
+                    <?php endif; ?>
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action" value="create">
                     

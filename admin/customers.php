@@ -8,10 +8,12 @@ $page_title = 'Customer Management';
 require_once 'includes/header.php';
 
 require_once 'models/Customer.php';
+require_once '../helpers/SubscriptionHelper.php';
 
 $customerModel = new Customer();
 $message = '';
 $messageType = '';
+$companyId = get_company_id();
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -20,6 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         switch ($action) {
             case 'create':
+                // Check subscription limit for customers
+                $limitCheck = SubscriptionHelper::canAddCustomer($companyId);
+                if (!$limitCheck['allowed']) {
+                    $message = $limitCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('customers', SubscriptionHelper::getCurrentPlan($companyId));
+                    $messageType = 'error';
+                    break;
+                }
+                
                 $data = [
                     'first_name' => sanitize_input($_POST['first_name']),
                     'last_name' => sanitize_input($_POST['last_name']),
@@ -32,6 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'date_of_birth' => $_POST['date_of_birth'] ?: null,
                     'notes' => sanitize_input($_POST['notes'])
                 ];
+                
+                // Add company_id if not present
+                if ($companyId && !isset($data['company_id'])) {
+                    $data['company_id'] = $companyId;
+                }
                 
                 // Validate email uniqueness
                 if (!empty($data['email']) && $customerModel->emailExists($data['email'])) {
@@ -119,6 +134,10 @@ $editCustomer = null;
 if (isset($_GET['edit'])) {
     $editCustomer = $customerModel->find((int)$_GET['edit']);
 }
+
+// Check subscription limits
+$currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
+$customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 ?>
 
 
@@ -126,6 +145,22 @@ if (isset($_GET['edit'])) {
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($customerLimitCheck['remaining']) && $customerLimitCheck['remaining'] <= 5 && $customerLimitCheck['remaining'] > 0): ?>
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Customer Limit Warning:</strong> You have <?php echo $customerLimitCheck['remaining']; ?> customer slot(s) remaining in your <?php echo ucfirst($currentPlan); ?> plan. 
+        <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more customers.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php elseif (!$customerLimitCheck['allowed']): ?>
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-ban me-2"></i>
+        <strong>Customer Limit Reached:</strong> <?php echo $customerLimitCheck['message']; ?> 
+        <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more customers.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>

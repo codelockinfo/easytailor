@@ -14,6 +14,7 @@ require_login();
 require_role('admin');
 
 require_once 'models/User.php';
+require_once '../helpers/SubscriptionHelper.php';
 
 $userModel = new User();
 $companyId = get_company_id();
@@ -34,6 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         switch ($action) {
             case 'create':
+                // Check subscription limit for users
+                $limitCheck = SubscriptionHelper::canAddUser($companyId);
+                if (!$limitCheck['allowed']) {
+                    $_SESSION['message'] = $limitCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('users', SubscriptionHelper::getCurrentPlan($companyId));
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+                
                 $data = [
                     'username' => sanitize_input($_POST['username']),
                     'email' => sanitize_input($_POST['email']),
@@ -137,6 +147,10 @@ if (isset($_SESSION['message'])) {
     unset($_SESSION['messageType']);
 }
 
+// Check subscription limits
+$currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
+$userLimitCheck = SubscriptionHelper::canAddUser($companyId);
+
 // NOW include header (after all redirects are done)
 $page_title = 'User Management';
 require_once 'includes/header.php';
@@ -180,6 +194,22 @@ $stats = [
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($userLimitCheck['remaining']) && $userLimitCheck['remaining'] <= 1 && $userLimitCheck['remaining'] > 0): ?>
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>User Limit Warning:</strong> You have <?php echo $userLimitCheck['remaining']; ?> user slot(s) remaining in your <?php echo ucfirst($currentPlan); ?> plan. 
+        <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more users.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php elseif (!$userLimitCheck['allowed']): ?>
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-ban me-2"></i>
+        <strong>User Limit Reached:</strong> <?php echo $userLimitCheck['message']; ?> 
+        <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more users.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>

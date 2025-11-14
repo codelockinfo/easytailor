@@ -68,6 +68,17 @@ try {
     $razorpayKeyId = RAZORPAY_KEY_ID;
     $razorpayKeySecret = RAZORPAY_KEY_SECRET;
     
+    // Validate Razorpay keys
+    if (empty($razorpayKeyId) || $razorpayKeyId === 'rzp_test_YOUR_KEY_ID_HERE' || strpos($razorpayKeyId, 'YOUR_KEY') !== false) {
+        echo json_encode(['success' => false, 'message' => 'Razorpay Key ID is not configured. Please set RAZORPAY_KEY_ID in config.php']);
+        exit;
+    }
+    
+    if (empty($razorpayKeySecret) || $razorpayKeySecret === 'YOUR_KEY_SECRET_HERE' || strpos($razorpayKeySecret, 'YOUR_KEY') !== false) {
+        echo json_encode(['success' => false, 'message' => 'Razorpay Key Secret is not configured. Please set RAZORPAY_KEY_SECRET in config.php']);
+        exit;
+    }
+    
     // Create order via Razorpay API
     $orderData = [
         'amount' => $amountInPaise,
@@ -94,22 +105,74 @@ try {
         'Content-Type: application/json',
         'Authorization: Basic ' . base64_encode($razorpayKeyId . ':' . $razorpayKeySecret)
     ]);
+    // For localhost, you might need to disable SSL verification (development only)
+    // In production, always keep SSL verification enabled
+    $isLocalhost = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', '::1']) || 
+                   strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false ||
+                   strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false;
+    
+    if ($isLocalhost && RAZORPAY_MODE === 'test') {
+        // Disable SSL verification for localhost test mode only
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    } else {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    }
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     
     $response = curl_exec($ch);
+    $curlError = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     
+    // Check for cURL errors
+    if ($response === false || !empty($curlError)) {
+        error_log("Razorpay cURL Error: " . $curlError);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Connection error: ' . ($curlError ?: 'Failed to connect to Razorpay API. Please check your internet connection.')
+        ]);
+        exit;
+    }
+    
+    // Check HTTP status code
     if ($httpCode !== 200) {
         $errorData = json_decode($response, true);
-        $errorMsg = $errorData['error']['description'] ?? 'Failed to create order';
-        echo json_encode(['success' => false, 'message' => $errorMsg]);
+        $errorMsg = 'Failed to create order';
+        
+        if (isset($errorData['error'])) {
+            if (isset($errorData['error']['description'])) {
+                $errorMsg = $errorData['error']['description'];
+            } elseif (isset($errorData['error']['reason'])) {
+                $errorMsg = $errorData['error']['reason'];
+            } elseif (isset($errorData['error']['code'])) {
+                $errorMsg = 'Error Code: ' . $errorData['error']['code'];
+            }
+        } elseif (isset($errorData['message'])) {
+            $errorMsg = $errorData['message'];
+        }
+        
+        // Log full error for debugging
+        error_log("Razorpay API Error (HTTP $httpCode): " . $response);
+        
+        echo json_encode([
+            'success' => false, 
+            'message' => $errorMsg,
+            'debug' => (RAZORPAY_MODE === 'test' ? ['http_code' => $httpCode, 'response' => $response] : null)
+        ]);
         exit;
     }
     
     $orderResponse = json_decode($response, true);
     
     if (!isset($orderResponse['id'])) {
-        echo json_encode(['success' => false, 'message' => 'Invalid response from Razorpay']);
+        error_log("Invalid Razorpay response: " . $response);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Invalid response from Razorpay',
+            'debug' => (RAZORPAY_MODE === 'test' ? ['response' => $response] : null)
+        ]);
         exit;
     }
     

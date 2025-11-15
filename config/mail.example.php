@@ -7,13 +7,10 @@
  * be excluded from version control (already covered by .gitignore).
  */
 
-define('SMTP_HOST', 'smtp.your-provider.com');
-define('SMTP_PORT', 587);
+define('SMTP_HOST', 'smtp.hostinger.com');
+define('SMTP_PORT', 465);
 define('SMTP_ENCRYPTION', 'tls'); // tls | ssl | ''
-define('SMTP_USERNAME', 'no-reply@yourdomain.com');
-define('SMTP_PASSWORD', 'replace-with-app-password');
-define('SMTP_FROM_EMAIL', 'no-reply@yourdomain.com');
+define('SMTP_USERNAME', 'tailorpro@happyeventsurat.com');
+define('SMTP_PASSWORD', 'Tailor@99');
+define('SMTP_FROM_EMAIL', 'tailorpro@happyeventsurat.com');
 define('SMTP_FROM_NAME', 'TailorPro');
-
-
-

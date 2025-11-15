@@ -324,7 +324,18 @@ $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Phone</label>
-                            <input type="tel" class="form-control" id="phone" name="phone">
+                            <div class="input-group">
+                                <span class="input-group-text">+91</span>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone" 
+                                       name="phone"
+                                       placeholder="10-digit mobile number"
+                                       pattern="[0-9]{10}"
+                                       maxlength="10">
+                            </div>
+                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
+                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                     </div>
                     
@@ -426,7 +437,13 @@ function editContact(contact) {
     document.getElementById('name').value = contact.name || '';
     document.getElementById('company').value = contact.company || '';
     document.getElementById('email').value = contact.email || '';
-    document.getElementById('phone').value = contact.phone || '';
+    // Handle phone number - remove +91 prefix if present, keep only 10 digits
+    let phoneNumber = contact.phone || '';
+    if (phoneNumber.startsWith('+91')) {
+        phoneNumber = phoneNumber.replace('+91', '').trim();
+    }
+    phoneNumber = phoneNumber.replace(/[^0-9]/g, '').slice(0, 10);
+    document.getElementById('phone').value = phoneNumber;
     document.getElementById('address').value = contact.address || '';
     document.getElementById('category').value = contact.category || '';
     document.getElementById('notes').value = contact.notes || '';
@@ -454,6 +471,28 @@ let searchTimeout;
 
 // Initialize filtering when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Setup phone validation
+    setupPhoneValidation('phone', '+91');
+    
+    // Update phone value with prefix before form submission
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm && document.getElementById('phone')) {
+        contactForm.addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput.value.trim()) {
+                const phoneValue = getPhoneWithPrefix('phone', '+91');
+                if (!validatePhoneNumber('phone', '+91')) {
+                    e.preventDefault();
+                    phoneInput.focus();
+                    alert('Please enter a valid 10-digit phone number.');
+                    return false;
+                }
+                // Set the phone value with prefix for submission
+                phoneInput.value = phoneValue;
+            }
+        });
+    }
+    
     // Check if required elements exist
     const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('clearSearch');

@@ -440,13 +440,27 @@ if (isset($_SESSION['reg_form_data'])) {
                                     <label for="business_phone" class="form-label">
                                         Business Phone *
                                     </label>
-                                    <input type="tel" 
-                                           class="form-control" 
-                                           id="business_phone" 
-                                           name="business_phone" 
-                                           placeholder="+1 234 567 8900"
-                                           value="<?php echo htmlspecialchars($formData['business_phone'] ?? ''); ?>"
-                                           required>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+91</span>
+                                        <input type="tel" 
+                                               class="form-control" 
+                                               id="business_phone" 
+                                               name="business_phone" 
+                                               placeholder="10-digit mobile number"
+                                               pattern="[0-9]{10}"
+                                               maxlength="10"
+                                               value="<?php 
+                                                   $phone = $formData['business_phone'] ?? '';
+                                                   // Remove +91 prefix if present for display
+                                                   if (strpos($phone, '+91') === 0) {
+                                                       $phone = substr($phone, 3);
+                                                   }
+                                                   echo htmlspecialchars($phone); 
+                                               ?>"
+                                               required>
+                                    </div>
+                                    <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
+                                    <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                                 </div>
                             </div>
                             
@@ -686,8 +700,91 @@ if (isset($_SESSION['reg_form_data'])) {
             }
         }
         
+        // Phone Number Validation (Inline version for register page)
+        function setupPhoneValidationInline(phoneInputId, countryPrefix = '+91') {
+            const phoneInput = document.getElementById(phoneInputId);
+            if (!phoneInput) return;
+            
+            let initialValue = phoneInput.value || '';
+            if (initialValue.startsWith(countryPrefix)) {
+                initialValue = initialValue.replace(countryPrefix, '').trim();
+            }
+            initialValue = initialValue.replace(/[^0-9]/g, '').slice(0, 10);
+            phoneInput.value = initialValue;
+            phoneInput.maxLength = 10;
+            phoneInput.setAttribute('pattern', '[0-9]{10}');
+            
+            phoneInput.addEventListener('input', function(e) {
+                let value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+                this.value = value;
+            });
+            
+            phoneInput.addEventListener('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                if (!/[0-9]/.test(char)) {
+                    e.preventDefault();
+                }
+            });
+            
+            phoneInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                let value = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
+                this.value = value;
+            });
+            
+            phoneInput.addEventListener('blur', function() {
+                let value = this.value.replace(/[^0-9]/g, '');
+                if (value.length === 10) {
+                    this.setAttribute('data-phone-full', countryPrefix + value);
+                }
+            });
+            
+            return phoneInput;
+        }
+        
+        function getPhoneWithPrefixInline(phoneInputId, countryPrefix = '+91') {
+            const phoneInput = document.getElementById(phoneInputId);
+            if (!phoneInput) return '';
+            let value = phoneInput.value.replace(/[^0-9]/g, '');
+            if (value.length === 10) {
+                return countryPrefix + value;
+            }
+            return phoneInput.getAttribute('data-phone-full') || value || '';
+        }
+        
+        function validatePhoneNumberInline(phoneInputId) {
+            const phoneInput = document.getElementById(phoneInputId);
+            if (!phoneInput) return false;
+            let value = phoneInput.value.replace(/[^0-9]/g, '');
+            if (value.length !== 10) {
+                phoneInput.classList.add('is-invalid');
+                return false;
+            }
+            phoneInput.classList.remove('is-invalid');
+            return true;
+        }
+        
+        // Initialize phone validation on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setupPhoneValidationInline('business_phone', '+91');
+        });
+        
         // Password match validation
         document.getElementById('registerForm').addEventListener('submit', function(e) {
+            // Validate phone number
+            const businessPhone = document.getElementById('business_phone');
+            if (businessPhone && businessPhone.value.trim()) {
+                if (!validatePhoneNumberInline('business_phone')) {
+                    e.preventDefault();
+                    businessPhone.focus();
+                    alert('Please enter a valid 10-digit phone number.');
+                    return false;
+                }
+                // Set phone value with prefix before submission
+                businessPhone.value = getPhoneWithPrefixInline('business_phone', '+91');
+            }
+            
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
             

@@ -70,13 +70,6 @@ $page_title = 'Change Password';
 require_once 'includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="h3 mb-0">Change Password</h1>
-        <p class="text-muted">Update your account password</p>
-    </div>
-</div>
-
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
@@ -167,21 +160,6 @@ require_once 'includes/header.php';
                         </a>
                     </div>
                 </form>
-            </div>
-        </div>
-        
-        <div class="card mt-4">
-            <div class="card-body">
-                <h6 class="card-title">
-                    <i class="fas fa-shield-alt me-2"></i>Security Tips
-                </h6>
-                <ul class="mb-0">
-                    <li>Use a strong, unique password</li>
-                    <li>Don't share your password with anyone</li>
-                    <li>Change your password regularly</li>
-                    <li>Use different passwords for different accounts</li>
-                    <li>Don't write down your password</li>
-                </ul>
             </div>
         </div>
     </div>

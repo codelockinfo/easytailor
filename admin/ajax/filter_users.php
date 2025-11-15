@@ -57,8 +57,10 @@ try {
         $conditions['role'] = $role;
     }
     
-    // Fetch users for the company
-    $allUsers = $userModel->getCompanyUsers($companyId, $conditions, 'full_name ASC');
+    // Fetch users for the company (findAll automatically filters by company_id for non-admin users)
+    // Add status filter to only show active users
+    $conditions['status'] = 'active';
+    $allUsers = $userModel->findAll($conditions, 'full_name ASC');
     
     $offset = ($page - 1) * $limit;
     
@@ -67,9 +69,9 @@ try {
     if (!empty($search)) {
         $searchLower = strtolower($search);
         $filteredUsers = array_filter($filteredUsers, function($user) use ($searchLower) {
-            return strpos(strtolower($user['full_name']), $searchLower) !== false ||
-                   strpos(strtolower($user['username']), $searchLower) !== false ||
-                   strpos(strtolower($user['email']), $searchLower) !== false;
+            return strpos(strtolower($user['full_name'] ?? ''), $searchLower) !== false ||
+                   strpos(strtolower($user['username'] ?? ''), $searchLower) !== false ||
+                   strpos(strtolower($user['email'] ?? ''), $searchLower) !== false;
         });
     }
 
@@ -79,8 +81,9 @@ try {
     
     $totalPages = $limit > 0 ? ceil($totalUsers / $limit) : 1;
     
-    // Get filter options
-    $allRolesUsers = $userModel->getCompanyUsers($companyId);
+    // Get filter options (all active users for role list)
+    $roleConditions = ['status' => 'active'];
+    $allRolesUsers = $userModel->findAll($roleConditions);
     
     // Format users for display
     $formattedUsers = [];

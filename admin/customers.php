@@ -168,7 +168,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <div class="row g-3 align-items-end">
+        <div class="row g-3 align-items-start">
             <div class="col-md-9">
                 <label for="searchInput" class="form-label">Search Customers</label>
                 <div class="input-group">
@@ -192,6 +192,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                 </div>
             </div>
             <div class="col-md-3">
+                <label class="form-label d-block" style="visibility: hidden;">&nbsp;</label>
                 <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#customerModal">
                     <i class="fas fa-plus me-2"></i>Add Customer
                 </button>
@@ -387,7 +388,18 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Phone *</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                            <div class="input-group">
+                                <span class="input-group-text">+91</span>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone" 
+                                       name="phone" 
+                                       placeholder="10-digit mobile number"
+                                       maxlength="10"
+                                       pattern="[0-9]{10}"
+                                       required>
+                            </div>
+                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
                         </div>
                     </div>
                     
@@ -505,6 +517,11 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 </div>
 
 <script>
+// Phone number validation - use reusable function
+document.addEventListener('DOMContentLoaded', function() {
+    setupPhoneValidation('phone', '+91');
+});
+
 function editCustomer(customer) {
     document.getElementById('customerModalTitle').textContent = 'Edit Customer';
     document.getElementById('customerAction').value = 'update';
@@ -514,7 +531,12 @@ function editCustomer(customer) {
     document.getElementById('first_name').value = customer.first_name || '';
     document.getElementById('last_name').value = customer.last_name || '';
     document.getElementById('email').value = customer.email || '';
-    document.getElementById('phone').value = customer.phone || '';
+    
+    // Handle phone number - remove +91 prefix if present, keep only 10 digits
+    let phoneNumber = customer.phone || '';
+    phoneNumber = phoneNumber.replace(/^\+91/, '').replace(/[^0-9]/g, '').slice(0, 10);
+    document.getElementById('phone').value = phoneNumber;
+    
     document.getElementById('address').value = customer.address || '';
     document.getElementById('city').value = customer.city || '';
     document.getElementById('state').value = customer.state || '';
@@ -592,6 +614,29 @@ function exportCustomers() {
 }
 
 
+// Form submission - prepend +91 to phone number
+document.addEventListener('DOMContentLoaded', function() {
+    const customerForm = document.getElementById('customerForm');
+    if (customerForm) {
+        customerForm.addEventListener('submit', function(e) {
+            const phoneField = document.getElementById('phone');
+            if (phoneField && phoneField.value.trim()) {
+                const phoneValue = getPhoneWithPrefix('phone', '+91');
+                
+                if (!validatePhoneNumber('phone', '+91')) {
+                    e.preventDefault();
+                    phoneField.focus();
+                    alert('Please enter a valid 10-digit mobile number.');
+                    return false;
+                }
+                
+                // Set phone value with prefix before submission
+                phoneField.value = phoneValue;
+            }
+        });
+    }
+});
+
 // Reset modal when closed
 document.getElementById('customerModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('customerModalTitle').textContent = 'Add Customer';
@@ -608,40 +653,67 @@ const searchCount = document.getElementById('searchCount');
 const clearSearch = document.getElementById('clearSearch');
 const customersTable = document.querySelector('.table tbody');
 
-// Store original table content
-const originalTableContent = customersTable.innerHTML;
+// Store original table content only if table exists
+let originalTableContent = '';
+if (customersTable) {
+    originalTableContent = customersTable.innerHTML;
+}
 
-searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.trim();
-    
-    // Clear previous timeout
-    clearTimeout(searchTimeout);
-    
-    if (searchTerm.length < 2) {
-        // Show original table
-        customersTable.innerHTML = originalTableContent;
-        searchResults.style.display = 'none';
-        clearSearch.style.display = 'none';
-        return;
-    }
-    
-    // Show loading state
-    searchResults.style.display = 'block';
-    searchCount.textContent = 'Searching...';
-    clearSearch.style.display = 'inline-block';
-    
-    // Debounce search
-    searchTimeout = setTimeout(() => {
-        performSearch(searchTerm);
-    }, 300);
-});
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+        
+        if (searchTerm.length < 2) {
+            // Show original table if it exists
+            if (customersTable && originalTableContent) {
+                customersTable.innerHTML = originalTableContent;
+            }
+            if (searchResults) {
+                searchResults.style.display = 'none';
+            }
+            if (clearSearch) {
+                clearSearch.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Show loading state
+        if (searchResults) {
+            searchResults.style.display = 'block';
+        }
+        if (searchCount) {
+            searchCount.textContent = 'Searching...';
+        }
+        if (clearSearch) {
+            clearSearch.style.display = 'inline-block';
+        }
+        
+        // Debounce search
+        searchTimeout = setTimeout(() => {
+            performSearch(searchTerm);
+        }, 300);
+    });
+}
 
-clearSearch.addEventListener('click', function() {
-    searchInput.value = '';
-    customersTable.innerHTML = originalTableContent;
-    searchResults.style.display = 'none';
-    clearSearch.style.display = 'none';
-});
+if (clearSearch) {
+    clearSearch.addEventListener('click', function() {
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        if (customersTable && originalTableContent) {
+            customersTable.innerHTML = originalTableContent;
+        }
+        if (searchResults) {
+            searchResults.style.display = 'none';
+        }
+        if (clearSearch) {
+            clearSearch.style.display = 'none';
+        }
+    });
+}
 
 function performSearch(searchTerm) {
     fetch(`ajax/search_customers.php?search=${encodeURIComponent(searchTerm)}`)
@@ -649,19 +721,30 @@ function performSearch(searchTerm) {
         .then(data => {
             if (data.success) {
                 displaySearchResults(data.customers);
-                searchCount.textContent = data.count;
+                if (searchCount) {
+                    searchCount.textContent = data.count;
+                }
             } else {
                 console.error('Search error:', data.error);
-                searchCount.textContent = 'Search failed';
+                if (searchCount) {
+                    searchCount.textContent = 'Search failed';
+                }
             }
         })
         .catch(error => {
             console.error('Search error:', error);
-            searchCount.textContent = 'Search failed';
+            if (searchCount) {
+                searchCount.textContent = 'Search failed';
+            }
         });
 }
 
 function displaySearchResults(customers) {
+    if (!customersTable) {
+        console.warn('Customers table not found');
+        return;
+    }
+    
     if (customers.length === 0) {
         customersTable.innerHTML = `
             <tr>

@@ -194,6 +194,97 @@
             });
         }
 
+        // Phone Number Validation Function (India: +91 prefix, 10 digits)
+        function setupPhoneValidation(phoneInputId, countryPrefix = '+91') {
+            const phoneInput = document.getElementById(phoneInputId);
+            if (!phoneInput) return;
+            
+            // Remove country prefix from value if present
+            let initialValue = phoneInput.value || '';
+            if (initialValue.startsWith(countryPrefix)) {
+                initialValue = initialValue.replace(countryPrefix, '').trim();
+            }
+            // Remove any non-digit characters
+            initialValue = initialValue.replace(/[^0-9]/g, '').slice(0, 10);
+            phoneInput.value = initialValue;
+            
+            // Set placeholder with country code
+            phoneInput.placeholder = phoneInput.placeholder || `${countryPrefix} 10-digit mobile number`;
+            phoneInput.maxLength = 10;
+            phoneInput.setAttribute('pattern', '[0-9]{10}');
+            
+            // Only allow digits on input
+            phoneInput.addEventListener('input', function(e) {
+                let value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+                this.value = value;
+            });
+            
+            // Prevent non-digit characters on keypress
+            phoneInput.addEventListener('keypress', function(e) {
+                const char = String.fromCharCode(e.which);
+                if (!/[0-9]/.test(char)) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Handle paste event
+            phoneInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                let value = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
+                this.value = value;
+            });
+            
+            // Add country prefix on blur if value exists
+            phoneInput.addEventListener('blur', function() {
+                let value = this.value.replace(/[^0-9]/g, '');
+                if (value.length === 10) {
+                    // Store with prefix for form submission
+                    this.setAttribute('data-phone-full', countryPrefix + value);
+                } else {
+                    this.setAttribute('data-phone-full', '');
+                }
+            });
+            
+            // Format with prefix for display (optional visual feedback)
+            phoneInput.addEventListener('focus', function() {
+                let value = this.value;
+                if (value.startsWith(countryPrefix)) {
+                    this.value = value.replace(countryPrefix, '').trim();
+                }
+            });
+            
+            return phoneInput;
+        }
+        
+        // Function to get phone value with prefix for form submission
+        function getPhoneWithPrefix(phoneInputId, countryPrefix = '+91') {
+            const phoneInput = document.getElementById(phoneInputId);
+            if (!phoneInput) return '';
+            
+            let value = phoneInput.value.replace(/[^0-9]/g, '');
+            if (value.length === 10) {
+                return countryPrefix + value;
+            }
+            return phoneInput.getAttribute('data-phone-full') || value || '';
+        }
+        
+        // Function to validate phone number
+        function validatePhoneNumber(phoneInputId, countryPrefix = '+91') {
+            const phoneInput = document.getElementById(phoneInputId);
+            if (!phoneInput) return false;
+            
+            let value = phoneInput.value.replace(/[^0-9]/g, '');
+            
+            if (value.length !== 10) {
+                phoneInput.classList.add('is-invalid');
+                return false;
+            }
+            
+            phoneInput.classList.remove('is-invalid');
+            return true;
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             makeTableResponsive();

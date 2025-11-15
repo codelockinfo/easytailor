@@ -470,7 +470,18 @@ if ($company['subscription_expiry']) {
                     
                     <div class="mb-3">
                         <label for="customerPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
-                        <input type="tel" class="form-control" id="customerPhone" name="customerPhone" required placeholder="Enter your phone number" pattern="[0-9]{10}" maxlength="10">
+                        <div class="input-group">
+                            <span class="input-group-text">+91</span>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="customerPhone" 
+                                   name="customerPhone" 
+                                   required 
+                                   placeholder="10-digit mobile number" 
+                                   pattern="[0-9]{10}" 
+                                   maxlength="10">
+                        </div>
+                        <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
                         <div class="invalid-feedback">Please provide a valid 10-digit phone number.</div>
                     </div>
                     
@@ -575,9 +586,14 @@ function proceedToPayment() {
         isValid = false;
     }
     
-    if (!customerPhone || !/^[0-9]{10}$/.test(customerPhone)) {
+    // Clean phone number and validate
+    customerPhone = customerPhone.replace(/[^0-9]/g, '');
+    if (!customerPhone || customerPhone.length !== 10) {
         document.getElementById('customerPhone').classList.add('is-invalid');
         isValid = false;
+    } else {
+        // Add +91 prefix for submission
+        customerPhone = '+91' + customerPhone;
     }
     
     if (!isValid) {
@@ -714,6 +730,9 @@ function handlePaymentSuccess(response, paymentData) {
 
 // Handle pricing toggle in modal
 document.addEventListener('DOMContentLoaded', function() {
+    // Setup phone validation
+    setupPhoneValidation('customerPhone', '+91');
+    
     const monthlyRadio = document.getElementById('modal-monthly');
     const annualRadio = document.getElementById('modal-annual');
     

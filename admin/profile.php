@@ -23,9 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($action === 'update_profile') {
             $userId = get_user_id();
+            // Get existing user data to preserve email (email cannot be changed)
+            $existingUser = $userModel->find($userId);
             $data = [
                 'full_name' => sanitize_input($_POST['full_name']),
-                'email' => sanitize_input($_POST['email']),
+                'email' => $existingUser['email'], // Keep existing email - cannot be changed
                 'phone' => sanitize_input($_POST['phone']),
                 'address' => sanitize_input($_POST['address'])
             ];
@@ -71,13 +73,6 @@ if (!$currentUser) {
     exit;
 }
 ?>
-
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="h3 mb-0">My Profile</h1>
-        <p class="text-muted">View and update your account information</p>
-    </div>
-</div>
 
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
@@ -169,15 +164,32 @@ if (!$currentUser) {
                                    id="email" 
                                    name="email" 
                                    value="<?php echo htmlspecialchars($currentUser['email']); ?>" 
-                                   required>
+                                   readonly
+                                   disabled>
+                            <small class="text-muted">Email cannot be changed</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Phone</label>
-                            <input type="tel" 
-                                   class="form-control" 
-                                   id="phone" 
-                                   name="phone" 
-                                   value="<?php echo htmlspecialchars($currentUser['phone'] ?? ''); ?>">
+                            <div class="input-group">
+                                <span class="input-group-text">+91</span>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone" 
+                                       name="phone" 
+                                       value="<?php 
+                                           $phone = $currentUser['phone'] ?? '';
+                                           // Remove +91 prefix if present for display
+                                           if (strpos($phone, '+91') === 0) {
+                                               $phone = substr($phone, 3);
+                                           }
+                                           echo htmlspecialchars($phone); 
+                                       ?>"
+                                       placeholder="10-digit mobile number"
+                                       pattern="[0-9]{10}"
+                                       maxlength="10">
+                            </div>
+                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
+                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                     </div>
                     
@@ -237,6 +249,32 @@ if (!$currentUser) {
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup phone validation
+    setupPhoneValidation('phone', '+91');
+    
+    // Update phone value with prefix before form submission
+    const profileForm = document.querySelector('form');
+    if (profileForm && document.getElementById('phone')) {
+        profileForm.addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput.value.trim()) {
+                const phoneValue = getPhoneWithPrefix('phone', '+91');
+                if (!validatePhoneNumber('phone', '+91')) {
+                    e.preventDefault();
+                    phoneInput.focus();
+                    alert('Please enter a valid 10-digit phone number.');
+                    return false;
+                }
+                // Set the phone value with prefix for submission
+                phoneInput.value = phoneValue;
+            }
+        });
+    }
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
 

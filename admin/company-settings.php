@@ -14,8 +14,10 @@ require_login();
 require_role('admin');
 
 require_once 'models/Company.php';
+require_once '../models/EmailChangeRequest.php';
 
 $companyModel = new Company();
+$emailChangeRequestModel = new EmailChangeRequest();
 $message = '';
 $messageType = '';
 
@@ -30,10 +32,13 @@ if (!$companyId) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         
+        // Get existing company data to preserve email (email cannot be changed directly)
+        $existingCompany = $companyModel->find($companyId);
+        
         $data = [
             'company_name' => sanitize_input($_POST['company_name']),
             'owner_name' => sanitize_input($_POST['owner_name']),
-            'business_email' => sanitize_input($_POST['business_email']),
+            'business_email' => $existingCompany['business_email'], // Keep existing email - cannot be changed directly
             'business_phone' => sanitize_input($_POST['business_phone']),
             'business_address' => sanitize_input($_POST['business_address']),
             'city' => sanitize_input($_POST['city']),
@@ -98,6 +103,11 @@ if (!$company) {
 
 // Get company statistics
 $companyStats = $companyModel->getCompanyStats($companyId);
+
+// Check if there's a pending email change request
+$hasPendingEmailRequest = $emailChangeRequestModel->hasPendingRequest($companyId);
+$currentEmail = $company['business_email'] ?? '';
+$emailFieldDisabled = !empty($currentEmail);
 ?>
 
 
@@ -240,21 +250,59 @@ $companyStats = $companyModel->getCompanyStats($companyId);
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="business_email" class="form-label">Business Email *</label>
-                            <input type="email" 
-                                   class="form-control" 
-                                   id="business_email" 
-                                   name="business_email" 
-                                   value="<?php echo htmlspecialchars($company['business_email']); ?>" 
-                                   required>
+                            <div class="input-group">
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="business_email" 
+                                       name="business_email" 
+                                       value="<?php echo htmlspecialchars($currentEmail); ?>" 
+                                       <?php echo $emailFieldDisabled ? 'readonly disabled' : ''; ?>
+                                       required>
+                                <?php if ($emailFieldDisabled): ?>
+                                    <button type="button" 
+                                            class="btn btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#emailChangeModal"
+                                            id="requestEmailChangeBtn"
+                                            <?php echo $hasPendingEmailRequest ? 'disabled' : ''; ?>>
+                                        <i class="fas fa-edit me-1"></i>Request Change
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                            <?php if ($emailFieldDisabled): ?>
+                                <small class="text-muted">Email cannot be changed directly. Click "Request Change" to submit a change request.</small>
+                                <?php if ($hasPendingEmailRequest): ?>
+                                    <div class="alert alert-info mt-2 mb-0 py-2">
+                                        <i class="fas fa-info-circle me-2"></i>You have a pending email change request. Please wait for approval.
+                                    </div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <small class="text-muted">Enter your business email address.</small>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="business_phone" class="form-label">Business Phone *</label>
-                            <input type="tel" 
-                                   class="form-control" 
-                                   id="business_phone" 
-                                   name="business_phone" 
-                                   value="<?php echo htmlspecialchars($company['business_phone']); ?>" 
-                                   required>
+                            <div class="input-group">
+                                <span class="input-group-text">+91</span>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="business_phone" 
+                                       name="business_phone" 
+                                       value="<?php 
+                                           $phone = $company['business_phone'] ?? '';
+                                           // Remove +91 prefix if present for display
+                                           if (strpos($phone, '+91') === 0) {
+                                               $phone = substr($phone, 3);
+                                           }
+                                           echo htmlspecialchars($phone); 
+                                       ?>" 
+                                       placeholder="10-digit mobile number"
+                                       pattern="[0-9]{10}"
+                                       maxlength="10"
+                                       required>
+                            </div>
+                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
+                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                     </div>
                     
@@ -338,6 +386,158 @@ $companyStats = $companyModel->getCompanyStats($companyId);
         </div>
     </div>
 </div>
+
+<!-- Email Change Request Modal -->
+<div class="modal fade" id="emailChangeModal" tabindex="-1" aria-labelledby="emailChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailChangeModalLabel">
+                    <i class="fas fa-envelope me-2"></i>Request Email Change
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="emailChangeRequestForm">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Your email change request will be reviewed by an administrator. You will be notified once it's approved or rejected.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="current_email_display" class="form-label">Current Email</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="current_email_display" 
+                               value="<?php echo htmlspecialchars($currentEmail); ?>" 
+                               readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="new_email" class="form-label">New Email Address *</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="new_email" 
+                               name="new_email" 
+                               placeholder="Enter new email address"
+                               required>
+                        <small class="text-muted">Enter the new email address you want to use.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="change_reason" class="form-label">Reason for Change *</label>
+                        <textarea class="form-control" 
+                                  id="change_reason" 
+                                  name="change_reason" 
+                                  rows="4" 
+                                  placeholder="Please provide a reason for changing your email address..."
+                                  required></textarea>
+                        <small class="text-muted">Explain why you need to change your email address.</small>
+                    </div>
+                    
+                    <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                    <input type="hidden" name="company_id" value="<?php echo $companyId; ?>">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitEmailChangeBtn">
+                        <i class="fas fa-paper-plane me-2"></i>Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup phone validation
+    setupPhoneValidation('business_phone', '+91');
+    
+    // Update phone value with prefix before form submission
+    const companyForm = document.querySelector('form[method="POST"]');
+    if (companyForm && document.getElementById('business_phone')) {
+        companyForm.addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('business_phone');
+            const phoneValue = getPhoneWithPrefix('business_phone', '+91');
+            
+            if (!validatePhoneNumber('business_phone', '+91')) {
+                e.preventDefault();
+                phoneInput.focus();
+                alert('Please enter a valid 10-digit phone number.');
+                return false;
+            }
+            
+            // Set the phone value with prefix for submission
+            phoneInput.value = phoneValue;
+        });
+    }
+    
+    const emailChangeForm = document.getElementById('emailChangeRequestForm');
+    const submitBtn = document.getElementById('submitEmailChangeBtn');
+    
+    if (emailChangeForm) {
+        emailChangeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            
+            fetch('ajax/request_email_change.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('.card-body').firstChild);
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('emailChangeModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    emailChangeForm.reset();
+                    
+                    // Reload page after 2 seconds to show pending request status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    // Show error message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('#emailChangeModal .modal-body').insertBefore(alertDiv, document.querySelector('#emailChangeModal .modal-body').firstChild);
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = submitBtnText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = submitBtnText;
+            });
+        });
+    }
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
 

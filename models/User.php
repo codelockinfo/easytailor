@@ -8,6 +8,22 @@ class User extends BaseModel {
     protected $table = 'users';
 
     /**
+     * Get company ID from session
+     */
+    private function getCompanyId() {
+        require_once __DIR__ . '/../config/config.php';
+        return get_company_id();
+    }
+
+    /**
+     * Check if current user is admin
+     */
+    private function isAdmin() {
+        require_once __DIR__ . '/../config/config.php';
+        return get_user_role() === 'admin';
+    }
+
+    /**
      * Authenticate user
      */
     public function authenticate($username, $password) {
@@ -60,15 +76,23 @@ class User extends BaseModel {
      * Check if username exists
      */
     public function usernameExists($username, $exclude_id = null) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         $query = "SELECT id FROM " . $this->table . " WHERE username = :username";
+        if (!$isAdmin && $companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         if ($exclude_id) {
             $query .= " AND id != :exclude_id";
         }
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':username', $username);
+        if (!$isAdmin && $companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         if ($exclude_id) {
-            $stmt->bindParam(':exclude_id', $exclude_id);
+            $stmt->bindParam(':exclude_id', $exclude_id, PDO::PARAM_INT);
         }
         $stmt->execute();
         
@@ -79,15 +103,23 @@ class User extends BaseModel {
      * Check if email exists
      */
     public function emailExists($email, $exclude_id = null) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         $query = "SELECT id FROM " . $this->table . " WHERE email = :email";
+        if (!$isAdmin && $companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         if ($exclude_id) {
             $query .= " AND id != :exclude_id";
         }
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
+        if (!$isAdmin && $companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         if ($exclude_id) {
-            $stmt->bindParam(':exclude_id', $exclude_id);
+            $stmt->bindParam(':exclude_id', $exclude_id, PDO::PARAM_INT);
         }
         $stmt->execute();
         
@@ -98,21 +130,117 @@ class User extends BaseModel {
      * Get user statistics
      */
     public function getUserStats() {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         $stats = [];
         
         // Total users
-        $stats['total'] = $this->count();
+        $conditions = [];
+        if (!$isAdmin && $companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        $stats['total'] = $this->count($conditions);
         
         // Active users
-        $stats['active'] = $this->count(['status' => 'active']);
+        $conditions['status'] = 'active';
+        $stats['active'] = $this->count($conditions);
         
         // Users by role
         $roles = ['admin', 'staff', 'tailor', 'cashier'];
         foreach ($roles as $role) {
-            $stats[$role] = $this->count(['role' => $role, 'status' => 'active']);
+            $conditions['role'] = $role;
+            $stats[$role] = $this->count($conditions);
+            unset($conditions['role']);
         }
         
         return $stats;
+    }
+
+    /**
+     * Override find to include company_id filter for non-admin users
+     */
+    public function find($id) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
+        $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
+        if (!$isAdmin && $companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        if (!$isAdmin && $companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+
+    /**
+     * Override findAll to include company_id filter for non-admin users
+     */
+    public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findAll($conditions, $order_by, $limit);
+    }
+
+    /**
+     * Override findOne to include company_id filter for non-admin users
+     */
+    public function findOne($conditions = []) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findOne($conditions);
+    }
+
+    /**
+     * Override count to include company_id filter for non-admin users
+     */
+    public function count($conditions = []) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::count($conditions);
+    }
+
+    /**
+     * Override update to ensure company_id is checked for non-admin users
+     */
+    public function update($id, $data) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId) {
+            $existing = $this->find($id);
+            if (!$existing || $existing['company_id'] != $companyId) {
+                return false;
+            }
+        }
+        return parent::update($id, $data);
+    }
+
+    /**
+     * Override delete to ensure company_id is checked for non-admin users
+     */
+    public function delete($id) {
+        $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId) {
+            $existing = $this->find($id);
+            if (!$existing || $existing['company_id'] != $companyId) {
+                return false;
+            }
+        }
+        return parent::delete($id);
     }
 }
 ?>

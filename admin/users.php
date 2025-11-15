@@ -166,8 +166,11 @@ $conditions = [];
 if (!empty($role_filter)) {
     $conditions['role'] = $role_filter;
 }
+// Only show active users
+$conditions['status'] = 'active';
 
-$users = $userModel->getCompanyUsers($companyId, $conditions, 'full_name ASC');
+// Note: findAll automatically filters by company_id for non-admin users
+$users = $userModel->findAll($conditions, 'full_name ASC');
 $totalUsers = count($users);
 $users = array_slice($users, $offset, $limit);
 $totalPages = ceil($totalUsers / $limit);
@@ -501,7 +504,18 @@ $stats = [
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Phone</label>
-                            <input type="tel" class="form-control" id="phone" name="phone">
+                            <div class="input-group">
+                                <span class="input-group-text">+91</span>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone" 
+                                       name="phone"
+                                       placeholder="10-digit mobile number"
+                                       pattern="[0-9]{10}"
+                                       maxlength="10">
+                            </div>
+                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
+                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                     </div>
                     
@@ -610,7 +624,13 @@ function editUser(user) {
     document.getElementById('full_name').value = user.full_name || '';
     document.getElementById('username').value = user.username || '';
     document.getElementById('email').value = user.email || '';
-    document.getElementById('phone').value = user.phone || '';
+    // Handle phone number - remove +91 prefix if present, keep only 10 digits
+    let phoneNumber = user.phone || '';
+    if (phoneNumber.startsWith('+91')) {
+        phoneNumber = phoneNumber.replace('+91', '').trim();
+    }
+    phoneNumber = phoneNumber.replace(/[^0-9]/g, '').slice(0, 10);
+    document.getElementById('phone').value = phoneNumber;
     document.getElementById('role').value = user.role || '';
     document.getElementById('status').value = user.status || 'active';
     document.getElementById('address').value = user.address || '';
@@ -634,6 +654,28 @@ function deleteUser(userId, userName) {
 let searchTimeout;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Setup phone validation
+    setupPhoneValidation('phone', '+91');
+    
+    // Update phone value with prefix before form submission
+    const userForm = document.getElementById('userForm');
+    if (userForm && document.getElementById('phone')) {
+        userForm.addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput.value.trim()) {
+                const phoneValue = getPhoneWithPrefix('phone', '+91');
+                if (!validatePhoneNumber('phone', '+91')) {
+                    e.preventDefault();
+                    phoneInput.focus();
+                    alert('Please enter a valid 10-digit phone number.');
+                    return false;
+                }
+                // Set the phone value with prefix for submission
+                phoneInput.value = phoneValue;
+            }
+        });
+    }
+    
     const searchInput = document.getElementById('searchInput');
     const roleFilter = document.getElementById('roleFilter');
     const usersTableBody = document.getElementById('usersTableBody');

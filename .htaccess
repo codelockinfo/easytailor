@@ -4,12 +4,38 @@
 # Enable URL rewriting
 RewriteEngine On
 
+# =====================================================
+# Remove .php extension from URLs
+# =====================================================
+
+# External redirect from /page.php to /page (301 permanent redirect)
+# This hides the .php extension from users and search engines
+# IMPORTANT: Only redirect if THE_REQUEST actually contains .php (original browser request)
+# Capture the full path including subdirectory from THE_REQUEST
+RewriteCond %{THE_REQUEST} ^[A-Z]+\s/+(.+?)\.php(\?[^\s]*)?\s [NC]
+RewriteCond %{REQUEST_URI} !^/.*ajax/ [NC]
+RewriteCond %{REQUEST_URI} !^/.*admin/ajax/ [NC]
+RewriteCond %{REQUEST_FILENAME} -f
+# Use REQUEST_URI to get the full path, then redirect to same path without .php
+RewriteCond %{REQUEST_URI} ^/(.+?)\.php(\?.*)?$ [NC]
+RewriteRule ^ /%1%2 [R=301,L,QSA]
+
+# Internal rewrite: Add .php extension if file exists
+# This handles URLs without .php extension (clean URLs)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/.*ajax/ [NC]
+RewriteCond %{REQUEST_URI} !^/.*admin/ajax/ [NC]
+RewriteCond %{REQUEST_URI} !\.(jpg|jpeg|png|gif|css|js|ico|svg|woff|woff2|ttf|eot|pdf|zip|sql|log|php|html)$ [NC]
+# Check if .php file exists - use REQUEST_FILENAME which preserves full path
+RewriteCond %{REQUEST_FILENAME}.php -f
+# Internal rewrite - add .php extension using REQUEST_URI to preserve full path
+RewriteCond %{REQUEST_URI} ^/(.+)$ [NC]
+RewriteRule ^ /%1.php [L]
+
 # Get the base directory dynamically
 RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
 RewriteRule ^(.*)$ - [E=BASE:%1]
-
-# Only redirect if the file doesn't exist in admin folder
-# This prevents double redirects when files are already in admin folder
 
 # Redirect old authentication URLs to admin folder (only if not already in admin)
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -79,7 +105,7 @@ RewriteCond %{REQUEST_URI} !^/.*admin/
 RewriteRule ^info\.php$ admin/info.php [R=301,L]
 
 # Handle 404 errors
-ErrorDocument 404 404.php
+ErrorDocument 404 /404.php
 
 # Protect sensitive files (WAMP compatible syntax)
 <Files "*.sql">

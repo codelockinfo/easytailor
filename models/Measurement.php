@@ -8,17 +8,32 @@ class Measurement extends BaseModel {
     protected $table = 'measurements';
 
     /**
+     * Get company ID from session
+     */
+    private function getCompanyId() {
+        require_once __DIR__ . '/../config/config.php';
+        return get_company_id();
+    }
+
+    /**
      * Get measurements for a specific customer
      */
     public function getCustomerMeasurements($customer_id) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT m.*, ct.name as cloth_type_name
                   FROM " . $this->table . " m
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  WHERE m.customer_id = :customer_id
-                  ORDER BY m.created_at DESC";
+                  WHERE m.customer_id = :customer_id";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " ORDER BY m.created_at DESC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();
@@ -28,6 +43,7 @@ class Measurement extends BaseModel {
      * Get measurements with customer and cloth type details
      */
     public function getMeasurementsWithDetails($conditions = [], $limit = null, $offset = 0) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT m.*, 
                          c.first_name, c.last_name, c.customer_code,
                          ct.name as cloth_type_name, ct.category as cloth_category
@@ -36,9 +52,15 @@ class Measurement extends BaseModel {
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id";
         
         $params = [];
+        $where_clauses = [];
+        
+        // Add company_id filter
+        if ($companyId) {
+            $where_clauses[] = "m.company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
         
         if (!empty($conditions)) {
-            $where_clauses = [];
             foreach ($conditions as $column => $value) {
                 if (strpos($column, '.') !== false) {
                     // Handle table.column format
@@ -49,6 +71,9 @@ class Measurement extends BaseModel {
                     $params[$column] = $value;
                 }
             }
+        }
+        
+        if (!empty($where_clauses)) {
             $query .= " WHERE " . implode(" AND ", $where_clauses);
         }
         
@@ -78,6 +103,10 @@ class Measurement extends BaseModel {
      * Create measurement with JSON data
      */
     public function createMeasurement($data) {
+        // Ensure company_id is set
+        if (!isset($data['company_id'])) {
+            $data['company_id'] = $this->getCompanyId();
+        }
         // Ensure measurement_data is JSON
         if (is_array($data['measurement_data'])) {
             $data['measurement_data'] = json_encode($data['measurement_data']);
@@ -112,16 +141,27 @@ class Measurement extends BaseModel {
      * Get measurement statistics
      */
     public function getMeasurementStats() {
+        $companyId = $this->getCompanyId();
         $stats = [];
         
         // Total measurements
-        $stats['total'] = $this->count();
+        $conditions = [];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        $stats['total'] = $this->count($conditions);
         
         // Measurements this month
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['this_month'] = $result['count'];
@@ -130,10 +170,16 @@ class Measurement extends BaseModel {
         $query = "SELECT ct.name, COUNT(m.id) as count 
                   FROM " . $this->table . " m
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  GROUP BY ct.id, ct.name
-                  ORDER BY count DESC";
+                  WHERE 1=1";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " GROUP BY ct.id, ct.name ORDER BY count DESC";
         
         $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $stats['by_cloth_type'] = $stmt->fetchAll();
         
@@ -144,10 +190,15 @@ class Measurement extends BaseModel {
      * Get measurement by customer and cloth type
      */
     public function getMeasurementByCustomerAndClothType($customer_id, $cloth_type_id) {
-        return $this->findOne([
+        $companyId = $this->getCompanyId();
+        $conditions = [
             'customer_id' => $customer_id,
             'cloth_type_id' => $cloth_type_id
-        ]);
+        ];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        return $this->findOne($conditions);
     }
 
     /**
@@ -161,6 +212,7 @@ class Measurement extends BaseModel {
      * Search measurements
      */
     public function searchMeasurements($search_term, $limit = 20) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT m.*, 
                          c.first_name, c.last_name, c.customer_code,
                          ct.name as cloth_type_name
@@ -171,18 +223,103 @@ class Measurement extends BaseModel {
                       OR c.last_name LIKE :search 
                       OR c.customer_code LIKE :search 
                       OR ct.name LIKE :search
-                      OR m.notes LIKE :search)
-                  ORDER BY m.created_at DESC
-                  LIMIT :limit";
+                      OR m.notes LIKE :search)";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " ORDER BY m.created_at DESC LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
         $search_pattern = '%' . $search_term . '%';
         $stmt->bindParam(':search', $search_pattern);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         
         return $stmt->fetchAll();
     }
+
+    /**
+     * Override find to include company_id filter
+     */
+    public function find($id) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+
+    /**
+     * Override findAll to include company_id filter
+     */
+    public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findAll($conditions, $order_by, $limit);
+    }
+
+    /**
+     * Override findOne to include company_id filter
+     */
+    public function findOne($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findOne($conditions);
+    }
+
+    /**
+     * Override count to include company_id filter
+     */
+    public function count($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::count($conditions);
+    }
+
+    /**
+     * Override update to ensure company_id is checked
+     */
+    public function update($id, $data) {
+        $companyId = $this->getCompanyId();
+        if ($companyId) {
+            $existing = $this->find($id);
+            if (!$existing || $existing['company_id'] != $companyId) {
+                return false;
+            }
+        }
+        return parent::update($id, $data);
+    }
+
+    /**
+     * Override delete to ensure company_id is checked
+     */
+    public function delete($id) {
+        $companyId = $this->getCompanyId();
+        if ($companyId) {
+            $existing = $this->find($id);
+            if (!$existing || $existing['company_id'] != $companyId) {
+                return false;
+            }
+        }
+        return parent::delete($id);
+    }
 }
 ?>
-

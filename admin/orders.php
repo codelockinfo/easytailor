@@ -453,11 +453,7 @@ $orderStats = $orderModel->getOrderStats();
                                                 type="button" 
                                                 style="border-top-left-radius: 0; border-bottom-left-radius: 0; "
                                                 data-bs-toggle="dropdown"
-                                                data-bs-auto-close="false"
-                                                data-bs-boundary="viewport"
-                                                data-bs-popper-config='{"strategy":"fixed"}'
-                                                title="Change Status"
-                                                >
+                                                title="Change Status">
                                             <i class="fas fa-cog"></i>
                                         </button>
                                         <ul class="dropdown-menu" onclick="event.stopPropagation();">
@@ -665,261 +661,9 @@ $orderStats = $orderModel->getOrderStats();
     </div>
 </div>
 
-<style>
-/* Fix dropdown z-index in table */
-.table-responsive {
-    position: relative;
-    overflow-x: auto;
-    overflow-y: visible;
-}
-
-.table-responsive .dropdown {
-    position: static;
-}
-
-/* Ensure dropdown shows above table */
-.table tbody tr {
-    position: relative;
-}
-
-/* Ensure dropdown is not clipped by parent containers */
-.dropdown-menu {
-    z-index: 1050 !important;
-}
-
-/* Force dropdown to use fixed positioning when inside table */
-.table-responsive .dropdown-menu.show {
-    position: fixed !important;
-    z-index: 1050 !important;
-    pointer-events: auto !important;
-}
-
-/* Prevent page scroll when dropdown button is clicked */
-.table-responsive .dropdown-toggle {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    touch-action: manipulation;
-}
-
-/* Ensure dropdown menu doesn't cause layout shifts */
-.table-responsive .dropdown-menu {
-    will-change: transform;
-    backface-visibility: hidden;
-    touch-action: manipulation;
-}
-
-/* Prevent focus scroll when button is clicked */
-.table-responsive .dropdown-toggle:focus {
-    outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-/* Ensure table doesn't jump when dropdown opens */
-.table-responsive {
-    scroll-behavior: auto;
-}
-
-/* Override table-responsive overflow when dropdown is open */
-.table-responsive:has(.dropdown-menu.show) {
-    overflow: visible !important;
-}
-</style>
 
 <script>
-// Function to position dropdown properly outside table
-function positionDropdown(button) {
-    // Get the dropdown menu element
-    const dropdownElement = button.nextElementSibling;
-    if (!dropdownElement || !dropdownElement.classList.contains('dropdown-menu')) return;
-    
-    // Check if button is inside a table
-    const tableResponsive = button.closest('.table-responsive');
-    if (!tableResponsive) return;
-    
-    // Store scroll position before positioning
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
-    
-    // Use setTimeout to ensure dropdown is visible before positioning
-    setTimeout(function() {
-        const rect = button.getBoundingClientRect();
-        const dropdown = dropdownElement;
-        
-        if (!dropdown.classList.contains('show')) return;
-        
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
-        
-        // Get dropdown dimensions
-        const dropdownHeight = dropdown.offsetHeight || 180;
-        const dropdownWidth = dropdown.offsetWidth || 150;
-        
-        // Use fixed positioning to escape table clipping
-        dropdown.style.position = 'fixed';
-        dropdown.style.zIndex = '1050';
-        
-        // Calculate space available
-        const spaceBelow = viewportHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        
-        // Position vertically
-        if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-            // Position above if more space
-            dropdown.style.top = (rect.top - dropdownHeight - 5) + 'px';
-        } else {
-            // Position below
-            dropdown.style.top = (rect.bottom + 5) + 'px';
-        }
-        
-        // Position horizontally - align to button left
-        let leftPosition = rect.left;
-        
-        // If dropdown would go off screen to the right, adjust
-        if (leftPosition + dropdownWidth > viewportWidth - 10) {
-            leftPosition = viewportWidth - dropdownWidth - 10;
-        }
-        
-        // If dropdown would go off screen to the left, adjust
-        if (leftPosition < 10) {
-            leftPosition = 10;
-        }
-        
-        dropdown.style.left = leftPosition + 'px';
-        dropdown.style.right = 'auto';
-        dropdown.style.bottom = 'auto';
-        
-        // Restore scroll position immediately to prevent any movement
-        window.scrollTo(scrollX, scrollY);
-    }, 50);
-}
 
-// Global dropdown state management
-const dropdownStates = new WeakMap();
-
-// Global event listener for all dropdowns in table
-document.addEventListener('DOMContentLoaded', function() {
-    let isInitializing = false;
-    
-    // Initialize all dropdowns in tables - keep Bootstrap but prevent auto-close
-    document.querySelectorAll('.table-responsive .dropdown-toggle').forEach(function(button) {
-        const dropdownMenu = button.nextElementSibling;
-        if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) return;
-        
-        // Initialize Bootstrap dropdown with auto-close disabled
-        const dropdown = bootstrap.Dropdown.getOrCreateInstance(button, {
-            autoClose: false
-        });
-        
-        // Store state
-        const state = {
-            openTime: 0,
-            blockHideUntil: 0,
-            isOpening: false
-        };
-        dropdownStates.set(button, state);
-        
-        // Prevent scroll on button click
-        button.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-        }, { passive: false });
-    });
-    
-    // Listen for dropdown show event
-    document.addEventListener('show.bs.dropdown', function(e) {
-        const button = e.target;
-        const tableResponsive = button.closest('.table-responsive');
-        if (tableResponsive) {
-            const state = dropdownStates.get(button);
-            if (state) {
-                state.openTime = Date.now();
-                state.blockHideUntil = Date.now() + 2000; // Block hide for 2 seconds
-                state.isOpening = true;
-            }
-        }
-    }, true);
-    
-    // Listen for shown event - position dropdown
-    document.addEventListener('shown.bs.dropdown', function(e) {
-        const button = e.target;
-        const tableResponsive = button.closest('.table-responsive');
-        if (tableResponsive) {
-            // Position dropdown
-            setTimeout(function() {
-                positionDropdown(button);
-                
-                const state = dropdownStates.get(button);
-                if (state) {
-                    state.isOpening = false;
-                }
-            }, 50);
-        }
-    }, true);
-    
-    // CRITICAL: Prevent auto-closing for 2 seconds after opening
-    document.addEventListener('hide.bs.dropdown', function(e) {
-        const button = e.target;
-        const tableResponsive = button.closest('.table-responsive');
-        if (tableResponsive) {
-            const state = dropdownStates.get(button);
-            
-            if (state) {
-                const timeSinceOpen = Date.now() - state.openTime;
-                const dropdownMenu = button.nextElementSibling;
-                
-                // PREVENT closing if:
-                // 1. Dropdown just opened (within 2 seconds) OR
-                // 2. Currently opening OR
-                // 3. Clicking inside dropdown menu
-                if (timeSinceOpen < 2000 || state.isOpening) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    return false;
-                }
-                
-                // Check if clicking inside menu
-                if (dropdownMenu) {
-                    const clickEvent = e.relatedTarget || (e.originalEvent && e.originalEvent.target);
-                    if (clickEvent && dropdownMenu.contains(clickEvent)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.stopImmediatePropagation();
-                        return false;
-                    }
-                }
-            }
-        }
-    }, true); // Use capture phase to intercept early
-    
-    // Handle clicks outside - only close after block period
-    document.addEventListener('click', function(e) {
-        document.querySelectorAll('.table-responsive .dropdown-menu.show').forEach(function(dropdownMenu) {
-            const button = dropdownMenu.previousElementSibling;
-            if (!button || !button.classList.contains('dropdown-toggle')) return;
-            
-            const state = dropdownStates.get(button);
-            if (!state) return;
-            
-            // If clicking outside both button and menu
-            if (!button.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                const timeSinceOpen = Date.now() - state.openTime;
-                
-                // Only close if block period has passed
-                if (timeSinceOpen >= 2000 && !state.isOpening) {
-                    const dropdown = bootstrap.Dropdown.getInstance(button);
-                    if (dropdown) {
-                        dropdown.hide();
-                    }
-                } else {
-                    // Prevent the click from doing anything during block period
-                    e.stopPropagation();
-                }
-            }
-        });
-    }, true);
-});
 
 function editOrder(order) {
     document.getElementById('orderModalTitle').textContent = 'Edit Order';
@@ -1494,11 +1238,7 @@ function displayFilterResults(orders) {
                                     type="button" 
                                     style="border-top-left-radius: 0; border-bottom-left-radius: 0; "
                                     data-bs-toggle="dropdown"
-                                    data-bs-auto-close="true"
-                                    data-bs-boundary="viewport"
-                                    data-bs-popper-config='{"strategy":"fixed"}'
-                                    title="Change Status"
-                                    >
+                                    title="Change Status">
                                 <i class="fas fa-cog"></i>
                             </button>
                             <ul class="dropdown-menu" onclick="event.stopPropagation();">
@@ -1518,35 +1258,6 @@ function displayFilterResults(orders) {
     
     ordersTable.innerHTML = tableHTML;
     
-    // Re-initialize dropdowns for filtered results
-    setTimeout(function() {
-        document.querySelectorAll('.table-responsive .dropdown-toggle').forEach(function(button) {
-            const dropdownMenu = button.nextElementSibling;
-            if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) return;
-            
-            // Initialize Bootstrap dropdown if not already initialized
-            if (!bootstrap.Dropdown.getInstance(button)) {
-                const dropdown = bootstrap.Dropdown.getOrCreateInstance(button, {
-                    autoClose: false
-                });
-                
-                // Store state
-                if (!dropdownStates.has(button)) {
-                    const state = {
-                        openTime: 0,
-                        blockHideUntil: 0,
-                        isOpening: false
-                    };
-                    dropdownStates.set(button, state);
-                }
-                
-                // Prevent scroll on button click
-                button.addEventListener('mousedown', function(e) {
-                    e.stopPropagation();
-                }, { passive: false });
-            }
-        });
-    }, 100);
 }
 </script>
 

@@ -16,6 +16,14 @@ class Order extends BaseModel {
     }
 
     /**
+     * Check if current user is admin
+     */
+    private function isAdmin() {
+        require_once __DIR__ . '/../config/config.php';
+        return get_user_role() === 'admin';
+    }
+
+    /**
      * Create new order with auto-generated order number
      */
     public function createOrder($data) {
@@ -64,6 +72,7 @@ class Order extends BaseModel {
      */
     public function getOrdersWithDetails($conditions = [], $limit = null, $offset = 0) {
         $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         $query = "SELECT o.*, 
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
                          ct.name as cloth_type_name,
@@ -78,8 +87,8 @@ class Order extends BaseModel {
         $params = [];
         $where_clauses = [];
         
-        // Add company_id filter
-        if ($companyId) {
+        // Add company_id filter for non-admin users
+        if (!$isAdmin && $companyId) {
             $where_clauses[] = "o.company_id = :company_id";
             $params['company_id'] = $companyId;
         }
@@ -148,12 +157,12 @@ class Order extends BaseModel {
         // Orders this month
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $query .= " AND company_id = :company_id";
         }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -162,11 +171,11 @@ class Order extends BaseModel {
         
         // Total revenue
         $query = "SELECT SUM(total_amount) as total FROM " . $this->table . " WHERE status IN ('completed', 'delivered')";
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $query .= " AND company_id = :company_id";
         }
         $stmt = $this->conn->prepare($query);
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -175,11 +184,11 @@ class Order extends BaseModel {
         
         // Pending revenue
         $query = "SELECT SUM(balance_amount) as total FROM " . $this->table . " WHERE status IN ('pending', 'in_progress', 'completed')";
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $query .= " AND company_id = :company_id";
         }
         $stmt = $this->conn->prepare($query);
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -228,6 +237,7 @@ class Order extends BaseModel {
      */
     public function getOverdueOrders() {
         $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         $today = date('Y-m-d');
         $query = "SELECT o.*, 
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
@@ -239,14 +249,14 @@ class Order extends BaseModel {
                   LEFT JOIN users u ON o.assigned_tailor_id = u.id
                   WHERE o.due_date < :today 
                   AND o.status IN ('pending', 'in_progress')";
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $query .= " AND o.company_id = :company_id";
         }
         $query .= " ORDER BY o.due_date ASC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':today', $today);
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -267,6 +277,7 @@ class Order extends BaseModel {
      */
     public function getMonthlyRevenue($year = null, $month = null) {
         $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         if (!$year) $year = date('Y');
         if (!$month) $month = date('m');
         
@@ -275,14 +286,14 @@ class Order extends BaseModel {
                   WHERE YEAR(created_at) = :year 
                   AND MONTH(created_at) = :month 
                   AND status IN ('completed', 'delivered')";
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $query .= " AND company_id = :company_id";
         }
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':year', $year, PDO::PARAM_INT);
         $stmt->bindParam(':month', $month, PDO::PARAM_INT);
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -292,18 +303,19 @@ class Order extends BaseModel {
     }
 
     /**
-     * Override find to include company_id filter
+     * Override find to include company_id filter for non-admin users
      */
     public function find($id) {
         $companyId = $this->getCompanyId();
+        $isAdmin = $this->isAdmin();
         $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $query .= " AND company_id = :company_id";
         }
         $query .= " LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
-        if ($companyId) {
+        if (!$isAdmin && $companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -312,33 +324,36 @@ class Order extends BaseModel {
     }
 
     /**
-     * Override findAll to include company_id filter
+     * Override findAll to include company_id filter for non-admin users
      */
     public function findAll($conditions = [], $order_by = null, $limit = null) {
         $companyId = $this->getCompanyId();
-        if ($companyId && !isset($conditions['company_id'])) {
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::findAll($conditions, $order_by, $limit);
     }
 
     /**
-     * Override findOne to include company_id filter
+     * Override findOne to include company_id filter for non-admin users
      */
     public function findOne($conditions = []) {
         $companyId = $this->getCompanyId();
-        if ($companyId && !isset($conditions['company_id'])) {
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::findOne($conditions);
     }
 
     /**
-     * Override count to include company_id filter
+     * Override count to include company_id filter for non-admin users
      */
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
-        if ($companyId && !isset($conditions['company_id'])) {
+        $isAdmin = $this->isAdmin();
+        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::count($conditions);

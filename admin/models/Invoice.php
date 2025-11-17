@@ -8,9 +8,21 @@ class Invoice extends BaseModel {
     protected $table = 'invoices';
 
     /**
+     * Get company ID from session
+     */
+    private function getCompanyId() {
+        require_once __DIR__ . '/../../config/config.php';
+        return get_company_id();
+    }
+
+    /**
      * Create new invoice with auto-generated invoice number
      */
     public function createInvoice($data) {
+        // Ensure company_id is set
+        if (!isset($data['company_id'])) {
+            $data['company_id'] = $this->getCompanyId();
+        }
         // Generate invoice number
         $data['invoice_number'] = $this->generateInvoiceNumber();
         return $this->create($data);
@@ -20,11 +32,19 @@ class Invoice extends BaseModel {
      * Generate unique invoice number
      */
     private function generateInvoiceNumber() {
+        $companyId = $this->getCompanyId();
         $prefix = 'INV';
-        $query = "SELECT invoice_number FROM " . $this->table . " WHERE invoice_number LIKE :pattern ORDER BY invoice_number DESC LIMIT 1";
+        $query = "SELECT invoice_number FROM " . $this->table . " WHERE invoice_number LIKE :pattern";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " ORDER BY invoice_number DESC LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $pattern = $prefix . '%';
         $stmt->bindParam(':pattern', $pattern);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         $last_invoice = $stmt->fetch();
@@ -43,6 +63,7 @@ class Invoice extends BaseModel {
      * Get invoices with order and customer details
      */
     public function getInvoicesWithDetails($conditions = [], $limit = null, $offset = 0) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT i.*, 
                          o.order_number, o.order_date, o.due_date as order_due_date,
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone, c.email as customer_email,
@@ -55,9 +76,14 @@ class Invoice extends BaseModel {
                   LEFT JOIN users creator ON i.created_by = creator.id";
         
         $params = [];
+        $where_clauses = [];
+        
+        if ($companyId) {
+            $where_clauses[] = "i.company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
         
         if (!empty($conditions)) {
-            $where_clauses = [];
             foreach ($conditions as $column => $value) {
                 if (strpos($column, '.') !== false) {
                     // Handle table.column format
@@ -68,6 +94,9 @@ class Invoice extends BaseModel {
                     $params[$column] = $value;
                 }
             }
+        }
+        
+        if (!empty($where_clauses)) {
             $query .= " WHERE " . implode(" AND ", $where_clauses);
         }
         
@@ -97,34 +126,59 @@ class Invoice extends BaseModel {
      * Get invoice statistics
      */
     public function getInvoiceStats() {
+        $companyId = $this->getCompanyId();
         $stats = [];
         
         // Total invoices
-        $stats['total'] = $this->count();
+        $conditions = [];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        $stats['total'] = $this->count($conditions);
         
         // Invoices by payment status
         $statuses = ['paid', 'partial', 'due'];
         foreach ($statuses as $status) {
-            $stats[$status] = $this->count(['payment_status' => $status]);
+            $conditions['payment_status'] = $status;
+            $stats[$status] = $this->count($conditions);
+            unset($conditions['payment_status']);
         }
         
         // Total invoice amount
         $query = "SELECT SUM(total_amount) as total FROM " . $this->table;
+        if ($companyId) {
+            $query .= " WHERE company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['total_amount'] = $result['total'] ?? 0;
         
         // Paid amount
         $query = "SELECT SUM(paid_amount) as total FROM " . $this->table;
+        if ($companyId) {
+            $query .= " WHERE company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['paid_amount'] = $result['total'] ?? 0;
         
         // Due amount
         $query = "SELECT SUM(balance_amount) as total FROM " . $this->table . " WHERE payment_status IN ('partial', 'due')";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['due_amount'] = $result['total'] ?? 0;
@@ -136,6 +190,7 @@ class Invoice extends BaseModel {
      * Get overdue invoices
      */
     public function getOverdueInvoices() {
+        $companyId = $this->getCompanyId();
         $today = date('Y-m-d');
         $query = "SELECT i.*, 
                          o.order_number,
@@ -144,11 +199,17 @@ class Invoice extends BaseModel {
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN customers c ON o.customer_id = c.id
                   WHERE i.due_date < :today 
-                  AND i.payment_status IN ('partial', 'due')
-                  ORDER BY i.due_date ASC";
+                  AND i.payment_status IN ('partial', 'due')";
+        if ($companyId) {
+            $query .= " AND i.company_id = :company_id";
+        }
+        $query .= " ORDER BY i.due_date ASC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':today', $today);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();
@@ -187,15 +248,22 @@ class Invoice extends BaseModel {
      * Get invoices for a specific customer
      */
     public function getCustomerInvoices($customer_id) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT i.*, o.order_number, ct.name as cloth_type_name
                   FROM " . $this->table . " i
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
-                  WHERE o.customer_id = :customer_id
-                  ORDER BY i.created_at DESC";
+                  WHERE o.customer_id = :customer_id";
+        if ($companyId) {
+            $query .= " AND i.company_id = :company_id";
+        }
+        $query .= " ORDER BY i.created_at DESC";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();
@@ -205,6 +273,7 @@ class Invoice extends BaseModel {
      * Get monthly invoice statistics
      */
     public function getMonthlyInvoiceStats($year = null, $month = null) {
+        $companyId = $this->getCompanyId();
         if (!$year) $year = date('Y');
         if (!$month) $month = date('m');
         
@@ -216,10 +285,16 @@ class Invoice extends BaseModel {
                   FROM " . $this->table . " 
                   WHERE YEAR(created_at) = :year 
                   AND MONTH(created_at) = :month";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':year', $year, PDO::PARAM_INT);
         $stmt->bindParam(':month', $month, PDO::PARAM_INT);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetch();
@@ -247,8 +322,16 @@ class Invoice extends BaseModel {
      * Get all invoices for export
      */
     public function getAllInvoices() {
-        $query = "SELECT * FROM " . $this->table . " ORDER BY invoice_date DESC, created_at DESC";
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table;
+        if ($companyId) {
+            $query .= " WHERE company_id = :company_id";
+        }
+        $query .= " ORDER BY invoice_date DESC, created_at DESC";
         $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();
@@ -258,13 +341,20 @@ class Invoice extends BaseModel {
      * Get invoice statistics by date range
      */
     public function getInvoiceStatsByDateRange($date_from, $date_to) {
+        $companyId = $this->getCompanyId();
         $stats = [];
         
         // Total invoices in date range
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':date_from', $date_from);
         $stmt->bindParam(':date_to', $date_to);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['total'] = $result['count'];
@@ -273,10 +363,16 @@ class Invoice extends BaseModel {
         $statuses = ['paid', 'partial', 'due'];
         foreach ($statuses as $status) {
             $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE payment_status = :status AND DATE(created_at) BETWEEN :date_from AND :date_to";
+            if ($companyId) {
+                $query .= " AND company_id = :company_id";
+            }
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':status', $status);
             $stmt->bindParam(':date_from', $date_from);
             $stmt->bindParam(':date_to', $date_to);
+            if ($companyId) {
+                $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+            }
             $stmt->execute();
             $result = $stmt->fetch();
             $stats[$status] = $result['count'];
@@ -284,27 +380,45 @@ class Invoice extends BaseModel {
         
         // Total invoice amount in date range
         $query = "SELECT SUM(total_amount) as total FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':date_from', $date_from);
         $stmt->bindParam(':date_to', $date_to);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['total_amount'] = $result['total'] ?? 0;
         
         // Paid amount in date range
         $query = "SELECT SUM(paid_amount) as total FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':date_from', $date_from);
         $stmt->bindParam(':date_to', $date_to);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['paid_amount'] = $result['total'] ?? 0;
         
         // Due amount in date range
         $query = "SELECT SUM(balance_amount) as total FROM " . $this->table . " WHERE payment_status IN ('partial', 'due') AND DATE(created_at) BETWEEN :date_from AND :date_to";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':date_from', $date_from);
         $stmt->bindParam(':date_to', $date_to);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['due_amount'] = $result['total'] ?? 0;

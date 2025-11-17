@@ -46,7 +46,7 @@ try {
 
     $expenseModel = new Expense();
     
-    // Build conditions
+    // Build conditions - if all filters are empty, $conditions will be empty array and all expenses will be shown
     $conditions = [];
     if (!empty($category)) {
         $conditions['category'] = $category;
@@ -58,23 +58,31 @@ try {
         $conditions['date_to'] = $date_to;
     }
     
-    // Get expenses
-    $offset = ($page - 1) * $limit;
-    $expenses = $expenseModel->getExpensesWithDetails($conditions, $limit, $offset);
+    // Prepare search parameter - if empty, null will be passed and no search filter will be applied
+    $searchParam = !empty($search) ? trim($search) : null;
     
-    // If search is provided, filter results manually
-    if (!empty($search)) {
-        $searchLower = strtolower($search);
-        $expenses = array_filter($expenses, function($expense) use ($searchLower) {
-            return strpos(strtolower($expense['category']), $searchLower) !== false ||
-                   strpos(strtolower($expense['description']), $searchLower) !== false ||
-                   strpos(strtolower($expense['payment_method']), $searchLower) !== false ||
-                   strpos(strtolower($expense['reference_number'] ?? ''), $searchLower) !== false;
-        });
+    // Get expenses with search handled in SQL
+    // When $conditions is empty and $searchParam is null, all expenses (filtered by company_id) will be returned
+    $offset = ($page - 1) * $limit;
+    
+    try {
+        if ($limit == 0) {
+            // Limit 0 means we only need filter options, not expense data
+            $expenses = [];
+            $totalExpenses = 0;
+        } else {
+            // Get total count (without limit) - shows all when no filters applied
+            $allExpenses = $expenseModel->getExpensesWithDetails($conditions, null, 0, $searchParam);
+            $totalExpenses = count($allExpenses);
+            
+            // Get paginated results - shows all when no filters applied
+            $expenses = $expenseModel->getExpensesWithDetails($conditions, $limit, $offset, $searchParam);
+        }
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch expenses: " . $e->getMessage());
     }
     
-    $totalExpenses = count($expenses);
-    $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
+    $totalPages = ($limit > 0) ? ceil($totalExpenses / $limit) : 1;
     
     // Get filter options - get unique categories from database
     $allExpenses = $expenseModel->findAll([], 'category');

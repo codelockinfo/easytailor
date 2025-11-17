@@ -1058,7 +1058,7 @@ function displayFilterResults(invoices) {
     if (invoices.length === 0) {
         invoicesTable.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center py-4">
+                <td colspan="9" class="text-center py-4">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No invoices found</h5>
                     <p class="text-muted">Try adjusting your filter criteria</p>
@@ -1081,16 +1081,19 @@ function displayFilterResults(invoices) {
         // Check if overdue
         const isOverdue = new Date(invoice.due_date) < new Date() && invoice.payment_status !== 'paid';
         
-        // Status badge colors
+        // Helpers
         const statusColors = {
             'paid': 'success',
             'partial': 'warning',
             'due': 'danger'
         };
         const statusColor = statusColors[invoice.payment_status] || 'secondary';
+        const statusLabel = invoice.payment_status ? invoice.payment_status.charAt(0).toUpperCase() + invoice.payment_status.slice(1) : 'Status';
+        const formatCurrency = (amount) => '₹' + parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const formatTax = (amount) => amount && parseFloat(amount) > 0 ? `<br><small class="text-muted">Tax: ${formatCurrency(amount)}</small>` : '';
+        const customerCode = invoice.customer_code ? `<br><small class="text-muted">${invoice.customer_code}</small>` : '';
         
-        // Format currency
-        const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        const orderNumber = invoice.order_number && invoice.order_number !== 'N/A' ? invoice.order_number : 'N/A';
         
         tableHTML += `
             <tr>
@@ -1100,45 +1103,45 @@ function displayFilterResults(invoices) {
                 <td>
                     <div>
                         <strong>${invoice.customer_name}</strong>
-                        ${invoice.customer_phone ? `<br><small class="text-muted">${invoice.customer_phone}</small>` : ''}
+                        ${customerCode}
                     </div>
                 </td>
                 <td>
-                    <span class="badge bg-info">${invoice.order_number}</span>
+                    <span class="badge bg-info">${orderNumber}</span>
                 </td>
                 <td>${invoiceDate}</td>
                 <td>
                     <span class="${isOverdue ? 'text-danger fw-bold' : ''}">${dueDate}</span>
                 </td>
                 <td>
-                    <span class="badge bg-${statusColor}">${invoice.payment_status.charAt(0).toUpperCase() + invoice.payment_status.slice(1)}</span>
+                    <strong>${formatCurrency(invoice.total_amount)}</strong>
+                    ${formatTax(invoice.tax_amount)}
                 </td>
                 <td>
-                    <div class="text-end">
-                        <div class="fw-bold">${formatCurrency(invoice.total_amount)}</div>
-                        <small class="text-muted">
-                            Paid: ${formatCurrency(invoice.paid_amount)}
-                        </small>
-                    </div>
+                    ${formatCurrency(invoice.paid_amount)}
+                </td>
+                <td>
+                    <span class="badge bg-${statusColor}">${statusLabel}</span>
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" 
-                                class="btn btn-outline-primary" 
-                                onclick="editInvoice(${JSON.stringify(invoice).replace(/"/g, '&quot;')})"
-                                title="Edit" style="border: 1px solid #667eea;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <a href="invoice-details.php?id=${invoice.id}" 
-                           class="btn btn-outline-info" 
-                           title="View Details" style="border: 1px solid #667eea;">
+                                class="btn btn-outline-info" 
+                                onclick="viewInvoice(${invoice.id})"
+                                title="View Details" style="border: 1px solid #667eea;">
                             <i class="fas fa-eye"></i>
-                        </a>
+                        </button>
                         <button type="button" 
                                 class="btn btn-outline-success" 
                                 onclick="addPayment(${invoice.id}, '${invoice.invoice_number}', ${invoice.balance_amount})"
                                 title="Add Payment" style="border: 1px solid #667eea;">
                             <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-primary" 
+                                onclick="printInvoice(${invoice.id})"
+                                title="Print Invoice" style="border: 1px solid #667eea;">
+                            <i class="fas fa-print"></i>
                         </button>
                     </div>
                 </td>

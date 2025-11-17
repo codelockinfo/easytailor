@@ -18,7 +18,7 @@ class Expense extends BaseModel {
     /**
      * Get expenses with creator details
      */
-    public function getExpensesWithDetails($conditions = [], $limit = null, $offset = 0) {
+    public function getExpensesWithDetails($conditions = [], $limit = null, $offset = 0, $search = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT e.*, u.full_name as created_by_name
                   FROM " . $this->table . " e
@@ -35,15 +35,34 @@ class Expense extends BaseModel {
         
         if (!empty($conditions)) {
             foreach ($conditions as $column => $value) {
-                if (strpos($column, '.') !== false) {
-                    // Handle table.column format
-                    $where_clauses[] = $column . " = :" . str_replace('.', '_', $column);
-                    $params[str_replace('.', '_', $column)] = $value;
+                if ($column === 'date_from') {
+                    $where_clauses[] = "e.expense_date >= :date_from";
+                    $params['date_from'] = $value;
+                } elseif ($column === 'date_to') {
+                    $where_clauses[] = "e.expense_date <= :date_to";
+                    $params['date_to'] = $value;
                 } else {
-                    $where_clauses[] = "e." . $column . " = :" . $column;
-                    $params[$column] = $value;
+                    if (strpos($column, '.') !== false) {
+                        $where_clauses[] = $column . " = :" . str_replace('.', '_', $column);
+                        $params[str_replace('.', '_', $column)] = $value;
+                    } else {
+                        $where_clauses[] = "e." . $column . " = :" . $column;
+                        $params[$column] = $value;
+                    }
                 }
             }
+        }
+        
+        if (!empty($search)) {
+            $searchPattern = '%' . $search . '%';
+            $where_clauses[] = "(e.category LIKE :search_category
+                                OR e.description LIKE :search_description
+                                OR e.payment_method LIKE :search_payment
+                                OR e.reference_number LIKE :search_reference)";
+            $params['search_category'] = $searchPattern;
+            $params['search_description'] = $searchPattern;
+            $params['search_payment'] = $searchPattern;
+            $params['search_reference'] = $searchPattern;
         }
         
         if (!empty($where_clauses)) {

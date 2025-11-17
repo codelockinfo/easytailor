@@ -740,14 +740,9 @@ clearFilters.addEventListener('click', function() {
     categoryFilter.value = '';
     dateFromFilter.value = '';
     dateToFilter.value = '';
-    expensesTable.innerHTML = originalTableContent;
-    filterResults.style.display = 'none';
     
-    // Restore the "Created By" column header
-    const tableHeaders = document.querySelectorAll('.table thead th');
-    if (tableHeaders.length >= 7) {
-        tableHeaders[6].style.display = ''; // Show "Created By" column (7th column)
-    }
+    // Call executeFilter to fetch all expenses (no filters applied)
+    executeFilter();
 });
 
 function performFilter() {
@@ -819,10 +814,24 @@ function executeFilter() {
 function displayFilterResults(expenses) {
     console.log('displayFilterResults called with:', expenses.length, 'expenses');
     
-    // Hide the "Created By" column header during filtering
-    const tableHeaders = document.querySelectorAll('.table thead th');
-    if (tableHeaders.length >= 7) {
-        tableHeaders[6].style.display = 'none'; // Hide "Created By" column (7th column)
+    // Check if any filters are active
+    const hasActiveFilters = searchInput.value.trim() || categoryFilter.value || dateFromFilter.value || dateToFilter.value;
+    
+    // Show/hide filter results indicator and column based on whether filters are active
+    if (hasActiveFilters) {
+        filterResults.style.display = 'block';
+        // Hide the "Created By" column header during filtering
+        const tableHeaders = document.querySelectorAll('.table thead th');
+        if (tableHeaders.length >= 7) {
+            tableHeaders[6].style.display = 'none'; // Hide "Created By" column (7th column)
+        }
+    } else {
+        filterResults.style.display = 'none';
+        // Show the "Created By" column header when no filters
+        const tableHeaders = document.querySelectorAll('.table thead th');
+        if (tableHeaders.length >= 7) {
+            tableHeaders[6].style.display = ''; // Show "Created By" column (7th column)
+        }
     }
     
     if (expenses.length === 0) {
@@ -831,7 +840,7 @@ function displayFilterResults(expenses) {
                 <td colspan="7" class="text-center py-4">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No expenses found</h5>
-                    <p class="text-muted">Try adjusting your filter criteria</p>
+                    <p class="text-muted">${hasActiveFilters ? 'Try adjusting your filter criteria' : 'No expenses recorded yet'}</p>
                 </td>
             </tr>
         `;
@@ -896,9 +905,11 @@ function displayFilterResults(expenses) {
                 <td>
                     ${expense.reference_number ? expense.reference_number : '<span class="text-muted">-</span>'}
                 </td>
-                <td style="display: none;">
-                    <!-- Hidden "Created By" column to maintain table structure -->
+                ${hasActiveFilters ? '' : `
+                <td>
+                    ${expense.created_by_name || '<span class="text-muted">-</span>'}
                 </td>
+                `}
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" 

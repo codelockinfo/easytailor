@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'notes' => sanitize_input($_POST['notes'])
                 ];
                 
-                $contactId = $contactModel->create($data);
+                $contactId = $contactModel->createContact($data);
                 if ($contactId) {
                     $message = 'Contact added successfully';
                     $messageType = 'success';

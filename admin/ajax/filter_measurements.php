@@ -58,25 +58,30 @@ try {
         $conditions['cloth_type_id'] = $cloth_type_id;
     }
     
-    // Get measurements
+    // Get measurements with search filter applied in SQL
     $offset = ($page - 1) * $limit;
     
-    if (!empty($search)) {
-        $measurements = $measurementModel->searchMeasurements($search, $limit);
-        $totalMeasurements = count($measurements);
-        $totalPages = 1;
-    } else {
+    // Pass empty string if search is empty to avoid issues
+    $searchParam = !empty($search) ? trim($search) : null;
+    
+    try {
         // If limit is 0, we only need filter options, not measurement data
         if ($limit == 0) {
             $measurements = [];
             $totalMeasurements = 0;
-            $totalPages = 1;
         } else {
-            $measurements = $measurementModel->getMeasurementsWithDetails($conditions, $limit, $offset);
-            $totalMeasurements = $measurementModel->count($conditions);
-            $totalPages = $limit > 0 ? ceil($totalMeasurements / $limit) : 1;
+            // Get all measurements first (without limit) to get total count
+            $allMeasurements = $measurementModel->getMeasurementsWithDetails($conditions, null, 0, $searchParam);
+            $totalMeasurements = count($allMeasurements);
+            
+            // Then get paginated results
+            $measurements = $measurementModel->getMeasurementsWithDetails($conditions, $limit, $offset, $searchParam);
         }
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch measurements: " . $e->getMessage());
     }
+    
+    $totalPages = ($limit > 0) ? ceil($totalMeasurements / $limit) : 1;
     
     // Get filter options
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');

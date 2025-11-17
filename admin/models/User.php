@@ -8,7 +8,15 @@ class User extends BaseModel {
     protected $table = 'users';
 
     /**
-     * Authenticate user
+     * Get company ID from session
+     */
+    private function getCompanyId() {
+        require_once __DIR__ . '/../../config/config.php';
+        return get_company_id();
+    }
+
+    /**
+     * Authenticate user (no company filter - needed for login)
      */
     public function authenticate($username, $password) {
         $query = "SELECT * FROM " . $this->table . " WHERE (username = :username OR email = :email) AND status = 'active' LIMIT 1";
@@ -30,9 +38,9 @@ class User extends BaseModel {
      * Create new user
      */
     public function createUser($data) {
-        // Assign current company if not explicitly provided
-        if (!isset($data['company_id']) && isset($_SESSION['company_id'])) {
-            $data['company_id'] = $_SESSION['company_id'];
+        // Ensure company_id is set
+        if (!isset($data['company_id'])) {
+            $data['company_id'] = $this->getCompanyId();
         }
 
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -51,20 +59,31 @@ class User extends BaseModel {
      * Get users by role
      */
     public function getUsersByRole($role) {
-        return $this->findAll(['role' => $role, 'status' => 'active']);
+        $companyId = $this->getCompanyId();
+        $conditions = ['role' => $role, 'status' => 'active'];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        return $this->findAll($conditions);
     }
 
     /**
      * Get active users
      */
     public function getActiveUsers() {
-        return $this->findAll(['status' => 'active'], 'full_name ASC');
+        $companyId = $this->getCompanyId();
+        $conditions = ['status' => 'active'];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        return $this->findAll($conditions, 'full_name ASC');
     }
 
     /**
-     * Check if username exists
+     * Check if username exists (globally - username must be unique across all companies)
      */
     public function usernameExists($username, $exclude_id = null) {
+        // Username must be unique globally, not per company (database constraint)
         $query = "SELECT id FROM " . $this->table . " WHERE username = :username";
         if ($exclude_id) {
             $query .= " AND id != :exclude_id";
@@ -73,7 +92,7 @@ class User extends BaseModel {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':username', $username);
         if ($exclude_id) {
-            $stmt->bindParam(':exclude_id', $exclude_id);
+            $stmt->bindParam(':exclude_id', $exclude_id, PDO::PARAM_INT);
         }
         $stmt->execute();
         
@@ -81,9 +100,10 @@ class User extends BaseModel {
     }
 
     /**
-     * Check if email exists
+     * Check if email exists (globally - email must be unique across all companies)
      */
     public function emailExists($email, $exclude_id = null) {
+        // Email must be unique globally, not per company (database constraint)
         $query = "SELECT id FROM " . $this->table . " WHERE email = :email";
         if ($exclude_id) {
             $query .= " AND id != :exclude_id";
@@ -92,7 +112,7 @@ class User extends BaseModel {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
         if ($exclude_id) {
-            $stmt->bindParam(':exclude_id', $exclude_id);
+            $stmt->bindParam(':exclude_id', $exclude_id, PDO::PARAM_INT);
         }
         $stmt->execute();
         
@@ -103,18 +123,28 @@ class User extends BaseModel {
      * Get user statistics
      */
     public function getUserStats() {
+        $companyId = $this->getCompanyId();
         $stats = [];
         
         // Total users
-        $stats['total'] = $this->count();
+        $conditions = [];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        $stats['total'] = $this->count($conditions);
         
         // Active users
-        $stats['active'] = $this->count(['status' => 'active']);
+        $conditions['status'] = 'active';
+        $stats['active'] = $this->count($conditions);
+        unset($conditions['status']);
         
         // Users by role
         $roles = ['admin', 'staff', 'tailor', 'cashier'];
         foreach ($roles as $role) {
-            $stats[$role] = $this->count(['role' => $role, 'status' => 'active']);
+            $conditions['role'] = $role;
+            $conditions['status'] = 'active';
+            $stats[$role] = $this->count($conditions);
+            unset($conditions['role'], $conditions['status']);
         }
         
         return $stats;
@@ -124,9 +154,17 @@ class User extends BaseModel {
      * Get user by ID
      */
     public function getUserById($id) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetch();
@@ -167,6 +205,59 @@ class User extends BaseModel {
 
         $conditions['company_id'] = $company_id;
         return $this->count($conditions);
+    }
+
+    /**
+     * Override findAll to include company_id filter
+     */
+    public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findAll($conditions, $order_by, $limit);
+    }
+
+    /**
+     * Override findOne to include company_id filter
+     */
+    public function findOne($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findOne($conditions);
+    }
+
+    /**
+     * Override count to include company_id filter
+     */
+    public function count($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::count($conditions);
+    }
+
+    /**
+     * Override find to include company_id filter
+     */
+    public function find($id) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetch();
     }
 }
 ?>

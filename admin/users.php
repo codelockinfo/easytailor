@@ -47,6 +47,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
+                // Validate email uniqueness (globally unique)
+                if (!empty($_POST['email']) && $userModel->emailExists($_POST['email'])) {
+                    $_SESSION['message'] = 'Email already exists';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+                
+                // Validate username uniqueness (globally unique)
+                if ($userModel->usernameExists($_POST['username'])) {
+                    $_SESSION['message'] = 'Username already exists';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+                
                 $data = [
                     'username' => sanitize_input($_POST['username']),
                     'email' => sanitize_input($_POST['email']),
@@ -77,6 +93,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (!$existingUser) {
                     $_SESSION['message'] = 'User not found or access denied';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+
+                // Validate email uniqueness (globally unique, exclude current user)
+                if (!empty($_POST['email']) && $userModel->emailExists($_POST['email'], $userId)) {
+                    $_SESSION['message'] = 'Email already exists';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+                
+                // Validate username uniqueness (globally unique, exclude current user)
+                if ($userModel->usernameExists($_POST['username'], $userId)) {
+                    $_SESSION['message'] = 'Username already exists';
                     $_SESSION['messageType'] = 'error';
                     header('Location: users.php');
                     exit;

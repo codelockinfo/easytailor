@@ -72,7 +72,6 @@ class Customer extends BaseModel {
      */
     public function searchCustomers($search_term, $limit = 20) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $query = "SELECT * FROM " . $this->table . " 
                   WHERE (first_name LIKE :search1 
                       OR last_name LIKE :search2 
@@ -80,7 +79,7 @@ class Customer extends BaseModel {
                       OR email LIKE :search4 
                       OR phone LIKE :search5)
                   AND status = 'active'";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         $query .= " ORDER BY first_name, last_name LIMIT :limit";
@@ -92,7 +91,7 @@ class Customer extends BaseModel {
         $stmt->bindParam(':search3', $search_pattern);
         $stmt->bindParam(':search4', $search_pattern);
         $stmt->bindParam(':search5', $search_pattern);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -106,12 +105,11 @@ class Customer extends BaseModel {
      */
     public function getCustomersWithOrderCount($limit = null) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $query = "SELECT c.*, COUNT(o.id) as order_count 
                   FROM " . $this->table . " c 
                   LEFT JOIN orders o ON c.id = o.customer_id 
                   WHERE c.status = 'active'";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND c.company_id = :company_id";
         }
         $query .= " GROUP BY c.id ORDER BY c.first_name, c.last_name";
@@ -121,7 +119,7 @@ class Customer extends BaseModel {
         }
         
         $stmt = $this->conn->prepare($query);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -134,12 +132,11 @@ class Customer extends BaseModel {
      */
     public function getCustomerStats() {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $stats = [];
         
         // Total customers
         $conditions = [];
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $conditions['company_id'] = $companyId;
         }
         $stats['total'] = $this->count($conditions);
@@ -151,12 +148,12 @@ class Customer extends BaseModel {
         // New customers this month
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -171,9 +168,8 @@ class Customer extends BaseModel {
      */
     public function findByCustomerCode($customer_code) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $conditions = ['customer_code' => $customer_code];
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $conditions['company_id'] = $companyId;
         }
         return $this->findOne($conditions);
@@ -184,9 +180,8 @@ class Customer extends BaseModel {
      */
     public function emailExists($email, $exclude_id = null) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $query = "SELECT id FROM " . $this->table . " WHERE email = :email";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         if ($exclude_id) {
@@ -195,7 +190,7 @@ class Customer extends BaseModel {
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         if ($exclude_id) {
@@ -211,20 +206,19 @@ class Customer extends BaseModel {
      */
     public function getCustomerOrders($customer_id, $limit = 10) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $query = "SELECT o.*, ct.name as cloth_type_name, u.full_name as tailor_name
                   FROM orders o
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
                   LEFT JOIN users u ON o.assigned_tailor_id = u.id
                   WHERE o.customer_id = :customer_id";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND o.company_id = :company_id";
         }
         $query .= " ORDER BY o.created_at DESC LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -238,15 +232,14 @@ class Customer extends BaseModel {
      */
     public function find($id) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
         $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         $query .= " LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -259,8 +252,7 @@ class Customer extends BaseModel {
      */
     public function findAll($conditions = [], $order_by = null, $limit = null) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+        if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::findAll($conditions, $order_by, $limit);
@@ -271,8 +263,7 @@ class Customer extends BaseModel {
      */
     public function findOne($conditions = []) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+        if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::findOne($conditions);
@@ -283,8 +274,7 @@ class Customer extends BaseModel {
      */
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+        if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::count($conditions);
@@ -295,9 +285,8 @@ class Customer extends BaseModel {
      */
     public function update($id, $data) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
-        // First verify the record belongs to this company (if not admin)
-        if (!$isAdmin && $companyId) {
+        // First verify the record belongs to this company
+        if ($companyId) {
             $existing = $this->find($id);
             if (!$existing || $existing['company_id'] != $companyId) {
                 return false; // Record doesn't exist or doesn't belong to this company
@@ -311,9 +300,8 @@ class Customer extends BaseModel {
      */
     public function delete($id) {
         $companyId = $this->getCompanyId();
-        $isAdmin = $this->isAdmin();
-        // First verify the record belongs to this company (if not admin)
-        if (!$isAdmin && $companyId) {
+        // First verify the record belongs to this company
+        if ($companyId) {
             $existing = $this->find($id);
             if (!$existing || $existing['company_id'] != $companyId) {
                 return false; // Record doesn't exist or doesn't belong to this company
@@ -323,4 +311,3 @@ class Customer extends BaseModel {
     }
 }
 ?>
-

@@ -42,10 +42,10 @@ class Measurement extends BaseModel {
     /**
      * Get measurements with customer and cloth type details
      */
-    public function getMeasurementsWithDetails($conditions = [], $limit = null, $offset = 0) {
+    public function getMeasurementsWithDetails($conditions = [], $limit = null, $offset = 0, $search = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT m.*, 
-                         c.first_name, c.last_name, c.customer_code,
+                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
                          ct.name as cloth_type_name, ct.category as cloth_category
                   FROM " . $this->table . " m
                   LEFT JOIN customers c ON m.customer_id = c.id
@@ -71,6 +71,23 @@ class Measurement extends BaseModel {
                     $params[$column] = $value;
                 }
             }
+        }
+        
+        // Add search filter if provided
+        if (!empty($search)) {
+            $searchPattern = '%' . $search . '%';
+            $where_clauses[] = "(c.first_name LIKE :search_fname 
+                                OR c.last_name LIKE :search_lname 
+                                OR c.customer_code LIKE :search_code 
+                                OR CONCAT(c.first_name, ' ', c.last_name) LIKE :search_fullname
+                                OR ct.name LIKE :search_cloth
+                                OR m.notes LIKE :search_notes)";
+            $params['search_fname'] = $searchPattern;
+            $params['search_lname'] = $searchPattern;
+            $params['search_code'] = $searchPattern;
+            $params['search_fullname'] = $searchPattern;
+            $params['search_cloth'] = $searchPattern;
+            $params['search_notes'] = $searchPattern;
         }
         
         if (!empty($where_clauses)) {
@@ -209,36 +226,10 @@ class Measurement extends BaseModel {
     }
 
     /**
-     * Search measurements
+     * Search measurements (deprecated - use getMeasurementsWithDetails with search parameter)
      */
     public function searchMeasurements($search_term, $limit = 20) {
-        $companyId = $this->getCompanyId();
-        $query = "SELECT m.*, 
-                         c.first_name, c.last_name, c.customer_code,
-                         ct.name as cloth_type_name
-                  FROM " . $this->table . " m
-                  LEFT JOIN customers c ON m.customer_id = c.id
-                  LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  WHERE (c.first_name LIKE :search 
-                      OR c.last_name LIKE :search 
-                      OR c.customer_code LIKE :search 
-                      OR ct.name LIKE :search
-                      OR m.notes LIKE :search)";
-        if ($companyId) {
-            $query .= " AND m.company_id = :company_id";
-        }
-        $query .= " ORDER BY m.created_at DESC LIMIT :limit";
-        
-        $stmt = $this->conn->prepare($query);
-        $search_pattern = '%' . $search_term . '%';
-        $stmt->bindParam(':search', $search_pattern);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
-        }
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        return $stmt->fetchAll();
+        return $this->getMeasurementsWithDetails([], $limit, 0, $search_term);
     }
 
     /**

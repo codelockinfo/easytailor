@@ -46,74 +46,36 @@ try {
     // Build conditions
     $conditions = [];
     if (!empty($status)) {
-        $conditions['payment_status'] = $status;
+        $conditions['i.payment_status'] = $status;
     }
-    // Note: customer_id filtering will be handled after getting invoices
-    // since customer_id is in orders table, not invoices table
+    if (!empty($customer_id)) {
+        $conditions['c.id'] = $customer_id;
+    }
     
-    // Get invoices - use simple approach first
+    // Get invoices with details - this method already includes joins and company_id filtering
     $offset = ($page - 1) * $limit;
     
-    // Try simple query first
     try {
         // If limit is 0, we only need filter options, not invoice data
         if ($limit == 0) {
             $invoices = [];
+            $totalInvoices = 0;
         } else {
-            // Get invoices using the model's public methods
-            $invoices = $invoiceModel->findAll($conditions, 'created_at DESC', $limit);
+            // Get invoices with search filter applied in SQL
+            // Pass empty string if search is empty to avoid issues
+            $searchParam = !empty($search) ? trim($search) : null;
             
-            // If we have invoices, get additional details using separate model instances
-            if (!empty($invoices)) {
-                $orderModel = new Order();
-                $customerModel = new Customer();
-                
-                foreach ($invoices as &$invoice) {
-                    // Get order details using Order model
-                    $order = $orderModel->find($invoice['order_id']);
-                    
-                    if ($order) {
-                        $invoice['order_number'] = $order['order_number'];
-                        $invoice['order_date'] = $order['order_date'];
-                        
-                        // Get customer details using Customer model
-                        $customer = $customerModel->find($order['customer_id']);
-                        
-                        if ($customer) {
-                            $invoice['first_name'] = $customer['first_name'];
-                            $invoice['last_name'] = $customer['last_name'];
-                            $invoice['customer_phone'] = $customer['phone'];
-                        }
-                    }
-                }
-            }
+            // Get total count - fetch all without limit to count
+            $allInvoices = $invoiceModel->getInvoicesWithDetails($conditions, null, 0, $searchParam);
+            $totalInvoices = count($allInvoices);
+            
+            // Then get paginated results
+            $invoices = $invoiceModel->getInvoicesWithDetails($conditions, $limit, $offset, $searchParam);
         }
     } catch (Exception $e) {
         throw new Exception("Failed to fetch invoices: " . $e->getMessage());
     }
     
-    // Filter by customer_id if specified
-    if (!empty($customer_id)) {
-        $orderModel = new Order();
-        $invoices = array_filter($invoices, function($invoice) use ($customer_id, $orderModel) {
-            // Check if this invoice belongs to the specified customer
-            $order = $orderModel->find($invoice['order_id']);
-            return $order && $order['customer_id'] == $customer_id;
-        });
-    }
-    
-    // If search is provided, filter results manually
-    if (!empty($search)) {
-        $searchLower = strtolower($search);
-        $invoices = array_filter($invoices, function($invoice) use ($searchLower) {
-            $customerName = ($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? '');
-            return strpos(strtolower($invoice['invoice_number']), $searchLower) !== false ||
-                   strpos(strtolower($customerName), $searchLower) !== false ||
-                   strpos(strtolower($invoice['customer_phone'] ?? ''), $searchLower) !== false;
-        });
-    }
-    
-    $totalInvoices = count($invoices);
     $totalPages = ($limit > 0) ? ceil($totalInvoices / $limit) : 1;
     
     // Get filter options
@@ -127,6 +89,7 @@ try {
             'id' => $invoice['id'],
             'invoice_number' => htmlspecialchars($invoice['invoice_number']),
             'customer_name' => htmlspecialchars($customerName ?: 'N/A'),
+            'customer_code' => htmlspecialchars($invoice['customer_code'] ?? ''),
             'customer_phone' => htmlspecialchars($invoice['customer_phone'] ?? 'N/A'),
             'order_number' => htmlspecialchars($invoice['order_number'] ?? 'N/A'),
             'invoice_date' => $invoice['invoice_date'],

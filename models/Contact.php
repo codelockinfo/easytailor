@@ -19,14 +19,24 @@ class Contact extends BaseModel {
      * Get active contacts
      */
     public function getActiveContacts() {
-        return $this->findAll(['status' => 'active'], 'name ASC');
+        $companyId = $this->getCompanyId();
+        $conditions = ['status' => 'active'];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        return $this->findAll($conditions, 'name ASC');
     }
 
     /**
      * Get contacts by category
      */
     public function getContactsByCategory($category) {
-        return $this->findAll(['category' => $category, 'status' => 'active'], 'name ASC');
+        $companyId = $this->getCompanyId();
+        $conditions = ['category' => $category, 'status' => 'active'];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        return $this->findAll($conditions, 'name ASC');
     }
 
     /**

@@ -8,6 +8,14 @@ class Measurement extends BaseModel {
     protected $table = 'measurements';
 
     /**
+     * Get company ID from session
+     */
+    private function getCompanyId() {
+        require_once __DIR__ . '/../../config/config.php';
+        return get_company_id();
+    }
+
+    /**
      * Get measurements for a specific customer
      */
     public function getCustomerMeasurements($customer_id) {
@@ -28,6 +36,7 @@ class Measurement extends BaseModel {
      * Get measurements with customer and cloth type details
      */
     public function getMeasurementsWithDetails($conditions = [], $limit = null, $offset = 0) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT m.*, 
                          c.first_name, c.last_name, c.customer_code,
                          ct.name as cloth_type_name, ct.category as cloth_category
@@ -36,9 +45,14 @@ class Measurement extends BaseModel {
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id";
         
         $params = [];
+        $where_clauses = [];
+        
+        if ($companyId) {
+            $where_clauses[] = "m.company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
         
         if (!empty($conditions)) {
-            $where_clauses = [];
             foreach ($conditions as $column => $value) {
                 if (strpos($column, '.') !== false) {
                     // Handle table.column format
@@ -49,6 +63,9 @@ class Measurement extends BaseModel {
                     $params[$column] = $value;
                 }
             }
+        }
+        
+        if (!empty($where_clauses)) {
             $query .= " WHERE " . implode(" AND ", $where_clauses);
         }
         
@@ -78,6 +95,10 @@ class Measurement extends BaseModel {
      * Create measurement with JSON data
      */
     public function createMeasurement($data) {
+        // Ensure company_id is set
+        if (!isset($data['company_id'])) {
+            $data['company_id'] = $this->getCompanyId();
+        }
         // Ensure measurement_data is JSON
         if (is_array($data['measurement_data'])) {
             $data['measurement_data'] = json_encode($data['measurement_data']);
@@ -112,16 +133,27 @@ class Measurement extends BaseModel {
      * Get measurement statistics
      */
     public function getMeasurementStats() {
+        $companyId = $this->getCompanyId();
         $stats = [];
         
         // Total measurements
-        $stats['total'] = $this->count();
+        $conditions = [];
+        if ($companyId) {
+            $conditions['company_id'] = $companyId;
+        }
+        $stats['total'] = $this->count($conditions);
         
         // Measurements this month
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['this_month'] = $result['count'];
@@ -129,11 +161,17 @@ class Measurement extends BaseModel {
         // Measurements by cloth type
         $query = "SELECT ct.name, COUNT(m.id) as count 
                   FROM " . $this->table . " m
-                  LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  GROUP BY ct.id, ct.name
+                  LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id";
+        if ($companyId) {
+            $query .= " WHERE m.company_id = :company_id";
+        }
+        $query .= " GROUP BY ct.id, ct.name
                   ORDER BY count DESC";
         
         $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $stats['by_cloth_type'] = $stmt->fetchAll();
         
@@ -161,20 +199,26 @@ class Measurement extends BaseModel {
      * Search measurements
      */
     public function searchMeasurements($search_term, $limit = 20) {
-        // Simplified query - let's start with just basic search
+        $companyId = $this->getCompanyId();
         $query = "SELECT m.*, 
                          c.first_name, c.last_name, c.customer_code,
                          ct.name as cloth_type_name
                   FROM " . $this->table . " m
                   LEFT JOIN customers c ON m.customer_id = c.id
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  WHERE c.first_name LIKE :search
-                  ORDER BY m.created_at DESC
+                  WHERE c.first_name LIKE :search";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " ORDER BY m.created_at DESC
                   LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
         $search_pattern = '%' . $search_term . '%';
         $stmt->bindValue(':search', $search_pattern);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         

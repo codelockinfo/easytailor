@@ -24,7 +24,7 @@ try {
         exit;
     }
 
-    require_once $rootDir . '/../models/Expense.php';
+    require_once $rootDir . '/models/Expense.php';
 
     // Get filter parameters
     $category = $_GET['category'] ?? '';
@@ -46,34 +46,79 @@ try {
 
     $expenseModel = new Expense();
     
-    // Build conditions
+    // Build conditions (only for category, date filters handled separately)
     $conditions = [];
     if (!empty($category)) {
         $conditions['category'] = $category;
     }
-    if (!empty($date_from)) {
-        $conditions['date_from'] = $date_from;
-    }
-    if (!empty($date_to)) {
-        $conditions['date_to'] = $date_to;
-    }
     
     // Get expenses
     $offset = ($page - 1) * $limit;
-    $expenses = $expenseModel->getExpensesWithDetails($conditions, $limit, $offset);
     
-    // If search is provided, filter results manually
-    if (!empty($search)) {
-        $searchLower = strtolower($search);
-        $expenses = array_filter($expenses, function($expense) use ($searchLower) {
-            return strpos(strtolower($expense['category']), $searchLower) !== false ||
-                   strpos(strtolower($expense['description']), $searchLower) !== false ||
-                   strpos(strtolower($expense['payment_method']), $searchLower) !== false ||
-                   strpos(strtolower($expense['reference_number'] ?? ''), $searchLower) !== false;
-        });
+    try {
+        // Get all expenses first (with category filter if any)
+        $allExpenses = $expenseModel->getExpensesWithDetails($conditions, 10000, 0);
+    } catch (Exception $e) {
+        error_log('Error getting expenses: ' . $e->getMessage());
+        $allExpenses = [];
     }
     
-    $totalExpenses = count($expenses);
+    // Ensure $allExpenses is an array
+    if (!is_array($allExpenses)) {
+        $allExpenses = [];
+    }
+    
+    // Apply date filters if provided
+    if (!empty($date_from) || !empty($date_to)) {
+        $allExpenses = array_filter($allExpenses, function($expense) use ($date_from, $date_to) {
+            $expenseDate = $expense['expense_date'] ?? '';
+            if (empty($expenseDate)) {
+                return false;
+            }
+            
+            $expenseTimestamp = strtotime($expenseDate);
+            
+            if (!empty($date_from)) {
+                $fromTimestamp = strtotime($date_from);
+                if ($expenseTimestamp < $fromTimestamp) {
+                    return false;
+                }
+            }
+            
+            if (!empty($date_to)) {
+                $toTimestamp = strtotime($date_to);
+                if ($expenseTimestamp > $toTimestamp) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        // Re-index array after filtering
+        $allExpenses = array_values($allExpenses);
+    }
+    
+    // Apply search filter if provided
+    if (!empty($search)) {
+        $searchLower = strtolower(trim($search));
+        $allExpenses = array_filter($allExpenses, function($expense) use ($searchLower) {
+            $category = strtolower($expense['category'] ?? '');
+            $description = strtolower($expense['description'] ?? '');
+            $paymentMethod = strtolower($expense['payment_method'] ?? '');
+            $referenceNumber = strtolower($expense['reference_number'] ?? '');
+            
+            return strpos($category, $searchLower) !== false ||
+                   strpos($description, $searchLower) !== false ||
+                   strpos($paymentMethod, $searchLower) !== false ||
+                   strpos($referenceNumber, $searchLower) !== false;
+        });
+        // Re-index array after filtering
+        $allExpenses = array_values($allExpenses);
+    }
+    
+    // Apply pagination
+    $totalExpenses = count($allExpenses);
+    $expenses = array_slice($allExpenses, $offset, $limit);
     $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
     
     // Get filter options - get unique categories from database
@@ -86,17 +131,22 @@ try {
     $formattedExpenses = [];
     foreach ($expenses as $expense) {
         $formattedExpenses[] = [
-            'id' => $expense['id'],
-            'category' => htmlspecialchars($expense['category']),
-            'description' => htmlspecialchars($expense['description']),
-            'amount' => $expense['amount'],
-            'expense_date' => $expense['expense_date'],
-            'payment_method' => htmlspecialchars($expense['payment_method']),
+            'id' => $expense['id'] ?? null,
+            'category' => htmlspecialchars($expense['category'] ?? ''),
+            'description' => htmlspecialchars($expense['description'] ?? ''),
+            'amount' => $expense['amount'] ?? 0,
+            'expense_date' => $expense['expense_date'] ?? '',
+            'payment_method' => htmlspecialchars($expense['payment_method'] ?? 'cash'),
             'reference_number' => htmlspecialchars($expense['reference_number'] ?? ''),
-            'receipt_image' => $expense['receipt_image'],
+            'receipt_image' => $expense['receipt_image'] ?? null,
             'created_by_name' => htmlspecialchars($expense['created_by_name'] ?? ''),
-            'created_at' => $expense['created_at']
+            'created_at' => $expense['created_at'] ?? ''
         ];
+    }
+    
+    // Ensure formattedExpenses is always an array
+    if (!is_array($formattedExpenses)) {
+        $formattedExpenses = [];
     }
     
     // Format filter options - ensure categories is an array

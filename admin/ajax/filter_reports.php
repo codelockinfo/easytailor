@@ -62,19 +62,23 @@ try {
         throw new Exception('From date cannot be after to date');
     }
     
-    require_once $rootDir . '/../models/Order.php';
-    require_once $rootDir . '/../models/Invoice.php';
-    require_once $rootDir . '/../models/Expense.php';
-    require_once $rootDir . '/../models/Customer.php';
+    require_once $rootDir . '/models/Order.php';
+    require_once $rootDir . '/models/Invoice.php';
+    require_once $rootDir . '/models/Expense.php';
+    require_once $rootDir . '/models/Customer.php';
     require_once $rootDir . '/../config/database.php';
     
     // Clear any output buffer content
     ob_clean();
     
-    $orderModel = new Order();
-    $invoiceModel = new Invoice();
-    $expenseModel = new Expense();
-    $customerModel = new Customer();
+    try {
+        $orderModel = new Order();
+        $invoiceModel = new Invoice();
+        $expenseModel = new Expense();
+        $customerModel = new Customer();
+    } catch (Exception $e) {
+        throw new Exception('Failed to initialize models: ' . $e->getMessage());
+    }
     
     // Get statistics (filtered by date range using conditions)
     // Note: These methods will automatically filter by company_id
@@ -85,8 +89,9 @@ try {
     
     // Get orders within date range for filtering (using direct query)
     $companyId = get_company_id();
-    $db = new Database();
-    $conn = $db->getConnection();
+    // Create a new database connection for direct queries
+    $database = new Database();
+    $conn = $database->getConnection();
     
     $ordersQuery = "SELECT o.*, 
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
@@ -338,10 +343,10 @@ try {
         ];
     }
     
-    // Format expense categories for display
+    // Format expense categories for display (use filtered stats)
     $formattedExpenseCategories = [];
-    if (!empty($expenseStats['by_category'])) {
-        foreach (array_slice($expenseStats['by_category'], 0, 5) as $category) {
+    if (!empty($filteredExpenseStats['by_category'])) {
+        foreach (array_slice($filteredExpenseStats['by_category'], 0, 5) as $category) {
             $formattedExpenseCategories[] = [
                 'category' => htmlspecialchars($category['category']),
                 'count' => $category['count'],
@@ -385,12 +390,12 @@ try {
                     'cancelled' => $filteredOrderStats['cancelled']
                 ],
                 'expense_categories' => [
-                    'labels' => array_column($filteredExpenseStats['by_category'], 'category'),
-                    'data' => array_column($filteredExpenseStats['by_category'], 'total')
+                    'labels' => !empty($filteredExpenseStats['by_category']) ? array_column($filteredExpenseStats['by_category'], 'category') : [],
+                    'data' => !empty($filteredExpenseStats['by_category']) ? array_column($filteredExpenseStats['by_category'], 'total') : []
                 ],
                 'payment_methods' => [
-                    'labels' => array_column($filteredExpenseStats['by_payment_method'], 'payment_method'),
-                    'data' => array_column($filteredExpenseStats['by_payment_method'], 'total')
+                    'labels' => !empty($filteredExpenseStats['by_payment_method']) ? array_column($filteredExpenseStats['by_payment_method'], 'payment_method') : [],
+                    'data' => !empty($filteredExpenseStats['by_payment_method']) ? array_column($filteredExpenseStats['by_payment_method'], 'total') : []
                 ]
             ],
             'tables' => [
@@ -405,6 +410,8 @@ try {
 } catch (Exception $e) {
     ob_clean();
     http_response_code(500);
+    error_log('Filter reports error: ' . $e->getMessage());
+    error_log('Stack trace: ' . $e->getTraceAsString());
     echo json_encode([
         'success' => false,
         'error' => 'Filter failed: ' . $e->getMessage()
@@ -412,6 +419,8 @@ try {
 } catch (Error $e) {
     ob_clean();
     http_response_code(500);
+    error_log('Filter reports fatal error: ' . $e->getMessage());
+    error_log('Stack trace: ' . $e->getTraceAsString());
     echo json_encode([
         'success' => false,
         'error' => 'Fatal error: ' . $e->getMessage()

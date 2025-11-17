@@ -830,6 +830,24 @@ function removeMeasurementField(button) {
     addMeasurementField('length', '');
 <?php endif; ?>
 
+// Edit measurement from filtered results
+function editMeasurementFromFilter(id) {
+    // Fetch full measurement data
+    fetch('ajax/get_measurement_details.php?id=' + id)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.measurement) {
+                editMeasurement(data.measurement);
+            } else {
+                alert('Failed to load measurement data');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading measurement:', error);
+            alert('Error loading measurement data');
+        });
+}
+
 // View measurement details
 function editMeasurement(measurement) {
     // Set modal title
@@ -1203,10 +1221,9 @@ clearFilters.addEventListener('click', function() {
     searchInput.value = '';
     customerFilter.value = '';
     clothTypeFilter.value = '';
-    if (measurementsTable) {
-        measurementsTable.innerHTML = originalTableContent;
-    }
-    filterResults.style.display = 'none';
+    
+    // Reload the page to show all measurements
+    window.location.href = 'measurements.php';
 });
 
 function performFilter() {
@@ -1240,41 +1257,90 @@ function executeFilter() {
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     
-    fetch(`ajax/filter_measurements.php?${params.toString()}`)
+    const url = `ajax/filter_measurements.php?${params.toString()}`;
+    console.log('Fetching from URL:', url);
+    
+    fetch(url)
         .then(response => {
+            console.log('Response status:', response.status, response.statusText);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.text();
         })
         .then(text => {
+            console.log('Raw response text (first 500 chars):', text.substring(0, 500));
             if (text.trim().startsWith('<')) {
+                console.error('Server returned HTML instead of JSON. Full response:', text);
                 throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
             }
             
             try {
                 const data = JSON.parse(text);
+                console.log('Parsed JSON data:', data);
+                console.log('Success:', data.success);
+                console.log('Measurements array:', data.measurements);
+                console.log('Measurements length:', data.measurements ? data.measurements.length : 'undefined');
+                
                 if (data.success) {
-                    displayFilterResults(data.measurements);
-                    filterCount.textContent = data.pagination.total_measurements;
+                    // Ensure measurements is an array
+                    const measurements = Array.isArray(data.measurements) ? data.measurements : [];
+                    console.log('Final measurements count:', measurements.length);
+                    
+                    if (measurements.length > 0) {
+                        console.log('First measurement:', measurements[0]);
+                    }
+                    
+                    displayFilterResults(measurements);
+                    if (data.pagination) {
+                        filterCount.textContent = data.pagination.total_measurements || measurements.length;
+                    } else {
+                        filterCount.textContent = measurements.length;
+                    }
                 } else {
                     console.error('Filter error:', data.error);
                     filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                    if (measurementsTable) {
+                        measurementsTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    ${data.error || 'Unknown error'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    }
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
                 console.error('Response text:', text);
                 filterCount.textContent = 'Invalid response from server';
+                if (measurementsTable) {
+                    measurementsTable.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Invalid response from server. Please check the console for details.
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                }
             }
         })
         .catch(error => {
-            console.error('Filter error:', error);
+            console.error('Filter fetch error:', error);
             filterCount.textContent = 'Filter failed: ' + error.message;
         });
 }
 
 function displayFilterResults(measurements) {
-    if (measurements.length === 0) {
+    console.log('Displaying filter results, count:', measurements ? measurements.length : 0);
+    
+    if (!measurements || measurements.length === 0) {
         if (measurementsTable) {
             measurementsTable.innerHTML = `
             <tr>
@@ -1291,8 +1357,20 @@ function displayFilterResults(measurements) {
     
     let tableHTML = '';
     measurements.forEach(measurement => {
-        // Parse measurement data
-        const measurementData = measurement.measurement_data ? JSON.parse(measurement.measurement_data) : {};
+        // Parse measurement data safely
+        let measurementData = {};
+        if (measurement.measurement_data) {
+            try {
+                if (typeof measurement.measurement_data === 'string') {
+                    measurementData = JSON.parse(measurement.measurement_data);
+                } else if (typeof measurement.measurement_data === 'object') {
+                    measurementData = measurement.measurement_data;
+                }
+            } catch (e) {
+                console.error('Error parsing measurement_data:', e, measurement.measurement_data);
+                measurementData = {};
+            }
+        }
         const measurementCount = Object.keys(measurementData).length;
         
         // Build measurement summary (matching original structure)
@@ -1355,7 +1433,7 @@ function displayFilterResults(measurements) {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(${JSON.stringify(measurement).replace(/"/g, '&quot;')})" title="Edit" style="border: 1px solid #667eea;">
+                        <button type="button" class="btn btn-outline-primary" onclick="editMeasurementFromFilter(${measurement.id})" title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-outline-info" onclick="viewMeasurement(${measurement.id})" title="View Details" style="border: 1px solid #667eea;">

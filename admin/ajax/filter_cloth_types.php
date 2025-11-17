@@ -24,7 +24,7 @@ try {
         exit;
     }
 
-    require_once $rootDir . '/../models/ClothType.php';
+    require_once $rootDir . '/models/ClothType.php';
 
     // Get filter parameters
     $category = $_GET['category'] ?? '';
@@ -52,23 +52,42 @@ try {
     
     // Get cloth types
     $offset = ($page - 1) * $limit;
-    $clothTypes = $clothTypeModel->getClothTypesWithOrderCount();
+    
+    try {
+        $clothTypes = $clothTypeModel->getClothTypesWithOrderCount();
+    } catch (Exception $e) {
+        error_log('Error getting cloth types: ' . $e->getMessage());
+        $clothTypes = [];
+    }
+    
+    // Ensure $clothTypes is an array
+    if (!is_array($clothTypes)) {
+        $clothTypes = [];
+    }
     
     // Filter by category if specified
     if (!empty($category)) {
         $clothTypes = array_filter($clothTypes, function($clothType) use ($category) {
-            return $clothType['category'] === $category;
+            return isset($clothType['category']) && $clothType['category'] === $category;
         });
+        // Re-index array after filtering
+        $clothTypes = array_values($clothTypes);
     }
     
     // If search is provided, filter results manually
     if (!empty($search)) {
-        $searchLower = strtolower($search);
+        $searchLower = strtolower(trim($search));
         $clothTypes = array_filter($clothTypes, function($clothType) use ($searchLower) {
-            return strpos(strtolower($clothType['name']), $searchLower) !== false ||
-                   strpos(strtolower($clothType['category']), $searchLower) !== false ||
-                   strpos(strtolower($clothType['description'] ?? ''), $searchLower) !== false;
+            $name = strtolower($clothType['name'] ?? '');
+            $cat = strtolower($clothType['category'] ?? '');
+            $desc = strtolower($clothType['description'] ?? '');
+            
+            return strpos($name, $searchLower) !== false ||
+                   strpos($cat, $searchLower) !== false ||
+                   strpos($desc, $searchLower) !== false;
         });
+        // Re-index array after filtering
+        $clothTypes = array_values($clothTypes);
     }
     
     // Apply pagination
@@ -86,15 +105,21 @@ try {
     $formattedClothTypes = [];
     foreach ($clothTypes as $clothType) {
         $formattedClothTypes[] = [
-            'id' => $clothType['id'],
-            'name' => htmlspecialchars($clothType['name']),
-            'category' => htmlspecialchars($clothType['category']),
+            'id' => $clothType['id'] ?? null,
+            'name' => htmlspecialchars($clothType['name'] ?? ''),
+            'category' => htmlspecialchars($clothType['category'] ?? ''),
             'description' => htmlspecialchars($clothType['description'] ?? ''),
-            'standard_rate' => $clothType['standard_rate'],
+            'standard_rate' => $clothType['standard_rate'] ?? null,
             'order_count' => $clothType['order_count'] ?? 0,
-            'status' => $clothType['status'],
-            'created_at' => $clothType['created_at']
+            'status' => $clothType['status'] ?? 'active',
+            'created_at' => $clothType['created_at'] ?? '',
+            'measurement_chart_image' => $clothType['measurement_chart_image'] ?? ''
         ];
+    }
+    
+    // Ensure formattedClothTypes is always an array
+    if (!is_array($formattedClothTypes)) {
+        $formattedClothTypes = [];
     }
     
     // Format filter options - ensure categories is an array

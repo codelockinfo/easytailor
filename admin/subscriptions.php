@@ -795,3 +795,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    @media (max-width: 768px) {
+        .border-end {
+            border-right: none !important;
+        }
+    }
+</style>

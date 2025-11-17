@@ -39,14 +39,22 @@ class EmailChangeRequest extends BaseModel {
      * Check if there's a pending request for a company
      */
     public function hasPendingRequest($company_id) {
-        $query = "SELECT id FROM " . $this->table . " 
-                  WHERE company_id = :company_id AND status = 'pending' 
-                  LIMIT 1";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':company_id', $company_id, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        return $stmt->fetch() ? true : false;
+        try {
+            $query = "SELECT id FROM " . $this->table . " 
+                      WHERE company_id = :company_id AND status = 'pending' 
+                      LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':company_id', $company_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetch() ? true : false;
+        } catch (PDOException $e) {
+            // Gracefully handle missing email_change_requests table
+            if ($e->getCode() === '42S02') {
+                return false;
+            }
+            throw $e;
+        }
     }
 
     /**

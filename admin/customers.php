@@ -840,4 +840,8 @@ function displaySearchResults(customers) {
             display: none !important;
         }
     }
+
+    .btn-outline-info:hover {
+        color: #ffffff;
+    }
 </style>

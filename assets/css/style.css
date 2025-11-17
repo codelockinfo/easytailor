@@ -1247,7 +1247,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pricing Slider Styles */
 .pricing-slider {
-    margin: 0 -15px;
+    margin: 20px -15px 0;
     padding: 0px!important;
 }
 

@@ -448,7 +448,7 @@ $orderStats = $orderModel->getOrderStats();
                                     </button>
                                     <a href="order-details.php?id=<?php echo $order['id']; ?>" 
                                        class="btn btn-outline-info" 
-                                       title="View Details" style="border: 1px solid #667eea;">
+                                       title="View Details" style="border: 1px solid #667eea; padding-top: 18px;">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <div class="dropdown" style="position: static;">
@@ -1239,7 +1239,7 @@ function displayFilterResults(orders) {
                         </button>
                         <a href="order-details.php?id=${order.id}" 
                            class="btn btn-outline-info" 
-                           title="View Details" style="border: 1px solid #667eea;">
+                           title="View Details" style="border: 1px solid #667eea; padding-top: 18px;">
                             <i class="fas fa-eye"></i>
                         </a>
                         <div class="dropdown" style="position: static;">

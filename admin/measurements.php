@@ -1392,4 +1392,7 @@ function displayFilterResults(measurements) {
 .col-md-3 .card-body {
     padding: 24px;
 }
+.btn-outline-info:hover {
+    color: #ffffff;
+}
 </style>

@@ -1153,3 +1153,8 @@ function displayFilterResults(invoices) {
 <?php require_once 'includes/footer.php'; ?>
 
 
+<style>
+    .btn-outline-info:hover {
+        color: #ffffff;
+    }
+</style>

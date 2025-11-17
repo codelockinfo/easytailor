@@ -496,14 +496,81 @@ function updateCharts(data) {
     revenueExpenseChart.update();
 
     // Update Order Status Chart
-    orderStatusChart.data.datasets[0].data = [
-        data.charts.order_status.pending,
-        data.charts.order_status.in_progress,
-        data.charts.order_status.completed,
-        data.charts.order_status.delivered,
-        data.charts.order_status.cancelled
+    if (!orderStatusChart) {
+        console.error('Order status chart not initialized');
+        return;
+    }
+    
+    const orderStatusData = [
+        parseInt(data.charts.order_status.pending) || 0,
+        parseInt(data.charts.order_status.in_progress) || 0,
+        parseInt(data.charts.order_status.completed) || 0,
+        parseInt(data.charts.order_status.delivered) || 0,
+        parseInt(data.charts.order_status.cancelled) || 0
     ];
-    orderStatusChart.update();
+    
+    console.log('Updating order status chart with data:', orderStatusData);
+    
+    // Ensure the chart has the correct structure
+    if (!orderStatusChart.data || !orderStatusChart.data.datasets || !orderStatusChart.data.datasets[0]) {
+        console.error('Order status chart structure is invalid');
+        return;
+    }
+    
+    // Update the data
+    orderStatusChart.data.datasets[0].data = orderStatusData;
+    
+    // If all values are 0, Chart.js might not render properly, so we need to handle it
+    const totalOrders = orderStatusData.reduce((sum, val) => sum + val, 0);
+    if (totalOrders === 0) {
+        console.log('No orders found in the selected date range - chart will show empty');
+        // Ensure the chart still renders even with all zeros
+        orderStatusChart.options.plugins.legend.display = true;
+    }
+    
+    // Update the chart
+    try {
+        // Force a resize and update to ensure the chart renders properly
+        orderStatusChart.resize();
+        orderStatusChart.update('none'); // Use 'none' animation mode for smoother updates
+        console.log('Order status chart updated successfully');
+    } catch (error) {
+        console.error('Error updating order status chart:', error);
+        // Try to reinitialize the chart if update fails
+        console.log('Attempting to reinitialize order status chart...');
+        try {
+            const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+            orderStatusChart.destroy();
+            orderStatusChart = new Chart(orderStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'In Progress', 'Completed', 'Delivered', 'Cancelled'],
+                    datasets: [{
+                        data: orderStatusData,
+                        backgroundColor: [
+                            '#ffc107',
+                            '#17a2b8',
+                            '#28a745',
+                            '#007bff',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            console.log('Order status chart reinitialized successfully');
+        } catch (reinitError) {
+            console.error('Error reinitializing order status chart:', reinitError);
+        }
+    }
 
     // Update Expense Category Chart
     expenseCategoryChart.data.labels = data.charts.expense_categories.labels;
@@ -612,11 +679,9 @@ document.getElementById('filterForm').addEventListener('submit', function(e) {
     performFilter();
 });
 
-// Reset button
+// Reset button - reloads page to restore original data/state
 document.getElementById('resetBtn').addEventListener('click', function() {
-    document.getElementById('date_from').value = '<?php echo date('Y-m-01'); ?>';
-    document.getElementById('date_to').value = '<?php echo date('Y-m-d'); ?>';
-    performFilter();
+    window.location.href = 'reports.php';
 });
 
 // Perform filter via AJAX
@@ -648,27 +713,54 @@ function performFilter() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('loadingIndicator').style.display = 'none';
-        document.getElementById('keyMetrics').style.opacity = '1';
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+    })
+    .then(text => {
+        console.log('Raw response text (first 500 chars):', text.substring(0, 500));
+        if (text.trim().startsWith('<')) {
+            console.error('Server returned HTML instead of JSON. Full response:', text);
+            throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+        }
         
-        if (data.success) {
-            // Update all components
-            updateKeyMetrics(data.data);
-            updateCharts(data.data);
-            updateSummaryTables(data.data);
+        try {
+            const data = JSON.parse(text);
+            console.log('Parsed JSON data:', data);
             
-            showToast('Reports updated successfully', 'success');
-        } else {
-            showToast(data.error || 'Failed to load reports data', 'error');
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('keyMetrics').style.opacity = '1';
+            
+            if (data.success) {
+                console.log('Updating charts with data:', data.data);
+                console.log('Order status data:', data.data.charts.order_status);
+                
+                // Update all components
+                updateKeyMetrics(data.data);
+                updateCharts(data.data);
+                updateSummaryTables(data.data);
+                
+                showToast('Reports updated successfully', 'success');
+            } else {
+                console.error('Filter error:', data.error);
+                showToast(data.error || 'Failed to load reports data', 'error');
+            }
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.error('Response text:', text);
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('keyMetrics').style.opacity = '1';
+            showToast('Invalid response from server. Please check the console for details.', 'error');
         }
     })
     .catch(error => {
         document.getElementById('loadingIndicator').style.display = 'none';
         document.getElementById('keyMetrics').style.opacity = '1';
-        console.error('Error:', error);
-        showToast('An error occurred while loading reports', 'error');
+        console.error('Filter fetch error:', error);
+        showToast('An error occurred while loading reports: ' + error.message, 'error');
     });
 }
 

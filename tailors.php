@@ -9,7 +9,7 @@ require_once 'models/Company.php';
 
 $database = new Database();
 $db = $database->getConnection();
-$company = new Company($db);
+$company = new Company();
 
 // Check if companies table exists
 $tableExists = false;
@@ -33,8 +33,12 @@ if (!$tableExists) {
 }
 
 // Get initial data
-$cities = $company->getUniqueCities();
-$states = $company->getUniqueStates();
+$cities = array_values(array_filter($company->getUniqueCities() ?? [], function($value) {
+    return !empty(trim((string)$value));
+}));
+$states = array_values(array_filter($company->getUniqueStates() ?? [], function($value) {
+    return !empty(trim((string)$value));
+}));
 $stats = $company->getListingStats();
 ?>
 <!DOCTYPE html>

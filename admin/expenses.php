@@ -755,8 +755,8 @@ clearFilters.addEventListener('click', function() {
     dateFromFilter.value = '';
     dateToFilter.value = '';
     
-    // Call executeFilter to fetch all expenses (no filters applied)
-    executeFilter();
+    // Reload the page to show all expenses
+    window.location.href = 'expenses.php';
 });
 
 function performFilter() {
@@ -792,84 +792,116 @@ function executeFilter() {
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     
-    fetch(`ajax/filter_expenses.php?${params.toString()}`)
+    const url = `ajax/filter_expenses.php?${params.toString()}`;
+    console.log('Fetching from URL:', url);
+    
+    fetch(url)
         .then(response => {
+            console.log('Response status:', response.status, response.statusText);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.text();
         })
         .then(text => {
+            console.log('Raw response text (first 500 chars):', text.substring(0, 500));
             if (text.trim().startsWith('<')) {
+                console.error('Server returned HTML instead of JSON. Full response:', text);
                 throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
             }
             
             try {
                 const data = JSON.parse(text);
+                console.log('Parsed JSON data:', data);
+                console.log('Success:', data.success);
+                console.log('Expenses array:', data.expenses);
+                console.log('Expenses length:', data.expenses ? data.expenses.length : 'undefined');
+                
                 if (data.success) {
-                    displayFilterResults(data.expenses);
-                    filterCount.textContent = data.pagination.total_expenses;
+                    // Ensure expenses is an array
+                    const expenses = Array.isArray(data.expenses) ? data.expenses : [];
+                    console.log('Final expenses count:', expenses.length);
+                    
+                    if (expenses.length > 0) {
+                        console.log('First expense:', expenses[0]);
+                    }
+                    
+                    displayFilterResults(expenses);
+                    if (data.pagination && data.pagination.total_expenses !== undefined) {
+                        filterCount.textContent = data.pagination.total_expenses;
+                    } else {
+                        filterCount.textContent = expenses.length;
+                    }
                 } else {
                     console.error('Filter error:', data.error);
                     filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                    if (expensesTable) {
+                        expensesTable.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    ${data.error || 'Unknown error'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    }
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
                 console.error('Response text:', text);
                 filterCount.textContent = 'Invalid response from server';
+                if (expensesTable) {
+                    expensesTable.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Invalid response from server. Please check the console for details.
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                }
             }
         })
         .catch(error => {
-            console.error('Filter error:', error);
+            console.error('Filter fetch error:', error);
             filterCount.textContent = 'Filter failed: ' + error.message;
         });
 }
 
 function displayFilterResults(expenses) {
-    console.log('displayFilterResults called with:', expenses.length, 'expenses');
+    console.log('Displaying filter results, count:', expenses ? expenses.length : 0);
     
-    // Check if any filters are active
-    const hasActiveFilters = searchInput.value.trim() || categoryFilter.value || dateFromFilter.value || dateToFilter.value;
-    
-    // Show/hide filter results indicator and column based on whether filters are active
-    if (hasActiveFilters) {
-        filterResults.style.display = 'block';
-        // Hide the "Created By" column header during filtering
-        const tableHeaders = document.querySelectorAll('.table thead th');
-        if (tableHeaders.length >= 7) {
-            tableHeaders[6].style.display = 'none'; // Hide "Created By" column (7th column)
-        }
-    } else {
-        filterResults.style.display = 'none';
-        // Show the "Created By" column header when no filters
-        const tableHeaders = document.querySelectorAll('.table thead th');
-        if (tableHeaders.length >= 7) {
-            tableHeaders[6].style.display = ''; // Show "Created By" column (7th column)
-        }
-    }
-    
-    if (expenses.length === 0) {
-        expensesTable.innerHTML = `
+    if (!expenses || expenses.length === 0) {
+        if (expensesTable) {
+            expensesTable.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No expenses found</h5>
                     <p class="text-muted">${hasActiveFilters ? 'Try adjusting your filter criteria' : 'No expenses recorded yet'}</p>
                 </td>
             </tr>
         `;
+        }
         return;
     }
     
     let tableHTML = '';
     expenses.forEach(expense => {
-        // Format date
-        const expenseDate = new Date(expense.expense_date).toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-        });
-        const createdTime = new Date(expense.created_at).toLocaleTimeString('en-US', { 
-            hour: '2-digit', minute: '2-digit' 
-        });
+        // Format date to match PHP format (YYYY-MM-DD)
+        const expenseDateObj = new Date(expense.expense_date);
+        const expenseDate = expenseDateObj.getFullYear() + '-' + 
+            String(expenseDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(expenseDateObj.getDate()).padStart(2, '0');
+        
+        // Format time to match PHP format (HH:MM - 24 hour format)
+        const createdTimeObj = new Date(expense.created_at);
+        const createdTime = String(createdTimeObj.getHours()).padStart(2, '0') + ':' + 
+            String(createdTimeObj.getMinutes()).padStart(2, '0');
         
         // Format currency
         const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
@@ -919,9 +951,8 @@ function displayFilterResults(expenses) {
                 <td>
                     ${expense.reference_number ? expense.reference_number : '<span class="text-muted">-</span>'}
                 </td>
-                ${hasActiveFilters ? '' : `
                 <td>
-                    ${expense.created_by_name || '<span class="text-muted">-</span>'}
+                    ${expense.created_by_name || '-'}
                 </td>
                 `}
                 <td>

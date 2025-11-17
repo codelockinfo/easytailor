@@ -220,6 +220,7 @@
 
         renderBreakdown(payload.stats.breakdown || {}, payload.stats.total_reviews || 0);
         renderReviews(payload.reviews || []);
+        updateTailorCardStats(company.id, payload.stats);
 
         contentEl.classList.remove('d-none');
     }
@@ -274,6 +275,41 @@
         `).join('');
     }
 
+    function updateTailorCardStats(companyId, stats) {
+        if (!companyId || !stats) {
+            console.log('updateTailorCardStats: Missing companyId or stats', { companyId, stats });
+            return;
+        }
+
+        const card = document.querySelector(`[data-tailor-id="${companyId}"]`);
+        if (!card) {
+            console.log('updateTailorCardStats: Card not found for companyId', companyId);
+            return;
+        }
+
+        // Handle both review_count and total_reviews (for compatibility)
+        const average = Number(stats.average_rating || stats.rating || 0);
+        const total = Number(stats.review_count || stats.total_reviews || 0);
+
+        console.log('updateTailorCardStats: Updating card with', { average, total, stats });
+
+        const ratingNumberEl = card.querySelector('.rating-number');
+        const ratingCountEl = card.querySelector('.rating-count');
+        const ratingStarsEl = card.querySelector('.rating-stars');
+
+        if (ratingNumberEl) {
+            ratingNumberEl.textContent = average.toFixed(1);
+        }
+
+        if (ratingCountEl) {
+            ratingCountEl.textContent = `(${total} reviews)`;
+        }
+
+        if (ratingStarsEl) {
+            ratingStarsEl.innerHTML = generateStars(average);
+        }
+    }
+
     function generateStars(value) {
         const full = Math.round(value);
         let html = '';
@@ -309,7 +345,37 @@
                 messageEl.classList.remove('text-muted');
                 messageEl.classList.add('text-success');
                 formEl.reset();
-                loadTailorDetails(currentCompanyId);
+                
+                // Always fetch fresh stats to ensure accuracy
+                if (currentCompanyId) {
+                    // Fetch updated stats from server
+                    fetch(`ajax/get_tailor_details.php?id=${encodeURIComponent(currentCompanyId)}`)
+                        .then((response) => response.json())
+                        .then((detailData) => {
+                            if (detailData.success && detailData.stats) {
+                                console.log('Fetched updated stats:', detailData.stats);
+                                updateTailorCardStats(currentCompanyId, detailData.stats);
+                            } else {
+                                // Fallback to stats from submit response if available
+                                if (data.stats) {
+                                    console.log('Using stats from submit response:', data.stats);
+                                    updateTailorCardStats(currentCompanyId, data.stats);
+                                }
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error fetching updated stats:', error);
+                            // Fallback to stats from submit response if available
+                            if (data.stats) {
+                                updateTailorCardStats(currentCompanyId, data.stats);
+                            }
+                        });
+                }
+                
+                // Close modal after a short delay to show success message
+                setTimeout(() => {
+                    modal.hide();
+                }, 1000);
             })
             .catch((error) => {
                 messageEl.textContent = error.message;

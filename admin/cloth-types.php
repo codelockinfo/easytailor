@@ -662,8 +662,9 @@ function populateFilterOptions(options) {
 clearFilters.addEventListener('click', function() {
     searchInput.value = '';
     categoryFilter.value = '';
-    clothTypesTable.innerHTML = originalTableContent;
-    filterResults.style.display = 'none';
+    
+    // Reload the page to show all cloth types
+    window.location.href = 'cloth-types.php';
 });
 
 function performFilter() {
@@ -709,9 +710,17 @@ function executeFilter() {
             
             try {
                 const data = JSON.parse(text);
+                console.log('Parsed JSON data:', data);
                 if (data.success) {
-                    displayFilterResults(data.cloth_types);
-                    filterCount.textContent = data.pagination.total_cloth_types;
+                    // Ensure cloth_types is an array
+                    const clothTypes = Array.isArray(data.cloth_types) ? data.cloth_types : [];
+                    console.log('Cloth types count:', clothTypes.length);
+                    displayFilterResults(clothTypes);
+                    if (data.pagination && data.pagination.total_cloth_types !== undefined) {
+                        filterCount.textContent = data.pagination.total_cloth_types;
+                    } else {
+                        filterCount.textContent = clothTypes.length;
+                    }
                 } else {
                     console.error('Filter error:', data.error);
                     filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
@@ -729,16 +738,20 @@ function executeFilter() {
 }
 
 function displayFilterResults(clothTypes) {
-    if (clothTypes.length === 0) {
-        clothTypesTable.innerHTML = `
+    console.log('Displaying filter results, count:', clothTypes ? clothTypes.length : 0);
+    
+    if (!clothTypes || clothTypes.length === 0) {
+        if (clothTypesTable) {
+            clothTypesTable.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center py-4">
+                <td colspan="7" class="text-center py-4">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No cloth types found</h5>
                     <p class="text-muted">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
+        }
         return;
     }
     
@@ -759,15 +772,16 @@ function displayFilterResults(clothTypes) {
                     <span class="badge bg-primary">${clothType.category}</span>
                 </td>
                 <td>
-                    <div class="text-end">
-                        <div class="fw-bold">${formatCurrency(clothType.standard_rate)}</div>
-                    </div>
+                    ${clothType.standard_rate ? `<div class="text-end"><div class="fw-bold">${formatCurrency(clothType.standard_rate)}</div></div>` : '<span class="text-muted">Not set</span>'}
                 </td>
                 <td>
                     <span class="badge bg-info">${clothType.order_count} orders</span>
                 </td>
                 <td>
                     <span class="badge bg-${clothType.status === 'active' ? 'success' : 'secondary'}">${clothType.status.charAt(0).toUpperCase() + clothType.status.slice(1)}</span>
+                </td>
+                <td>
+                    ${clothType.created_at ? new Date(clothType.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">

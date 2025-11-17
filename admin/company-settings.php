@@ -1,3 +1,6 @@
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="../favicon(2).png">
+
 <?php
 /**
  * Company Settings Page

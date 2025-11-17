@@ -46,7 +46,7 @@ $stats = $company->getListingStats();
     <meta name="description" content="Find experienced tailor shops near your location. Browse profiles, read reviews, and connect with skilled tailors for all your stitching needs.">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon(2).png">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

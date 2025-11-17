@@ -1,3 +1,6 @@
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="../favicon(2).png">
+
 <?php
 /**
  * Diagnostic Script - Check Measurement Charts Setup

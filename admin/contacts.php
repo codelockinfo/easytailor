@@ -643,10 +643,10 @@ function updateContactsTable(contacts) {
                     </div>
                 </td>
                 <td>
-                    <span class="badge bg-info">${contact.category}</span>
+                    <span class="badge bg-secondary">${contact.category}</span>
                 </td>
                 <td>
-                    <span class="badge bg-${contact.status === 'active' ? 'success' : 'secondary'}">${contact.status ? contact.status.charAt(0).toUpperCase() + contact.status.slice(1).toLowerCase() : 'Active'}</span>
+                    <span class="badge bg-${contact.status === 'active' ? 'success' : 'secondary'}">${contact.status}</span>
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">

@@ -451,7 +451,7 @@ $orderStats = $orderModel->getOrderStats();
                                     <div class="dropdown" style="position: static;">
                                         <button class="btn btn-outline-secondary dropdown-toggle" 
                                                 type="button" 
-                                                style="border-top-left-radius: 0; border-bottom-left-radius: 0; "
+                                                style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding-bottom: 13px;"
                                                 data-bs-toggle="dropdown"
                                                 title="Change Status">
                                             <i class="fas fa-cog"></i>
@@ -1347,7 +1347,7 @@ document.addEventListener('shown.bs.dropdown', function(e) {
         min-width: 150px;
         pointer-events: auto !important;
         position: fixed !important;
-        right: 4px !important;
+        right: 100px !important;
     }
     
     .table td .dropdown-menu.show {
@@ -1380,5 +1380,11 @@ document.addEventListener('shown.bs.dropdown', function(e) {
     /* Ensure table cells don't block dropdown */
     .table td {
         position: static;
+    }
+
+    @media (max-width: 768px) {
+        .table td .dropdown-menu {
+            right: 0 !important;
+        }
     }
 </style>

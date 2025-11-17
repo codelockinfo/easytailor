@@ -125,9 +125,11 @@ if (!empty($search)) {
     $customers = $customerModel->searchCustomers($search, $limit);
     $totalCustomers = count($customers);
 } else {
-    $customers = $customerModel->getCustomersWithOrderCount();
-    $totalCustomers = $customerModel->count(['status' => 'active']);
-    $customers = array_slice($customers, $offset, $limit);
+    // Get all customers for the company first to get accurate count
+    $allCustomers = $customerModel->getCustomersWithOrderCount();
+    $totalCustomers = count($allCustomers);
+    // Then slice for pagination
+    $customers = array_slice($allCustomers, $offset, $limit);
 }
 
 $totalPages = ceil($totalCustomers / $limit);

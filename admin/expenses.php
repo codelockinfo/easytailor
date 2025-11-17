@@ -95,10 +95,24 @@ $conditions = [];
 if (!empty($category_filter)) {
     $conditions['category'] = $category_filter;
 }
+if (!empty($date_from)) {
+    $conditions['date_from'] = $date_from;
+}
+if (!empty($date_to)) {
+    $conditions['date_to'] = $date_to;
+}
 
-$expenses = $expenseModel->getExpensesWithDetails($conditions, $limit, $offset);
-$totalExpenses = $expenseModel->count($conditions);
-$totalPages = ceil($totalExpenses / $limit);
+$searchParam = !empty($search) ? trim($search) : null;
+$allExpenses = $expenseModel->getExpensesWithDetails($conditions, null, 0, $searchParam);
+$totalExpenses = count($allExpenses);
+
+if ($limit > 0) {
+    $expenses = array_slice($allExpenses, $offset, $limit);
+    $totalPages = max(1, ceil($totalExpenses / $limit));
+} else {
+    $expenses = $allExpenses;
+    $totalPages = 1;
+}
 
 // Get expense for editing
 $editExpense = null;

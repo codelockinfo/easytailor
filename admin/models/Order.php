@@ -465,6 +465,69 @@ class Order extends BaseModel {
         }
         return parent::delete($id);
     }
+
+    /**
+     * Override create to include company_id
+     */
+    public function create($data) {
+        if (!isset($data['company_id'])) {
+            $data['company_id'] = $this->getCompanyId();
+        }
+        return parent::create($data);
+    }
+
+    /**
+     * Override count to include company_id filter
+     */
+    public function count($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::count($conditions);
+    }
+
+    /**
+     * Override findAll to include company_id filter
+     */
+    public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findAll($conditions, $order_by, $limit);
+    }
+
+    /**
+     * Override findOne to include company_id filter
+     */
+    public function findOne($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findOne($conditions);
+    }
+
+    /**
+     * Override find to include company_id filter
+     */
+    public function find($id) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
 }
 ?>
 

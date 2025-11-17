@@ -19,14 +19,24 @@ class Measurement extends BaseModel {
      * Get measurements for a specific customer
      */
     public function getCustomerMeasurements($customer_id) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT m.*, ct.name as cloth_type_name
                   FROM " . $this->table . " m
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  WHERE m.customer_id = :customer_id
-                  ORDER BY m.created_at DESC";
+                  WHERE m.customer_id = :customer_id";
+        
+        $params = [':customer_id' => $customer_id];
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+            $params[':company_id'] = $companyId;
+        }
+        
+        $query .= " ORDER BY m.created_at DESC";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue($param, $value, ($param === ':company_id' || $param === ':customer_id') ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();
@@ -223,6 +233,59 @@ class Measurement extends BaseModel {
         $stmt->execute();
         
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Override count to include company_id filter
+     */
+    public function count($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::count($conditions);
+    }
+
+    /**
+     * Override findAll to include company_id filter
+     */
+    public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findAll($conditions, $order_by, $limit);
+    }
+
+    /**
+     * Override findOne to include company_id filter
+     */
+    public function findOne($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findOne($conditions);
+    }
+
+    /**
+     * Override find to include company_id filter
+     */
+    public function find($id) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetch();
     }
 }
 ?>

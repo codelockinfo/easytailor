@@ -8,27 +8,53 @@ class Expense extends BaseModel {
     protected $table = 'expenses';
 
     /**
+     * Get company ID from session
+     */
+    private function getCompanyId() {
+        require_once __DIR__ . '/../../config/config.php';
+        return get_company_id();
+    }
+
+    /**
      * Get expenses with creator details
      */
     public function getExpensesWithDetails($conditions = [], $limit = null, $offset = 0) {
+        $companyId = $this->getCompanyId();
         $query = "SELECT e.*, u.full_name as created_by_name
                   FROM " . $this->table . " e
                   LEFT JOIN users u ON e.created_by = u.id";
         
         $params = [];
+        $where_clauses = [];
+        
+        // Add company_id filter
+        if ($companyId) {
+            $where_clauses[] = "e.company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
         
         if (!empty($conditions)) {
-            $where_clauses = [];
             foreach ($conditions as $column => $value) {
-                if (strpos($column, '.') !== false) {
-                    // Handle table.column format
-                    $where_clauses[] = $column . " = :" . str_replace('.', '_', $column);
-                    $params[str_replace('.', '_', $column)] = $value;
+                if ($column === 'date_from') {
+                    $where_clauses[] = "e.expense_date >= :date_from";
+                    $params['date_from'] = $value;
+                } elseif ($column === 'date_to') {
+                    $where_clauses[] = "e.expense_date <= :date_to";
+                    $params['date_to'] = $value;
                 } else {
-                    $where_clauses[] = "e." . $column . " = :" . $column;
-                    $params[$column] = $value;
+                    if (strpos($column, '.') !== false) {
+                        // Handle table.column format
+                        $where_clauses[] = $column . " = :" . str_replace('.', '_', $column);
+                        $params[str_replace('.', '_', $column)] = $value;
+                    } else {
+                        $where_clauses[] = "e." . $column . " = :" . $column;
+                        $params[$column] = $value;
+                    }
                 }
             }
+        }
+        
+        if (!empty($where_clauses)) {
             $query .= " WHERE " . implode(" AND ", $where_clauses);
         }
         
@@ -58,6 +84,7 @@ class Expense extends BaseModel {
      * Get expense statistics
      */
     public function getExpenseStats() {
+        $companyId = $this->getCompanyId();
         $stats = [];
         
         // Total expenses
@@ -65,7 +92,19 @@ class Expense extends BaseModel {
         
         // Total expense amount
         $query = "SELECT SUM(amount) as total FROM " . $this->table;
+        $where_clauses = [];
+        $params = [];
+        if ($companyId) {
+            $where_clauses[] = "company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
+        if (!empty($where_clauses)) {
+            $query .= " WHERE " . implode(" AND ", $where_clauses);
+        }
         $stmt = $this->conn->prepare($query);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue(':' . $param, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['total_amount'] = $result['total'] ?? 0;
@@ -75,8 +114,15 @@ class Expense extends BaseModel {
         $query = "SELECT COUNT(*) as count, SUM(amount) as total 
                   FROM " . $this->table . " 
                   WHERE expense_date >= :this_month";
+        $params = [':this_month' => $this_month];
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+            $params[':company_id'] = $companyId;
+        }
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':this_month', $this_month);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue($param, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['this_month_count'] = $result['count'];
@@ -84,19 +130,43 @@ class Expense extends BaseModel {
         
         // Expenses by category
         $query = "SELECT category, COUNT(*) as count, SUM(amount) as total 
-                  FROM " . $this->table . " 
-                  GROUP BY category 
+                  FROM " . $this->table;
+        $where_clauses = [];
+        $params = [];
+        if ($companyId) {
+            $where_clauses[] = "company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
+        if (!empty($where_clauses)) {
+            $query .= " WHERE " . implode(" AND ", $where_clauses);
+        }
+        $query .= " GROUP BY category 
                   ORDER BY total DESC";
         $stmt = $this->conn->prepare($query);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue(':' . $param, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         $stats['by_category'] = $stmt->fetchAll();
         
         // Expenses by payment method
         $query = "SELECT payment_method, COUNT(*) as count, SUM(amount) as total 
-                  FROM " . $this->table . " 
-                  GROUP BY payment_method 
+                  FROM " . $this->table;
+        $where_clauses = [];
+        $params = [];
+        if ($companyId) {
+            $where_clauses[] = "company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
+        if (!empty($where_clauses)) {
+            $query .= " WHERE " . implode(" AND ", $where_clauses);
+        }
+        $query .= " GROUP BY payment_method 
                   ORDER BY total DESC";
         $stmt = $this->conn->prepare($query);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue(':' . $param, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         $stats['by_payment_method'] = $stmt->fetchAll();
         
@@ -291,6 +361,69 @@ class Expense extends BaseModel {
         $stmt->bindParam(':month', $month, PDO::PARAM_INT);
         $stmt->bindParam(':date_from', $date_from);
         $stmt->bindParam(':date_to', $date_to);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+
+    /**
+     * Override create to include company_id
+     */
+    public function create($data) {
+        if (!isset($data['company_id'])) {
+            $data['company_id'] = $this->getCompanyId();
+        }
+        return parent::create($data);
+    }
+
+    /**
+     * Override count to include company_id filter
+     */
+    public function count($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::count($conditions);
+    }
+
+    /**
+     * Override findAll to include company_id filter
+     */
+    public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findAll($conditions, $order_by, $limit);
+    }
+
+    /**
+     * Override findOne to include company_id filter
+     */
+    public function findOne($conditions = []) {
+        $companyId = $this->getCompanyId();
+        if ($companyId && !isset($conditions['company_id'])) {
+            $conditions['company_id'] = $companyId;
+        }
+        return parent::findOne($conditions);
+    }
+
+    /**
+     * Override find to include company_id filter
+     */
+    public function find($id) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        $query .= " LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetch();

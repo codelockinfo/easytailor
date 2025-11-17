@@ -184,8 +184,11 @@ if (!empty($status_filter)) {
     $conditions['status'] = $status_filter;
 }
 
-$orders = $orderModel->getOrdersWithDetails($conditions, $limit, $offset);
-$totalOrders = $orderModel->count($conditions);
+// Get all orders for the company first to get accurate count
+$allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+$totalOrders = count($allOrders);
+// Then slice for pagination
+$orders = array_slice($allOrders, $offset, $limit);
 $totalPages = ceil($totalOrders / $limit);
 
 // Get data for dropdowns

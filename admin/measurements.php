@@ -124,20 +124,25 @@ $page = (int)($_GET['page'] ?? 1);
 $limit = RECORDS_PER_PAGE;
 $offset = ($page - 1) * $limit;
 
-// Get measurements
-if (!empty($search)) {
-    $measurements = $measurementModel->searchMeasurements($search, $limit);
-    $totalMeasurements = count($measurements); // Search results are limited
-    $totalPages = 1;
+// Get measurements with company-aware totals
+$searchParam = !empty($search) ? trim($search) : null;
+$allMeasurements = $measurementModel->getMeasurementsWithDetails($conditions, null, 0, $searchParam);
+$totalMeasurements = count($allMeasurements);
+
+if ($limit > 0) {
+    $measurements = array_slice($allMeasurements, $offset, $limit);
+    $totalPages = max(1, ceil($totalMeasurements / $limit));
 } else {
-    $measurements = $measurementModel->getMeasurementsWithDetails($conditions, $limit, $offset);
-    $totalMeasurements = $measurementModel->count($conditions);
-    $totalPages = ceil($totalMeasurements / $limit);
+    $measurements = $allMeasurements;
+    $totalPages = 1;
 }
 
 // Get data for dropdowns
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
 $clothTypes = $clothTypeModel->findAll(['status' => 'active']);
+
+// Get accurate count of active customers for the company
+$totalActiveCustomers = $customerModel->count(['status' => 'active']);
 
 // Get measurement for editing
 $editMeasurement = null;
@@ -211,7 +216,7 @@ require_once 'includes/header.php';
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="card-title"><?php echo count($customers); ?></h4>
+                            <h4 class="card-title"><?php echo number_format($totalActiveCustomers); ?></h4>
                             <p class="card-text">Active Customers</p>
                         </div>
                         <div class="align-self-center">

@@ -128,7 +128,6 @@ if (!empty($category_filter)) {
 }
 
 $clothTypes = $clothTypeModel->getClothTypesWithOrderCount();
-$totalClothTypes = $clothTypeModel->count($conditions);
 
 // Filter by category if specified
 if (!empty($category_filter)) {
@@ -137,9 +136,26 @@ if (!empty($category_filter)) {
     });
 }
 
-// Apply pagination
-$clothTypes = array_slice($clothTypes, $offset, $limit);
-$totalPages = ceil($totalClothTypes / $limit);
+// Apply search filter if provided
+if (!empty($search)) {
+    $searchLower = mb_strtolower($search);
+    $clothTypes = array_filter($clothTypes, function($clothType) use ($searchLower) {
+        $nameMatch = mb_stripos($clothType['name'], $searchLower) !== false;
+        $categoryMatch = !empty($clothType['category']) && mb_stripos($clothType['category'], $searchLower) !== false;
+        $descriptionMatch = !empty($clothType['description']) && mb_stripos($clothType['description'], $searchLower) !== false;
+        return $nameMatch || $categoryMatch || $descriptionMatch;
+    });
+}
+
+$clothTypes = array_values($clothTypes);
+$totalClothTypes = count($clothTypes);
+
+if ($limit > 0) {
+    $clothTypes = array_slice($clothTypes, $offset, $limit);
+    $totalPages = max(1, ceil($totalClothTypes / $limit));
+} else {
+    $totalPages = 1;
+}
 
 // Get cloth type for editing
 $editClothType = null;

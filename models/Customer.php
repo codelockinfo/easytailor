@@ -107,11 +107,20 @@ class Customer extends BaseModel {
         $companyId = $this->getCompanyId();
         $query = "SELECT c.*, COUNT(o.id) as order_count 
                   FROM " . $this->table . " c 
-                  LEFT JOIN orders o ON c.id = o.customer_id 
-                  WHERE c.status = 'active'";
+                  LEFT JOIN orders o ON c.id = o.customer_id";
+        
+        $where_clauses = ["c.status = 'active'"];
+        $params = [];
+        
         if ($companyId) {
-            $query .= " AND c.company_id = :company_id";
+            $where_clauses[] = "c.company_id = :customer_company_id";
+            $params['customer_company_id'] = $companyId;
+            // Also filter orders by company_id if they exist
+            $where_clauses[] = "(o.company_id = :order_company_id OR o.company_id IS NULL)";
+            $params['order_company_id'] = $companyId;
         }
+        
+        $query .= " WHERE " . implode(" AND ", $where_clauses);
         $query .= " GROUP BY c.id ORDER BY c.first_name, c.last_name";
         
         if ($limit) {
@@ -119,8 +128,8 @@ class Customer extends BaseModel {
         }
         
         $stmt = $this->conn->prepare($query);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue(':' . $param, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
         $stmt->execute();
         

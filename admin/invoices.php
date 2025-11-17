@@ -178,9 +178,17 @@ if (!empty($status_filter)) {
     $conditions['payment_status'] = $status_filter;
 }
 
-$invoices = $invoiceModel->getInvoicesWithDetails($conditions, $limit, $offset);
-$totalInvoices = $invoiceModel->count($conditions);
-$totalPages = ceil($totalInvoices / $limit);
+$searchParam = !empty($search) ? trim($search) : null;
+$allInvoices = $invoiceModel->getInvoicesWithDetails($conditions, null, 0, $searchParam);
+$totalInvoices = count($allInvoices);
+
+if ($limit > 0) {
+    $invoices = array_slice($allInvoices, $offset, $limit);
+    $totalPages = max(1, ceil($totalInvoices / $limit));
+} else {
+    $invoices = $allInvoices;
+    $totalPages = 1;
+}
 
 // Get orders that can have invoices (not cancelled and not fully invoiced)
 // Show orders with status: pending, in_progress, completed, or delivered

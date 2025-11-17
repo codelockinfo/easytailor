@@ -1,3 +1,4 @@
+
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="../favicon(2).png">
 
@@ -95,24 +96,10 @@ $conditions = [];
 if (!empty($category_filter)) {
     $conditions['category'] = $category_filter;
 }
-if (!empty($date_from)) {
-    $conditions['date_from'] = $date_from;
-}
-if (!empty($date_to)) {
-    $conditions['date_to'] = $date_to;
-}
 
-$searchParam = !empty($search) ? trim($search) : null;
-$allExpenses = $expenseModel->getExpensesWithDetails($conditions, null, 0, $searchParam);
-$totalExpenses = count($allExpenses);
-
-if ($limit > 0) {
-    $expenses = array_slice($allExpenses, $offset, $limit);
-    $totalPages = max(1, ceil($totalExpenses / $limit));
-} else {
-    $expenses = $allExpenses;
-    $totalPages = 1;
-}
+$expenses = $expenseModel->getExpensesWithDetails($conditions, $limit, $offset);
+$totalExpenses = $expenseModel->count($conditions);
+$totalPages = ceil($totalExpenses / $limit);
 
 // Get expense for editing
 $editExpense = null;
@@ -676,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Store original table content
     const originalTableContent = expensesTable.innerHTML;
-    console.log('Original table content stored, rows:', expensesTable.querySelectorAll('tr').length);
+    // console.log('Original table content stored, rows:', expensesTable.querySelectorAll('tr').length);
 
     // Load filter options on page load (only once)
     if (!window.filterOptionsLoaded) {
@@ -685,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 function loadFilterOptions() {
-    console.log('Loading filter options...');
+    // console.log('Loading filter options...');
     fetch('ajax/filter_expenses.php?page=1&limit=0')
         .then(response => {
             if (!response.ok) {
@@ -700,10 +687,10 @@ function loadFilterOptions() {
             
             try {
                 const data = JSON.parse(text);
-                console.log('Filter options response:', data);
+                // console.log('Filter options response:', data);
                 if (data.success) {
                     populateFilterOptions(data.filter_options);
-                    console.log('Filter options populated successfully');
+                    // console.log('Filter options populated successfully');
                 } else {
                     console.error('Filter options error:', data.error);
                 }
@@ -718,7 +705,7 @@ function loadFilterOptions() {
 }
 
 function populateFilterOptions(options) {
-    console.log('Populating filter options with:', options);
+    // console.log('Populating filter options with:', options);
     // Populate categories
     const categorySelect = document.getElementById('categoryFilter');
     if (!categorySelect) {
@@ -730,7 +717,7 @@ function populateFilterOptions(options) {
     
     // Ensure categories is an array and decode HTML entities
     const categories = Array.isArray(options.categories) ? options.categories : Object.values(options.categories);
-    console.log('Categories to populate:', categories);
+    // console.log('Categories to populate:', categories);
     
     categories.forEach(category => {
         // Decode HTML entities
@@ -738,7 +725,7 @@ function populateFilterOptions(options) {
         categorySelect.innerHTML += `<option value="${decodedCategory}">${decodedCategory}</option>`;
     });
     
-    console.log('Filter options populated successfully');
+    // console.log('Filter options populated successfully');
 }
 
 // Add event listeners for all filters
@@ -793,18 +780,18 @@ function executeFilter() {
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     
     const url = `ajax/filter_expenses.php?${params.toString()}`;
-    console.log('Fetching from URL:', url);
+    // console.log('Fetching from URL:', url);
     
     fetch(url)
         .then(response => {
-            console.log('Response status:', response.status, response.statusText);
+            // console.log('Response status:', response.status, response.statusText);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.text();
         })
         .then(text => {
-            console.log('Raw response text (first 500 chars):', text.substring(0, 500));
+            // console.log('Raw response text (first 500 chars):', text.substring(0, 500));
             if (text.trim().startsWith('<')) {
                 console.error('Server returned HTML instead of JSON. Full response:', text);
                 throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
@@ -812,18 +799,18 @@ function executeFilter() {
             
             try {
                 const data = JSON.parse(text);
-                console.log('Parsed JSON data:', data);
-                console.log('Success:', data.success);
-                console.log('Expenses array:', data.expenses);
-                console.log('Expenses length:', data.expenses ? data.expenses.length : 'undefined');
+                // console.log('Parsed JSON data:', data);
+                // console.log('Success:', data.success);
+                // console.log('Expenses array:', data.expenses);
+                // console.log('Expenses length:', data.expenses ? data.expenses.length : 'undefined');
                 
                 if (data.success) {
                     // Ensure expenses is an array
                     const expenses = Array.isArray(data.expenses) ? data.expenses : [];
-                    console.log('Final expenses count:', expenses.length);
+                    // console.log('Final expenses count:', expenses.length);
                     
                     if (expenses.length > 0) {
-                        console.log('First expense:', expenses[0]);
+                        // console.log('First expense:', expenses[0]);
                     }
                     
                     displayFilterResults(expenses);
@@ -873,7 +860,7 @@ function executeFilter() {
 }
 
 function displayFilterResults(expenses) {
-    console.log('Displaying filter results, count:', expenses ? expenses.length : 0);
+    // console.log('Displaying filter results, count:', expenses ? expenses.length : 0);
     
     if (!expenses || expenses.length === 0) {
         if (expensesTable) {
@@ -882,7 +869,7 @@ function displayFilterResults(expenses) {
                 <td colspan="8" class="text-center py-4">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No expenses found</h5>
-                    <p class="text-muted">${hasActiveFilters ? 'Try adjusting your filter criteria' : 'No expenses recorded yet'}</p>
+                    <p class="text-muted">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
@@ -954,7 +941,6 @@ function displayFilterResults(expenses) {
                 <td>
                     ${expense.created_by_name || '-'}
                 </td>
-                `}
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" 
@@ -983,12 +969,11 @@ function displayFilterResults(expenses) {
         `;
     });
     
-    console.log('Setting table innerHTML with', expenses.length, 'expenses');
+    // console.log('Setting table innerHTML with', expenses.length, 'expenses');
     expensesTable.innerHTML = tableHTML;
-    console.log('Table updated, current rows:', expensesTable.querySelectorAll('tr').length);
+    // console.log('Table updated, current rows:', expensesTable.querySelectorAll('tr').length);
 }
 }); // Close the DOMContentLoaded event listener
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
-

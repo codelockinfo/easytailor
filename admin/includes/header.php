@@ -72,6 +72,9 @@ $current_user = [
             font-size: 1.5rem;
             font-weight: 700;
         }
+        #sidebarClose {
+            display: none;
+        }
         
         .sidebar-nav {
             padding: 1rem 0;
@@ -426,6 +429,12 @@ $current_user = [
             .sidebar {
                 transform: translateX(-100%);
             }
+
+            #sidebarClose {
+                display: flex;
+                justify-self: right;
+                cursor: pointer;
+            }
             
             .sidebar.show {
                 transform: translateX(0);
@@ -479,6 +488,9 @@ $current_user = [
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
+        <button type="button" class="btn-close text-white" id="sidebarClose" aria-label="Close Sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#fff"><path d="M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z"/></svg>
+        </button>
             <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
                 <?php
                 // Get brand logo using smart path detection
@@ -640,6 +652,24 @@ $current_user = [
             fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
             fontLink.rel = 'stylesheet';
             document.head.appendChild(fontLink);
+
+            // Sidebar toggle controls for mobile
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggleBtn = document.getElementById('sidebarToggle');
+            const sidebarCloseBtn = document.getElementById('sidebarClose');
+
+            function openSidebar() {
+                sidebar?.classList.add('show');
+                document.body.classList.add('sidebar-open');
+            }
+
+            function closeSidebar() {
+                sidebar?.classList.remove('show');
+                document.body.classList.remove('sidebar-open');
+            }
+
+            sidebarToggleBtn?.addEventListener('click', openSidebar);
+            sidebarCloseBtn?.addEventListener('click', closeSidebar);
             
             // Enhance all form-select elements
             const selects = document.querySelectorAll('.form-select');

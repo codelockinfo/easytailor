@@ -122,7 +122,6 @@ if (isset($_SESSION['login_success'])) {
             border-radius: 10px 0 0 10px;
         }
         .form-control.with-icon {
-            border-left: none;
             border-radius: 0 10px 10px 0;
         }
 
@@ -137,6 +136,7 @@ if (isset($_SESSION['login_success'])) {
             <div class="col-md-6 col-lg-4">
                 <div class="card login-card border-0">
                     <div class="login-header">
+                        <a href="../index.php" class="text-decoration-none">
                         <?php
                         // Get brand logo using smart path detection
                         $brandLogo = get_logo_path('footer-logo.png');
@@ -146,6 +146,7 @@ if (isset($_SESSION['login_success'])) {
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
+                        </a>
                         <p class="mb-0 opacity-75"><?php echo __t('sign_in_to_account', 'Sign in to your account'); ?></p>
                     </div>
                     <div class="card-body p-4">

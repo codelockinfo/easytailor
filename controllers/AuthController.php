@@ -391,7 +391,7 @@ class AuthController {
                         <div class='code'>" . $code . "</div>
                     </div>
                     
-                    <p style='text-align:center;'>
+                    <p style='text-align:center; color: white;'>
                         <a href='" . $resetUrl . "' class='button'>Reset Password</a>
                     </p>
                     

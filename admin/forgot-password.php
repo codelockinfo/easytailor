@@ -104,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 10px 0 0 10px;
         }
         .form-control.with-icon {
-            border-left: none;
             border-radius: 0 10px 10px 0;
         }
         .info-box {

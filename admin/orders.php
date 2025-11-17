@@ -331,7 +331,7 @@ $orderStats = $orderModel->getOrderStats();
             </div>
             <div class="col-md-1">
                 <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times"></i> Clear
                 </button>
             </div>
         </div>
@@ -790,11 +790,17 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
             showToast('Success', data.message, 'success');
             
             // Close the dropdown
-            const dropdown = clickedElement.closest('.dropdown-menu');
-            if (dropdown) {
-                const dropdownToggle = dropdown.previousElementSibling;
-                if (dropdownToggle) {
-                    bootstrap.Dropdown.getInstance(dropdownToggle)?.hide();
+            const dropdownMenu = clickedElement.closest('.dropdown-menu');
+            if (dropdownMenu) {
+                const dropdown = dropdownMenu.closest('.dropdown');
+                if (dropdown) {
+                    const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
+                    if (dropdownToggle) {
+                        const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownToggle);
+                        if (dropdownInstance) {
+                            dropdownInstance.hide();
+                        }
+                    }
                 }
             }
         } else {
@@ -1259,8 +1265,120 @@ function displayFilterResults(orders) {
     ordersTable.innerHTML = tableHTML;
     
 }
+
+// Fix dropdown positioning in table to prevent clipping
+document.addEventListener('shown.bs.dropdown', function(e) {
+    const toggle = e.target;
+    const dropdown = toggle.closest('.dropdown');
+    
+    if (!dropdown || !dropdown.closest('.table td')) return;
+    
+    const menu = dropdown.querySelector('.dropdown-menu');
+    if (!menu) return;
+    
+    // Wait for Bootstrap to position it first
+    setTimeout(function() {
+        const toggleRect = toggle.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        
+        // Use fixed positioning to escape table container
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '9999';
+        menu.style.pointerEvents = 'auto';
+        menu.style.minWidth = '150px';
+        menu.style.visibility = 'visible';
+        menu.style.opacity = '1';
+        
+        // Calculate position
+        let top = toggleRect.bottom;
+        let left = toggleRect.left;
+        
+        // Check if dropdown would go off bottom of viewport
+        if (top + menuRect.height > viewportHeight - 10) {
+            top = toggleRect.top - menuRect.height;
+            if (top < 10) {
+                top = viewportHeight - menuRect.height - 10;
+            }
+        }
+        
+        // Check horizontal boundaries
+        if (left + menuRect.width > viewportWidth - 10) {
+            left = viewportWidth - menuRect.width - 10;
+        }
+        if (left < 10) {
+            left = 10;
+        }
+        
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        menu.style.transform = 'none';
+        menu.style.inset = 'auto';
+    }, 10);
+});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
 
-
+<style>
+    .btn-outline-info:hover {
+        color: #ffffff;
+    }
+    
+    /* Fix dropdown clipping in table */
+    .table-responsive {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        position: relative;
+    }
+    
+    .table td .dropdown {
+        position: static;
+    }
+    
+    .table td .dropdown-toggle {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .table td .dropdown-menu {
+        z-index: 9999 !important;
+        min-width: 150px;
+        pointer-events: auto !important;
+        position: fixed !important;
+        right: 4px !important;
+    }
+    
+    .table td .dropdown-menu.show {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ensure dropdown can overflow table boundaries */
+    .card-body {
+        overflow: visible !important;
+        position: relative;
+    }
+    
+    .card {
+        overflow: visible !important;
+        position: relative;
+    }
+    
+    .table {
+        margin-bottom: 0;
+        position: relative;
+    }
+    
+    /* Prevent any parent from clipping */
+    .content-area {
+        overflow: visible !important;
+    }
+    
+    /* Ensure table cells don't block dropdown */
+    .table td {
+        position: static;
+    }
+</style>

@@ -831,3 +831,10 @@ function displaySearchResults(customers) {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    @media (max-width: 768px) {
+        .form-label.d-block {
+            display: none !important;
+        }
+    }
+</style>

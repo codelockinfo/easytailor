@@ -345,7 +345,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
             </div>
             <div class="col-md-2">
                 <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times"></i> Clear
                 </button>
             </div>
         </div>

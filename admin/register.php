@@ -359,6 +359,7 @@ if (isset($_SESSION['reg_form_data'])) {
             <div class="col-lg-8">
                 <div class="card register-card border-0">
                     <div class="register-header">
+                        <a href="../index.php" class="text-decoration-none">
                         <?php
                         // Get brand logo using smart path detection
                         $brandLogo = get_logo_path('footer-logo.png');
@@ -368,6 +369,7 @@ if (isset($_SESSION['reg_form_data'])) {
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
+                        </a>
                         <h2 class="mb-2">Register Your Tailor Shop</h2>
                         <p class="mb-0 opacity-75">Start managing your tailoring business today!</p>
                     </div>
@@ -630,7 +632,7 @@ if (isset($_SESSION['reg_form_data'])) {
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="agree_terms" required>
                                 <label class="form-check-label" for="agree_terms">
-                                    I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>
+                                    I agree to the <a href="../terms-of-service.php" target="_blank">Terms of Service</a> and <a href="../privacy-policy.php" target="_blank">Privacy Policy</a>
                                 </label>
                             </div>
                             

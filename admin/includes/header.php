@@ -436,7 +436,7 @@ $current_user = [
             }
             
             .top-header {
-                padding: 0rem;
+                padding: 0 16px 0 0;
             }
             .dropdown .btn {
                 border-radius: 5px;
@@ -602,9 +602,20 @@ $current_user = [
                 
                 <!-- User Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="text-transform: capitalize;">
-                        <i class="fas fa-user-circle me-1"></i>
-                        <?php echo htmlspecialchars($current_user['name']); ?>
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="text-transform: capitalize;">
+                <i class="fas fa-user-circle me-1"></i>
+                    <?php
+                    // Get user initials
+                    $name = $current_user['name'];
+                    $nameParts = explode(' ', trim($name));
+                    $initials = '';
+                    if (count($nameParts) >= 2) {
+                        $initials = strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[count($nameParts) - 1], 0, 1));
+                    } else {
+                        $initials = strtoupper(substr($name, 0, 2));
+                    }
+                    ?>
+                        <span class="user-initials-badge"><?php echo htmlspecialchars($initials); ?></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><h6 class="dropdown-header"><?php echo htmlspecialchars($current_user['name']); ?></h6></li>

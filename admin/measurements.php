@@ -1376,3 +1376,17 @@ function displayFilterResults(measurements) {
 </script>
 
 <?php include 'includes/footer.php'; ?>
+
+<style>
+    @media (max-width: 768px) {
+    .col-md-3 .card {
+        margin-bottom: 16px;
+    }
+    .col-md-2 label {
+        display: none;
+    }
+}
+.col-md-3 .card-body {
+    padding: 24px;
+}
+</style>

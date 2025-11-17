@@ -681,3 +681,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    .btn-outline-info:hover {
+        color: #ffffff;
+    }
+</style>

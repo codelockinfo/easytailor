@@ -443,19 +443,19 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                                     <button type="button" 
                                             class="btn btn-outline-info" 
                                             onclick="viewInvoice(<?php echo $invoice['id']; ?>)"
-                                            title="View Details">
+                                            title="View Details" style="border: 1px solid #667eea;">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-success" 
                                             onclick="addPayment(<?php echo $invoice['id']; ?>, '<?php echo htmlspecialchars($invoice['invoice_number']); ?>', <?php echo $invoice['balance_amount']; ?>)"
-                                            title="Add Payment">
+                                            title="Add Payment" style="border: 1px solid #667eea;">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
                                             onclick="printInvoice(<?php echo $invoice['id']; ?>)"
-                                            title="Print Invoice">
+                                            title="Print Invoice" style="border: 1px solid #667eea;">
                                         <i class="fas fa-print"></i>
                                     </button>
                                 </div>
@@ -1123,18 +1123,18 @@ function displayFilterResults(invoices) {
                         <button type="button" 
                                 class="btn btn-outline-primary" 
                                 onclick="editInvoice(${JSON.stringify(invoice).replace(/"/g, '&quot;')})"
-                                title="Edit">
+                                title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <a href="invoice-details.php?id=${invoice.id}" 
                            class="btn btn-outline-info" 
-                           title="View Details">
+                           title="View Details" style="border: 1px solid #667eea;">
                             <i class="fas fa-eye"></i>
                         </a>
                         <button type="button" 
                                 class="btn btn-outline-success" 
                                 onclick="addPayment(${invoice.id}, '${invoice.invoice_number}', ${invoice.balance_amount})"
-                                title="Add Payment">
+                                title="Add Payment" style="border: 1px solid #667eea;">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>

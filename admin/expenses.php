@@ -308,21 +308,21 @@ if (empty($categories)) {
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
                                             onclick="editExpense(<?php echo htmlspecialchars(json_encode($expense)); ?>)"
-                                            title="Edit">
+                                            title="Edit" style="border: 1px solid #667eea;">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <?php if (!empty($expense['receipt_image'])): ?>
                                         <button type="button" 
                                                 class="btn btn-outline-info" 
                                                 onclick="viewReceipt('<?php echo htmlspecialchars($expense['receipt_image']); ?>')"
-                                                title="View Receipt">
+                                                title="View Receipt" style="border: 1px solid #667eea;">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     <?php endif; ?>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
                                             onclick="deleteExpense(<?php echo $expense['id']; ?>, '<?php echo htmlspecialchars($expense['description']); ?>')"
-                                            title="Delete">
+                                            title="Delete" style="border: 1px solid #667eea;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -901,21 +901,21 @@ function displayFilterResults(expenses) {
                         <button type="button" 
                                 class="btn btn-outline-primary" 
                                 onclick="editExpense(${JSON.stringify(expense).replace(/"/g, '&quot;')})"
-                                title="Edit">
+                                title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         ${expense.receipt_image ? `
                             <button type="button" 
                                     class="btn btn-outline-info" 
                                     onclick="viewReceipt('${expense.receipt_image}')"
-                                    title="View Receipt">
+                                    title="View Receipt" style="border: 1px solid #667eea;">
                                 <i class="fas fa-eye"></i>
                             </button>
                         ` : ''}
                         <button type="button" 
                                 class="btn btn-outline-danger" 
                                 onclick="deleteExpense(${expense.id}, '${expense.description.replace(/'/g, "\\'")}')"
-                                title="Delete">
+                                title="Delete" style="border: 1px solid #667eea;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>

@@ -408,14 +408,14 @@ $stats = [
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
                                             onclick="editUser(<?php echo htmlspecialchars(json_encode($user)); ?>)"
-                                            title="Edit">
+                                            title="Edit" style="border: 1px solid #667eea;">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <?php if ($user['id'] != get_user_id()): ?>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
                                             onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['full_name']); ?>')"
-                                            title="Delete">
+                                            title="Delete" style="border: 1px solid #667eea;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                     <?php endif; ?>

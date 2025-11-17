@@ -440,18 +440,18 @@ $orderStats = $orderModel->getOrderStats();
                                                 'advance_amount' => $order['advance_amount'],
                                                 'special_instructions' => $order['special_instructions']
                                             ])); ?>)"
-                                            title="Edit">
+                                            title="Edit" style="border: 1px solid #667eea;">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <a href="order-details.php?id=<?php echo $order['id']; ?>" 
                                        class="btn btn-outline-info" 
-                                       title="View Details">
+                                       title="View Details" style="border: 1px solid #667eea;">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <div class="dropdown" style="position: static;">
                                         <button class="btn btn-outline-secondary dropdown-toggle" 
                                                 type="button" 
-                                                style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding-bottom: 13px;"
+                                                style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding-bottom: 13px; border-left: none !important; border: 1px solid #667eea;"
                                                 data-bs-toggle="dropdown"
                                                 title="Change Status">
                                             <i class="fas fa-cog"></i>
@@ -1231,18 +1231,18 @@ function displayFilterResults(orders) {
                                     advance_amount: order.advance_amount,
                                     special_instructions: order.special_instructions
                                 }).replace(/"/g, '&quot;')})"
-                                title="Edit">
+                                title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <a href="order-details.php?id=${order.id}" 
                            class="btn btn-outline-info" 
-                           title="View Details">
+                           title="View Details" style="border: 1px solid #667eea;">
                             <i class="fas fa-eye"></i>
                         </a>
                         <div class="dropdown" style="position: static;">
                             <button class="btn btn-outline-secondary dropdown-toggle" 
                                     type="button" 
-                                    style="border-top-left-radius: 0; border-bottom-left-radius: 0; "
+                                    style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding-bottom: 13px; border-left: none !important; border: 1px solid #667eea;"
                                     data-bs-toggle="dropdown"
                                     title="Change Status">
                                 <i class="fas fa-cog"></i>

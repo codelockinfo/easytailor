@@ -229,13 +229,13 @@ $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
                                             onclick="editContact(<?php echo htmlspecialchars(json_encode($contact)); ?>)"
-                                            title="Edit">
+                                            title="Edit" style="border: 1px solid #667eea;">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
                                             onclick="deleteContact(<?php echo $contact['id']; ?>, '<?php echo htmlspecialchars($contact['name']); ?>')"
-                                            title="Delete">
+                                            title="Delete" style="border: 1px solid #667eea;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -647,10 +647,10 @@ function updateContactsTable(contacts) {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary" onclick="editContact(${contact.id})" title="Edit">
+                        <button type="button" class="btn btn-outline-primary" onclick="editContact(${contact.id})" title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button type="button" class="btn btn-outline-danger" onclick="deleteContact(${contact.id}, '${contact.name.replace(/'/g, "\\'")}')" title="Delete">
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteContact(${contact.id}, '${contact.name.replace(/'/g, "\\'")}')" title="Delete" style="border: 1px solid #667eea;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>

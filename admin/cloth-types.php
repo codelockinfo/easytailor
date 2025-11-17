@@ -318,13 +318,13 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
                                             onclick="editClothType(<?php echo htmlspecialchars(json_encode($clothType)); ?>)"
-                                            title="Edit">
+                                            title="Edit" style="border: 1px solid #667eea;">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
                                             onclick="deleteClothType(<?php echo $clothType['id']; ?>, '<?php echo htmlspecialchars($clothType['name']); ?>')"
-                                            title="Delete">
+                                            title="Delete" style="border: 1px solid #667eea;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -755,13 +755,13 @@ function displayFilterResults(clothTypes) {
                         <button type="button" 
                                 class="btn btn-outline-primary" 
                                 onclick="editClothType(${JSON.stringify(clothType).replace(/"/g, '&quot;')})"
-                                title="Edit">
+                                title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button type="button" 
                                 class="btn btn-outline-danger" 
                                 onclick="deleteClothType(${clothType.id}, '${clothType.name.replace(/'/g, "\\'")}')"
-                                title="Delete">
+                                title="Delete" style="border: 1px solid #667eea;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>

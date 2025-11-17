@@ -289,18 +289,18 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                                     <button type="button" 
                                             class="btn btn-outline-primary" 
                                             onclick="editCustomer(<?php echo htmlspecialchars(json_encode($customer)); ?>)"
-                                            title="Edit">
+                                            title="Edit" style="border: 1px solid #667eea;">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <a href="customer-details.php?id=<?php echo $customer['id']; ?>" 
                                        class="btn btn-outline-info" 
-                                       title="View Details">
+                                       title="View Details" style="border: 1px solid #667eea;">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
                                             onclick="deleteCustomer(<?php echo $customer['id']; ?>, '<?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>')"
-                                            title="Delete">
+                                            title="Delete" style="border: 1px solid #667eea;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -805,18 +805,18 @@ function displaySearchResults(customers) {
                         <button type="button" 
                                 class="btn btn-outline-primary" 
                                 onclick="editCustomer(${JSON.stringify(customer).replace(/"/g, '&quot;')})"
-                                title="Edit">
+                                title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <a href="customer-details.php?id=${customer.id}" 
                            class="btn btn-outline-info" 
-                           title="View Details">
+                           title="View Details" style="border: 1px solid #667eea;">
                             <i class="fas fa-eye"></i>
                         </a>
                         <button type="button" 
                                 class="btn btn-outline-danger" 
                                 onclick="deleteCustomer(${customer.id}, '${customer.name.replace(/'/g, "\\'")}')"
-                                title="Delete">
+                                title="Delete" style="border: 1px solid #667eea;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>

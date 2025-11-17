@@ -347,13 +347,13 @@ require_once 'includes/header.php';
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(<?php echo htmlspecialchars(json_encode($measurement)); ?>)" title="Edit">
+                                                    <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(<?php echo htmlspecialchars(json_encode($measurement)); ?>)" title="Edit" style="border: 1px solid #667eea;">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-info" onclick="viewMeasurement(<?php echo $measurement['id']; ?>)" title="View Details">
+                                                    <button class="btn btn-outline-info" onclick="viewMeasurement(<?php echo $measurement['id']; ?>)" title="View Details" style="border: 1px solid #667eea;">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-danger" onclick="deleteMeasurement(<?php echo $measurement['id']; ?>)" title="Delete">
+                                                    <button class="btn btn-outline-danger" onclick="deleteMeasurement(<?php echo $measurement['id']; ?>)" title="Delete" style="border: 1px solid #667eea;">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -1352,13 +1352,13 @@ function displayFilterResults(measurements) {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(${JSON.stringify(measurement).replace(/"/g, '&quot;')})" title="Edit">
+                        <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(${JSON.stringify(measurement).replace(/"/g, '&quot;')})" title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-outline-info" onclick="viewMeasurement(${measurement.id})" title="View Details">
+                        <button class="btn btn-outline-info" onclick="viewMeasurement(${measurement.id})" title="View Details" style="border: 1px solid #667eea;">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-outline-danger" onclick="deleteMeasurement(${measurement.id})" title="Delete">
+                        <button class="btn btn-outline-danger" onclick="deleteMeasurement(${measurement.id})" title="Delete" style="border: 1px solid #667eea;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>

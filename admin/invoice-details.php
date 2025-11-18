@@ -562,3 +562,19 @@ function showPaymentToast(title, message, type = 'info') {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    @media screen and (max-width: 768px) {
+    .card-body .border-end {
+        border-right: none !important;
+    }
+    .col-12 .d-flex {
+        display: block !important;
+    }
+    .d-flex.gap-2 {
+        margin-top: 10px;
+        display: flex !important;
+        gap: 10px !important;
+        flex-direction: column;
+    }
+}
+</style>

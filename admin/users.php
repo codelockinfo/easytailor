@@ -821,15 +821,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${user.status.charAt(0).toUpperCase() + user.status.slice(1)}
                         </span>
                     </td>
-                    <td>${new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td>${(() => {
+                        const date = new Date(user.created_at);
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    })()}</td>
                     <td>
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-sm btn-outline-primary" onclick="editUser(${JSON.stringify(user).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            ${user.id != <?php echo get_user_id(); ?> ? `
                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id}, '${user.full_name.replace(/'/g, "\\'")}')">
                                 <i class="fas fa-trash"></i>
                             </button>
+                            ` : ''}
                         </div>
                     </td>
                 </tr>

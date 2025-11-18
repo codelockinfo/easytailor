@@ -672,22 +672,29 @@ $orderStats = $orderModel->getOrderStats();
 
 
 function editOrder(order) {
+    console.log('Editing order:', order); // Debug log
+    
     document.getElementById('orderModalTitle').textContent = 'Edit Order';
     document.getElementById('orderAction').value = 'update';
-    document.getElementById('orderId').value = order.id;
+    document.getElementById('orderId').value = order.id || '';
     
-    // Populate form fields
-    document.getElementById('customer_id').value = order.customer_id || '';
-    document.getElementById('cloth_type_id').value = order.cloth_type_id || '';
-    document.getElementById('assigned_tailor_id').value = order.assigned_tailor_id || '';
+    // Populate form fields - convert to string and handle null/undefined
+    const customerId = order.customer_id ? String(order.customer_id) : '';
+    const clothTypeId = order.cloth_type_id ? String(order.cloth_type_id) : '';
+    const assignedTailorId = order.assigned_tailor_id ? String(order.assigned_tailor_id) : '';
+    
+    document.getElementById('customer_id').value = customerId;
+    document.getElementById('cloth_type_id').value = clothTypeId;
+    document.getElementById('assigned_tailor_id').value = assignedTailorId;
     document.getElementById('order_date').value = order.order_date || '';
     document.getElementById('due_date').value = order.due_date || '';
     document.getElementById('total_amount').value = order.total_amount || '';
     document.getElementById('advance_amount').value = order.advance_amount || '';
     document.getElementById('special_instructions').value = order.special_instructions || '';
     
+    console.log('Set values:', { customerId, clothTypeId, assignedTailorId }); // Debug log
+    
     // Load measurements for the selected customer
-    const customerId = order.customer_id;
     const measurementSelect = document.getElementById('measurement_id');
     
     if (customerId) {
@@ -718,20 +725,20 @@ function editOrder(order) {
                 
                 // Set the existing measurement if available
                 if (order.measurement_id) {
-                    measurementSelect.value = order.measurement_id;
+                    measurementSelect.value = String(order.measurement_id);
                 }
             })
             .catch(error => {
                 console.error('Error loading measurements:', error);
                 measurementSelect.innerHTML = '<option value="">Error loading measurements</option>';
                 if (order.measurement_id) {
-                    measurementSelect.value = order.measurement_id;
+                    measurementSelect.value = String(order.measurement_id);
                 }
             });
     } else {
         measurementSelect.innerHTML = '<option value="">No Measurement</option>';
         if (order.measurement_id) {
-            measurementSelect.value = order.measurement_id;
+            measurementSelect.value = String(order.measurement_id);
         }
     }
     
@@ -998,8 +1005,8 @@ const filterResults = document.getElementById('filterResults');
 const filterCount = document.getElementById('filterCount');
 const ordersTable = document.querySelector('.table tbody');
 
-// Store original table content
-const originalTableContent = ordersTable.innerHTML;
+// Store original table content (only if table exists)
+const originalTableContent = ordersTable ? ordersTable.innerHTML : '';
 
 // Load filter options on page load
 loadFilterOptions();
@@ -1068,15 +1075,12 @@ function populateFilterOptions(options) {
     }
 });
 
-clearFilters.addEventListener('click', function() {
-    searchInput.value = '';
-    statusFilter.value = '';
-    customerFilter.value = '';
-    clothTypeFilter.value = '';
-    tailorFilter.value = '';
-    ordersTable.innerHTML = originalTableContent;
-    filterResults.style.display = 'none';
-});
+if (clearFilters) {
+    clearFilters.addEventListener('click', function() {
+        // Reload the page to reset all filters and show all orders
+        window.location.href = 'orders.php';
+    });
+}
 
 function performFilter() {
     // Clear previous timeout
@@ -1148,6 +1152,11 @@ function executeFilter() {
 }
 
 function displayFilterResults(orders) {
+    if (!ordersTable) {
+        console.error('Orders table not found');
+        return;
+    }
+    
     if (orders.length === 0) {
         ordersTable.innerHTML = `
             <tr>
@@ -1163,13 +1172,17 @@ function displayFilterResults(orders) {
     
     let tableHTML = '';
     orders.forEach(order => {
-        // Format dates
-        const orderDate = new Date(order.order_date).toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-        });
-        const dueDate = new Date(order.due_date).toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-        });
+        // Format dates to match PHP format_date() output (Y-m-d format: 2025-11-16)
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        const orderDate = formatDate(order.order_date);
+        const dueDate = formatDate(order.due_date);
         
         // Check if overdue
         const isOverdue = new Date(order.due_date) < new Date() && !['completed', 'delivered', 'cancelled'].includes(order.status);
@@ -1224,8 +1237,8 @@ function displayFilterResults(orders) {
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" 
-                                class="btn btn-outline-primary" 
-                                onclick="editOrder(${JSON.stringify({
+                                class="btn btn-outline-primary edit-order-btn" 
+                                data-order='${JSON.stringify({
                                     id: order.id,
                                     customer_id: order.customer_id,
                                     cloth_type_id: order.cloth_type_id,
@@ -1235,8 +1248,8 @@ function displayFilterResults(orders) {
                                     due_date: order.due_date,
                                     total_amount: order.total_amount,
                                     advance_amount: order.advance_amount,
-                                    special_instructions: order.special_instructions
-                                }).replace(/"/g, '&quot;')})"
+                                    special_instructions: order.special_instructions || ''
+                                }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
                                 title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -1270,6 +1283,25 @@ function displayFilterResults(orders) {
     
     ordersTable.innerHTML = tableHTML;
     
+    // Attach event listeners to edit buttons
+    ordersTable.querySelectorAll('.edit-order-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                // Decode HTML entities back to JSON string, then parse
+                const orderJson = this.getAttribute('data-order')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&');
+                const order = JSON.parse(orderJson);
+                editOrder(order);
+            } catch (e) {
+                console.error('Error parsing order data:', e);
+                alert('Error loading order data');
+            }
+        });
+    });
 }
 
 // Fix dropdown positioning in table to prevent clipping

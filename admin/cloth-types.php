@@ -769,19 +769,25 @@ function displayFilterResults(clothTypes) {
                     </div>
                 </td>
                 <td>
-                    <span class="badge bg-primary">${clothType.category}</span>
+                    <span class="badge bg-info">${clothType.category}</span>
                 </td>
                 <td>
-                    ${clothType.standard_rate ? `<div class="text-end"><div class="fw-bold">${formatCurrency(clothType.standard_rate)}</div></div>` : '<span class="text-muted">Not set</span>'}
+                    ${clothType.standard_rate ? `<div class="fw-bold">${formatCurrency(clothType.standard_rate)}</div>` : '<span class="text-muted">Not set</span>'}
                 </td>
                 <td>
-                    <span class="badge bg-info">${clothType.order_count} orders</span>
+                    <span class="badge bg-primary">${clothType.order_count}</span>
                 </td>
                 <td>
                     <span class="badge bg-${clothType.status === 'active' ? 'success' : 'secondary'}">${clothType.status.charAt(0).toUpperCase() + clothType.status.slice(1)}</span>
                 </td>
                 <td>
-                    ${clothType.created_at ? new Date(clothType.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
+                    ${clothType.created_at ? (() => {
+                        const date = new Date(clothType.created_at);
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    })() : '-'}
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">

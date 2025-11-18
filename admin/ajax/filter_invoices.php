@@ -89,18 +89,22 @@ try {
             'id' => $invoice['id'],
             'invoice_number' => htmlspecialchars($invoice['invoice_number']),
             'customer_name' => htmlspecialchars($customerName ?: 'N/A'),
+            'customer_name_raw' => $customerName ?: 'N/A',
             'customer_code' => htmlspecialchars($invoice['customer_code'] ?? ''),
             'customer_phone' => htmlspecialchars($invoice['customer_phone'] ?? 'N/A'),
+            'order_id' => $invoice['order_id'],
             'order_number' => htmlspecialchars($invoice['order_number'] ?? 'N/A'),
             'invoice_date' => $invoice['invoice_date'],
             'due_date' => $invoice['due_date'],
             'payment_status' => $invoice['payment_status'],
             'subtotal' => $invoice['subtotal'],
+            'tax_rate' => $invoice['tax_rate'],
             'tax_amount' => $invoice['tax_amount'],
             'discount_amount' => $invoice['discount_amount'],
             'total_amount' => $invoice['total_amount'],
             'paid_amount' => $invoice['paid_amount'],
             'balance_amount' => $invoice['balance_amount'],
+            'notes' => $invoice['notes'] ?? '',
             'created_at' => $invoice['created_at']
         ];
     }

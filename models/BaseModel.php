@@ -107,6 +107,11 @@ class BaseModel {
      * Update record
      */
     public function update($id, $data) {
+        if (empty($data)) {
+            error_log("BaseModel::update called with empty data array for table: {$this->table}, id: $id");
+            return false;
+        }
+        
         $set_clauses = [];
         foreach ($data as $column => $value) {
             $set_clauses[] = $column . " = :" . $column;
@@ -114,14 +119,38 @@ class BaseModel {
         
         $query = "UPDATE " . $this->table . " SET " . implode(', ', $set_clauses) . " WHERE " . $this->primary_key . " = :id";
         
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindValue(':id', $id);
-        
-        foreach ($data as $column => $value) {
-            $stmt->bindValue(':' . $column, $value);
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            
+            foreach ($data as $column => $value) {
+                // Handle null values
+                if ($value === null) {
+                    $stmt->bindValue(':' . $column, null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue(':' . $column, $value);
+                }
+            }
+            
+            $result = $stmt->execute();
+            
+            if (!$result) {
+                $errorInfo = $stmt->errorInfo();
+                error_log("BaseModel::update failed for table: {$this->table}, id: $id. Error: " . print_r($errorInfo, true));
+            } else {
+                $rowCount = $stmt->rowCount();
+                if ($rowCount === 0) {
+                    error_log("BaseModel::update executed but no rows affected for table: {$this->table}, id: $id. This might mean the record doesn't exist.");
+                } else {
+                    error_log("BaseModel::update successful for table: {$this->table}, id: $id, rows affected: $rowCount");
+                }
+            }
+            
+            return $result;
+        } catch (PDOException $e) {
+            error_log("BaseModel::update PDO Exception for table: {$this->table}, id: $id. Error: " . $e->getMessage());
+            throw $e;
         }
-        
-        return $stmt->execute();
     }
 
     /**

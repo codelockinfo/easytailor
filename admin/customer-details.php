@@ -633,6 +633,24 @@ foreach ($orders as $order) {
     font-size: 0.7rem;
 }
 
+@media (max-width: 768px) {
+    .nav-item {
+        margin: 0.25rem 0;
+    }
+    .card-body .border-end {
+        border-right: none !important;
+    }
+    .col-12 .d-flex {
+        display: block !important;
+    }
+    .d-flex.gap-2 {
+        margin-top: 10px;
+        display: flex !important;
+        gap: 10px !important;
+        flex-direction: column;
+    }
+}
+
 @media print {
     .btn, .nav-tabs, .card-header-tabs {
         display: none !important;

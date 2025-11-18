@@ -145,6 +145,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: invoices.php');
                 exit;
                 break;
+
+            case 'update':
+                $invoiceId = (int)$_POST['invoice_id'];
+                $existingInvoice = $invoiceModel->find($invoiceId);
+                
+                if (!$existingInvoice) {
+                    $_SESSION['message'] = 'Invoice not found or access denied';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: invoices.php');
+                    exit;
+                }
+                
+                $orderId = (int)$_POST['order_id'];
+                $order = $orderModel->find($orderId);
+                if (!$order) {
+                    $_SESSION['message'] = 'Invalid order selected';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: invoices.php');
+                    exit;
+                }
+                
+                $subtotal = (float)$_POST['subtotal'];
+                $taxRate = (float)$_POST['tax_rate'];
+                $taxAmount = (float)$_POST['tax_amount'];
+                $discountAmount = (float)$_POST['discount_amount'];
+                $totalAmount = (float)$_POST['total_amount'];
+                $paidAmount = (float)$existingInvoice['paid_amount'];
+                $balanceAmount = max($totalAmount - $paidAmount, 0);
+                $paymentStatus = $paidAmount >= $totalAmount ? 'paid' : ($paidAmount > 0 ? 'partial' : 'due');
+                
+                $data = [
+                    'order_id' => $orderId,
+                    'invoice_date' => $_POST['invoice_date'],
+                    'due_date' => $_POST['due_date'],
+                    'subtotal' => $subtotal,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => $taxAmount,
+                    'discount_amount' => $discountAmount,
+                    'total_amount' => $totalAmount,
+                    'balance_amount' => $balanceAmount,
+                    'payment_status' => $paymentStatus,
+                    'notes' => sanitize_input($_POST['notes'])
+                ];
+                
+                if ($invoiceModel->update($invoiceId, $data)) {
+                    $_SESSION['message'] = 'Invoice updated successfully';
+                    $_SESSION['messageType'] = 'success';
+                } else {
+                    $_SESSION['message'] = 'Failed to update invoice';
+                    $_SESSION['messageType'] = 'error';
+                }
+                header('Location: invoices.php');
+                exit;
+                break;
         }
     } else {
         $_SESSION['message'] = 'Invalid request';
@@ -451,6 +505,30 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
+                                    <?php
+                                        $invoicePayload = [
+                                            'id' => $invoice['id'],
+                                            'invoice_number' => $invoice['invoice_number'],
+                                            'order_id' => $invoice['order_id'],
+                                            'order_number' => $invoice['order_number'] ?? '',
+                                            'invoice_date' => $invoice['invoice_date'],
+                                            'due_date' => $invoice['due_date'],
+                                            'subtotal' => $invoice['subtotal'],
+                                            'tax_rate' => $invoice['tax_rate'] ?? 0,
+                                            'tax_amount' => $invoice['tax_amount'],
+                                            'discount_amount' => $invoice['discount_amount'],
+                                            'total_amount' => $invoice['total_amount'],
+                                            'notes' => $invoice['notes'] ?? '',
+                                            'customer_name' => trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''))
+                                        ];
+                                        $invoiceJson = htmlspecialchars(json_encode($invoicePayload), ENT_QUOTES, 'UTF-8');
+                                    ?>
+                                    <button type="button" 
+                                            class="btn btn-outline-primary" 
+                                            onclick="editInvoice(<?php echo $invoiceJson; ?>)"
+                                            title="Edit Invoice" style="border: 1px solid #667eea;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                     <button type="button" 
                                             class="btn btn-outline-info" 
                                             onclick="viewInvoice(<?php echo $invoice['id']; ?>)"
@@ -531,7 +609,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
         <div class="modal-content">
             <form method="POST" id="invoiceForm">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create Invoice</h5>
+                    <h5 class="modal-title" id="invoiceModalTitle">Create Invoice</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -543,7 +621,8 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                         </div>
                     <?php endif; ?>
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
-                    <input type="hidden" name="action" value="create">
+                    <input type="hidden" name="action" id="invoiceAction" value="create">
+                    <input type="hidden" name="invoice_id" id="invoice_id">
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -634,7 +713,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="invoiceSubmitBtn">
                         <i class="fas fa-save me-2"></i>Create Invoice
                     </button>
                 </div>
@@ -708,6 +787,43 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
 </div>
 
 <script>
+const invoiceModalElement = document.getElementById('invoiceModal');
+const invoiceFormEl = document.getElementById('invoiceForm');
+const invoiceModalTitle = document.getElementById('invoiceModalTitle');
+const invoiceActionInput = document.getElementById('invoiceAction');
+const invoiceIdInput = document.getElementById('invoice_id');
+const invoiceSubmitBtn = document.getElementById('invoiceSubmitBtn');
+const orderSelect = document.getElementById('order_id');
+const invoiceDateInput = document.getElementById('invoice_date');
+const dueDateInput = document.getElementById('due_date');
+const subtotalInput = document.getElementById('subtotal');
+const taxRateSelect = document.getElementById('tax_rate');
+const taxAmountInput = document.getElementById('tax_amount');
+const discountInput = document.getElementById('discount_amount');
+const totalAmountInput = document.getElementById('total_amount');
+const notesInput = document.getElementById('notes');
+
+const TEMP_ORDER_OPTION_CLASS = 'temp-order-option';
+const TEMP_TAX_OPTION_CLASS = 'temp-tax-rate-option';
+
+function encodeAttribute(str) {
+    return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function decodeAttribute(str) {
+    return (str || '')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+}
+
 function addPayment(invoiceId, invoiceNumber, balanceAmount) {
     document.getElementById('paymentInvoiceId').value = invoiceId;
     document.getElementById('paymentInvoiceNumber').textContent = invoiceNumber;
@@ -777,6 +893,77 @@ function viewInvoice(invoiceId) {
 
 function printInvoice(invoiceId) {
     window.open('print-invoice.php?id=' + invoiceId, '_blank');
+}
+
+function editInvoice(invoice) {
+    if (!invoiceModalElement || !invoice) return;
+    
+    if (invoiceActionInput) {
+        invoiceActionInput.value = 'update';
+    }
+    if (invoiceIdInput) {
+        invoiceIdInput.value = invoice.id || '';
+    }
+    if (invoiceModalTitle) {
+        const suffix = invoice.invoice_number ? ` (${invoice.invoice_number})` : '';
+        invoiceModalTitle.textContent = 'Edit Invoice' + suffix;
+    }
+    if (invoiceSubmitBtn) {
+        invoiceSubmitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Update Invoice';
+    }
+    
+    if (orderSelect) {
+        const orderValue = invoice.order_id ? String(invoice.order_id) : '';
+        if (orderValue) {
+            let option = Array.from(orderSelect.options).find(opt => opt.value === orderValue);
+            if (!option) {
+                option = document.createElement('option');
+                option.value = orderValue;
+                option.textContent = invoice.order_number ? `${invoice.order_number} - ${invoice.customer_name || ''}` : `Order #${orderValue}`;
+                option.dataset.amount = invoice.total_amount || 0;
+                option.classList.add(TEMP_ORDER_OPTION_CLASS);
+                orderSelect.appendChild(option);
+            }
+            orderSelect.value = orderValue;
+        }
+    }
+    
+    if (invoiceDateInput) {
+        invoiceDateInput.value = invoice.invoice_date || '';
+    }
+    if (dueDateInput) {
+        dueDateInput.value = invoice.due_date || '';
+    }
+    if (subtotalInput) {
+        subtotalInput.value = invoice.subtotal ?? '';
+    }
+    if (discountInput) {
+        discountInput.value = invoice.discount_amount ?? 0;
+    }
+    if (notesInput) {
+        notesInput.value = invoice.notes || '';
+    }
+    if (taxRateSelect) {
+        const rateValue = invoice.tax_rate !== undefined && invoice.tax_rate !== null ? String(invoice.tax_rate) : '0';
+        let option = Array.from(taxRateSelect.options).find(opt => opt.value === rateValue);
+        if (!option) {
+            option = document.createElement('option');
+            option.value = rateValue;
+            option.textContent = `${rateValue}% GST`;
+            option.classList.add(TEMP_TAX_OPTION_CLASS);
+            taxRateSelect.appendChild(option);
+        }
+        taxRateSelect.value = rateValue;
+    }
+    if (taxAmountInput) {
+        taxAmountInput.value = invoice.tax_amount ?? 0;
+    }
+    if (totalAmountInput) {
+        totalAmountInput.value = invoice.total_amount ?? 0;
+    }
+    
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(invoiceModalElement);
+    modalInstance.show();
 }
 
 function fixAdvancePayments() {
@@ -917,10 +1104,43 @@ function calculateTotal() {
 }
 
 // Reset modal when closed
-document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', function() {
-    document.getElementById('invoiceForm').reset();
-    document.getElementById('invoice_date').value = '<?php echo date('Y-m-d'); ?>';
-});
+if (invoiceModalElement) {
+    invoiceModalElement.addEventListener('hidden.bs.modal', function() {
+        if (invoiceFormEl) {
+            invoiceFormEl.reset();
+        }
+        if (invoiceActionInput) {
+            invoiceActionInput.value = 'create';
+        }
+        if (invoiceIdInput) {
+            invoiceIdInput.value = '';
+        }
+        if (invoiceModalTitle) {
+            invoiceModalTitle.textContent = 'Create Invoice';
+        }
+        if (invoiceSubmitBtn) {
+            invoiceSubmitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Create Invoice';
+        }
+        if (invoiceDateInput) {
+            invoiceDateInput.value = '<?php echo date('Y-m-d'); ?>';
+        }
+        if (orderSelect) {
+            orderSelect.querySelectorAll(`.${TEMP_ORDER_OPTION_CLASS}`).forEach(opt => opt.remove());
+        }
+        if (taxRateSelect) {
+            taxRateSelect.querySelectorAll(`.${TEMP_TAX_OPTION_CLASS}`).forEach(opt => opt.remove());
+        }
+        if (taxAmountInput) {
+            taxAmountInput.value = '0.00';
+        }
+        if (totalAmountInput) {
+            totalAmountInput.value = '0.00';
+        }
+        if (notesInput) {
+            notesInput.value = '';
+        }
+    });
+}
 
 document.getElementById('paymentModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('paymentForm').reset();
@@ -1078,13 +1298,17 @@ function displayFilterResults(invoices) {
     
     let tableHTML = '';
     invoices.forEach(invoice => {
-        // Format dates
-        const invoiceDate = new Date(invoice.invoice_date).toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-        });
-        const dueDate = new Date(invoice.due_date).toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric' 
-        });
+        // Format dates to match PHP format_date() output (Y-m-d format: 2025-11-16)
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        const invoiceDate = formatDate(invoice.invoice_date);
+        const dueDate = formatDate(invoice.due_date);
         
         // Check if overdue
         const isOverdue = new Date(invoice.due_date) < new Date() && invoice.payment_status !== 'paid';
@@ -1102,6 +1326,23 @@ function displayFilterResults(invoices) {
         const customerCode = invoice.customer_code ? `<br><small class="text-muted">${invoice.customer_code}</small>` : '';
         
         const orderNumber = invoice.order_number && invoice.order_number !== 'N/A' ? invoice.order_number : 'N/A';
+        const customerNameDisplay = invoice.customer_name || 'N/A';
+        const invoiceEditPayload = {
+            id: invoice.id,
+            invoice_number: invoice.invoice_number,
+            order_id: invoice.order_id,
+            order_number: orderNumber,
+            invoice_date: invoice.invoice_date,
+            due_date: invoice.due_date,
+            subtotal: invoice.subtotal,
+            tax_rate: invoice.tax_rate,
+            tax_amount: invoice.tax_amount,
+            discount_amount: invoice.discount_amount,
+            total_amount: invoice.total_amount,
+            notes: invoice.notes || '',
+            customer_name: invoice.customer_name_raw || customerNameDisplay
+        };
+        const encodedInvoiceData = encodeAttribute(JSON.stringify(invoiceEditPayload));
         
         tableHTML += `
             <tr>
@@ -1110,7 +1351,7 @@ function displayFilterResults(invoices) {
                 </td>
                 <td>
                     <div>
-                        <strong>${invoice.customer_name}</strong>
+                        <strong>${customerNameDisplay}</strong>
                         ${customerCode}
                     </div>
                 </td>
@@ -1133,6 +1374,12 @@ function displayFilterResults(invoices) {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-primary edit-invoice-btn" 
+                                data-invoice='${encodedInvoiceData}'
+                                title="Edit Invoice" style="border: 1px solid #667eea;">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         <button type="button" 
                                 class="btn btn-outline-info" 
                                 onclick="viewInvoice(${invoice.id})"
@@ -1158,6 +1405,19 @@ function displayFilterResults(invoices) {
     });
     
     invoicesTable.innerHTML = tableHTML;
+    
+    invoicesTable.querySelectorAll('.edit-invoice-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                const encoded = this.getAttribute('data-invoice');
+                const invoiceData = JSON.parse(decodeAttribute(encoded));
+                editInvoice(invoiceData);
+            } catch (error) {
+                console.error('Error parsing invoice data:', error);
+                showToast('Error loading invoice data', 'error');
+            }
+        });
+    });
 }
 </script>
 

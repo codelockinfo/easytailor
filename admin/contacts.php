@@ -625,6 +625,15 @@ function updateContactsTable(contacts) {
     
     let html = '';
     contacts.forEach(contact => {
+        // Escape contact object for use in HTML onclick attribute
+        // Use HTML entity encoding for the JSON string to avoid quote issues
+        const contactJson = JSON.stringify(contact)
+            .replace(/&/g, '&amp;')   // Escape ampersands first
+            .replace(/</g, '&lt;')    // Escape less than
+            .replace(/>/g, '&gt;')    // Escape greater than
+            .replace(/"/g, '&quot;')  // Escape double quotes
+            .replace(/'/g, '&#39;');  // Escape single quotes
+        
         html += `
             <tr>
                 <td>
@@ -651,7 +660,7 @@ function updateContactsTable(contacts) {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary" onclick="editContact(${contact.id})" title="Edit" style="border: 1px solid #667eea;">
+                        <button type="button" class="btn btn-outline-primary edit-contact-btn" data-contact='${contactJson}' title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button type="button" class="btn btn-outline-danger" onclick="deleteContact(${contact.id}, '${contact.name.replace(/'/g, "\\'")}')" title="Delete" style="border: 1px solid #667eea;">
@@ -664,6 +673,26 @@ function updateContactsTable(contacts) {
     });
     
     tableBody.innerHTML = html;
+    
+    // Attach event listeners to edit buttons
+    tableBody.querySelectorAll('.edit-contact-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                // Decode HTML entities back to JSON string, then parse
+                const contactJson = this.getAttribute('data-contact')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&');
+                const contact = JSON.parse(contactJson);
+                editContact(contact);
+            } catch (e) {
+                console.error('Error parsing contact data:', e);
+                alert('Error loading contact data');
+            }
+        });
+    });
 }
 
 function updateSearchResults(totalContacts, searchTerm) {

@@ -31,7 +31,7 @@ try {
         exit;
     }
 
-    require_once $rootDir . '/../models/User.php';
+    require_once $rootDir . '/models/User.php';
 
     // Get parameters
     $search = $_GET['search'] ?? '';

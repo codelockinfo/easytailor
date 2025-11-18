@@ -104,6 +104,10 @@ try {
         $formattedOrders[] = [
             'id' => $order['id'],
             'order_number' => htmlspecialchars($order['order_number']),
+            'customer_id' => $order['customer_id'] ?? null,
+            'cloth_type_id' => $order['cloth_type_id'] ?? null,
+            'measurement_id' => $order['measurement_id'] ?? null,
+            'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,
             'first_name' => htmlspecialchars($order['first_name'] ?? ''),
             'last_name' => htmlspecialchars($order['last_name'] ?? ''),
             'customer_code' => htmlspecialchars($order['customer_code'] ?? ''),
@@ -112,11 +116,12 @@ try {
             'tailor_name' => htmlspecialchars($order['tailor_name'] ?? ''),
             'order_date' => $order['order_date'],
             'due_date' => $order['due_date'],
-            'delivery_date' => $order['delivery_date'],
+            'delivery_date' => $order['delivery_date'] ?? null,
             'status' => $order['status'],
             'total_amount' => $order['total_amount'],
             'advance_amount' => $order['advance_amount'],
             'balance_amount' => $order['balance_amount'],
+            'special_instructions' => htmlspecialchars($order['special_instructions'] ?? ''),
             'created_by_name' => htmlspecialchars($order['created_by_name'] ?? ''),
             'created_at' => $order['created_at']
         ];

@@ -1,6 +1,3 @@
-<!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="favicon(2).png">
-
 <?php
 /**
  * Order Details Page
@@ -19,6 +16,116 @@ require_once 'models/Invoice.php';
 require_once 'models/Measurement.php';
 require_once 'models/ClothType.php';
 require_once 'models/User.php';
+
+// Handle form submissions BEFORE any HTML output
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Debug logging
+    error_log("POST request received. Action: " . ($_POST['action'] ?? 'none') . ", Order ID: " . ($_POST['order_id'] ?? 'none') . ", Status: " . ($_POST['status'] ?? 'none'));
+    
+    if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $action = $_POST['action'] ?? '';
+        
+        error_log("CSRF token verified. Action: $action");
+        
+        if ($action === 'update_status') {
+            error_log("Processing update_status. Order ID: " . ($_POST['order_id'] ?? 'none') . ", Status: " . ($_POST['status'] ?? 'none'));
+            $orderId = (int)$_POST['order_id'];
+            $status = sanitize_input($_POST['status'] ?? '');
+            
+            // Validate status
+            $validStatuses = ['pending', 'in_progress', 'completed', 'delivered', 'cancelled'];
+            if (!in_array($status, $validStatuses)) {
+                $_SESSION['message'] = 'Invalid status';
+                $_SESSION['messageType'] = 'error';
+                header('Location: order-details.php?id=' . $orderId);
+                exit;
+            }
+            
+            $orderModel = new Order();
+            
+            // Verify order exists and belongs to company
+            $companyId = get_company_id();
+            $order = $orderModel->find($orderId);
+            if (!$order) {
+                $_SESSION['message'] = 'Order not found. Order ID: ' . $orderId;
+                $_SESSION['messageType'] = 'error';
+                error_log("Order not found for update. Order ID: $orderId, Company ID: " . ($companyId ?? 'null'));
+                // Redirect back to order details page to show error
+                header('Location: order-details.php?id=' . $orderId);
+                exit;
+            }
+            
+            // Check if order belongs to company (if company_id is set)
+            if ($companyId && isset($order['company_id']) && $order['company_id'] != $companyId) {
+                $_SESSION['message'] = 'Unauthorized access to this order';
+                $_SESSION['messageType'] = 'error';
+                error_log("Unauthorized access attempt. Order ID: $orderId, Order Company ID: " . ($order['company_id'] ?? 'null') . ", User Company ID: $companyId");
+                header('Location: orders.php');
+                exit;
+            }
+            
+            error_log("Order found and authorized. Order ID: $orderId, Current Status: " . ($order['status'] ?? 'null') . ", New Status: $status");
+            
+            // Update status
+            try {
+                error_log("About to call updateOrderStatus. Order ID: $orderId, Status: $status");
+                $updateResult = $orderModel->updateOrderStatus($orderId, $status);
+                error_log("updateOrderStatus returned: " . ($updateResult ? 'true' : 'false'));
+                
+                if ($updateResult) {
+                    // Small delay to ensure database commit
+                    usleep(100000); // 0.1 second
+                    
+                    // Verify the update by fetching the order again
+                    $updatedOrder = $orderModel->find($orderId);
+                    if ($updatedOrder && $updatedOrder['status'] === $status) {
+                        $_SESSION['message'] = 'Order status updated successfully';
+                        $_SESSION['messageType'] = 'success';
+                        error_log("Order status updated successfully. Order ID: $orderId, Status: $status");
+                    } else {
+                        $_SESSION['message'] = 'Status update may not have been saved correctly';
+                        $_SESSION['messageType'] = 'warning';
+                        error_log("Warning: Order status update returned true but verification failed. Order ID: $orderId, Expected Status: $status, Actual Status: " . ($updatedOrder['status'] ?? 'null'));
+                    }
+                } else {
+                    $_SESSION['message'] = 'Failed to update order status. Please try again.';
+                    $_SESSION['messageType'] = 'error';
+                    error_log("Failed to update order status. Order ID: $orderId, Status: $status. Update method returned false.");
+                }
+            } catch (Exception $e) {
+                $_SESSION['message'] = 'Error updating order status: ' . $e->getMessage();
+                $_SESSION['messageType'] = 'error';
+                error_log("Exception updating order status: " . $e->getMessage() . " | Stack trace: " . $e->getTraceAsString());
+            } catch (PDOException $e) {
+                $_SESSION['message'] = 'Database error: ' . $e->getMessage();
+                $_SESSION['messageType'] = 'error';
+                error_log("PDO Exception updating order status: " . $e->getMessage() . " | Code: " . $e->getCode());
+            }
+            
+            // Ensure no output before redirect
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            
+            // Always redirect back to order details page (never to orders.php from here)
+            // This ensures we can see any error messages
+            $redirectUrl = 'order-details.php?id=' . $orderId . '&_t=' . time();
+            error_log("Redirecting to: $redirectUrl");
+            header('Location: ' . $redirectUrl);
+            exit;
+        }
+    } else {
+        $_SESSION['message'] = 'Invalid request';
+        $_SESSION['messageType'] = 'error';
+        $orderId = (int)($_GET['id'] ?? $_POST['order_id'] ?? 0);
+        if ($orderId) {
+            header('Location: order-details.php?id=' . $orderId);
+        } else {
+            header('Location: orders.php');
+        }
+        exit;
+    }
+}
 
 // Get order ID
 $orderId = (int)($_GET['id'] ?? 0);
@@ -40,11 +147,20 @@ $userModel = new User();
 $orders = $orderModel->getOrdersWithDetails(['o.id' => $orderId], 1);
 
 if (empty($orders)) {
-    header('Location: orders.php');
-    exit;
+    // Try to fetch directly without company filter as fallback
+    $order = $orderModel->find($orderId);
+    if (!$order) {
+        $_SESSION['message'] = 'Order not found';
+        $_SESSION['messageType'] = 'error';
+        header('Location: orders.php');
+        exit;
+    }
+    // If found directly but not through getOrdersWithDetails, there might be a company_id issue
+    // But we'll still show the order
+    error_log("Warning: Order found via find() but not via getOrdersWithDetails(). Order ID: $orderId");
+} else {
+    $order = $orders[0];
 }
-
-$order = $orders[0];
 
 // Get customer details
 $customer = $customerModel->find($order['customer_id']);
@@ -71,10 +187,28 @@ if ($order['assigned_tailor_id']) {
 // Get invoices for this order
 $invoices = $invoiceModel->findAll(['order_id' => $orderId]);
 
+// Get messages from session
+$message = '';
+$messageType = '';
+if (isset($_SESSION['message'])) {
+    $message = $_SESSION['message'];
+    $messageType = $_SESSION['messageType'] ?? 'info';
+    unset($_SESSION['message']);
+    unset($_SESSION['messageType']);
+}
+
 // NOW include header
 $page_title = 'Order Details';
 require_once 'includes/header.php';
 ?>
+
+<?php if ($message): ?>
+    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
+        <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+        <?php echo htmlspecialchars($message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
 
 <div class="row mb-4">
     <div class="col-12">
@@ -311,7 +445,7 @@ require_once 'includes/header.php';
                         <?php foreach ($measurement['measurement_data'] as $key => $value): ?>
                             <?php if (!empty($value)): ?>
                             <div class="col-md-4 mb-3">
-                                <div class="card h-100">
+                                <div class="card h-100" style="box-shadow: none;">
                                     <div class="card-body">
                                         <h6 class="text-muted mb-1 text-uppercase" style="font-size: 0.75rem;">
                                             <?php echo ucfirst(str_replace('_', ' ', $key)); ?>
@@ -392,7 +526,7 @@ require_once 'includes/header.php';
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="invoice-details.php?id=<?php echo $invoice['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                        <a href="invoice-details.php?id=<?php echo $invoice['id']; ?>" class="btn btn-sm btn-outline-primary" style="padding: 8px 20px;">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -421,9 +555,8 @@ require_once 'includes/header.php';
                 </h6>
             </div>
             <div class="card-body">
-                <form method="POST" action="orders.php">
+                <form id="updateStatusForm">
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
-                    <input type="hidden" name="action" value="update_status">
                     <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
                     
                     <div class="row align-items-end">
@@ -438,7 +571,7 @@ require_once 'includes/header.php';
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary w-100">
+                            <button type="submit" class="btn btn-primary w-100" id="updateStatusBtn">
                                 <i class="fas fa-save me-2"></i>Update
                             </button>
                         </div>
@@ -461,12 +594,138 @@ function printOrder() {
     window.print();
 }
 
+// Handle status update form submission via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('updateStatusForm');
+    const updateBtn = document.getElementById('updateStatusBtn');
+    const statusSelect = document.getElementById('status');
+    
+    if (form && updateBtn) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = document.querySelector('[name="order_id"]').value;
+            const status = statusSelect.value;
+            const csrfToken = document.querySelector('[name="csrf_token"]').value;
+            
+            // Show loading state
+            const originalText = updateBtn.innerHTML;
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+            
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('csrf_token', csrfToken);
+            formData.append('order_id', orderId);
+            formData.append('status', status);
+            
+            // Make AJAX request
+            fetch('ajax/update_order_status.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    
+                    // Update status badge at the top
+                    updateStatusBadge(status, data.status_display);
+                    
+                    // Reload page after a short delay to show updated data
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Show error message
+                    showMessage(data.error || 'Failed to update order status', 'error');
+                    updateBtn.disabled = false;
+                    updateBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                showMessage('Network error occurred', 'error');
+                updateBtn.disabled = false;
+                updateBtn.innerHTML = originalText;
+            });
+        });
+    }
+    
+    function showMessage(message, type) {
+        // Remove existing alerts
+        const existingAlert = document.querySelector('.status-update-alert');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+        
+        // Create alert
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-' + (type === 'success' ? 'success' : 'danger') + ' alert-dismissible fade show status-update-alert';
+        alert.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-triangle') + ' me-2"></i>' + 
+                         message + 
+                         '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+        
+        // Insert at the top of the card body
+        const cardBody = document.querySelector('#updateStatusForm').closest('.card-body');
+        if (cardBody) {
+            cardBody.insertBefore(alert, cardBody.firstChild);
+        }
+    }
+    
+    function updateStatusBadge(status, statusDisplay) {
+        const statusColors = {
+            'pending': 'secondary',
+            'in_progress': 'info',
+            'completed': 'success',
+            'delivered': 'primary',
+            'cancelled': 'danger'
+        };
+        
+        const color = statusColors[status] || 'secondary';
+        // Find the status badge in the status card (it's in the second column of the status card)
+        const statusCard = document.querySelector('.card.mb-4 .row.align-items-center');
+        if (statusCard) {
+            const statusColumn = statusCard.children[1]; // Second column (index 1)
+            if (statusColumn) {
+                const statusBadge = statusColumn.querySelector('.badge');
+                if (statusBadge) {
+                    statusBadge.className = 'badge bg-' + color + ' fs-6';
+                    statusBadge.textContent = statusDisplay;
+                }
+            }
+        }
+    }
+});
+</script>
+
+<style>
 @media print {
     .no-print, .btn, .card-header {
         display: none !important;
     }
 }
-</script>
+.tbody, td, tfoot, th, thead, tr {
+    padding: 10px !important;
+}
+
+@media screen and (max-width: 768px) {
+    #updateStatusBtn {
+        margin-top: 20px;
+    }
+    .card-body .border-end {
+        border-right: none !important;
+    }
+    .col-12 .d-flex {
+        display: block !important;
+    }
+    .d-flex.gap-2 {
+        margin-top: 10px;
+        display: flex !important;
+        gap: 10px !important;
+        flex-direction: column;
+    }
+}
+</style>
 
 <?php require_once 'includes/footer.php'; ?>
 

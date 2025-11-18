@@ -406,7 +406,9 @@ if (empty($categories)) {
                                         <?php echo htmlspecialchars($category); ?>
                                     </option>
                                 <?php endforeach; ?>
-                                <option value="Other">Other</option>
+                                <?php if (!in_array('Other', $categories)): ?>
+                                    <option value="Other">Other</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">

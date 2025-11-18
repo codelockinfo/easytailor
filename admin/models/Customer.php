@@ -60,36 +60,116 @@ class Customer extends BaseModel {
     }
 
     /**
-     * Search customers
+     * Search customers - handles both single word and full name searches
      */
     public function searchCustomers($search_term, $limit = 20) {
         $companyId = $this->getCompanyId();
+        
+        // Trim search term and handle URL encoding
+        $search_term = trim($search_term);
+        // Replace %20 with space if still present (shouldn't be, but just in case)
+        $search_term = str_replace('%20', ' ', $search_term);
+        $search_term = trim($search_term);
+        $search_lower = strtolower($search_term);
+        
+        // Debug logging
+        error_log("Customer search - Search term received: " . var_export($search_term, true));
+        error_log("Customer search - Search term length: " . strlen($search_term));
+        
+        // Check if search term contains a space (full name search)
+        $has_space = strpos($search_term, ' ') !== false;
+        error_log("Customer search - Has space: " . ($has_space ? 'yes' : 'no'));
+        
+        // Build WHERE conditions
+        $where_conditions = [];
+        $params = [];
+        
+        if ($has_space) {
+            // Full name search - split into parts
+            $name_parts = preg_split('/\s+/', $search_term);
+            $first_part = trim($name_parts[0]);
+            $last_part = count($name_parts) > 1 ? trim(end($name_parts)) : '';
+            
+            error_log("Customer search - Name parts: " . json_encode($name_parts));
+            error_log("Customer search - First part: '$first_part', Last part: '$last_part'");
+            
+            if (!empty($first_part) && !empty($last_part)) {
+                // Match: first part in first_name AND last part in last_name
+                $where_conditions[] = "(LOWER(COALESCE(first_name, '')) LIKE :fn1 AND LOWER(COALESCE(last_name, '')) LIKE :ln1)";
+                $params[':fn1'] = '%' . strtolower($first_part) . '%';
+                $params[':ln1'] = '%' . strtolower($last_part) . '%';
+                
+                // Match: last part in first_name AND first part in last_name (reverse)
+                $where_conditions[] = "(LOWER(COALESCE(first_name, '')) LIKE :fn2 AND LOWER(COALESCE(last_name, '')) LIKE :ln2)";
+                $params[':fn2'] = '%' . strtolower($last_part) . '%';
+                $params[':ln2'] = '%' . strtolower($first_part) . '%';
+                
+                // Match: full concatenated name
+                $where_conditions[] = "LOWER(CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, ''))) LIKE :full_name";
+                $params[':full_name'] = '%' . $search_lower . '%';
+            }
+        } else {
+            // Single word search - search in individual fields
+            $where_conditions[] = "LOWER(COALESCE(first_name, '')) LIKE :search1";
+            $where_conditions[] = "LOWER(COALESCE(last_name, '')) LIKE :search2";
+            $params[':search1'] = '%' . $search_lower . '%';
+            $params[':search2'] = '%' . $search_lower . '%';
+        }
+        
+        // Always search in these fields
+        $where_conditions[] = "COALESCE(customer_code, '') LIKE :code";
+        $where_conditions[] = "LOWER(COALESCE(email, '')) LIKE :email";
+        $where_conditions[] = "COALESCE(phone, '') LIKE :phone";
+        $params[':code'] = '%' . $search_term . '%';
+        $params[':email'] = '%' . $search_lower . '%';
+        $params[':phone'] = '%' . $search_term . '%';
+        
+        // Build query
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE (first_name LIKE :search1 
-                      OR last_name LIKE :search2 
-                      OR customer_code LIKE :search3 
-                      OR email LIKE :search4 
-                      OR phone LIKE :search5)
+                  WHERE (" . implode(' OR ', $where_conditions) . ")
                   AND status = 'active'";
+        
         if ($companyId) {
             $query .= " AND company_id = :company_id";
+            $params[':company_id'] = $companyId;
         }
+        
         $query .= " ORDER BY first_name, last_name LIMIT :limit";
+        $params[':limit'] = $limit;
         
-        $stmt = $this->conn->prepare($query);
-        $search_pattern = '%' . $search_term . '%';
-        $stmt->bindParam(':search1', $search_pattern);
-        $stmt->bindParam(':search2', $search_pattern);
-        $stmt->bindParam(':search3', $search_pattern);
-        $stmt->bindParam(':search4', $search_pattern);
-        $stmt->bindParam(':search5', $search_pattern);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        // Log the query and parameters
+        error_log("Customer search - SQL Query: " . $query);
+        error_log("Customer search - Parameters: " . json_encode($params));
+        
+        try {
+            $stmt = $this->conn->prepare($query);
+            
+            // Bind all parameters
+            foreach ($params as $key => $value) {
+                if ($key === ':limit' || $key === ':company_id') {
+                    $stmt->bindValue($key, $value, PDO::PARAM_INT);
+                } else {
+                    $stmt->bindValue($key, $value);
+                }
+            }
+            
+            $stmt->execute();
+            $results = $stmt->fetchAll();
+            
+            error_log("Customer search - Results count: " . count($results));
+            if (count($results) > 0) {
+                error_log("Customer search - First result name: " . ($results[0]['first_name'] ?? '') . ' ' . ($results[0]['last_name'] ?? ''));
+            } else {
+                error_log("Customer search - No results found. Query executed successfully but no matches.");
+            }
+            
+            return $results;
+        } catch (PDOException $e) {
+            error_log("Customer search - PDO Exception: " . $e->getMessage());
+            error_log("Customer search - Query: " . $query);
+            error_log("Customer search - Params: " . json_encode($params));
+            return [];
         }
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        return $stmt->fetchAll();
     }
 
     /**

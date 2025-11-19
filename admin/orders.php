@@ -1424,5 +1424,14 @@ document.addEventListener('shown.bs.dropdown', function(e) {
         .table td .dropdown-menu {
             right: 0 !important;
         }
+        .card-header.d-flex {
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .card-header .btn-light {
+        width: 100% !important;
+    }
     }
 </style>

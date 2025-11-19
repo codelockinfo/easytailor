@@ -841,6 +841,16 @@ function displaySearchResults(customers) {
         .form-label.d-block {
             display: none !important;
         }
+        .card-header {
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .card-header .btn-light,
+    .card-header .d-flex {
+        width: 100% !important;
+    }
     }
 
     .btn-outline-info:hover {

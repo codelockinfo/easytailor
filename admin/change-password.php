@@ -199,3 +199,8 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    .card-header {
+        color: white !important;
+    }
+</style>

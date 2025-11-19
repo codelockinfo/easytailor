@@ -716,3 +716,16 @@ function updateSearchResults(totalContacts, searchTerm) {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    @media (max-width: 768px) {
+        .card-header {
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card-header .btn-light {
+            width: 100% !important;
+        }
+}
+</style>

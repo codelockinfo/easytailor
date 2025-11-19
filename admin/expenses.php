@@ -979,3 +979,18 @@ function displayFilterResults(expenses) {
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+
+<style>
+    @media (max-width: 768px) {
+        .card-header {
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card-header .d-flex {
+            flex-direction: column;
+            width: 100% !important;
+        }
+    }
+</style>

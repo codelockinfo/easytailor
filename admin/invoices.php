@@ -1428,4 +1428,16 @@ function displayFilterResults(invoices) {
     .btn-outline-info:hover {
         color: #ffffff;
     }
+    @media (max-width: 768px) {
+        .card-header{
+            display: flex !important;
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start !important;
+        }
+        .card-header .d-flex {
+            flex-direction: column;
+    width: 100%;
+        }
+    }
 </style>

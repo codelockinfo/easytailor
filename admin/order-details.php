@@ -239,19 +239,19 @@ require_once 'includes/header.php';
         <div class="row align-items-center">
             <div class="col-md-2 text-center border-end">
                 <h6 class="text-muted mb-1">Order Number</h6>
-                <h4 class="mb-0 text-primary"><?php echo htmlspecialchars($order['order_number']); ?></h4>
+                <h5 class="mb-0 text-primary"><?php echo htmlspecialchars($order['order_number']); ?></h5>
             </div>
             <div class="col-md-2 text-center border-end">
                 <h6 class="text-muted mb-1">Status</h6>
                 <?php
                 $statusColors = [
-                    'pending' => 'secondary',
+                    'pending' => 'warning',
                     'in_progress' => 'info',
                     'completed' => 'success',
                     'delivered' => 'primary',
                     'cancelled' => 'danger'
                 ];
-                $color = $statusColors[$order['status']] ?? 'secondary';
+                $color = $statusColors[$order['status']] ?? 'warning';
                 ?>
                 <h5 class="mb-0">
                     <span class="badge bg-<?php echo $color; ?> fs-6">
@@ -714,6 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     .card-body .border-end {
         border-right: none !important;
+        margin-bottom: 15px !important;
     }
     .col-12 .d-flex {
         display: block !important;

@@ -123,7 +123,7 @@ foreach ($orders as $order) {
                     <div class="avatar-circle bg-primary text-white mx-auto mb-3" style="width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
                         <?php echo strtoupper(substr($customer['first_name'], 0, 1) . substr($customer['last_name'], 0, 1)); ?>
                     </div>
-                    <h4 class="mb-1"><?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?></h4>
+                    <h5 class="mb-1"><?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?></h5>
                     <p class="text-muted mb-2">
                         <span class="badge bg-primary fs-6"><?php echo htmlspecialchars($customer['customer_code']); ?></span>
                     </p>
@@ -648,6 +648,14 @@ foreach ($orders as $order) {
         display: flex !important;
         gap: 10px !important;
         flex-direction: column;
+    }
+    .card-body .avatar-circle {
+        width: 80px !important;
+        height: 80px !important;
+        font-size: 32px !important;
+    }
+    .badge.bg-primary.fs-6 {
+        font-size: 14px !important;
     }
 }
 

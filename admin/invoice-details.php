@@ -94,21 +94,21 @@ require_once 'includes/header.php';
                         'due' => 'danger',
                         default => 'secondary'
                     };
-                ?> fs-5">
+                ?> fs-5" style="font-size: 18px !important;">
                     <?php echo ucfirst($invoice['payment_status']); ?>
                 </span>
             </div>
             <div class="col-md-3 text-center border-end">
                 <h6 class="text-muted mb-1">Total Amount</h6>
-                <h4 class="mb-0"><?php echo format_currency($invoice['total_amount']); ?></h4>
+                <h5 class="mb-0"><?php echo format_currency($invoice['total_amount']); ?></h5>
             </div>
             <div class="col-md-3 text-center border-end">
                 <h6 class="text-muted mb-1">Paid Amount</h6>
-                <h4 class="mb-0 text-success"><?php echo format_currency($invoice['paid_amount']); ?></h4>
+                <h5 class="mb-0 text-success"><?php echo format_currency($invoice['paid_amount']); ?></h5>
             </div>
             <div class="col-md-3 text-center">
                 <h6 class="text-muted mb-1">Balance Due</h6>
-                <h4 class="mb-0 text-danger"><?php echo format_currency($invoice['balance_amount']); ?></h4>
+                <h5 class="mb-0 text-danger"><?php echo format_currency($invoice['balance_amount']); ?></h5>
             </div>
         </div>
     </div>
@@ -159,7 +159,7 @@ require_once 'includes/header.php';
                         <?php endif; ?>
                         <tr class="table-light">
                             <td><strong>Total Amount:</strong></td>
-                            <td class="text-end"><h5 class="mb-0"><?php echo format_currency($invoice['total_amount']); ?></h5></td>
+                            <td class="text-end"><h6 class="mb-0"><?php echo format_currency($invoice['total_amount']); ?></h6></td>
                         </tr>
                         <?php if ($invoice['paid_amount'] > 0): ?>
                         <tr>
@@ -168,7 +168,7 @@ require_once 'includes/header.php';
                         </tr>
                         <tr class="table-warning">
                             <td><strong>Balance Due:</strong></td>
-                            <td class="text-end"><h5 class="mb-0 text-danger"><?php echo format_currency($invoice['balance_amount']); ?></h5></td>
+                            <td class="text-end"><h6 class="mb-0 text-danger"><?php echo format_currency($invoice['balance_amount']); ?></h6></td>
                         </tr>
                         <?php endif; ?>
                     </table>
@@ -566,6 +566,7 @@ function showPaymentToast(title, message, type = 'info') {
     @media screen and (max-width: 768px) {
     .card-body .border-end {
         border-right: none !important;
+        margin-bottom: 15px !important;
     }
     .col-12 .d-flex {
         display: block !important;
@@ -576,5 +577,9 @@ function showPaymentToast(title, message, type = 'info') {
         gap: 10px !important;
         flex-direction: column;
     }
+    .col-md-6 {
+        margin-bottom: 15px !important;
+    }
+    .col
 }
 </style>

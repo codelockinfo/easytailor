@@ -1062,7 +1062,7 @@ function displayMeasurementDetails(measurement) {
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" style="margin-top: 10px;">
                 ${chartHtml || '<div class="card h-100"><div class="card-body text-center text-muted" style="display: flex; flex-direction: column; justify-content: center;"><i class="fas fa-ruler fa-3x mb-3"></i><p>No measurement chart available</p></div></div>'}
             </div>
         </div>
@@ -1470,6 +1470,15 @@ function displayFilterResults(measurements) {
     }
     .col-md-2 label {
         display: none;
+    }
+    .card-header.d-flex {
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .card-header .btn-light {
+        width: 100% !important;
     }
 }
 .col-md-3 .card-body {

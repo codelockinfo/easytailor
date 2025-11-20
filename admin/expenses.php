@@ -406,7 +406,9 @@ if (empty($categories)) {
                                         <?php echo htmlspecialchars($category); ?>
                                     </option>
                                 <?php endforeach; ?>
-                                <option value="Other">Other</option>
+                                <?php if (!in_array('Other', $categories)): ?>
+                                    <option value="Other">Other</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -977,3 +979,18 @@ function displayFilterResults(expenses) {
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+
+<style>
+    @media (max-width: 768px) {
+        .card-header {
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card-header .d-flex {
+            flex-direction: column;
+            width: 100% !important;
+        }
+    }
+</style>

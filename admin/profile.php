@@ -281,3 +281,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    @media (max-width: 768px) {
+        .avatar-circle {
+            width: 90px !important;
+            height: 90px !important;
+        }
+    }
+</style>

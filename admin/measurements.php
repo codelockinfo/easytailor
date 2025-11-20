@@ -730,7 +730,7 @@ function addMeasurementField(key = '', value = '', fieldType = 'text') {
             ${inputHtml}
         </div>
         <div class="col-md-2">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMeasurementField(this)">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMeasurementField(this)" style="padding: 17px 25px;">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
@@ -806,7 +806,7 @@ function addCustomMeasurementField() {
                    placeholder="Value (e.g., 42 inches)" value="">
         </div>
         <div class="col-md-2">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMeasurementField(this)">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMeasurementField(this)" style="padding: 17px 25px;">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
@@ -992,7 +992,7 @@ function displayMeasurementDetails(measurement) {
             if (value) {
                 measurementDataHtml += `
                     <div class="col-md-4 mb-3">
-                        <div class="card h-100">
+                        <div class="card h-100" style="box-shadow: none;">
                             <div class="card-body">
                                 <h6 class="text-muted mb-1 text-uppercase" style="font-size: 0.75rem;">
                                     ${key.replace(/_/g, ' ')}
@@ -1062,8 +1062,8 @@ function displayMeasurementDetails(measurement) {
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                ${chartHtml || '<div class="card h-100"><div class="card-body text-center text-muted"><i class="fas fa-ruler fa-3x mb-3"></i><p>No measurement chart available</p></div></div>'}
+            <div class="col-md-6" style="margin-top: 10px;">
+                ${chartHtml || '<div class="card h-100"><div class="card-body text-center text-muted" style="display: flex; flex-direction: column; justify-content: center;"><i class="fas fa-ruler fa-3x mb-3"></i><p>No measurement chart available</p></div></div>'}
             </div>
         </div>
         
@@ -1471,11 +1471,27 @@ function displayFilterResults(measurements) {
     .col-md-2 label {
         display: none;
     }
+    .card-header.d-flex {
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .card-header .btn-light {
+        width: 100% !important;
+    }
 }
 .col-md-3 .card-body {
     padding: 24px;
 }
 .btn-outline-info:hover {
     color: #ffffff;
+}
+.badge {
+    margin-top: 5px;
+    font-size: 14px !important;
+}
+.modal-header.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
 }
 </style>

@@ -780,4 +780,9 @@ document.addEventListener('DOMContentLoaded', function() {
     .btn-outline-info:hover {
         color: #ffffff;
     }
+    @media (max-width: 768px) {
+        .stat-card .stat-number {
+            font-size: 24px !important;
+        }
+    }
 </style>

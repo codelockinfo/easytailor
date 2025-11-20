@@ -671,7 +671,7 @@ if (searchInput) {
         // Clear previous timeout
         clearTimeout(searchTimeout);
         
-        if (searchTerm.length < 2) {
+        if (searchTerm.length < 1) {
             // Show original table if it exists
             if (customersTable && originalTableContent) {
                 customersTable.innerHTML = originalTableContent;
@@ -803,7 +803,7 @@ function displaySearchResults(customers) {
                     <span class="badge bg-info">${customer.total_orders || 0}</span>
                 </td>
                 <td>
-                    <span class="badge bg-success">${customer.status || 'active'}</span>
+                    <span class="badge bg-${customer.status === 'active' ? 'success' : 'secondary'}">${customer.status ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1).toLowerCase() : 'Active'}</span>
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
@@ -841,6 +841,16 @@ function displaySearchResults(customers) {
         .form-label.d-block {
             display: none !important;
         }
+        .card-header {
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .card-header .btn-light,
+    .card-header .d-flex {
+        width: 100% !important;
+    }
     }
 
     .btn-outline-info:hover {

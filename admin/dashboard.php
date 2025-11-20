@@ -392,3 +392,14 @@ const orderStatusChart = new Chart(orderStatusCtx, {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    .btn-outline-primary:hover {
+        color: white;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+        border: none !important;
+    }
+    .btn-outline-primary {
+        color: #667eea;
+        border: 1px solid #667eea !important;
+    }
+</style>

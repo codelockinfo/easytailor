@@ -625,6 +625,15 @@ function updateContactsTable(contacts) {
     
     let html = '';
     contacts.forEach(contact => {
+        // Escape contact object for use in HTML onclick attribute
+        // Use HTML entity encoding for the JSON string to avoid quote issues
+        const contactJson = JSON.stringify(contact)
+            .replace(/&/g, '&amp;')   // Escape ampersands first
+            .replace(/</g, '&lt;')    // Escape less than
+            .replace(/>/g, '&gt;')    // Escape greater than
+            .replace(/"/g, '&quot;')  // Escape double quotes
+            .replace(/'/g, '&#39;');  // Escape single quotes
+        
         html += `
             <tr>
                 <td>
@@ -643,14 +652,15 @@ function updateContactsTable(contacts) {
                     </div>
                 </td>
                 <td>
-                    <span class="badge bg-secondary">${contact.category}</span>
+                    <span class="badge bg-info">${contact.category}</span>
                 </td>
                 <td>
-                    <span class="badge bg-${contact.status === 'active' ? 'success' : 'secondary'}">${contact.status}</span>
+                    
+                    <span class="badge bg-${contact.status === 'active' ? 'success' : 'secondary'}">${contact.status ? contact.status.charAt(0).toUpperCase() + contact.status.slice(1).toLowerCase() : 'Active'}</span>
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary" onclick="editContact(${contact.id})" title="Edit" style="border: 1px solid #667eea;">
+                        <button type="button" class="btn btn-outline-primary edit-contact-btn" data-contact='${contactJson}' title="Edit" style="border: 1px solid #667eea;">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button type="button" class="btn btn-outline-danger" onclick="deleteContact(${contact.id}, '${contact.name.replace(/'/g, "\\'")}')" title="Delete" style="border: 1px solid #667eea;">
@@ -663,6 +673,26 @@ function updateContactsTable(contacts) {
     });
     
     tableBody.innerHTML = html;
+    
+    // Attach event listeners to edit buttons
+    tableBody.querySelectorAll('.edit-contact-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                // Decode HTML entities back to JSON string, then parse
+                const contactJson = this.getAttribute('data-contact')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&');
+                const contact = JSON.parse(contactJson);
+                editContact(contact);
+            } catch (e) {
+                console.error('Error parsing contact data:', e);
+                alert('Error loading contact data');
+            }
+        });
+    });
 }
 
 function updateSearchResults(totalContacts, searchTerm) {
@@ -686,3 +716,16 @@ function updateSearchResults(totalContacts, searchTerm) {
 
 <?php require_once 'includes/footer.php'; ?>
 
+<style>
+    @media (max-width: 768px) {
+        .card-header {
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card-header .btn-light {
+            width: 100% !important;
+        }
+}
+</style>

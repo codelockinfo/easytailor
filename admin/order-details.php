@@ -46,8 +46,13 @@ if (empty($orders)) {
 
 $order = $orders[0];
 
-// Get customer details
-$customer = $customerModel->find($order['customer_id']);
+// Get customer details - use data from order if available, otherwise fetch
+$customer = !empty($order['customer_id']) ? $customerModel->find($order['customer_id']) : false;
+if (!$customer && !empty($order['customer_id'])) {
+    // Customer not found or doesn't belong to company - redirect
+    header('Location: orders.php');
+    exit;
+}
 
 // Get measurement details if available
 $measurement = null;
@@ -59,8 +64,8 @@ if ($order['measurement_id']) {
     }
 }
 
-// Get cloth type details
-$clothType = $clothTypeModel->find($order['cloth_type_id']);
+// Get cloth type details - use data from order if available, otherwise fetch
+$clothType = !empty($order['cloth_type_id']) ? $clothTypeModel->find($order['cloth_type_id']) : false;
 
 // Get assigned tailor details
 $tailor = null;
@@ -165,15 +170,19 @@ require_once 'includes/header.php';
                 </h6>
             </div>
             <div class="card-body">
+                <?php if ($customer): ?>
                 <div class="mb-3">
                     <small class="text-muted d-block">Name</small>
                     <h5 class="mb-0">
                         <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="text-decoration-none">
-                            <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
+                            <?php echo htmlspecialchars(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')); ?>
                         </a>
                     </h5>
+                    <?php if (!empty($customer['customer_code'])): ?>
                     <small class="text-muted"><?php echo htmlspecialchars($customer['customer_code']); ?></small>
+                    <?php endif; ?>
                 </div>
+                <?php if (!empty($customer['phone'])): ?>
                 <div class="mb-3">
                     <small class="text-muted d-block">Phone</small>
                     <strong>
@@ -183,6 +192,7 @@ require_once 'includes/header.php';
                         </a>
                     </strong>
                 </div>
+                <?php endif; ?>
                 <?php if (!empty($customer['email'])): ?>
                 <div class="mb-3">
                     <small class="text-muted d-block">Email</small>
@@ -199,6 +209,9 @@ require_once 'includes/header.php';
                     <small class="text-muted d-block">Address</small>
                     <p class="mb-0"><?php echo nl2br(htmlspecialchars($customer['address'])); ?></p>
                 </div>
+                <?php endif; ?>
+                <?php else: ?>
+                <p class="text-muted mb-0">Customer information not available</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -342,9 +355,11 @@ require_once 'includes/header.php';
                 <i class="fas fa-ruler fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted">No Measurement Attached</h5>
                 <p class="text-muted">This order doesn't have measurements linked to it.</p>
+                <?php if ($customer && !empty($customer['id'])): ?>
                 <a href="measurements.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-plus me-2"></i>Add Measurement
                 </a>
+                <?php endif; ?>
             </div>
         </div>
         <?php endif; ?>

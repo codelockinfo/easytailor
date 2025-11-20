@@ -64,6 +64,13 @@ foreach ($invoices as $invoice) {
 $customerPayments = [];
 foreach ($invoices as $invoice) {
     $payments = $paymentModel->getInvoicePayments($invoice['id']);
+    // Ensure invoice_id is set for each payment
+    foreach ($payments as &$payment) {
+        if (!isset($payment['invoice_id'])) {
+            $payment['invoice_id'] = $invoice['id'];
+        }
+    }
+    unset($payment); // Unset reference
     $customerPayments = array_merge($customerPayments, $payments);
 }
 
@@ -405,7 +412,7 @@ foreach ($orders as $order) {
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-outline-primary" title="View Order">
+                                        <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-outline-primary" title="View Order">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -472,7 +479,7 @@ foreach ($orders as $order) {
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="invoices.php?id=<?php echo $invoice['id']; ?>" class="btn btn-sm btn-outline-primary" title="View Invoice">
+                                        <a href="invoice-details.php?id=<?php echo $invoice['id']; ?>" class="btn btn-sm btn-outline-primary" title="View Invoice">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -502,6 +509,7 @@ foreach ($orders as $order) {
                                     <th>Payment Method</th>
                                     <th>Reference</th>
                                     <th>Notes</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -522,13 +530,20 @@ foreach ($orders as $order) {
                                     <td>
                                         <small><?php echo htmlspecialchars($payment['notes'] ?? '-'); ?></small>
                                     </td>
+                                    <td>
+                                        <?php if (!empty($payment['invoice_id'])): ?>
+                                        <a href="invoice-details.php?id=<?php echo $payment['invoice_id']; ?>" class="btn btn-sm btn-outline-primary" title="View Invoice">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                             <tfoot>
                                 <tr class="table-info">
                                     <td><strong>Total Paid</strong></td>
-                                    <td colspan="4">
+                                    <td colspan="5">
                                         <strong class="text-success fs-5">
                                             <?php echo format_currency($totalPaid); ?>
                                         </strong>

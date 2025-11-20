@@ -247,20 +247,28 @@ $current_user = [
             
             cursor: pointer;
             position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+            background-attachment: local;
         }
         
         .form-select:hover {
             border-color: #cbd5e0;
-            background: linear-gradient(145deg, #ffffff, #f7fafc);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234a5568'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #ffffff, #f7fafc);
+            background-position: right 0.875rem center, center !important;
+            background-size: 18px 18px, 100% 100% !important;
+            background-repeat: no-repeat, no-repeat !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-            transform: translateY(0px)!;
+            transform: none!important;
         }
         
         .form-select:focus {
             border-color: #667eea;
-            background: #ffffff;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234a5568'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), #ffffff;
+            background-position: right 0.875rem center, center !important;
+            background-size: 18px 18px, 100% 100% !important;
+            background-repeat: no-repeat, no-repeat !important;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 20px rgba(0, 0, 0, 0.08);
             transform: translateY(-2px);
             outline: none;
@@ -357,7 +365,9 @@ $current_user = [
         
         /* Disabled State */
         .form-select:disabled {
-            background: linear-gradient(145deg, #f7fafc, #edf2f7);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a0aec0'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f7fafc, #edf2f7);
+            background-position: right 0.875rem center, center;
+            background-size: 18px 18px, 100% 100%;
             border-color: #e2e8f0;
             color: #a0aec0;
             cursor: not-allowed;
@@ -380,7 +390,9 @@ $current_user = [
             }
             
             .form-select:hover {
-                background: linear-gradient(145deg, #4a5568, #2d3748);
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a0aec0'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #4a5568, #2d3748);
+                background-position: right 0.875rem center, center;
+                background-size: 18px 18px, 100% 100%;
                 border-color: #667eea;
             }
             

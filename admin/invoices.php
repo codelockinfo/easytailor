@@ -673,7 +673,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
             <form method="POST" id="invoiceForm">
                 <div class="modal-header">
                     <h5 class="modal-title" id="invoiceModalTitle">Create Invoice</h5>
-                    <h5 class="modal-title" id="invoiceModalTitle">Create Invoice</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -687,8 +686,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action" id="invoiceAction" value="create">
                     <input type="hidden" name="invoice_id" id="invoice_id" value="">
-                    <input type="hidden" name="action" id="invoiceAction" value="create">
-                    <input type="hidden" name="invoice_id" id="invoice_id">
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -779,10 +776,11 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="invoiceSubmitBtn">
-                        <i class="fas fa-save me-2"></i><span id="invoiceSubmitText">Create Invoice</span>
-                    <button type="submit" class="btn btn-primary" id="invoiceSubmitBtn">
+                    <button type="submit" class="btn btn-primary" id="createInvoiceBtn">
                         <i class="fas fa-save me-2"></i>Create Invoice
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="updateInvoiceBtn" style="display: none;">
+                        <i class="fas fa-save me-2"></i>Update Invoice
                     </button>
                 </div>
             </form>
@@ -860,7 +858,8 @@ const invoiceFormEl = document.getElementById('invoiceForm');
 const invoiceModalTitle = document.getElementById('invoiceModalTitle');
 const invoiceActionInput = document.getElementById('invoiceAction');
 const invoiceIdInput = document.getElementById('invoice_id');
-const invoiceSubmitBtn = document.getElementById('invoiceSubmitBtn');
+const createInvoiceBtn = document.getElementById('createInvoiceBtn');
+const updateInvoiceBtn = document.getElementById('updateInvoiceBtn');
 const orderSelect = document.getElementById('order_id');
 const invoiceDateInput = document.getElementById('invoice_date');
 const dueDateInput = document.getElementById('due_date');
@@ -959,88 +958,7 @@ function viewInvoice(invoiceId) {
     window.location.href = 'invoice-details.php?id=' + invoiceId;
 }
 
-function editInvoice(invoiceId) {
-    // Show loading state
-    const modal = document.getElementById('invoiceModal');
-    const modalTitle = document.getElementById('invoiceModalTitle');
-    const submitBtn = document.getElementById('invoiceSubmitBtn');
-    const submitText = document.getElementById('invoiceSubmitText');
-    
-    modalTitle.textContent = 'Loading...';
-    submitBtn.disabled = true;
-    
-    // Fetch invoice data
-    fetch(`ajax/get_invoice.php?id=${invoiceId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.invoice) {
-                const invoice = data.invoice;
-                
-                // Set form to edit mode
-                document.getElementById('invoiceAction').value = 'update';
-                document.getElementById('invoice_id').value = invoice.id;
-                document.getElementById('invoiceModalTitle').textContent = 'Edit Invoice';
-                document.getElementById('invoiceSubmitText').textContent = 'Update Invoice';
-                
-                // Populate form fields
-                document.getElementById('order_id').value = invoice.order_id;
-                document.getElementById('invoice_date').value = invoice.invoice_date;
-                document.getElementById('due_date').value = invoice.due_date;
-                document.getElementById('subtotal').value = invoice.subtotal;
-                
-                // Set tax_rate, default to 12% if not set or invalid
-                const taxRateSelect = document.getElementById('tax_rate');
-                let taxRate = '12'; // Default to 12%
-                if (invoice.tax_rate !== null && invoice.tax_rate !== undefined) {
-                    const taxRateValue = String(invoice.tax_rate);
-                    // Check if the value exists in the dropdown options
-                    const optionExists = Array.from(taxRateSelect.options).some(opt => opt.value === taxRateValue);
-                    if (optionExists) {
-                        taxRate = taxRateValue;
-                    }
-                }
-                taxRateSelect.value = taxRate;
-                
-                document.getElementById('tax_amount').value = invoice.tax_amount || 0;
-                document.getElementById('discount_amount').value = invoice.discount_amount || 0;
-                document.getElementById('total_amount').value = invoice.total_amount;
-                document.getElementById('notes').value = invoice.notes || '';
-                
-                // If the order is not in the dropdown, add it
-                const orderSelect = document.getElementById('order_id');
-                const orderOption = Array.from(orderSelect.options).find(opt => opt.value == invoice.order_id);
-                if (!orderOption && invoice.order) {
-                    const newOption = document.createElement('option');
-                    newOption.value = invoice.order.id;
-                    newOption.textContent = `${invoice.order.order_number} - (Current Order)`;
-                    newOption.setAttribute('data-amount', invoice.order.total_amount);
-                    orderSelect.appendChild(newOption);
-                    orderSelect.value = invoice.order.id;
-                }
-                
-                // Recalculate totals
-                calculateTotal();
-                
-                // Enable submit button
-                submitBtn.disabled = false;
-                
-                // Show modal
-                new bootstrap.Modal(modal).show();
-            } else {
-                showToast('Error', data.error || 'Failed to load invoice data', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error loading invoice:', error);
-            showToast('Error', 'Network error occurred. Please try again.', 'error');
-        });
-}
-
-function printInvoice(invoiceId) {
-    window.open('print-invoice.php?id=' + invoiceId, '_blank');
-}
-
-function editInvoice(invoice) {
+function populateInvoiceForm(invoice) {
     if (!invoiceModalElement || !invoice) return;
     
     if (invoiceActionInput) {
@@ -1053,22 +971,37 @@ function editInvoice(invoice) {
         const suffix = invoice.invoice_number ? ` (${invoice.invoice_number})` : '';
         invoiceModalTitle.textContent = 'Edit Invoice' + suffix;
     }
-    if (invoiceSubmitBtn) {
-        invoiceSubmitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Update Invoice';
+    
+    if (createInvoiceBtn) {
+        createInvoiceBtn.style.display = 'none';
+        createInvoiceBtn.disabled = false;
+    }
+    if (updateInvoiceBtn) {
+        updateInvoiceBtn.style.display = 'inline-block';
+        updateInvoiceBtn.disabled = false;
     }
     
     if (orderSelect) {
         const orderValue = invoice.order_id ? String(invoice.order_id) : '';
         if (orderValue) {
+            const orderAmount = invoice.order?.total_amount ?? invoice.total_amount ?? 0;
+            const orderLabel =
+                invoice.order_number
+                    ? `${invoice.order_number} - ${invoice.customer_name || ''}`
+                    : invoice.order?.order_number
+                        ? `${invoice.order.order_number} - ${invoice.order.customer_name || ''}`
+                        : `Order #${orderValue}`;
+            
             let option = Array.from(orderSelect.options).find(opt => opt.value === orderValue);
             if (!option) {
                 option = document.createElement('option');
                 option.value = orderValue;
-                option.textContent = invoice.order_number ? `${invoice.order_number} - ${invoice.customer_name || ''}` : `Order #${orderValue}`;
-                option.dataset.amount = invoice.total_amount || 0;
+                option.textContent = orderLabel;
+                option.dataset.amount = orderAmount;
                 option.classList.add(TEMP_ORDER_OPTION_CLASS);
                 orderSelect.appendChild(option);
             }
+            option.dataset.amount = orderAmount;
             orderSelect.value = orderValue;
         }
     }
@@ -1089,7 +1022,7 @@ function editInvoice(invoice) {
         notesInput.value = invoice.notes || '';
     }
     if (taxRateSelect) {
-        const rateValue = invoice.tax_rate !== undefined && invoice.tax_rate !== null ? String(invoice.tax_rate) : '0';
+        const rateValue = invoice.tax_rate !== undefined && invoice.tax_rate !== null ? String(invoice.tax_rate) : '12';
         let option = Array.from(taxRateSelect.options).find(opt => opt.value === rateValue);
         if (!option) {
             option = document.createElement('option');
@@ -1107,8 +1040,77 @@ function editInvoice(invoice) {
         totalAmountInput.value = invoice.total_amount ?? 0;
     }
     
+    calculateTotal();
+    
     const modalInstance = bootstrap.Modal.getOrCreateInstance(invoiceModalElement);
     modalInstance.show();
+}
+
+function editInvoice(invoiceOrId) {
+    if (!invoiceModalElement || !invoiceOrId) return;
+    
+    const showLoadingState = () => {
+        if (invoiceModalTitle) {
+            invoiceModalTitle.textContent = 'Loading...';
+        }
+        if (createInvoiceBtn) {
+            createInvoiceBtn.disabled = true;
+            createInvoiceBtn.style.display = 'none';
+        }
+        if (updateInvoiceBtn) {
+            updateInvoiceBtn.style.display = 'inline-block';
+            updateInvoiceBtn.disabled = true;
+        }
+    };
+    
+    const clearLoadingState = () => {
+        if (createInvoiceBtn) {
+            createInvoiceBtn.disabled = false;
+            if (!invoiceActionInput || invoiceActionInput.value !== 'update') {
+                createInvoiceBtn.style.display = 'inline-block';
+            }
+        }
+        if (updateInvoiceBtn) {
+            updateInvoiceBtn.disabled = false;
+            if (!invoiceActionInput || invoiceActionInput.value !== 'update') {
+                updateInvoiceBtn.style.display = 'none';
+            }
+        }
+    };
+    
+    if (typeof invoiceOrId === 'object') {
+        populateInvoiceForm(invoiceOrId);
+        return;
+    }
+    
+    const invoiceId = Number(invoiceOrId);
+    if (!Number.isFinite(invoiceId) || invoiceId <= 0) {
+        showToast('Error', 'Invalid invoice selected', 'error');
+        return;
+    }
+    
+    showLoadingState();
+    
+    fetch(`ajax/get_invoice.php?id=${invoiceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.invoice) {
+                populateInvoiceForm(data.invoice);
+            } else {
+                showToast('Error', data.error || 'Failed to load invoice data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading invoice:', error);
+            showToast('Error', 'Network error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+            clearLoadingState();
+        });
+}
+
+function printInvoice(invoiceId) {
+    window.open('print-invoice.php?id=' + invoiceId, '_blank');
 }
 
 function fixAdvancePayments() {
@@ -1254,7 +1256,9 @@ document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', func
     document.getElementById('invoiceAction').value = 'create';
     document.getElementById('invoice_id').value = '';
     document.getElementById('invoiceModalTitle').textContent = 'Create Invoice';
-    document.getElementById('invoiceSubmitText').textContent = 'Create Invoice';
+    // Show Create button, hide Update button
+    if (createInvoiceBtn) createInvoiceBtn.style.display = 'inline-block';
+    if (updateInvoiceBtn) updateInvoiceBtn.style.display = 'none';
     document.getElementById('invoice_date').value = '<?php echo date('Y-m-d'); ?>';
     document.getElementById('tax_rate').value = '12'; // Set default GST to 12%
     
@@ -1281,9 +1285,9 @@ if (invoiceModalElement) {
         if (invoiceModalTitle) {
             invoiceModalTitle.textContent = 'Create Invoice';
         }
-        if (invoiceSubmitBtn) {
-            invoiceSubmitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Create Invoice';
-        }
+        // Show Create button, hide Update button
+        if (createInvoiceBtn) createInvoiceBtn.style.display = 'inline-block';
+        if (updateInvoiceBtn) updateInvoiceBtn.style.display = 'none';
         if (invoiceDateInput) {
             invoiceDateInput.value = '<?php echo date('Y-m-d'); ?>';
         }

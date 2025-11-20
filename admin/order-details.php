@@ -162,9 +162,6 @@ if (empty($orders)) {
     $order = $orders[0];
 }
 
-<<<<<<< HEAD
-$order = $orders[0];
-
 // Get customer details - use data from order if available, otherwise fetch
 $customer = !empty($order['customer_id']) ? $customerModel->find($order['customer_id']) : false;
 if (!$customer && !empty($order['customer_id'])) {
@@ -172,10 +169,6 @@ if (!$customer && !empty($order['customer_id'])) {
     header('Location: orders.php');
     exit;
 }
-=======
-// Get customer details
-$customer = $customerModel->find($order['customer_id']);
->>>>>>> fd257bb45e0c91fb59350d2e23c5cf377cce78ed
 
 // Get measurement details if available
 $measurement = null;

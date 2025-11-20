@@ -673,6 +673,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
             <form method="POST" id="invoiceForm">
                 <div class="modal-header">
                     <h5 class="modal-title" id="invoiceModalTitle">Create Invoice</h5>
+                    <h5 class="modal-title" id="invoiceModalTitle">Create Invoice</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -685,11 +686,9 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     <?php endif; ?>
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action" id="invoiceAction" value="create">
-<<<<<<< HEAD
                     <input type="hidden" name="invoice_id" id="invoice_id" value="">
-=======
+                    <input type="hidden" name="action" id="invoiceAction" value="create">
                     <input type="hidden" name="invoice_id" id="invoice_id">
->>>>>>> fd257bb45e0c91fb59350d2e23c5cf377cce78ed
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -781,11 +780,9 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="invoiceSubmitBtn">
-<<<<<<< HEAD
                         <i class="fas fa-save me-2"></i><span id="invoiceSubmitText">Create Invoice</span>
-=======
+                    <button type="submit" class="btn btn-primary" id="invoiceSubmitBtn">
                         <i class="fas fa-save me-2"></i>Create Invoice
->>>>>>> fd257bb45e0c91fb59350d2e23c5cf377cce78ed
                     </button>
                 </div>
             </form>
@@ -1252,7 +1249,6 @@ function calculateTotal() {
 }
 
 // Reset modal when closed
-<<<<<<< HEAD
 document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('invoiceForm').reset();
     document.getElementById('invoiceAction').value = 'create';
@@ -1271,7 +1267,6 @@ document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', func
         }
     });
 });
-=======
 if (invoiceModalElement) {
     invoiceModalElement.addEventListener('hidden.bs.modal', function() {
         if (invoiceFormEl) {
@@ -1309,7 +1304,6 @@ if (invoiceModalElement) {
         }
     });
 }
->>>>>>> fd257bb45e0c91fb59350d2e23c5cf377cce78ed
 
 document.getElementById('paymentModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('paymentForm').reset();

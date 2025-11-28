@@ -80,6 +80,70 @@ class EmailChangeRequest extends BaseModel {
             'review_notes' => $review_notes
         ]);
     }
+
+    /**
+     * Get all email change requests with company details
+     */
+    public function getAllRequestsWithDetails($status = null) {
+        try {
+            $query = "SELECT 
+                        ecr.*,
+                        c.company_name,
+                        c.owner_name,
+                        u1.username as requested_by_username,
+                        u2.username as reviewed_by_username
+                      FROM " . $this->table . " ecr
+                      LEFT JOIN companies c ON ecr.company_id = c.id
+                      LEFT JOIN users u1 ON ecr.requested_by = u1.id
+                      LEFT JOIN users u2 ON ecr.reviewed_by = u2.id";
+            
+            $params = [];
+            if ($status) {
+                $query .= " WHERE ecr.status = :status";
+                $params['status'] = $status;
+            }
+            
+            $query .= " ORDER BY ecr.created_at DESC";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute($params);
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching email change requests: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get request by ID with company details
+     */
+    public function getRequestWithDetails($id) {
+        try {
+            $query = "SELECT 
+                        ecr.*,
+                        c.company_name,
+                        c.owner_name,
+                        c.business_phone,
+                        c.business_address,
+                        u1.username as requested_by_username,
+                        u2.username as reviewed_by_username
+                      FROM " . $this->table . " ecr
+                      LEFT JOIN companies c ON ecr.company_id = c.id
+                      LEFT JOIN users u1 ON ecr.requested_by = u1.id
+                      LEFT JOIN users u2 ON ecr.reviewed_by = u2.id
+                      WHERE ecr.id = :id";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching email change request: " . $e->getMessage());
+            return null;
+        }
+    }
 }
 ?>
 

@@ -73,7 +73,7 @@ class Order extends BaseModel {
     public function getOrdersWithDetails($conditions = [], $limit = null, $offset = 0) {
         $companyId = $this->getCompanyId();
         $query = "SELECT o.*, 
-                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
+                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone, c.email as customer_email,
                          ct.name as cloth_type_name,
                          u.full_name as tailor_name,
                          creator.full_name as created_by_name

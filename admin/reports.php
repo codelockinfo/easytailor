@@ -316,22 +316,22 @@ for ($i = 11; $i >= 0; $i--) {
     <div class="card-body">
         <div class="row">
             <div class="col-md-3 mb-2">
-                <button class="btn btn-outline-primary w-100" onclick="exportReport('orders')">
+                <button class="btn btn-outline-primary w-100" data-export-btn="orders" onclick="exportReport('orders')">
                     <i class="fas fa-clipboard-list me-2"></i>Export Orders
                 </button>
             </div>
             <div class="col-md-3 mb-2">
-                <button class="btn btn-outline-success w-100" onclick="exportReport('invoices')">
+                <button class="btn btn-outline-success w-100" data-export-btn="invoices" onclick="exportReport('invoices')">
                     <i class="fas fa-file-invoice me-2"></i>Export Invoices
                 </button>
             </div>
             <div class="col-md-3 mb-2">
-                <button class="btn btn-outline-danger w-100" onclick="exportReport('expenses')">
+                <button class="btn btn-outline-danger w-100" data-export-btn="expenses" onclick="exportReport('expenses')">
                     <i class="fas fa-receipt me-2"></i>Export Expenses
                 </button>
             </div>
             <div class="col-md-3 mb-2">
-                <button class="btn btn-outline-info w-100" onclick="exportReport('customers')">
+                <button class="btn btn-outline-info w-100" data-export-btn="customers" onclick="exportReport('customers')">
                     <i class="fas fa-users me-2"></i>Export Customers
                 </button>
             </div>
@@ -764,8 +764,65 @@ function performFilter() {
     });
 }
 
+const exportEndpoints = {
+    orders: 'ajax/export_orders.php',
+    invoices: 'ajax/export_invoices.php',
+    expenses: 'ajax/export_expenses.php',
+    customers: 'ajax/export_customers.php'
+};
+
 function exportReport(type) {
-    showToast('Export functionality will be implemented', 'info');
+    const endpoint = exportEndpoints[type];
+    if (!endpoint) {
+        showToast('Invalid export type selected.', 'error');
+        return;
+    }
+
+    const exportBtn = document.querySelector(`[data-export-btn="${type}"]`);
+    const originalText = exportBtn ? exportBtn.innerHTML : '';
+
+    if (exportBtn) {
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Exporting...';
+    }
+
+    showToast('Preparing your export... Please wait.', 'info');
+
+    const formData = new FormData();
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+
+    fetch(endpoint, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Export failed with status ' + response.status);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${type}_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        showToast('Export completed! Your file has been downloaded.', 'success');
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        showToast('Export failed. Please try again.', 'error');
+    })
+    .finally(() => {
+        if (exportBtn) {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = originalText;
+        }
+    });
 }
 
 // Initialize charts when page loads

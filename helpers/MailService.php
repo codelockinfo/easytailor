@@ -219,6 +219,77 @@ class MailService
             return false;
         }
     }
+
+    /**
+     * Notify site admin about a new email change request
+     */
+    public function sendEmailChangeRequestNotification(array $payload): bool
+    {
+        if (!$this->canSend) {
+            return false;
+        }
+
+        $email = $payload['email'] ?? '';
+        if (empty($email)) {
+            $this->lastError = 'Missing recipient email.';
+            return false;
+        }
+
+        try {
+            $mailer = $this->createMailer();
+            if (!$mailer) {
+                return false;
+            }
+
+            $adminName = $payload['name'] ?? 'Site Admin';
+            $companyName = $payload['companyName'] ?? 'Unknown Company';
+            $ownerName = $payload['ownerName'] ?? 'Unknown Owner';
+            $currentEmail = $payload['currentEmail'] ?? 'N/A';
+            $newEmail = $payload['newEmail'] ?? 'N/A';
+            $reason = $payload['reason'] ?? 'Not provided';
+            $dashboardUrl = $payload['dashboardUrl'] ?? ($this->getBaseUrl() . '/siteadmin/index.php');
+
+            $safeReason = nl2br(htmlspecialchars($reason, ENT_QUOTES, 'UTF-8'));
+
+            $mailer->clearAllRecipients();
+            $mailer->addAddress($email, $adminName);
+            $mailer->Subject = 'New Email Change Request Received';
+
+            $mailer->Body = "
+                <p>Hello {$adminName},</p>
+                <p><strong>{$companyName}</strong> has requested to update their business email.</p>
+                <ul>
+                    <li><strong>Owner:</strong> {$ownerName}</li>
+                    <li><strong>Current Email:</strong> {$currentEmail}</li>
+                    <li><strong>Requested Email:</strong> {$newEmail}</li>
+                </ul>
+                <p><strong>Reason Provided:</strong><br>{$safeReason}</p>
+                <p>
+                    <a href=\"{$dashboardUrl}\" style=\"display:inline-block;padding:10px 18px;background:#667eea;color:#fff;
+                    border-radius:6px;text-decoration:none;\">View Request</a>
+                </p>
+                <p>This is an automated notification from " . APP_NAME . ".</p>
+            ";
+
+            $mailer->AltBody =
+                "Hello {$adminName},\n\n" .
+                "{$companyName} requested an email change.\n" .
+                "Owner: {$ownerName}\n" .
+                "Current Email: {$currentEmail}\n" .
+                "Requested Email: {$newEmail}\n" .
+                "Reason: {$reason}\n\n" .
+                "Review the request: {$dashboardUrl}\n";
+
+            $mailer->send();
+            return true;
+        } catch (PHPMailerException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        } catch (RuntimeException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
 }
 
 

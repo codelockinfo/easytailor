@@ -45,7 +45,7 @@ try {
     $expenses = $expenseModel->getAllExpenses();
     
     // Set headers for Excel download
-    $filename = 'expenses_export_' . date('Y-m-d_H-i-s') . '.xlsx';
+    $filename = 'expenses_export_' . date('Y-m-d_H-i-s') . '.xls';
     
     // Create Excel XML content
     $excelContent = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
@@ -94,7 +94,7 @@ try {
     $excelContent .= '</Workbook>';
     
     // Set headers for Excel download
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Type: application/vnd.ms-excel');
     header('Content-Disposition: attachment;filename="' . $filename . '"');
     header('Cache-Control: max-age=0');
     header('Pragma: public');

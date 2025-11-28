@@ -595,7 +595,7 @@ function exportCustomers() {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'customers_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xlsx';
+        a.download = 'customers_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xls';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

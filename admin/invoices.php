@@ -593,12 +593,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-outline-warning" 
-                                            onclick="editInvoice(<?php echo $invoice['id']; ?>)"
-                                            title="Edit Invoice" style="border: 1px solid #667eea;">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" 
                                             class="btn btn-outline-success" 
                                             onclick="addPayment(<?php echo $invoice['id']; ?>, '<?php echo htmlspecialchars($invoice['invoice_number']); ?>', <?php echo $invoice['balance_amount']; ?>)"
                                             title="Add Payment" style="border: 1px solid #667eea;">
@@ -1201,7 +1195,7 @@ function exportInvoices() {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'invoices_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xlsx';
+        a.download = 'invoices_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xls';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -1552,12 +1546,6 @@ function displayFilterResults(invoices) {
                                 onclick="viewInvoice(${invoice.id})"
                                 title="View Details" style="border: 1px solid #667eea;">
                             <i class="fas fa-eye"></i>
-                        </button>
-                        <button type="button" 
-                                class="btn btn-outline-warning" 
-                                onclick="editInvoice(${invoice.id})"
-                                title="Edit Invoice" style="border: 1px solid #667eea;">
-                            <i class="fas fa-edit"></i>
                         </button>
                         <button type="button" 
                                 class="btn btn-outline-success" 

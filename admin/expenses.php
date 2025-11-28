@@ -613,7 +613,7 @@ function exportExpenses() {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'expenses_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xlsx';
+        a.download = 'expenses_export_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.xls';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

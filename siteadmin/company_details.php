@@ -59,7 +59,7 @@ $stats = $companyModel->getCompanyStats($companyId);
         }
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem 1.5rem;
             display: flex;
@@ -135,8 +135,9 @@ $stats = $companyModel->getCompanyStats($companyId);
             }
         }
         .company-header.plan-free {
-            background: white !important;
+            background: #6c757d !important;
             border: 2px solid #dee2e6 !important;
+            color: white !important;
         }
         .company-header.plan-basic {
             background: #3b82f6 !important;
@@ -157,7 +158,7 @@ $stats = $companyModel->getCompanyStats($companyId);
         .company-header.plan-free .company-header-contact,
         .company-header.plan-free .company-header-stat,
         .company-header.plan-free .company-header-stat-label {
-            color: #1e293b !important;
+            color: #ffffff !important;
         }
         .company-header.plan-basic h3,
         .company-header.plan-basic .company-header-title,
@@ -193,7 +194,7 @@ $stats = $companyModel->getCompanyStats($companyId);
         .company-header.plan-free .company-info-text,
         .company-header.plan-free .company-info-title,
         .company-header.plan-free .company-info-icon {
-            color: #1e293b !important;
+            color: #ffffff !important;
         }
         .company-header.plan-basic .company-header-link,
         .company-header.plan-basic .company-header-contact-text,
@@ -215,11 +216,11 @@ $stats = $companyModel->getCompanyStats($companyId);
         
         .company-header .badge {
             background: rgba(30, 41, 59, 0.1) !important;
-            color: #1e293b !important;
+            color: #ffffff !important;
         }
         .company-header.plan-free .badge {
             background: rgba(30, 41, 59, 0.1) !important;
-            color: #1e293b !important;
+            color: #ffffff !important;
         }
         .company-header.plan-basic .badge,
         .company-header.plan-premium .badge,

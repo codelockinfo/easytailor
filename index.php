@@ -7,25 +7,62 @@
     <!-- SEO Meta Tags -->
     <title>Tailoring Management System | Smart Solution for Tailor Shops & Businesses</title>
     <meta name="description" content="All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments. Digitalize your tailor shop with smart tools. Register today!">
-    <meta name="keywords" content="tailoring management system, tailor shop software, tailor business software, tailor invoicing system, order management for tailors, tailor ERP, tailor business management app">
+    <meta name="keywords" content="tailoring management system, tailor shop software, tailor business software, tailor invoicing system, order management for tailors, tailor ERP, tailor business management app, tailor shop management, tailoring software, tailor CRM, tailor inventory management, digital tailor shop, tailor booking system, tailor order tracking, tailor payment system">
     <meta name="author" content="Tailoring Management System">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+    <meta name="geo.region" content="IN-GJ">
+    <meta name="geo.placename" content="Surat">
+    <meta name="geo.position" content="21.1702;72.8311">
+    <meta name="ICBM" content="21.1702, 72.8311">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://tailorpro.in/">
+    
+    <!-- Alternate Languages -->
+    <link rel="alternate" hreflang="en" href="https://tailorpro.in/">
+    <link rel="alternate" hreflang="x-default" href="https://tailorpro.in/">
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Tailoring Management System | Smart Solution for Tailor Shops">
     <meta property="og:description" content="Digitalize your tailoring business with our comprehensive management system. Manage customers, orders, invoices, and payments in one platform.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://yourdomain.com/landing">
-    <meta property="og:image" content="assets/images/og-image.jpg">
+    <meta property="og:url" content="https://tailorpro.in/">
+    <meta property="og:image" content="https://tailorpro.in/assets/images/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Tailoring Management System Dashboard">
+    <meta property="og:site_name" content="TailorPro - Tailoring Management System">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="en_IN">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tailoring Management System | Smart Solution for Tailor Shops">
     <meta name="twitter:description" content="Digitalize your tailoring business with our comprehensive management system.">
-    <meta name="twitter:image" content="assets/images/twitter-image.jpg">
+    <meta name="twitter:image" content="https://tailorpro.in/assets/images/twitter-image.jpg">
+    <meta name="twitter:image:alt" content="Tailoring Management System">
+    <meta name="twitter:site" content="@TailorPro">
+    <meta name="twitter:creator" content="@TailorPro">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    <link rel="apple-touch-icon" href="favicon(2).png">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="msapplication-TileColor" content="#0d6efd">
+    
+    <!-- Performance Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://code.jquery.com">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -49,18 +86,197 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Tailoring Management System",
-        "description": "All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments",
+        "alternateName": "TailorPro",
+        "description": "All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments. Digitalize your tailor shop with smart tools.",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web Browser",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "softwareVersion": "1.0",
+        "releaseNotes": "Comprehensive tailoring business management platform",
+        "url": "https://tailorpro.in/",
+        "screenshot": "https://tailorpro.in/assets/images/Dashboard image.gif",
         "offers": {
             "@type": "Offer",
             "price": "0",
-            "priceCurrency": "USD"
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock",
+            "priceValidUntil": "2026-12-31"
         },
         "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": "4.8",
+            "reviewCount": "150",
+            "bestRating": "5",
+            "worstRating": "1"
+        },
+        "provider": {
+            "@type": "Organization",
+            "name": "Codelock Solutions",
+            "url": "https://codelocksolutions.com/"
+        }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "TailorPro",
+        "alternateName": "Tailoring Management System",
+        "url": "https://tailorpro.in/",
+        "logo": "https://tailorpro.in/uploads/logos/main-logo.png",
+        "description": "Complete tailoring management system for modern businesses. Digitalize your workflow and grow your business.",
+        "foundingDate": "2020",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+917600464414",
+            "contactType": "Customer Service",
+            "email": "codelockinfo@gmail.com",
+            "areaServed": "IN",
+            "availableLanguage": ["en", "hi"]
+        },
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Silver business point, near vip circle, utran",
+            "addressLocality": "Surat",
+            "postalCode": "394105",
+            "addressRegion": "Gujarat",
+            "addressCountry": "IN"
+        },
+        "sameAs": [
+            "https://www.facebook.com/",
+            "https://twitter.com/",
+            "https://www.linkedin.com/",
+            "https://www.instagram.com/"
+        ],
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
             "reviewCount": "150"
+        }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "TailorPro - Tailoring Management System",
+        "url": "https://tailorpro.in/",
+        "description": "All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments",
+        "publisher": {
+            "@type": "Organization",
+            "name": "Codelock Solutions"
+        },
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://tailorpro.in/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://tailorpro.in/"
+            }
+        ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is a tailoring management system?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A tailoring management system is a comprehensive software solution that helps tailor shops manage customers, orders, invoices, employees, payments, and all aspects of their tailoring business digitally."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How does the tailoring management system help my business?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The system helps you save time, reduce manual work, improve measurement accuracy, track orders and payments effortlessly, and grow your business digitally with cloud-based access from anywhere."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is there a free plan available?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, we offer a free Starter plan perfect for small tailoring shops with up to 50 customers, basic order management, and simple invoicing features."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I access the system from mobile devices?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, our platform is fully mobile responsive and cloud-based, allowing you to manage your tailoring business from anywhere, anytime using any device with internet access."
+                }
+            }
+        ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "serviceType": "Tailoring Business Management Software",
+        "provider": {
+            "@type": "Organization",
+            "name": "Codelock Solutions"
+        },
+        "areaServed": {
+            "@type": "Country",
+            "name": "India"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Tailoring Management Plans",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Starter Plan",
+                        "description": "Perfect for small tailoring shops"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Professional Plan",
+                        "description": "Ideal for growing businesses"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Enterprise Plan",
+                        "description": "For large tailoring units"
+                    }
+                }
+            ]
         }
     }
     </script>

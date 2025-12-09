@@ -17,7 +17,7 @@ $currentFlag = $loader->getLanguageFlag();
 ?>
 
 <!-- Language Switcher Component -->
-<div class="language-switcher">
+<div class="language-switcher" style="display: none;">
     <div class="dropdown">
         <button class="btn btn-outline-primary dropdown-toggle language-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fas fa-globe me-1"></i>

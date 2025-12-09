@@ -139,6 +139,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Failed to create user account');
             }
             
+            // Update company with user_id (owner user ID)
+            $updateResult = $companyModel->update($companyId, ['user_id' => $userId]);
+            
+            if (!$updateResult) {
+                throw new Exception('Failed to link user to company');
+            }
+            
             // Commit transaction
             $db->commit();
 

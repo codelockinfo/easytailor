@@ -25,28 +25,70 @@ class Customer extends BaseModel {
 
     /**
      * Create new customer with auto-generated customer code
+     * Handles duplicate code errors with retry mechanism
      */
     public function createCustomer($data) {
         // Ensure company_id is set
         if (!isset($data['company_id'])) {
             $data['company_id'] = $this->getCompanyId();
         }
-        // Generate customer code
-        $data['customer_code'] = $this->generateCustomerCode();
-        return $this->create($data);
+        
+        $maxRetries = 5;
+        $attempt = 0;
+        
+        while ($attempt < $maxRetries) {
+            try {
+                // Generate customer code
+                $data['customer_code'] = $this->generateCustomerCode();
+                
+                // Attempt to create the customer
+                $result = $this->create($data);
+                
+                if ($result !== false) {
+                    return $result;
+                }
+                
+                // If create returned false, try again with new code
+                $attempt++;
+                
+            } catch (PDOException $e) {
+                // Check if it's a duplicate key error
+                if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    $attempt++;
+                    if ($attempt >= $maxRetries) {
+                        // If we've exhausted retries, throw the exception
+                        throw new Exception('Unable to generate unique customer code after ' . $maxRetries . ' attempts. Please try again.');
+                    }
+                    // Wait a bit before retrying (helps with race conditions)
+                    usleep(50000); // 50ms delay
+                    continue;
+                } else {
+                    // If it's a different error, re-throw it
+                    throw $e;
+                }
+            }
+        }
+        
+        return false;
     }
 
     /**
      * Generate unique customer code
+     * Uses retry mechanism to ensure uniqueness and prevent race conditions
      */
     private function generateCustomerCode() {
         $companyId = $this->getCompanyId();
         $prefix = 'CUST';
+        $maxAttempts = 50; // Maximum retry attempts
+        $attempt = 0;
+        $startNumber = 1;
+        
+        // Get the highest existing customer code number
         $query = "SELECT customer_code FROM " . $this->table . " WHERE customer_code LIKE :pattern";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
-        $query .= " ORDER BY customer_code DESC LIMIT 1";
+        $query .= " ORDER BY CAST(SUBSTRING(customer_code, 5) AS UNSIGNED) DESC LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $pattern = $prefix . '%';
         $stmt->bindParam(':pattern', $pattern);
@@ -55,16 +97,45 @@ class Customer extends BaseModel {
         }
         $stmt->execute();
         
-        $last_customer = $stmt->fetch();
+        $last_customer = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($last_customer) {
-            $last_number = (int) substr($last_customer['customer_code'], 4);
-            $new_number = $last_number + 1;
-        } else {
-            $new_number = 1;
+        if ($last_customer && isset($last_customer['customer_code'])) {
+            $last_code = $last_customer['customer_code'];
+            $last_number = (int) substr($last_code, 4);
+            $startNumber = $last_number + 1;
         }
         
-        return $prefix . str_pad($new_number, 6, '0', STR_PAD_LEFT);
+        // Try to generate a unique code starting from startNumber
+        while ($attempt < $maxAttempts) {
+            $new_number = $startNumber + $attempt;
+            $new_code = $prefix . str_pad($new_number, 6, '0', STR_PAD_LEFT);
+            
+            // Check if this code already exists (prevent duplicates)
+            $checkQuery = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE customer_code = :code";
+            if ($companyId) {
+                $checkQuery .= " AND company_id = :company_id";
+            }
+            $checkStmt = $this->conn->prepare($checkQuery);
+            $checkStmt->bindParam(':code', $new_code);
+            if ($companyId) {
+                $checkStmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+            }
+            $checkStmt->execute();
+            $exists = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            
+            // If code doesn't exist, return it
+            if ($exists && isset($exists['count']) && $exists['count'] == 0) {
+                return $new_code;
+            }
+            
+            // If code exists, try next number
+            $attempt++;
+        }
+        
+        // If we've exhausted retries, use timestamp-based fallback to ensure uniqueness
+        // Use microseconds for better uniqueness
+        $timestamp = (int)(microtime(true) * 1000) % 1000000;
+        return $prefix . str_pad($timestamp, 6, '0', STR_PAD_LEFT);
     }
 
     /**

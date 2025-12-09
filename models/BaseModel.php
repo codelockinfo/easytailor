@@ -90,17 +90,22 @@ class BaseModel {
         
         $query = "INSERT INTO " . $this->table . " (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
         
-        $stmt = $this->conn->prepare($query);
-        
-        foreach ($data as $column => $value) {
-            $stmt->bindValue(':' . $column, $value);
+        try {
+            $stmt = $this->conn->prepare($query);
+            
+            foreach ($data as $column => $value) {
+                $stmt->bindValue(':' . $column, $value);
+            }
+            
+            if ($stmt->execute()) {
+                return $this->conn->lastInsertId();
+            }
+            
+            return false;
+        } catch (PDOException $e) {
+            // Re-throw the exception so it can be caught by the calling method
+            throw $e;
         }
-        
-        if ($stmt->execute()) {
-            return $this->conn->lastInsertId();
-        }
-        
-        return false;
     }
 
     /**

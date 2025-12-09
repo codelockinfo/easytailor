@@ -1367,13 +1367,37 @@
             return stars;
         }
         
-        // Track page view
+        // Track page view (wait for gtag to be available)
         <?php
         require_once 'helpers/GA4Helper.php';
         $pageTitle = 'Tailoring Management System | Smart Solution for Tailor Shops & Businesses';
         $pageLocation = defined('APP_URL') ? rtrim(APP_URL, '/') . '/' : '';
-        echo GA4Helper::trackPageView($pageTitle, $pageLocation);
+        $pageViewCode = GA4Helper::trackPageView($pageTitle, $pageLocation);
         ?>
+        (function() {
+            var attempts = 0;
+            var maxAttempts = 50; // 5 seconds max wait time
+            
+            function firePageView() {
+                if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
+                    try {
+                        <?php echo $pageViewCode; ?>
+                    } catch (e) {
+                        console.error('GA4 page_view tracking error:', e);
+                    }
+                } else {
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(firePageView, 100);
+                    } else {
+                        console.warn('GA4 not loaded after 5 seconds, page_view event may be lost');
+                    }
+                }
+            }
+            
+            // Start trying to fire the page view
+            firePageView();
+        })();
     </script>
 
     <!-- Custom JS -->

@@ -19,19 +19,41 @@ class GA4Helper {
     public static function generateBaseCode() {
         $ga4Id = self::getMeasurementId();
         
+        // Use fallback if not defined
         if (empty($ga4Id)) {
-            return '';
+            $ga4Id = 'G-27LLB9QMEV'; // Fallback measurement ID
         }
         
-        return "
+        // Define gtag function FIRST before async script loads
+        // This ensures gtag is always available even if async script hasn't loaded yet
+        $code = "
     <!-- Google tag (gtag.js) -->
-    <script async src=\"https://www.googletagmanager.com/gtag/js?id=" . htmlspecialchars($ga4Id, ENT_QUOTES, 'UTF-8') . "\"></script>
     <script>
+        // Initialize dataLayer immediately (must be global)
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        
+        // Define gtag function immediately (must be global, not in IIFE)
+        // This ensures gtag is always available before any other scripts run
+        function gtag() {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(arguments);
+        }
+        
+        // Also assign to window for explicit access
+        window.gtag = gtag;
+        
+        // Make gtag available globally
+        if (typeof gtag === 'undefined') {
+            var gtag = window.gtag;
+        }
+        
+        // Initialize GA4
         gtag('js', new Date());
         gtag('config', '" . htmlspecialchars($ga4Id, ENT_QUOTES, 'UTF-8') . "');
-    </script>";
+    </script>
+    <script async src=\"https://www.googletagmanager.com/gtag/js?id=" . htmlspecialchars($ga4Id, ENT_QUOTES, 'UTF-8') . "\"></script>";
+        
+        return $code;
     }
     
     /**

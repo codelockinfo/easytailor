@@ -305,14 +305,55 @@
             }
         });
         
-        // Fire GA4 events stored in session
+        // Ensure gtag is always available (safety fallback)
+        // This runs immediately to ensure gtag exists even if GA4 script hasn't loaded
+        if (typeof window !== 'undefined') {
+            // Initialize dataLayer if it doesn't exist
+            window.dataLayer = window.dataLayer || [];
+            
+            // Create gtag function if it doesn't exist
+            if (typeof window.gtag === 'undefined') {
+                window.gtag = function() {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push(arguments);
+                };
+            }
+        }
+        
+        // Fire GA4 events stored in session (wait for gtag to be available)
         <?php if (isset($_SESSION['ga4_event']) && !empty($_SESSION['ga4_event'])): ?>
         (function() {
-            try {
-                <?php echo $_SESSION['ga4_event']; ?>
-            } catch (e) {
-                console.error('GA4 event tracking error:', e);
+            var attempts = 0;
+            var maxAttempts = 50; // 5 seconds max wait time
+            
+            function fireGA4Event() {
+                // Check if gtag is available (use window.gtag or global gtag)
+                var gtagAvailable = (typeof window !== 'undefined' && typeof window.gtag !== 'undefined') || (typeof gtag !== 'undefined');
+                
+                if (gtagAvailable && typeof window !== 'undefined' && typeof window.dataLayer !== 'undefined') {
+                    try {
+                        // Execute the event code - gtag should be available now
+                        <?php echo $_SESSION['ga4_event']; ?>
+                        console.log('GA4 event fired successfully');
+                    } catch (e) {
+                        console.error('GA4 event tracking error:', e);
+                        // Don't break the page if GA4 fails
+                    }
+                } else {
+                    // Retry after 100ms if gtag is not ready
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(fireGA4Event, 100);
+                    } else {
+                        console.warn('GA4 not loaded after 5 seconds, event may be lost');
+                    }
+                }
             }
+            
+            // Start trying to fire the event after a small delay to ensure scripts are loaded
+            setTimeout(function() {
+                fireGA4Event();
+            }, 100);
         })();
         <?php 
         unset($_SESSION['ga4_event']); // Clear after firing

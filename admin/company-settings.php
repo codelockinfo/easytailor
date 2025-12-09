@@ -497,13 +497,33 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Track request email change event if provided in response
+                    // Track request email change event if provided in response (wait for gtag)
                     if (data.ga4_event) {
-                        try {
-                            eval(data.ga4_event);
-                        } catch (e) {
-                            console.error('GA4 email change event tracking error:', e);
-                        }
+                        (function() {
+                            var attempts = 0;
+                            var maxAttempts = 50; // 5 seconds max wait time
+                            var eventCode = data.ga4_event;
+                            
+                            function fireEmailChangeEvent() {
+                                if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
+                                    try {
+                                        eval(eventCode);
+                                        console.log('GA4 email change event fired successfully');
+                                    } catch (e) {
+                                        console.error('GA4 email change event tracking error:', e);
+                                    }
+                                } else {
+                                    attempts++;
+                                    if (attempts < maxAttempts) {
+                                        setTimeout(fireEmailChangeEvent, 100);
+                                    } else {
+                                        console.warn('GA4 not loaded after 5 seconds, email change event may be lost');
+                                    }
+                                }
+                            }
+                            
+                            fireEmailChangeEvent();
+                        })();
                     }
                     
                     // Show success message

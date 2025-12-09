@@ -303,11 +303,30 @@ $seoOptions = [
         // Fire GA4 events stored in session (for signup events)
         <?php if (isset($_SESSION['ga4_event']) && !empty($_SESSION['ga4_event'])): ?>
         (function() {
-            try {
-                <?php echo $_SESSION['ga4_event']; ?>
-            } catch (e) {
-                console.error('GA4 event tracking error:', e);
+            var attempts = 0;
+            var maxAttempts = 50; // 5 seconds max wait time
+            
+            function fireGA4Event() {
+                if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
+                    try {
+                        <?php echo $_SESSION['ga4_event']; ?>
+                        console.log('GA4 event fired successfully');
+                    } catch (e) {
+                        console.error('GA4 event tracking error:', e);
+                    }
+                } else {
+                    // Retry after 100ms if gtag is not ready
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(fireGA4Event, 100);
+                    } else {
+                        console.warn('GA4 not loaded after 5 seconds, event may be lost');
+                    }
+                }
             }
+            
+            // Start trying to fire the event
+            fireGA4Event();
         })();
         <?php 
         unset($_SESSION['ga4_event']); // Clear after firing

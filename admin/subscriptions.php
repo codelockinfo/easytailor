@@ -714,13 +714,33 @@ function handlePaymentSuccess(response, paymentData) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Track purchase event if provided in response
+            // Track purchase event if provided in response (wait for gtag)
             if (data.ga4_event) {
-                try {
-                    eval(data.ga4_event);
-                } catch (e) {
-                    console.error('GA4 purchase event tracking error:', e);
-                }
+                (function() {
+                    var attempts = 0;
+                    var maxAttempts = 50; // 5 seconds max wait time
+                    var eventCode = data.ga4_event;
+                    
+                    function firePurchaseEvent() {
+                        if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
+                            try {
+                                eval(eventCode);
+                                console.log('GA4 purchase event fired successfully');
+                            } catch (e) {
+                                console.error('GA4 purchase event tracking error:', e);
+                            }
+                        } else {
+                            attempts++;
+                            if (attempts < maxAttempts) {
+                                setTimeout(firePurchaseEvent, 100);
+                            } else {
+                                console.warn('GA4 not loaded after 5 seconds, purchase event may be lost');
+                            }
+                        }
+                    }
+                    
+                    firePurchaseEvent();
+                })();
             }
             
             // Close modal

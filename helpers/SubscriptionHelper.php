@@ -79,7 +79,7 @@ class SubscriptionHelper {
         }
         
         // Get current count
-        require_once __DIR__ . '/../admin/models/Customer.php';
+        require_once __DIR__ . '/../models/Customer.php';
         $customerModel = new Customer();
         $currentCount = $customerModel->count(['company_id' => $companyId]);
         

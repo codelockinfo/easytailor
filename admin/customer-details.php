@@ -10,7 +10,7 @@
 $page_title = 'Customer Details';
 require_once 'includes/header.php';
 
-require_once 'models/Customer.php';
+require_once '../models/Customer.php';
 require_once 'models/Order.php';
 require_once 'models/Invoice.php';
 require_once 'models/Payment.php';

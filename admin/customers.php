@@ -10,7 +10,7 @@
 $page_title = 'Customer Management';
 require_once 'includes/header.php';
 
-require_once 'models/Customer.php';
+require_once '../models/Customer.php';
 require_once '../helpers/SubscriptionHelper.php';
 
 $customerModel = new Customer();

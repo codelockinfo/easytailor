@@ -13,7 +13,7 @@ require_once 'includes/header.php';
 require_once 'models/Order.php';
 require_once 'models/Invoice.php';
 require_once 'models/Expense.php';
-require_once 'models/Customer.php';
+require_once '../models/Customer.php';
 
 $orderModel = new Order();
 $invoiceModel = new Invoice();

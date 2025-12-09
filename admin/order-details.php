@@ -11,7 +11,7 @@ require_once '../config/config.php';
 require_login();
 
 require_once 'models/Order.php';
-require_once 'models/Customer.php';
+require_once '../models/Customer.php';
 require_once 'models/Invoice.php';
 require_once 'models/Measurement.php';
 require_once 'models/ClothType.php';

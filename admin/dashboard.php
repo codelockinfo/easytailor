@@ -12,7 +12,7 @@ $page_title = 'Dashboard'; // Will be translated in header
 require_once 'includes/header.php';
 
 // Include models
-require_once 'models/Customer.php';
+require_once '../models/Customer.php';
 require_once 'models/Order.php';
 require_once 'models/Invoice.php';
 require_once 'models/User.php';

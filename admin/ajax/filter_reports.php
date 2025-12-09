@@ -62,10 +62,10 @@ try {
         throw new Exception('From date cannot be after to date');
     }
     
-    require_once $rootDir . '/models/Order.php';
-    require_once $rootDir . '/models/Invoice.php';
-    require_once $rootDir . '/models/Expense.php';
-    require_once $rootDir . '/models/Customer.php';
+    require_once $rootDir . '/../models/Order.php';
+    require_once $rootDir . '/../models/Invoice.php';
+    require_once $rootDir . '/../models/Expense.php';
+    require_once $rootDir . '/../models/Customer.php';
     require_once $rootDir . '/../config/database.php';
     
     // Clear any output buffer content

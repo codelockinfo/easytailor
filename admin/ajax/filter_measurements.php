@@ -24,9 +24,9 @@ try {
         exit;
     }
 
-    require_once $rootDir . '/models/Measurement.php';
-    require_once $rootDir . '/models/Customer.php';
-    require_once $rootDir . '/models/ClothType.php';
+    require_once $rootDir . '/../models/Measurement.php';
+    require_once $rootDir . '/../models/Customer.php';
+    require_once $rootDir . '/../models/ClothType.php';
 
     // Get filter parameters
     $search = $_GET['search'] ?? '';

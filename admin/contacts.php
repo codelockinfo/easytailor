@@ -35,6 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $contactId = $contactModel->createContact($data);
                 if ($contactId) {
+                    // Track generate lead event
+                    require_once '../helpers/GA4Helper.php';
+                    $_SESSION['ga4_event'] = GA4Helper::trackGenerateLead('contact', null);
                     $message = 'Contact added successfully';
                     $messageType = 'success';
                 } else {

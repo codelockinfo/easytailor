@@ -84,6 +84,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $orderId = $orderModel->createOrder($data);
                     if ($orderId) {
+                        // Get order details for tracking
+                        $order = $orderModel->find($orderId);
+                        // Track create order event
+                        require_once '../helpers/GA4Helper.php';
+                        $_SESSION['ga4_event'] = GA4Helper::trackCreateOrder(
+                            $orderId,
+                            $order['order_number'] ?? null,
+                            $data['total_amount'] ?? null
+                        );
                         $_SESSION['message'] = 'Order created successfully';
                         $_SESSION['messageType'] = 'success';
                     } else {

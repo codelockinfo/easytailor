@@ -100,6 +100,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($invoiceId) {
                     // Update payment status based on advance payment
                     $invoiceModel->updatePaymentStatus($invoiceId);
+                    // Get invoice details for tracking
+                    $invoice = $invoiceModel->find($invoiceId);
+                    // Track create invoice event
+                    require_once '../helpers/GA4Helper.php';
+                    $_SESSION['ga4_event'] = GA4Helper::trackCreateInvoice(
+                        $invoiceId,
+                        $invoice['invoice_number'] ?? null,
+                        $data['total_amount'] ?? null
+                    );
                     $_SESSION['message'] = 'Invoice created successfully';
                     $_SESSION['messageType'] = 'success';
                 } else {

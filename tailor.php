@@ -63,6 +63,13 @@ $seoOptions = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
+    
+    <!-- Google Analytics 4 (GA4) -->
+    <?php
+    require_once 'helpers/GA4Helper.php';
+    echo GA4Helper::generateBaseCode();
+    ?>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Favicon -->
@@ -424,6 +431,14 @@ $seoOptions = [
                 messageEl.className = 'small text-danger';
             });
     });
+    
+    // Track page view
+    <?php
+    require_once 'helpers/GA4Helper.php';
+    $pageTitle = $companyName . ' - Tailor Profile';
+    $pageLocation = $canonicalUrl;
+    echo GA4Helper::trackPageView($pageTitle, $pageLocation);
+    ?>
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

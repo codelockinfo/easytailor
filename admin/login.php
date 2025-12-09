@@ -34,6 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $authController->login($username, $password);
         
         if ($result['success']) {
+            // Track login event
+            require_once '../helpers/GA4Helper.php';
+            $_SESSION['ga4_event'] = GA4Helper::trackLogin($result['user']['id'] ?? null, $result['user']['role'] ?? null);
             smart_redirect('dashboard.php');
         } else {
             // Store error in session and redirect to prevent form resubmission
@@ -296,6 +299,20 @@ $seoOptions = [
                 bsAlert.close();
             });
         }, 5000);
+        
+        // Fire GA4 events stored in session (for signup events)
+        <?php if (isset($_SESSION['ga4_event']) && !empty($_SESSION['ga4_event'])): ?>
+        (function() {
+            try {
+                <?php echo $_SESSION['ga4_event']; ?>
+            } catch (e) {
+                console.error('GA4 event tracking error:', e);
+            }
+        })();
+        <?php 
+        unset($_SESSION['ga4_event']); // Clear after firing
+        endif; 
+        ?>
     </script>
 </body>
 </html>

@@ -714,6 +714,15 @@ function handlePaymentSuccess(response, paymentData) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Track purchase event if provided in response
+            if (data.ga4_event) {
+                try {
+                    eval(data.ga4_event);
+                } catch (e) {
+                    console.error('GA4 purchase event tracking error:', e);
+                }
+            }
+            
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('upgradeModal'));
             modal.hide();

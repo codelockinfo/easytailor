@@ -497,6 +497,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Track request email change event if provided in response
+                    if (data.ga4_event) {
+                        try {
+                            eval(data.ga4_event);
+                        } catch (e) {
+                            console.error('GA4 email change event tracking error:', e);
+                        }
+                    }
+                    
                     // Show success message
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert alert-success alert-dismissible fade show';

@@ -164,13 +164,25 @@ try {
         // Don't fail the request if payment record storage fails
     }
     
+    // Track purchase event
+    require_once '../../helpers/GA4Helper.php';
+    $ga4Event = GA4Helper::trackSubscriptionPurchase(
+        $input['plan_name'] ?? null,
+        $planKey,
+        $amount,
+        $input['duration'] ?? null,
+        $paymentId
+    );
+    
     // Set success message in session
     $_SESSION['message'] = 'Payment successful! Your subscription has been upgraded to ' . ($input['plan_name'] ?? $planKey) . '.';
     $_SESSION['messageType'] = 'success';
+    $_SESSION['ga4_event'] = $ga4Event;
     
     echo json_encode([
         'success' => true,
-        'message' => 'Payment verified and subscription updated successfully'
+        'message' => 'Payment verified and subscription updated successfully',
+        'ga4_event' => $ga4Event
     ]);
     
 } catch (Exception $e) {

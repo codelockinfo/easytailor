@@ -194,9 +194,14 @@ if ($requestId) {
         }
     }
 
+    // Track request email change event
+    require_once '../../helpers/GA4Helper.php';
+    $ga4Event = GA4Helper::trackRequestEmailChange(get_user_id());
+    
     echo json_encode([
         'success' => true, 
-        'message' => 'Email change request submitted successfully. You will be notified once it\'s reviewed.'
+        'message' => 'Email change request submitted successfully. You will be notified once it\'s reviewed.',
+        'ga4_event' => $ga4Event
     ]);
 } else {
     echo json_encode(['success' => false, 'message' => 'Failed to submit email change request. Please try again.']);

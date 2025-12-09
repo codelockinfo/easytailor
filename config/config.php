@@ -18,6 +18,9 @@ session_start();
 define('APP_NAME', 'Tailoring Management System');
 define('APP_VERSION', '1.0.0');
 
+// Google Analytics 4 (GA4) Configuration
+define('GA4_MEASUREMENT_ID', 'G-27LLB9QMEV');
+
 // Include language loader
 require_once __DIR__ . '/../lang/language_loader.php';
 // Auto-detect APP_URL based on current request

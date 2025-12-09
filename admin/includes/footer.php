@@ -304,6 +304,20 @@
                 document.querySelector('.sidebar').classList.remove('show');
             }
         });
+        
+        // Fire GA4 events stored in session
+        <?php if (isset($_SESSION['ga4_event']) && !empty($_SESSION['ga4_event'])): ?>
+        (function() {
+            try {
+                <?php echo $_SESSION['ga4_event']; ?>
+            } catch (e) {
+                console.error('GA4 event tracking error:', e);
+            }
+        })();
+        <?php 
+        unset($_SESSION['ga4_event']); // Clear after firing
+        endif; 
+        ?>
     </script>
 
     <!-- Toast Container -->

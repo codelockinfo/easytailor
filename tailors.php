@@ -68,6 +68,13 @@ $seoOptions = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
+    
+    <!-- Google Analytics 4 (GA4) -->
+    <?php
+    require_once 'helpers/GA4Helper.php';
+    echo GA4Helper::generateBaseCode();
+    ?>
+    
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
     
@@ -972,6 +979,14 @@ $seoOptions = [
                 </div>
             `;
         }
+        
+        // Track page view
+        <?php
+        require_once 'helpers/GA4Helper.php';
+        $pageTitle = 'Find Tailor Shops Near You | Browse Professional Tailors';
+        $pageLocation = $baseUrl . '/tailors.php';
+        echo GA4Helper::trackPageView($pageTitle, $pageLocation);
+        ?>
     </script>
 </body>
 </html>

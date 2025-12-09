@@ -64,6 +64,12 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://code.jquery.com">
     
+    <!-- Google Analytics 4 (GA4) -->
+    <?php
+    require_once 'helpers/GA4Helper.php';
+    echo GA4Helper::generateBaseCode();
+    ?>
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -1360,6 +1366,14 @@
             
             return stars;
         }
+        
+        // Track page view
+        <?php
+        require_once 'helpers/GA4Helper.php';
+        $pageTitle = 'Tailoring Management System | Smart Solution for Tailor Shops & Businesses';
+        $pageLocation = defined('APP_URL') ? rtrim(APP_URL, '/') . '/' : '';
+        echo GA4Helper::trackPageView($pageTitle, $pageLocation);
+        ?>
     </script>
 
     <!-- Custom JS -->

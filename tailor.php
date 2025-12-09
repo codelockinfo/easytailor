@@ -74,6 +74,8 @@ $seoOptions = [
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    <!-- Custom CSS -->
+    <link href="assets/css/style.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -465,6 +467,9 @@ $seoOptions = [
     })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- WhatsApp Button -->
+    <?php require_once 'includes/whatsapp-button.php'; ?>
 </body>
 </html>
 

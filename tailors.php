@@ -41,14 +41,33 @@ $states = array_values(array_filter($company->getUniqueStates() ?? [], function(
 }));
 $stats = $company->getListingStats();
 ?>
+<?php
+require_once 'helpers/SEOHelper.php';
+
+$baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+$canonicalUrl = $baseUrl . '/tailors.php';
+
+$seoOptions = [
+    'title' => 'Find Tailor Shops Near You | Browse Professional Tailors | ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
+    'description' => 'Find experienced tailor shops near your location. Browse profiles, read reviews, check ratings, and connect with skilled tailors for all your stitching needs. Search by city, state, or specialty.',
+    'keywords' => 'find tailor shops, tailor directory, tailor near me, professional tailors, tailoring services, tailor reviews, tailor ratings, custom tailoring',
+    'canonical' => $canonicalUrl,
+    'og_type' => 'website',
+    'structured_data' => [
+        "@context" => "https://schema.org",
+        "@type" => "ItemList",
+        "name" => "Tailor Shops Directory",
+        "description" => "Browse professional tailor shops and find the perfect tailor for your needs",
+        "url" => $canonicalUrl
+    ]
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find Tailor Shops Near You | Tailoring Management System</title>
-    <meta name="description" content="Find experienced tailor shops near your location. Browse profiles, read reviews, and connect with skilled tailors for all your stitching needs.">
-    
+    <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
     

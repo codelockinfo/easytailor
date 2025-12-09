@@ -7,12 +7,26 @@
 // Set page title
 $page_title = 'Privacy Policy';
 ?>
+<?php
+require_once 'helpers/SEOHelper.php';
+
+$baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+$canonicalUrl = $baseUrl . '/privacy-policy.php';
+
+$seoOptions = [
+    'title' => 'Privacy Policy - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
+    'description' => 'Read our privacy policy to understand how we collect, use, and protect your personal information when using our tailoring management system.',
+    'keywords' => 'privacy policy, data protection, privacy statement, user privacy, data security',
+    'canonical' => $canonicalUrl,
+    'og_type' => 'article'
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title; ?> - Tailoring Management System</title>
+    <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <link href="assets/css/style.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

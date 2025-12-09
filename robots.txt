@@ -1,0 +1,51 @@
+# Robots.txt for Tailoring Management System
+# Allow all search engines to crawl public pages
+
+User-agent: *
+Allow: /
+Allow: /index.php
+Allow: /tailors.php
+Allow: /tailor.php
+Allow: /privacy-policy.php
+Allow: /terms-of-service.php
+Allow: /admin/register.php
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /admin/login.php
+Disallow: /admin/dashboard.php
+Disallow: /admin/customers.php
+Disallow: /admin/orders.php
+Disallow: /admin/invoices.php
+Disallow: /admin/expenses.php
+Disallow: /admin/reports.php
+Disallow: /admin/users.php
+Disallow: /admin/settings.php
+Disallow: /admin/profile.php
+Disallow: /admin/change-password.php
+Disallow: /admin/company-settings.php
+Disallow: /admin/subscriptions.php
+Disallow: /admin/contacts.php
+Disallow: /admin/measurements.php
+Disallow: /admin/cloth-types.php
+Disallow: /siteadmin/
+Disallow: /ajax/
+Disallow: /config/
+Disallow: /models/
+Disallow: /helpers/
+Disallow: /includes/
+Disallow: /resources/
+Disallow: /uploads/
+Disallow: /database/
+Disallow: /lang/
+Disallow: /controllers/
+
+# Allow sitemap
+Allow: /sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://tailorpro.in/sitemap.xml
+

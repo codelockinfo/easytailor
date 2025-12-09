@@ -7,12 +7,26 @@
 // Set page title
 $page_title = 'Terms of Service';
 ?>
+<?php
+require_once 'helpers/SEOHelper.php';
+
+$baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+$canonicalUrl = $baseUrl . '/terms-of-service.php';
+
+$seoOptions = [
+    'title' => 'Terms of Service - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
+    'description' => 'Read our terms of service to understand the rules and regulations for using our tailoring management system platform.',
+    'keywords' => 'terms of service, terms and conditions, user agreement, service terms, legal terms',
+    'canonical' => $canonicalUrl,
+    'og_type' => 'article'
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title; ?> - Tailoring Management System</title>
+    <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <link href="assets/css/style.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

@@ -38,12 +38,31 @@ function escape($value) {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 ?>
+<?php
+require_once 'helpers/SEOHelper.php';
+
+$baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+$companyName = escape($company['company_name']);
+$companyDesc = !empty($company['description']) ? escape($company['description']) : ($companyName . ' - Professional tailor shop offering quality tailoring services. ' . (!empty($company['city']) ? 'Located in ' . escape($company['city']) : ''));
+$companyImage = !empty($company['logo']) ? $baseUrl . '/' . ltrim($company['logo'], '/') : $baseUrl . '/assets/images/og-image.jpg';
+$canonicalUrl = $baseUrl . '/tailor.php?id=' . $company['id'];
+
+$seoOptions = [
+    'title' => $companyName . ' - Tailor Profile | ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
+    'description' => $companyDesc,
+    'keywords' => 'tailor shop, tailoring services, ' . $companyName . ', ' . (!empty($company['city']) ? escape($company['city']) . ' tailor' : '') . ', custom tailoring, professional tailor',
+    'canonical' => $canonicalUrl,
+    'og_image' => $companyImage,
+    'og_type' => 'profile',
+    'structured_data' => SEOHelper::generateLocalBusinessSchema($company)
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo escape($company['company_name']); ?> - Tailor Profile</title>
+    <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Favicon -->

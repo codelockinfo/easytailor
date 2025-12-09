@@ -72,12 +72,26 @@ if (isset($_SESSION['login_success'])) {
     unset($_SESSION['login_success']);
 }
 ?>
+<?php
+require_once '../helpers/SEOHelper.php';
+
+$baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+$canonicalUrl = $baseUrl . '/admin/login.php';
+
+$seoOptions = [
+    'title' => 'Login - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
+    'description' => 'Login to your tailoring management system account to manage your tailor shop, customers, orders, and invoices.',
+    'keywords' => 'login, tailor login, tailor shop login, tailoring system login',
+    'canonical' => $canonicalUrl,
+    'noindex' => true
+];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - <?php echo APP_NAME; ?></title>
+    <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Favicon -->

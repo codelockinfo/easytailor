@@ -18,12 +18,31 @@ $current_user = [
     'username' => $_SESSION['username'] ?? ''
 ];
 ?>
+<?php
+require_once __DIR__ . '/../helpers/SEOHelper.php';
+
+$baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+$currentPage = basename($_SERVER['PHP_SELF']);
+$canonicalUrl = $baseUrl . '/' . $currentPage;
+$pageTitle = __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard')));
+
+// 404 page should be indexed but with low priority
+$is404 = ($currentPage === '404.php' || strpos($pageTitle, 'not found') !== false);
+
+$seoOptions = [
+    'title' => ucfirst($pageTitle) . ' - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
+    'description' => 'Manage your tailor shop with ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System') . ' - ' . ucfirst($pageTitle) . ' dashboard',
+    'keywords' => 'tailor shop management, tailoring software, ' . strtolower($pageTitle),
+    'canonical' => $canonicalUrl,
+    'noindex' => !$is404 // Admin pages should not be indexed, but 404 can be
+];
+?>
 <!DOCTYPE html>
 <html lang="<?php echo getHtmlLang(); ?>" dir="<?php echo getTextDirection(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard'))); ?> - <?php echo APP_NAME; ?></title>
+    <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

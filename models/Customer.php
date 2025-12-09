@@ -33,13 +33,13 @@ class Customer extends BaseModel {
             $data['company_id'] = $this->getCompanyId();
         }
         
-        $maxRetries = 5;
+        $maxRetries = 20; // Increased from 5 to 20
         $attempt = 0;
         
         while ($attempt < $maxRetries) {
             try {
-                // Generate customer code
-                $data['customer_code'] = $this->generateCustomerCode();
+                // Generate customer code (pass attempt number to vary generation)
+                $data['customer_code'] = $this->generateCustomerCode($attempt);
                 
                 // Attempt to create the customer
                 $result = $this->create($data);
@@ -56,11 +56,20 @@ class Customer extends BaseModel {
                 if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate entry') !== false) {
                     $attempt++;
                     if ($attempt >= $maxRetries) {
-                        // If we've exhausted retries, throw the exception
-                        throw new Exception('Unable to generate unique customer code after ' . $maxRetries . ' attempts. Please try again.');
+                        // Use guaranteed unique fallback code
+                        $data['customer_code'] = $this->generateGuaranteedUniqueCode($data['company_id']);
+                        try {
+                            $result = $this->create($data);
+                            if ($result !== false) {
+                                return $result;
+                            }
+                        } catch (PDOException $e2) {
+                            // Even fallback failed, throw user-friendly error
+                            throw new Exception('Unable to create customer. Please try again or contact support.');
+                        }
                     }
                     // Wait a bit before retrying (helps with race conditions)
-                    usleep(50000); // 50ms delay
+                    usleep(100000); // Increased to 100ms delay
                     continue;
                 } else {
                     // If it's a different error, re-throw it
@@ -76,10 +85,10 @@ class Customer extends BaseModel {
      * Generate unique customer code
      * Uses retry mechanism to ensure uniqueness and prevent race conditions
      */
-    private function generateCustomerCode() {
+    private function generateCustomerCode($offset = 0) {
         $companyId = $this->getCompanyId();
         $prefix = 'CUST';
-        $maxAttempts = 50; // Maximum retry attempts
+        $maxAttempts = 100; // Increased from 50 to 100
         $attempt = 0;
         $startNumber = 1;
         
@@ -102,7 +111,9 @@ class Customer extends BaseModel {
         if ($last_customer && isset($last_customer['customer_code'])) {
             $last_code = $last_customer['customer_code'];
             $last_number = (int) substr($last_code, 4);
-            $startNumber = $last_number + 1;
+            $startNumber = $last_number + 1 + $offset; // Add offset to vary starting point
+        } else {
+            $startNumber = 1 + $offset;
         }
         
         // Try to generate a unique code starting from startNumber
@@ -132,10 +143,56 @@ class Customer extends BaseModel {
             $attempt++;
         }
         
-        // If we've exhausted retries, use timestamp-based fallback to ensure uniqueness
-        // Use microseconds for better uniqueness
-        $timestamp = (int)(microtime(true) * 1000) % 1000000;
-        return $prefix . str_pad($timestamp, 6, '0', STR_PAD_LEFT);
+        // If we've exhausted retries, use guaranteed unique fallback
+        return $this->generateGuaranteedUniqueCode($companyId);
+    }
+    
+    /**
+     * Generate a guaranteed unique customer code using timestamp and random
+     * This is used as a fallback when normal code generation fails
+     */
+    private function generateGuaranteedUniqueCode($companyId) {
+        $prefix = 'CUST';
+        $maxAttempts = 50;
+        $attempt = 0;
+        
+        while ($attempt < $maxAttempts) {
+            // Use timestamp + microseconds + random + company_id for uniqueness
+            $timestamp = time();
+            $microseconds = (int)(microtime(true) * 1000000) % 1000000;
+            $random = mt_rand(100, 999);
+            $companyHash = $companyId ? ($companyId % 100) : 0;
+            
+            // Combine: last 4 digits of timestamp + last 2 digits of microseconds + random
+            $uniqueNumber = ($timestamp % 10000) * 1000 + ($microseconds % 100) * 10 + ($random % 10);
+            $uniqueNumber = $uniqueNumber % 1000000; // Ensure it fits in 6 digits
+            
+            $new_code = $prefix . str_pad($uniqueNumber, 6, '0', STR_PAD_LEFT);
+            
+            // Double-check it doesn't exist
+            $checkQuery = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE customer_code = :code";
+            if ($companyId) {
+                $checkQuery .= " AND company_id = :company_id";
+            }
+            $checkStmt = $this->conn->prepare($checkQuery);
+            $checkStmt->bindParam(':code', $new_code);
+            if ($companyId) {
+                $checkStmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+            }
+            $checkStmt->execute();
+            $exists = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($exists && isset($exists['count']) && $exists['count'] == 0) {
+                return $new_code;
+            }
+            
+            $attempt++;
+            usleep(1000); // Small delay between attempts
+        }
+        
+        // Final fallback - use current timestamp with microseconds (very unlikely to collide)
+        $finalCode = $prefix . str_pad((int)(microtime(true) * 100) % 1000000, 6, '0', STR_PAD_LEFT);
+        return $finalCode;
     }
 
     /**

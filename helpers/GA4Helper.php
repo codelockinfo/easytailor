@@ -95,10 +95,8 @@ class GA4Helper {
     /**
      * Track signup/registration event
      */
-    public static function trackSignup($userId = null, $companyId = null) {
+    public static function trackSignup($userId = null, $companyId = null, $companyName = null, $ownerName = null) {
         $params = [
-            'event_category' => 'authentication',
-            'event_label' => 'user_signup',
             'method' => 'email'
         ];
         
@@ -107,6 +105,12 @@ class GA4Helper {
         }
         if ($companyId) {
             $params['company_id'] = (string)$companyId;
+        }
+        if ($companyName) {
+            $params['company_name'] = $companyName;
+        }
+        if ($ownerName) {
+            $params['owner_name'] = $ownerName;
         }
         
         return self::generateEventTrackingCode('sign_up', $params);

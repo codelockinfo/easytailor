@@ -243,9 +243,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
 
-            // Track signup event
+            // Track signup event for GA4
             require_once '../helpers/GA4Helper.php';
-            $_SESSION['ga4_event'] = GA4Helper::trackSignup($userId, $companyId);
+            $_SESSION['ga4_event'] = GA4Helper::trackSignup($userId, $companyId, $companyName, $ownerName);
             
             // Success - redirect to login
             $_SESSION['reg_success'] = $welcomeMessage;

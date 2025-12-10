@@ -96,7 +96,6 @@ $currentYear = date('Y');
             <div class="col-md-6 text-md-end">
                 <div class="footer-legal">
                     <a href="<?php echo $basePath; ?>about.php" class="legal-link me-3">About Us</a>
-                    <a href="<?php echo $basePath; ?>contact.php" class="legal-link me-3">Contact Us</a>
                     <a href="<?php echo $basePath; ?>privacy-policy.php" class="legal-link me-3">Privacy Policy</a>
                     <a href="<?php echo $basePath; ?>terms-of-service.php" class="legal-link">Terms of Service</a>
                 </div>

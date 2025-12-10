@@ -482,11 +482,12 @@ $seoOptions = [
     </style>
 </head>
 <body>
+    <div>
     <!-- Page Header -->
     <div class="page-header">
         <div class="container">
             <div class="back-to-home">
-                <a href="index.php">
+                <a href="./">
                     <i class="fas fa-arrow-left"></i> Back to Home
                 </a>
             </div>
@@ -597,7 +598,7 @@ $seoOptions = [
         </div>
 
         <!-- Pagination -->
-        <div class="pagination-wrapper" id="paginationWrapper"></div>
+        <div class="pagination-wrapper 000" id="paginationWrapper"></div>
     </div>
 
     <!-- Tailor Detail Modal -->
@@ -686,7 +687,7 @@ $seoOptions = [
             </div>
         </div>
     </div>
-
+    </div>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/tailor-modal.js"></script>
@@ -1015,7 +1016,6 @@ $seoOptions = [
             firePageView();
         })();
     </script>
-
     <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
 </body>

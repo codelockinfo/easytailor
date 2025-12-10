@@ -988,6 +988,7 @@
                             <li><a href="#features">Features</a></li>
                             <li><a href="#benefits">Benefits</a></li>
                             <li><a href="#pricing">Pricing</a></li>
+                            <li><a href="contact.php">Contact Us</a></li>
                         </ul>
                     </div>
                 </div>

@@ -4,21 +4,40 @@
  * Handles sending email responses to contact form submissions
  */
 
+// Suppress error display for JSON response
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Start output buffering to catch any unexpected output
+ob_start();
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
-header('Content-Type: application/json');
+// Load config first (it starts session)
+$oldDisplayErrors = ini_get('display_errors');
+ini_set('display_errors', 0);
+require_once '../../config/config.php';
+ini_set('display_errors', $oldDisplayErrors);
 
 // Check if site admin is logged in
-session_start();
 if (!isset($_SESSION['site_admin_logged_in']) || $_SESSION['site_admin_logged_in'] !== true) {
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+    ob_end_flush();
     exit;
 }
 
+// Set JSON header early
+header('Content-Type: application/json');
+
 // Check if request is POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    ob_clean();
     echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    ob_end_flush();
     exit;
 }
 
@@ -31,20 +50,26 @@ $message = trim($_POST['message'] ?? '');
 
 // Validate required fields
 if (empty($email) || empty($name) || empty($subject) || empty($message)) {
+    ob_clean();
     echo json_encode(['success' => false, 'message' => 'All fields are required']);
+    ob_end_flush();
     exit;
 }
 
 // Validate email format
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    ob_clean();
     echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+    ob_end_flush();
     exit;
 }
 
 try {
+    // Clear any output
+    ob_clean();
+    
     // Load MailService
     require_once '../../helpers/MailService.php';
-    require_once '../../config/config.php';
     
     $mailService = new MailService();
     
@@ -86,7 +111,10 @@ try {
         ";
         
         if (mail($email, $subject, $emailBody, $headers)) {
+            ob_clean();
             echo json_encode(['success' => true, 'message' => 'Response sent successfully']);
+            ob_end_flush();
+            exit;
         } else {
             throw new Exception('Failed to send email using PHP mail()');
         }
@@ -152,7 +180,10 @@ try {
             $mailer->AltBody = "Hello {$name},\n\nThank you for contacting us. We have received your message and here is our response:\n\n{$message}\n\nIf you have any further questions, please don't hesitate to contact us.\n\nBest regards,\n{$fromName} Team";
             
             $mailer->send();
+            ob_clean();
             echo json_encode(['success' => true, 'message' => 'Response sent successfully']);
+            ob_end_flush();
+            exit;
         } else {
             // Fallback to PHP mail() if PHPMailer not available
             throw new Exception('PHPMailer not available');
@@ -160,11 +191,22 @@ try {
     }
     
 } catch (Exception $e) {
+    // Clear any output
+    ob_clean();
+    
     error_log('Contact response email error: ' . $e->getMessage());
+    
+    // Ensure JSON header is set
+    header('Content-Type: application/json');
+    
     echo json_encode([
         'success' => false,
         'message' => 'Failed to send response. Please try again later.'
     ]);
 }
+
+// Clean output buffer and send response
+ob_end_flush();
+exit;
 ?>
 

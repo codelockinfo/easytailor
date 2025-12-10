@@ -416,7 +416,11 @@ $guestMessages = $totalMessages - $loggedInMessages;
             // Hide previous alerts
             alert.classList.add('d-none');
             
-            fetch('ajax/send_contact_response.php', {
+            // Determine correct path based on current location
+            const currentPath = window.location.pathname;
+            const ajaxPath = 'ajax/send_contact_response.php';
+            
+            fetch(ajaxPath, {
                 method: 'POST',
                 body: formData
             })

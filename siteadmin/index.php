@@ -510,6 +510,10 @@ if (isset($_SESSION['message'])) {
                 <i class="fas fa-building"></i>
                 Company Snapshot
             </a>
+            <a href="contact_messages.php" class="nav-link">
+                <i class="fas fa-comments"></i>
+                Contact Messages
+            </a>
             <div class="mt-auto">
                 <a href="../admin/logout.php" class="nav-link" onclick="return confirm('Are you sure you want to logout?');">
                     <i class="fas fa-sign-out-alt"></i>

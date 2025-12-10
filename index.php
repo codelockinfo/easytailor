@@ -84,7 +84,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
     <!-- Custom CSS -->
-    <link href="assets/css/style2.css" rel="stylesheet">
+    <link href="assets/css/style3.css" rel="stylesheet">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -1030,6 +1030,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="footer-legal">
+                        <a href="about.php" class="legal-link">About Us</a>
                         <a href="privacy-policy.php" class="legal-link">Privacy Policy</a>
                         <a href="terms-of-service.php" class="legal-link">Terms of Service</a>
                         <!-- <a href="#" class="legal-link">Cookie Policy</a> -->

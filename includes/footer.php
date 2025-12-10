@@ -1,217 +1,168 @@
-        </main>
-    </div>
+<?php
+/**
+ * Footer Component
+ * Reusable footer for all user-facing pages
+ */
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Custom JavaScript -->
-    <script>
-        // Sidebar toggle for mobile
-        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('show');
-        });
+// Determine base path for links based on current directory
+$isAdmin = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false);
+$basePath = $isAdmin ? '../' : '';
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
-            const sidebar = document.querySelector('.sidebar');
-            const toggle = document.getElementById('sidebarToggle');
-            
-            if (window.innerWidth <= 768 && 
-                sidebar.classList.contains('show') && 
-                !sidebar.contains(event.target) && 
-                !toggle.contains(event.target)) {
-                sidebar.classList.remove('show');
-            }
-        });
-
-        // Auto-hide alerts
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                if (alert.classList.contains('alert-success') || alert.classList.contains('alert-info')) {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }
-            });
-        }, 5000);
-
-        // CSRF Token for AJAX requests
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                if (settings.type === 'POST' && !this.crossDomain) {
-                    const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                    if (csrfToken) {
-                        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
-                    }
-                }
-            }
-        });
-
-        // Global AJAX error handler
-        $(document).ajaxError(function(event, xhr, settings, error) {
-            if (xhr.status === 401) {
-                window.location.href = '<?php echo APP_URL; ?>/login.php';
-            } else if (xhr.status === 403) {
-                alert('Access denied. You do not have permission to perform this action.');
-            } else if (xhr.status >= 500) {
-                alert('Server error. Please try again later.');
-            }
-        });
-
-        // Form validation
-        function validateForm(formId) {
-            const form = document.getElementById(formId);
-            if (!form) return false;
-
-            const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
-            let isValid = true;
-
-            inputs.forEach(function(input) {
-                if (!input.value.trim()) {
-                    input.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    input.classList.remove('is-invalid');
-                }
-            });
-
-            return isValid;
-        }
-
-        // Format currency
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD'
-            }).format(amount);
-        }
-
-        // Format date
-        function formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString();
-        }
-
-        // Show loading spinner
-        function showLoading(elementId) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.innerHTML = '<div class="loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-            }
-        }
-
-        // Show toast notification
-        function showToast(message, type = 'success') {
-            const toastContainer = document.getElementById('toast-container') || createToastContainer();
-            
-            const toastId = 'toast-' + Date.now();
-            const toastHtml = `
-                <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="toast-header">
-                        <i class="fas fa-${type === 'success' ? 'check-circle text-success' : type === 'error' ? 'exclamation-triangle text-danger' : 'info-circle text-info'} me-2"></i>
-                        <strong class="me-auto">Notification</strong>
-                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-                    </div>
-                    <div class="toast-body">
-                        ${message}
+// Get current year
+$currentYear = date('Y');
+?>
+<!-- Footer -->
+<footer id="contact" class="footer-section py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="footer-brand">
+                    <h3 class="brand-name">
+                        <img src="<?php echo $basePath; ?>uploads/logos/main-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                        <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
+                    </h3>
+                    <p class="brand-description">
+                        The complete tailoring management system for modern businesses. 
+                        Digitalize your workflow and grow your business.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
-            `;
-            
-            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-            
-            const toastElement = document.getElementById(toastId);
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
-            
-            // Remove toast element after it's hidden
-            toastElement.addEventListener('hidden.bs.toast', function() {
-                this.remove();
-            });
-        }
+            </div>
+            <div class="col-lg-2">
+                <div class="footer-links">
+                    <h5 class="link-title footer-toggle-title">
+                        Quick Links
+                        <span class="footer-toggle-icon">+</span>
+                    </h5>
+                    <ul class="link-list footer-toggle-content">
+                        <li><a href="<?php echo $basePath; ?>index.php#home">Home</a></li>
+                        <li><a href="<?php echo $basePath; ?>index.php#features">Features</a></li>
+                        <li><a href="<?php echo $basePath; ?>index.php#benefits">Benefits</a></li>
+                        <li><a href="<?php echo $basePath; ?>index.php#pricing">Pricing</a></li>
+                        <li><a href="<?php echo $basePath; ?>contact.php">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="footer-links">
+                    <h5 class="link-title footer-toggle-title">
+                        Platform
+                        <span class="footer-toggle-icon">+</span>
+                    </h5>
+                    <ul class="link-list footer-toggle-content">
+                        <li><a href="<?php echo $basePath; ?>admin/login.php">Login</a></li>
+                        <li><a href="<?php echo $basePath; ?>admin/register.php">Register</a></li>
+                        <li><a href="<?php echo $basePath; ?>index.php#how-it-works">How It Works</a></li>
+                        <li><a href="<?php echo $basePath; ?>index.php#testimonials">Testimonials</a></li>
+                        <li><a href="<?php echo $basePath; ?>index.php#screenshots">Screenshots</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="footer-contact">
+                    <h5 class="link-title footer-toggle-title">
+                        Contact Info
+                        <span class="footer-toggle-icon">+</span>
+                    </h5>
+                    <div class="footer-toggle-content">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope me-2"></i>
+                            <span><a href="mailto:codelockinfo@gmail.com">codelockinfo@gmail.com</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone me-2"></i>
+                            <span><a href="tel:+917600464414">+917600464414</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <span>Silver business point, near vip circle, utran, Surat - 394105</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="my-4" style="border-color: rgba(0, 0, 0, 0.1);">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="copyright mb-0">
+                    &copy; <?php echo $currentYear; ?> TailorPro. All rights reserved by <a href="https://codelocksolutions.com/" target="_blank" class="legal-link">Codelock Solutions</a>
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="footer-legal">
+                    <a href="<?php echo $basePath; ?>about.php" class="legal-link me-3">About Us</a>
+                    <a href="<?php echo $basePath; ?>privacy-policy.php" class="legal-link me-3">Privacy Policy</a>
+                    <a href="<?php echo $basePath; ?>terms-of-service.php" class="legal-link">Terms of Service</a>
+                    <!-- Add more legal links here as needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
 
-        function createToastContainer() {
-            const container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container position-fixed top-0 end-0 p-3';
-            container.style.zIndex = '9999';
-            document.body.appendChild(container);
-            return container;
-        }
-
-        // Confirm delete action
-        function confirmDelete(message = 'Are you sure you want to delete this item?') {
-            return confirm(message);
-        }
-
-        // Language switcher
-        document.querySelectorAll('[data-lang]').forEach(function(element) {
-            element.addEventListener('click', function(e) {
-                e.preventDefault();
-                const lang = this.getAttribute('data-lang');
-                const langText = this.textContent.trim();
+<script>
+// Footer Mobile Toggle Functionality
+(function() {
+    // Only run on mobile devices (max-width 767px)
+    if (window.innerWidth <= 767) {
+        const toggleTitles = document.querySelectorAll('.footer-toggle-title');
+        
+        toggleTitles.forEach(function(title) {
+            title.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const isActive = this.classList.contains('active');
                 
-                // Update current language display
-                document.getElementById('currentLanguage').textContent = lang.toUpperCase();
+                // Close all other sections
+                toggleTitles.forEach(function(otherTitle) {
+                    if (otherTitle !== title) {
+                        otherTitle.classList.remove('active');
+                        const otherContent = otherTitle.nextElementSibling;
+                        if (otherContent && otherContent.classList.contains('footer-toggle-content')) {
+                            otherContent.classList.remove('active');
+                        }
+                    }
+                });
                 
-                // Store language preference
-                localStorage.setItem('preferred_language', lang);
-                
-                // You can implement actual language switching logic here
-                showToast('Language changed to ' + langText, 'info');
-            });
-        });
-
-        // Load saved language preference
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedLang = localStorage.getItem('preferred_language');
-            if (savedLang) {
-                const langElement = document.querySelector(`[data-lang="${savedLang}"]`);
-                if (langElement) {
-                    document.getElementById('currentLanguage').textContent = savedLang.toUpperCase();
+                // Toggle current section
+                if (isActive) {
+                    this.classList.remove('active');
+                    if (content && content.classList.contains('footer-toggle-content')) {
+                        content.classList.remove('active');
+                    }
+                } else {
+                    this.classList.add('active');
+                    if (content && content.classList.contains('footer-toggle-content')) {
+                        content.classList.add('active');
+                    }
                 }
-            }
-        });
-
-        // Responsive table handling
-        function makeTableResponsive() {
-            const tables = document.querySelectorAll('.table');
-            tables.forEach(function(table) {
-                if (!table.closest('.table-responsive')) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'table-responsive';
-                    table.parentNode.insertBefore(wrapper, table);
-                    wrapper.appendChild(table);
-                }
             });
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            makeTableResponsive();
+        });
+    }
+    
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const isMobile = window.innerWidth <= 767;
+            const toggleTitles = document.querySelectorAll('.footer-toggle-title');
+            const toggleContents = document.querySelectorAll('.footer-toggle-content');
             
-            // Add CSRF token to meta tag if not exists
-            if (!document.querySelector('meta[name="csrf-token"]')) {
-                const meta = document.createElement('meta');
-                meta.name = 'csrf-token';
-                meta.content = '<?php echo generate_csrf_token(); ?>';
-                document.head.appendChild(meta);
+            if (!isMobile) {
+                // Desktop: Remove active classes and show all content
+                toggleTitles.forEach(function(title) {
+                    title.classList.remove('active');
+                });
+                toggleContents.forEach(function(content) {
+                    content.classList.remove('active');
+                });
             }
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                document.querySelector('.sidebar').classList.remove('show');
-            }
-        });
-    </script>
-
-    <!-- Toast Container -->
-    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
-
-</body>
-</html>
-
+        }, 250);
+    });
+})();
+</script>

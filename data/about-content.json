@@ -1,0 +1,84 @@
+{
+  "page": {
+    "title": "About Us",
+    "subtitle": "Empowering Tailoring Businesses Through Technology"
+  },
+  "sections": [
+    {
+      "title": "Our Story",
+      "content": [
+        "Founded with a vision to transform the traditional tailoring industry, our platform was born from a deep understanding of the challenges faced by tailoring businesses every day. We recognized that while technology has revolutionized many industries, tailoring shops were still relying on manual processes, paper records, and outdated methods that hindered growth and efficiency.",
+        "Our journey began when we observed talented tailors struggling with customer management, order tracking, and financial record-keeping. These dedicated artisans were spending more time on administrative tasks than on their craft. We realized that by providing them with the right tools, we could help them focus on what they do best – creating beautiful, well-fitted garments."
+      ]
+    },
+    {
+      "title": "Our Mission",
+      "type": "mission",
+      "icon": "fas fa-bullseye",
+      "content": [
+        "To empower tailoring businesses worldwide by providing comprehensive, user-friendly management solutions that streamline operations, enhance customer relationships, and drive sustainable growth. We believe every tailoring business, regardless of size, deserves access to professional-grade tools that can help them compete in today's digital marketplace."
+      ]
+    },
+    {
+      "title": "What We Offer",
+      "content": [
+        "Our Tailoring Management System is a complete business solution designed specifically for tailoring shops. We've created an all-in-one platform that handles every aspect of your business operations, from customer management to financial tracking. Our system eliminates the need for multiple tools and complex spreadsheets, bringing everything together in one intuitive interface.",
+        "The platform includes comprehensive features such as customer relationship management, order processing, measurement tracking, invoice generation, payment management, employee scheduling, and detailed analytics. Each feature has been carefully designed with input from actual tailoring business owners to ensure it meets real-world needs."
+      ]
+    },
+    {
+      "title": "Our Core Values",
+      "type": "values",
+      "values": [
+        {
+          "icon": "fas fa-users",
+          "title": "Customer-Centric",
+          "description": "We prioritize the needs of tailoring businesses and continuously improve based on user feedback."
+        },
+        {
+          "icon": "fas fa-lightbulb",
+          "title": "Innovation",
+          "description": "We stay ahead of technology trends to provide cutting-edge solutions that give you a competitive edge."
+        },
+        {
+          "icon": "fas fa-shield-alt",
+          "title": "Reliability",
+          "description": "We ensure your data is secure, backed up, and accessible whenever you need it."
+        },
+        {
+          "icon": "fas fa-handshake",
+          "title": "Partnership",
+          "description": "We're not just a software provider – we're your partner in business growth and success."
+        }
+      ]
+    },
+    {
+      "title": "Why Choose Us",
+      "content": [
+        "What sets us apart is our deep commitment to understanding the unique needs of tailoring businesses. Unlike generic business management software, our platform is built specifically for tailors, with features and workflows that match how tailoring shops actually operate. We've spent countless hours working with tailoring business owners to understand their pain points and design solutions that truly make a difference.",
+        "Our platform is designed to be accessible to everyone, regardless of technical expertise. You don't need to be a computer expert to use our system – if you can use a smartphone, you can use our platform. We've eliminated complex configurations and technical jargon, focusing instead on simplicity and ease of use.",
+        "We understand that every tailoring business is unique, which is why our platform is flexible and customizable. Whether you run a small neighborhood shop or a large tailoring enterprise, our system can be adapted to fit your specific needs. We offer multiple pricing plans to accommodate businesses of all sizes, ensuring that cost is never a barrier to accessing professional management tools."
+      ]
+    },
+    {
+      "title": "Our Commitment",
+      "content": [
+        "We are committed to your success. Our team provides comprehensive support, regular updates, and continuous improvements based on user feedback. We believe in building long-term relationships with our customers, not just selling software. When you succeed, we succeed, and that philosophy drives everything we do.",
+        "Data security and privacy are paramount to us. We use industry-standard encryption and security measures to protect your business information. Your data belongs to you, and we ensure it remains private, secure, and accessible only to you. Regular backups mean you never have to worry about losing important information."
+      ]
+    },
+    {
+      "title": "Join Our Community",
+      "content": [
+        "When you choose our platform, you're not just getting software – you're joining a community of forward-thinking tailoring businesses that are embracing technology to grow and succeed. Our users range from small family-owned shops to large tailoring enterprises, all united by a commitment to excellence and innovation.",
+        "We're constantly evolving and improving our platform based on the needs and feedback of our community. Your input shapes our development roadmap, ensuring that we're always building features that matter to real businesses. Together, we're transforming the tailoring industry, one business at a time."
+      ]
+    }
+  ],
+  "cta": {
+    "text": "Get Started Today",
+    "link": "admin/register.php",
+    "icon": "fas fa-rocket"
+  }
+}
+

@@ -387,14 +387,20 @@ $stats = $companyModel->getCompanyStats($companyId);
                     <i class="fas fa-crown"></i>
                 <?php endif; ?>
             </div>
-            <a href="index.php?section=requests" class="nav-link">
-                <i class="fas fa-envelope-open-text"></i>
-                Email Requests
-            </a>
-            <a href="index.php?section=company" class="nav-link active">
-                <i class="fas fa-building"></i>
-                Company Snapshot
-            </a>
+            <nav>
+                <a href="index.php?section=requests" class="nav-link">
+                    <i class="fas fa-envelope-open-text"></i>
+                    Email Requests
+                </a>
+                <a href="index.php?section=company" class="nav-link active">
+                    <i class="fas fa-building"></i>
+                    Company Snapshot
+                </a>
+                <a href="contact_messages.php" class="nav-link">
+                    <i class="fas fa-comments"></i>
+                    Contact Messages
+                </a>
+            </nav>
             <div class="mt-auto">
                 <a href="../admin/logout.php" class="nav-link" onclick="return confirm('Are you sure you want to logout?');">
                     <i class="fas fa-sign-out-alt"></i>

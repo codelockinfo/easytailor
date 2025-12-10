@@ -4,6 +4,14 @@
 ======================================== */
 
 /* Go to Top Button */
+
+.footer-toggle-icon{
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
 .go-to-top-btn {
     position: fixed;
     bottom: 90px;
@@ -1583,9 +1591,9 @@ h1, h2, h3, h4, h5, h6 {
 /* Footer */
 .footer-section {
     padding-top: 2rem!important;
-    padding-bottom: 0rem!important;
-    background: white !important;
-    color: black !important;
+    padding-bottom: 1.5rem!important;
+    background: #ffffff !important;
+    color: #4a5568 !important;
 }
 
 .footer-brand {
@@ -1595,7 +1603,7 @@ h1, h2, h3, h4, h5, h6 {
 .brand-name {
     font-size: 1.5rem;
     font-weight: 700;
-    color: rgb(0, 0, 0) !important;
+    color: #2d3748 !important;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -1607,12 +1615,8 @@ h1, h2, h3, h4, h5, h6 {
     transition: var(--transition);
 }
 
-/* .footer-logo:hover {
-    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(216, 157, 157, 0.3));
-} */
-
 .brand-description {
-    color: rgba(0, 0, 0, 0.7);
+    color: #4a5568 !important;
     line-height: 1.6;
     margin-bottom: 1.5rem;
 }
@@ -1625,7 +1629,7 @@ h1, h2, h3, h4, h5, h6 {
 .social-link {
     width: 40px;
     height: 40px;
-    background: rgb(102 126 234);
+    background: rgb(102, 126, 234);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1637,21 +1641,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .social-link:hover {
     background: white;
-    border: 1px solid rgb(102 126 234);
-    color: rgb(102 126 234) ;
+    border: 1px solid rgb(102, 126, 234);
+    color: rgb(102, 126, 234);
     transform: translateY(-2px);
 }
 
 .link-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: rgb(0, 0, 0);
+    color: #2d3748 !important;
     margin-bottom: 1rem;
 }
 
 .link-list {
     list-style: none;
     margin-bottom: 0;
+    padding: 0;
 }
 
 .link-list li {
@@ -1659,47 +1664,80 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .link-list a {
-    color: rgba(0, 0, 0, 0.7);
+    color: #4a5568 !important;
     text-decoration: none;
     transition: var(--transition);
 }
 
 .link-list a:hover {
-    color: black;
+    color: rgb(102, 126, 234) !important;
 }
 
 .contact-item {
     display: flex;
     align-items: center;
     margin-bottom: 0.75rem;
-    color: rgba(0, 0, 0, 0.7);
+    color: #4a5568 !important;
 }
 
 .contact-item i {
     width: 20px;
-    color: var(--primary-color);
+    color: rgb(102, 126, 234);
+    flex-shrink: 0;
+}
+
+.contact-item a {
+    color: #4a5568 !important;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.contact-item a:hover {
+    color: rgb(102, 126, 234) !important;
+    text-decoration: underline !important;
 }
 
 .copyright {
-    color: rgba(2, 2, 2, 0.7);
+    color: #4a5568 !important;
     margin-bottom: 0;
+}
+
+.copyright a {
+    color: #4a5568 !important;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.copyright a:hover {
+    color: rgb(102, 126, 234) !important;
 }
 
 .footer-legal {
     display: flex;
     gap: 1.5rem;
     justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .legal-link {
-    color: rgba(0, 0, 0, 0.7);
+    color: #4a5568 !important;
     text-decoration: none;
     font-size: 0.875rem;
+    font-weight: 500;
     transition: var(--transition);
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
 }
 
 .legal-link:hover {
-    color: rgb(10, 10, 10);
+    color: rgb(102, 126, 234) !important;
+    border-bottom-color: rgb(102, 126, 234);
+}
+
+.footer-section hr {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    margin: 2rem 0 1.5rem 0;
 }
 
 /* Sticky CTA */
@@ -1968,8 +2006,115 @@ h1, h2, h3, h4, h5, h6 {
         width: 100%;
     }
     .footer-legal {
-        justify-content: flex-start;
+        justify-content: flex-start !important;
         margin-top: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem !important;
+    }
+    
+    .footer-section {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .footer-section .row.g-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .footer-section .link-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .footer-section .col-lg-4:first-child .link-title {
+        margin-top: 0;
+    }
+    
+    .footer-section .copyright {
+        margin-bottom: 1rem;
+    }
+    
+    .legal-link {
+        font-size: 0.875rem;
+    }
+    
+    /* Footer Toggle Styles for Mobile */
+    .footer-toggle-title {
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    
+    .footer-toggle-icon {
+        display: none; /* Hidden by default - will show only on mobile */
+        visibility: hidden;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .footer-toggle-title.active .footer-toggle-icon {
+        transform: rotate(45deg);
+    }
+    
+    .footer-toggle-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    
+    .footer-toggle-content.active {
+        max-height: 500px;
+        opacity: 1;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    /* Mobile: Show toggle icon and hide content by default */
+    @media (max-width: 767px) {
+        .footer-toggle-icon {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: 20px !important;
+            height: 20px !important;
+            overflow: visible !important;
+        }
+        
+        .footer-toggle-content {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        /* Add separator lines between footer sections on mobile only */
+        .footer-section .row.g-4 > div {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section .row.g-4 > div:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+    }
+    
+    
+    .margin-bottom {
+        margin-bottom: 1.5rem !important;
     }
     
     .sticky-cta {

@@ -75,7 +75,7 @@ $seoOptions = [
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
     <!-- Custom CSS -->
-    <link href="assets/css/style2.css" rel="stylesheet">
+    <link href="assets/css/style3.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -398,11 +398,8 @@ $seoOptions = [
         </div>
     </div>
 
-    <footer class="bg-white border-top py-4">
-        <div class="container text-center small text-muted">
-            &copy; <?php echo date('Y'); ?> TailorPro. All rights reserved.
-        </div>
-    </footer>
+    <!-- Footer -->
+    <?php require_once 'includes/footer.php'; ?>
 
     <script>
     document.getElementById('profileReviewForm').addEventListener('submit', function(e) {

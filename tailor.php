@@ -75,7 +75,7 @@ $seoOptions = [
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
     <!-- Custom CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/style1.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;

@@ -77,7 +77,7 @@ $seoOptions = [
     }
     ?>
     
-    <link href="assets/css/style3.css" rel="stylesheet">
+    <link href="assets/css/style4.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -246,41 +246,8 @@ $seoOptions = [
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="index.php">
-                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php#benefits">Benefits</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php#pricing">Pricing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php#contact">Contact</a>
-                    </li>
-                    <li class="nav-item ms-3">
-                        <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
-                    </li>
-                    <li class="nav-item ms-2">
-                        <a href="admin/register.php" class="btn  btn-sm register-header-btn">Register</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation -->
+    <?php require_once 'includes/nav.php'; ?>
 
 <?php
 // Load content from JSON file

@@ -260,6 +260,8 @@ foreach (\$upload_subdirs as \$subdir) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installation - Tailoring Management System</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon(2).png">
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
         .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }

@@ -75,7 +75,7 @@ $seoOptions = [
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon(2).png">
     <!-- Custom CSS -->
-    <link href="assets/css/style3.css" rel="stylesheet">
+    <link href="assets/css/style4.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -206,7 +206,7 @@ $seoOptions = [
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.php">
+            <a class="navbar-brand fw-bold" href="./">
                 <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                 <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
             </a>

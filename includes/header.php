@@ -44,6 +44,9 @@ $seoOptions = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    
     <!-- Google Analytics 4 (GA4) -->
     <?php
     // Ensure GA4 is always loaded

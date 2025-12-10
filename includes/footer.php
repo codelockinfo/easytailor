@@ -40,10 +40,10 @@ $currentYear = date('Y');
                         <span class="footer-toggle-icon">+</span>
                     </h5>
                     <ul class="link-list footer-toggle-content">
-                        <li><a href="<?php echo $basePath; ?>index.php#home">Home</a></li>
-                        <li><a href="<?php echo $basePath; ?>index.php#features">Features</a></li>
-                        <li><a href="<?php echo $basePath; ?>index.php#benefits">Benefits</a></li>
-                        <li><a href="<?php echo $basePath; ?>index.php#pricing">Pricing</a></li>
+                        <li><a href="<?php echo $basePath; ?>./">Home</a></li>
+                        <li><a href="<?php echo $basePath; ?>./#features">Features</a></li>
+                        <li><a href="<?php echo $basePath; ?>./#benefits">Benefits</a></li>
+                        <li><a href="<?php echo $basePath; ?>./#pricing">Pricing</a></li>
                         <li><a href="<?php echo $basePath; ?>contact.php">Contact Us</a></li>
                     </ul>
                 </div>
@@ -57,9 +57,9 @@ $currentYear = date('Y');
                     <ul class="link-list footer-toggle-content">
                         <li><a href="<?php echo $basePath; ?>admin/login.php">Login</a></li>
                         <li><a href="<?php echo $basePath; ?>admin/register.php">Register</a></li>
-                        <li><a href="<?php echo $basePath; ?>index.php#how-it-works">How It Works</a></li>
-                        <li><a href="<?php echo $basePath; ?>index.php#testimonials">Testimonials</a></li>
-                        <li><a href="<?php echo $basePath; ?>index.php#screenshots">Screenshots</a></li>
+                        <li><a href="<?php echo $basePath; ?>./#how-it-works">How It Works</a></li>
+                        <li><a href="<?php echo $basePath; ?>./#testimonials">Testimonials</a></li>
+                        <li><a href="<?php echo $basePath; ?>./#screenshots">Screenshots</a></li>
                     </ul>
                 </div>
             </div>
@@ -96,9 +96,9 @@ $currentYear = date('Y');
             <div class="col-md-6 text-md-end">
                 <div class="footer-legal">
                     <a href="<?php echo $basePath; ?>about.php" class="legal-link me-3">About Us</a>
-                    <a href="<?php echo $basePath; ?>contact.php" class="legal-link me-3">Contact Us</a>
                     <a href="<?php echo $basePath; ?>privacy-policy.php" class="legal-link me-3">Privacy Policy</a>
                     <a href="<?php echo $basePath; ?>terms-of-service.php" class="legal-link">Terms of Service</a>
+                    <a href="<?php echo $basePath; ?>blog.php" class="legal-link">Blog</a>
                 </div>
             </div>
         </div>
@@ -108,48 +108,123 @@ $currentYear = date('Y');
 <script>
 // Footer Mobile Toggle Functionality
 (function() {
-    // Only run on mobile devices (max-width 767px)
-    if (window.innerWidth <= 767) {
-        const toggleTitles = document.querySelectorAll('.footer-toggle-title');
-        
-        toggleTitles.forEach(function(title) {
-            title.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                const isActive = this.classList.contains('active');
-                
-                // Close all other sections
-                toggleTitles.forEach(function(otherTitle) {
-                    if (otherTitle !== title) {
-                        otherTitle.classList.remove('active');
-                        const otherContent = otherTitle.nextElementSibling;
-                        if (otherContent && otherContent.classList.contains('footer-toggle-content')) {
-                            otherContent.classList.remove('active');
-                        }
-                    }
-                });
-                
-                // Toggle current section
-                if (isActive) {
-                    this.classList.remove('active');
-                    if (content && content.classList.contains('footer-toggle-content')) {
-                        content.classList.remove('active');
-                    }
-                } else {
-                    this.classList.add('active');
-                    if (content && content.classList.contains('footer-toggle-content')) {
-                        content.classList.add('active');
-                    }
-                }
-            });
-        });
+    'use strict';
+    
+    // Function to check if mobile view
+    function isMobileView() {
+        return window.innerWidth <= 767;
     }
     
-    // Handle window resize
+    // Function to initialize footer toggle
+    function initFooterToggle() {
+        const footer = document.querySelector('.footer-section');
+        if (!footer) {
+            return false;
+        }
+        
+        // Check if already initialized
+        if (footer.dataset.toggleInitialized === 'true') {
+            return true;
+        }
+        
+        // Mark as initialized
+        footer.dataset.toggleInitialized = 'true';
+        
+        // Add click event listener to footer (event delegation)
+        footer.addEventListener('click', function(e) {
+            // Only work on mobile
+            if (!isMobileView()) {
+                return;
+            }
+            
+            // Check if clicked element or its parent is a toggle title or icon
+            const clickedElement = e.target;
+            let toggleTitle = null;
+            
+            // Check if clicked on the title itself
+            if (clickedElement.classList.contains('footer-toggle-title')) {
+                toggleTitle = clickedElement;
+            } 
+            // Check if clicked on the icon
+            else if (clickedElement.classList.contains('footer-toggle-icon')) {
+                toggleTitle = clickedElement.closest('.footer-toggle-title');
+            }
+            // Check if clicked inside the title
+            else {
+                toggleTitle = clickedElement.closest('.footer-toggle-title');
+            }
+            
+            if (!toggleTitle) {
+                return;
+            }
+            
+            // Prevent default behavior
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Find the content element
+            const content = toggleTitle.nextElementSibling;
+            if (!content || !content.classList.contains('footer-toggle-content')) {
+                return;
+            }
+            
+            // Check if already active
+            const isActive = toggleTitle.classList.contains('active');
+            
+            // Close all other sections first
+            const allTitles = footer.querySelectorAll('.footer-toggle-title');
+            const allContents = footer.querySelectorAll('.footer-toggle-content');
+            
+            allTitles.forEach(function(title) {
+                if (title !== toggleTitle) {
+                    title.classList.remove('active');
+                }
+            });
+            
+            allContents.forEach(function(cont) {
+                if (cont !== content) {
+                    cont.classList.remove('active');
+                }
+            });
+            
+            // Toggle current section
+            if (isActive) {
+                toggleTitle.classList.remove('active');
+                content.classList.remove('active');
+            } else {
+                toggleTitle.classList.add('active');
+                content.classList.add('active');
+            }
+        });
+        
+        return true;
+    }
+    
+    // Initialize when DOM is ready
+    function tryInit() {
+        if (!initFooterToggle()) {
+            // Retry after a short delay
+            setTimeout(tryInit, 100);
+        }
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInit);
+    } else {
+        tryInit();
+    }
+    
+    // Also try on window load as fallback
+    window.addEventListener('load', function() {
+        setTimeout(initFooterToggle, 50);
+        });
+
+        // Handle window resize
     let resizeTimer;
-    window.addEventListener('resize', function() {
+        window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function() {
-            const isMobile = window.innerWidth <= 767;
+            const isMobile = isMobileView();
             const toggleTitles = document.querySelectorAll('.footer-toggle-title');
             const toggleContents = document.querySelectorAll('.footer-toggle-content');
             
@@ -165,4 +240,4 @@ $currentYear = date('Y');
         }, 250);
     });
 })();
-</script>
+    </script>

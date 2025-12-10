@@ -47,6 +47,7 @@ $email = trim($_POST['email'] ?? '');
 $name = trim($_POST['name'] ?? '');
 $subject = trim($_POST['subject'] ?? '');
 $message = trim($_POST['message'] ?? '');
+$originalMessage = trim($_POST['original_message'] ?? '');
 
 // Validate required fields
 if (empty($email) || empty($name) || empty($subject) || empty($message)) {
@@ -99,8 +100,15 @@ try {
                     <div class='content'>
                         <p>Hello " . htmlspecialchars($name) . ",</p>
                         <p>Thank you for contacting us. We have received your message and here is our response:</p>
+                        " . (!empty($originalMessage) ? "
+                        <div class='message-box' style='background: #e9ecef; padding: 15px; border-left: 4px solid #6c757d; margin: 20px 0; border-radius: 5px;'>
+                            <strong style='color: #495057; font-size: 0.9rem;'>Your Original Message:</strong>
+                            <p style='margin-top: 10px; margin-bottom: 0; color: #6c757d; font-size: 0.9rem;'>" . nl2br(htmlspecialchars($originalMessage)) . "</p>
+                        </div>
+                        " : "") . "
                         <div class='message-box'>
-                            " . nl2br(htmlspecialchars($message)) . "
+                            <strong style='color: #495057; font-size: 0.9rem;'>Our Response:</strong>
+                            <p style='margin-top: 10px; margin-bottom: 0;'>" . nl2br(htmlspecialchars($message)) . "</p>
                         </div>
                         <p>If you have any further questions, please don't hesitate to contact us.</p>
                         <p>Best regards,<br>" . htmlspecialchars(defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : APP_NAME) . " Team</p>
@@ -165,8 +173,15 @@ try {
                         <div class='content'>
                             <p>Hello " . htmlspecialchars($name) . ",</p>
                             <p>Thank you for contacting us. We have received your message and here is our response:</p>
+                            " . (!empty($originalMessage) ? "
+                            <div class='message-box' style='background: #e9ecef; padding: 15px; border-left: 4px solid #6c757d; margin: 20px 0; border-radius: 5px;'>
+                                <strong style='color: #495057; font-size: 0.9rem;'>Your Original Message:</strong>
+                                <p style='margin-top: 10px; margin-bottom: 0; color: #6c757d; font-size: 0.9rem;'>" . nl2br(htmlspecialchars($originalMessage)) . "</p>
+                            </div>
+                            " : "") . "
                             <div class='message-box'>
-                                " . nl2br(htmlspecialchars($message)) . "
+                                <strong style='color: #495057; font-size: 0.9rem;'>Our Response:</strong>
+                                <p style='margin-top: 10px; margin-bottom: 0;'>" . nl2br(htmlspecialchars($message)) . "</p>
                             </div>
                             <p>If you have any further questions, please don't hesitate to contact us.</p>
                             <p>Best regards,<br>" . htmlspecialchars($fromName) . " Team</p>
@@ -177,7 +192,12 @@ try {
             ";
             
             $mailer->Body = $emailBody;
-            $mailer->AltBody = "Hello {$name},\n\nThank you for contacting us. We have received your message and here is our response:\n\n{$message}\n\nIf you have any further questions, please don't hesitate to contact us.\n\nBest regards,\n{$fromName} Team";
+            $altBody = "Hello {$name},\n\nThank you for contacting us. We have received your message and here is our response:\n\n";
+            if (!empty($originalMessage)) {
+                $altBody .= "Your Original Message:\n{$originalMessage}\n\n";
+            }
+            $altBody .= "Our Response:\n{$message}\n\nIf you have any further questions, please don't hesitate to contact us.\n\nBest regards,\n{$fromName} Team";
+            $mailer->AltBody = $altBody;
             
             $mailer->send();
             ob_clean();

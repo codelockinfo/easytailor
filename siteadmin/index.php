@@ -14,15 +14,34 @@ if (!isset($_SESSION['site_admin_logged_in']) || $_SESSION['site_admin_logged_in
 
 require_once '../models/EmailChangeRequest.php';
 require_once '../models/Company.php';
+require_once '../config/database.php';
 
 $emailChangeRequestModel = new EmailChangeRequest();
 $companyModel = new Company();
+$database = new Database();
+$db = $database->getConnection();
 
 $message = '';
 $messageType = '';
 
 // Get section parameter
 $current_section = $_GET['section'] ?? 'requests';
+
+// Get contact messages (always load for stats, but only render if section is active)
+$contactMessages = [];
+$contactStats = ['total' => 0, 'logged_in' => 0, 'guests' => 0];
+try {
+    $query = "SELECT * FROM user_contact ORDER BY created_date DESC";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $contactMessages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $contactStats['total'] = count($contactMessages);
+    $contactStats['logged_in'] = count(array_filter($contactMessages, function($m) { return isset($m['user_logged']) && $m['user_logged'] == 1; }));
+    $contactStats['guests'] = $contactStats['total'] - $contactStats['logged_in'];
+} catch (Exception $e) {
+    // If table doesn't exist or error occurs, keep empty arrays
+    error_log('Error loading contact messages: ' . $e->getMessage());
+}
 
 // Get filter status
 $status_filter = $_GET['status'] ?? 'pending';
@@ -91,6 +110,8 @@ if (isset($_SESSION['message'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Change Requests - Site Admin</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../favicon(2).png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -153,6 +174,22 @@ if (isset($_SESSION['message'])) {
             position: sticky;
             top: 0;
             z-index: 5;
+        }
+        .sticky-controls.card {
+            border: none !important;
+            border-top-left-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        .sticky-controls #companySearch,
+        .sticky-controls #planFilter {
+            height: 45px !important;
+            font-size: 1rem;
+        }
+        .sticky-controls .input-group-text {
+            height: 45px !important;
+            padding: 0 1rem;
         }
         .nav-link {
             display: flex;
@@ -510,7 +547,7 @@ if (isset($_SESSION['message'])) {
                 <i class="fas fa-building"></i>
                 Company Snapshot
             </a>
-            <a href="contact_messages.php" class="nav-link">
+            <a href="#" class="nav-link <?php echo $current_section === 'contact' ? 'active' : ''; ?>" data-section-toggle="contact">
                 <i class="fas fa-comments"></i>
                 Contact Messages
             </a>
@@ -527,8 +564,14 @@ if (isset($_SESSION['message'])) {
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div class="header-left">
                     <div>
-                        <h2 class="mb-1" id="pageTitle"><?php echo $current_section === 'company' ? 'Companies' : 'Email Requests'; ?></h2>
-                        <p class="text-muted mb-0" id="pageSubtitle"><?php echo $current_section === 'company' ? 'Overview of all companies onboarded' : 'Review pending email change requests'; ?></p>
+                        <h2 class="mb-1" id="pageTitle"><?php 
+                            echo $current_section === 'company' ? 'Companies' : 
+                                ($current_section === 'contact' ? 'Contact Messages' : 'Email Requests'); 
+                        ?></h2>
+                        <p class="text-muted mb-0" id="pageSubtitle"><?php 
+                            echo $current_section === 'company' ? 'Overview of all companies onboarded' : 
+                                ($current_section === 'contact' ? 'View all contact form submissions from users' : 'Review pending email change requests'); 
+                        ?></p>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -663,12 +706,15 @@ if (isset($_SESSION['message'])) {
                                         </td>
                                         <td>
                                             <span class="badge bg-<?php 
-                                                echo match($request['status']) {
-                                                    'pending' => 'warning',
-                                                    'approved' => 'success',
-                                                    'rejected' => 'danger',
-                                                    default => 'secondary'
-                                                };
+                                                $statusClass = 'secondary';
+                                                if ($request['status'] === 'pending') {
+                                                    $statusClass = 'warning';
+                                                } elseif ($request['status'] === 'approved') {
+                                                    $statusClass = 'success';
+                                                } elseif ($request['status'] === 'rejected') {
+                                                    $statusClass = 'danger';
+                                                }
+                                                echo $statusClass;
                                             ?>">
                                                 <?php echo strtoupper($request['status']); ?>
                                             </span>
@@ -729,6 +775,78 @@ if (isset($_SESSION['message'])) {
             </div>
             <div id="companiesGrid" class="company-grid">
                 <div class="text-center text-muted py-5 w-100">Loading companies...</div>
+            </div>
+        </section>
+
+        <section id="section-contact" class="content-section" style="display: <?php echo $current_section === 'contact' ? 'block' : 'none'; ?>;">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card text-center">
+                        <div class="stat-number"><?php echo $contactStats['total']; ?></div>
+                        <div class="stat-label">Total Messages</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card text-center" style="border-top: 3px solid #28a745;">
+                        <div class="stat-number text-success"><?php echo $contactStats['logged_in']; ?></div>
+                        <div class="stat-label">From Logged In Users</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card text-center" style="border-top: 3px solid #6c757d;">
+                        <div class="stat-number text-secondary"><?php echo $contactStats['guests']; ?></div>
+                        <div class="stat-label">From Guests</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>
+                        Contact Messages
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($contactMessages)): ?>
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No contact messages found</h5>
+                            <p class="text-muted">No contact form submissions have been received yet.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr style="background: #667eea; color: white;">
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($contactMessages as $msg): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($msg['id']); ?></td>
+                                            <td><strong><?php echo htmlspecialchars($msg['name']); ?></strong></td>
+                                            <td>
+                                                <a href="mailto:<?php echo htmlspecialchars($msg['emailId']); ?>">
+                                                    <?php echo htmlspecialchars($msg['emailId']); ?>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary view-contact-btn" data-message='<?php echo htmlspecialchars(json_encode($msg), ENT_QUOTES, 'UTF-8'); ?>'>
+                                                    <i class="fas fa-eye me-1"></i>View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </section>
         </div>
@@ -794,6 +912,51 @@ if (isset($_SESSION['message'])) {
         </div>
     </div>
 
+    <!-- Contact Message Detail Modal -->
+    <div class="modal fade" id="contactMessageModal" tabindex="-1" aria-labelledby="contactMessageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="contactMessageModalLabel"><i class="fas fa-comments me-2"></i>Contact Message Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="contactMessageDetails">
+                        <!-- Details will be populated by JavaScript -->
+                    </div>
+                    
+                    <div class="response-section pt-3 mt-3 border-top">
+                        <h6 class="mb-3"><i class="fas fa-reply me-2"></i>Send Response</h6>
+                        <div id="contactResponseAlert" class="alert d-none" role="alert"></div>
+                        <form id="contactResponseForm">
+                            <input type="hidden" id="contactResponseMessageId" name="message_id">
+                            <input type="hidden" id="contactResponseEmail" name="email">
+                            <input type="hidden" id="contactResponseName" name="name">
+                            <input type="hidden" id="contactResponseOriginalMessage" name="original_message">
+                            
+                            <div class="mb-3">
+                                <label for="contactResponseSubject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="contactResponseSubject" name="subject" value="" placeholder="Enter subject here..." required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="contactResponseMessage" class="form-label">Response Message</label>
+                                <textarea class="form-control" id="contactResponseMessage" name="message" rows="5" required placeholder="Type your response here..."></textarea>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary" id="sendContactResponseBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Response
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- View Email Request Details Modal -->
     <div class="modal fade" id="viewEmailRequestModal" tabindex="-1" aria-labelledby="viewEmailRequestModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -819,6 +982,25 @@ if (isset($_SESSION['message'])) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Attach event listeners to PHP-rendered view buttons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.view-contact-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    try {
+                        const messageData = JSON.parse(this.getAttribute('data-message'));
+                        if (typeof viewContactMessage === 'function') {
+                            viewContactMessage(messageData);
+                        } else {
+                            console.error('viewContactMessage function not found');
+                        }
+                    } catch (e) {
+                        console.error('Error parsing message data:', e);
+                        alert('Error loading message details. Please try again.');
+                    }
+                });
+            });
+        });
+        
         const approveModalEl = document.getElementById('approveModal');
         const approveForm = document.getElementById('approveForm');
         const rejectModalEl = document.getElementById('rejectModal');
@@ -1109,12 +1291,25 @@ if (isset($_SESSION['message'])) {
                 } else if (target === 'requests') {
                     // Remove section parameter but keep others
                     url.searchParams.delete('section');
+                } else if (target === 'contact') {
+                    // Set contact section in URL
+                    url.searchParams.set('section', 'contact');
                 } else {
                     // For any other section, set it in URL
                     url.searchParams.set('section', target);
                 }
-                // Get the clean URL string
-                const newUrl = url.pathname + (url.search ? url.search : '') + (url.hash ? url.hash : '');
+                // Get the clean URL string (ensure .php extension is preserved)
+                let pathname = url.pathname;
+                // Ensure index.php is in the pathname if it's missing
+                if (!pathname.includes('index.php') && !pathname.endsWith('/')) {
+                    // If pathname ends with just 'index', add .php
+                    if (pathname.endsWith('index')) {
+                        pathname = pathname + '.php';
+                    } else if (pathname.endsWith('/siteadmin')) {
+                        pathname = pathname + '/index.php';
+                    }
+                }
+                const newUrl = pathname + (url.search ? url.search : '') + (url.hash ? url.hash : '');
                 // Update URL without page reload
                 window.history.pushState({section: target}, '', newUrl);
             }
@@ -1164,6 +1359,15 @@ if (isset($_SESSION['message'])) {
                         restoreSectionScrollPosition('company');
                     }, 300);
                 }, 100);
+            } else if (target === 'contact') {
+                if (pageTitleEl) pageTitleEl.textContent = 'Contact Messages';
+                if (pageSubtitleEl) pageSubtitleEl.textContent = 'View all contact form submissions from users';
+                // Load contact messages via AJAX
+                loadContactMessages();
+                // Restore scroll position for contact section
+                setTimeout(function() {
+                    restoreSectionScrollPosition('contact');
+                }, 100);
             } else {
                 // Generic handling for any other section
                 // Restore scroll position for the section
@@ -1206,6 +1410,143 @@ if (isset($_SESSION['message'])) {
                     
                     setTimeout(() => attemptScroll(), 100);
                 }
+            }
+        }
+
+        // Contact Messages listing
+        function loadContactMessages() {
+            fetch('ajax/get_contact_messages.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderContactMessages(data.messages, data.stats);
+                    } else {
+                        const section = document.getElementById('section-contact');
+                        if (section) {
+                            const cardBody = section.querySelector('.card-body');
+                            if (cardBody) {
+                                cardBody.innerHTML = `<div class="text-center text-danger py-5 w-100">${data.message || 'Failed to load contact messages'}</div>`;
+                            }
+                        }
+                    }
+                })
+                .catch(() => {
+                    const section = document.getElementById('section-contact');
+                    if (section) {
+                        const cardBody = section.querySelector('.card-body');
+                        if (cardBody) {
+                            cardBody.innerHTML = '<div class="text-center text-danger py-5 w-100">Error loading contact messages.</div>';
+                        }
+                    }
+                });
+        }
+        
+        function renderContactMessages(messages, stats) {
+            const section = document.getElementById('section-contact');
+            if (!section) return;
+            
+            // Update stats cards
+            const statCards = section.querySelectorAll('.stat-card .stat-number');
+            if (statCards.length >= 3) {
+                statCards[0].textContent = stats.total;
+                statCards[1].textContent = stats.logged_in;
+                statCards[2].textContent = stats.guests;
+            }
+            
+            // Get or create card body
+            let cardBody = section.querySelector('.card-body');
+            if (!cardBody) {
+                // If card body doesn't exist, create the card structure
+                const card = section.querySelector('.card') || document.createElement('div');
+                card.className = 'card';
+                if (!card.querySelector('.card-header')) {
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-comments me-2"></i>
+                                Contact Messages
+                            </h5>
+                        </div>
+                        <div class="card-body"></div>
+                    `;
+                }
+                cardBody = card.querySelector('.card-body');
+            }
+            
+            if (messages.length === 0) {
+                cardBody.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No contact messages found</h5>
+                        <p class="text-muted">No contact form submissions have been received yet.</p>
+                    </div>
+                `;
+            } else {
+                // Build table rows HTML
+                let rowsHtml = '';
+                messages.forEach(msg => {
+                    rowsHtml += `
+                        <tr>
+                            <td>${msg.id}</td>
+                            <td><strong>${escapeHtml(msg.name)}</strong></td>
+                            <td>
+                                <a href="mailto:${escapeHtml(msg.emailId)}">
+                                    ${escapeHtml(msg.emailId)}
+                                </a>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary view-contact-btn" data-message='${JSON.stringify(msg).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'>
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                // Replace entire card body content with table
+                cardBody.innerHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr style="background: #667eea; color: white;">
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                // Attach event listeners to view buttons after rendering
+                setTimeout(() => {
+                    cardBody.querySelectorAll('.view-contact-btn').forEach(btn => {
+                        // Remove any existing listeners to prevent duplicates
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        
+                        newBtn.addEventListener('click', function() {
+                            try {
+                                let messageDataStr = this.getAttribute('data-message');
+                                // Decode HTML entities
+                                messageDataStr = messageDataStr.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+                                const messageData = JSON.parse(messageDataStr);
+                                if (typeof viewContactMessage === 'function') {
+                                    viewContactMessage(messageData);
+                                } else {
+                                    console.error('viewContactMessage function not found');
+                                }
+                            } catch (e) {
+                                console.error('Error parsing message data:', e, this.getAttribute('data-message'));
+                                alert('Error loading message details. Please try again.');
+                            }
+                        });
+                    });
+                }, 100);
             }
         }
 
@@ -1427,13 +1768,13 @@ if (isset($_SESSION['message'])) {
         function getInitialSection() {
             const urlParams = new URLSearchParams(window.location.search);
             const urlSection = urlParams.get('section');
-            // Prioritize URL parameter over localStorage
-            if (urlSection) {
-                return urlSection; // Return whatever is in URL (company, requests, or any other section)
+            // Prioritize URL parameter over localStorage, but validate it
+            if (urlSection && (urlSection === 'company' || urlSection === 'requests' || urlSection === 'contact')) {
+                return urlSection;
             }
-            // If no URL parameter, check localStorage
+            // If no URL parameter or invalid, check localStorage
             const storedSection = localStorage.getItem('selectedSection');
-            if (storedSection && (storedSection === 'company' || storedSection === 'requests')) {
+            if (storedSection && (storedSection === 'company' || storedSection === 'requests' || storedSection === 'contact')) {
                 return storedSection;
             }
             return 'requests'; // default
@@ -1452,8 +1793,16 @@ if (isset($_SESSION['message'])) {
         window.addEventListener('popstate', function(e) {
             const urlParams = new URLSearchParams(window.location.search);
             const urlSection = urlParams.get('section');
-            // Get section from URL or default to requests
-            const section = urlSection || localStorage.getItem('selectedSection') || 'requests';
+            // Get section from URL or default to requests, validate it
+            let section = 'requests';
+            if (urlSection && (urlSection === 'company' || urlSection === 'requests' || urlSection === 'contact')) {
+                section = urlSection;
+            } else {
+                const storedSection = localStorage.getItem('selectedSection');
+                if (storedSection && (storedSection === 'company' || storedSection === 'requests' || storedSection === 'contact')) {
+                    section = storedSection;
+                }
+            }
             switchSection(section, true);
         });
 
@@ -1472,31 +1821,225 @@ if (isset($_SESSION['message'])) {
 
         // Initialize section on page load
         (function() {
-            const initialSection = getInitialSection();
-            // Always call switchSection to ensure UI is in sync and data loads
-            switchSection(initialSection, true);
-            // If company section is active, ensure filters are applied after load
-            if (initialSection === 'company') {
-                setTimeout(function() {
-                    const urlPlan = getURLParam('plan');
-                    const urlSearch = getURLParam('search');
-                    if (urlPlan && planFilterSelect) {
-                        planFilterSelect.value = urlPlan;
-                        activePlanFilter = urlPlan;
-                    }
-                    if (urlSearch && companySearchEl) {
-                        companySearchEl.value = urlSearch;
-                    }
-                    // Re-render with filters applied
-                    if (companiesData.length > 0) {
-                        renderCompaniesCards();
-                    } else {
-                        // If no data, still try to restore scroll
-                        restoreScrollPosition();
-                    }
-                }, 200);
+            // Wait for DOM to be fully ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializePage);
+            } else {
+                initializePage();
+            }
+            
+            function initializePage() {
+                const initialSection = getInitialSection();
+                console.log('Initializing with section:', initialSection);
+                
+                // Always call switchSection to ensure UI is in sync and data loads
+                // Use skipUrlUpdate=true on initial load to avoid double URL update
+                switchSection(initialSection, true);
+                
+                // If company section is active, ensure filters are applied after load
+                if (initialSection === 'company') {
+                    setTimeout(function() {
+                        const urlPlan = getURLParam('plan');
+                        const urlSearch = getURLParam('search');
+                        if (urlPlan && planFilterSelect) {
+                            planFilterSelect.value = urlPlan;
+                            activePlanFilter = urlPlan;
+                        }
+                        if (urlSearch && companySearchEl) {
+                            companySearchEl.value = urlSearch;
+                        }
+                        // Re-render with filters applied
+                        if (companiesData.length > 0) {
+                            renderCompaniesCards();
+                        } else {
+                            // If no data, still try to restore scroll
+                            restoreScrollPosition();
+                        }
+                    }, 200);
+                } else if (initialSection === 'contact') {
+                    // Load contact messages if section is contact
+                    setTimeout(function() {
+                        loadContactMessages();
+                        restoreSectionScrollPosition('contact');
+                    }, 100);
+                }
             }
         })();
+
+        // Contact Messages Functions
+        let contactMessageModal;
+        
+        function viewContactMessage(msg) {
+            if (!contactMessageModal) {
+                contactMessageModal = new bootstrap.Modal(document.getElementById('contactMessageModal'));
+            }
+            
+            const userTypeClass = msg.user_logged == 1 ? 'success' : 'secondary';
+            const userTypeText = msg.user_logged == 1 ? 'Logged In' : 'Guest';
+            
+            // Populate details with theme matching structure
+            const detailsHtml = `
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-muted small mb-0">Message ID</label>
+                        <p class="mb-0 small" id="detailMessageId">#${msg.id}</p>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-muted small mb-0">User Type</label>
+                        <p class="mb-0 small" id="detailUserType">
+                            <span class="badge bg-${userTypeClass}">${userTypeText}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 mb-2">
+                    <hr>
+                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-user me-2"></i>Contact Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label fw-bold text-muted small mb-0">Full Name</label>
+                            <p class="mb-0 small" id="detailName">${escapeHtml(msg.name)}</p>
+                        </div>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label fw-bold text-muted small mb-0">Email</label>
+                            <p class="mb-0 small" id="detailEmail">
+                                <a href="mailto:${escapeHtml(msg.emailId)}">${escapeHtml(msg.emailId)}</a>
+                            </p>
+                        </div>
+                        ${msg.user_id ? `
+                        <div class="col-md-6 mb-1" id="detailUserIdContainer">
+                            <label class="form-label fw-bold text-muted small mb-0">User ID</label>
+                            <p class="mb-0 small" id="detailUserId">#${msg.user_id}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="col-12 mb-2">
+                    <hr>
+                    <h6 class="fw-bold text-muted mb-2"><i class="fas fa-comment-dots me-2"></i>Message</h6>
+                    <div class="row">
+                        <div class="col-12 mb-1">
+                            <p class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;" id="detailMessage">${escapeHtml(msg.message)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mb-3">
+                    <hr>
+                    <h6 class="fw-bold text-muted mb-3"><i class="fas fa-clock me-2"></i>Timeline</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-bold text-muted small">Created At</label>
+                            <p class="mb-0" id="detailDate">${formatDate(msg.created_date)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('contactMessageDetails').innerHTML = detailsHtml;
+            
+            // Set form values
+            document.getElementById('contactResponseMessageId').value = msg.id;
+            document.getElementById('contactResponseEmail').value = msg.emailId;
+            document.getElementById('contactResponseName').value = msg.name;
+            document.getElementById('contactResponseOriginalMessage').value = msg.message || '';
+            document.getElementById('contactResponseMessage').value = '';
+            document.getElementById('contactResponseSubject').value = '';
+            
+            // Reset alert
+            const alert = document.getElementById('contactResponseAlert');
+            if (alert) {
+                alert.classList.add('d-none');
+                alert.classList.remove('alert-success', 'alert-danger');
+            }
+            
+            // Show modal
+            contactMessageModal.show();
+        }
+        
+        // Handle contact response form submission
+        const contactResponseForm = document.getElementById('contactResponseForm');
+        if (contactResponseForm) {
+            contactResponseForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const sendBtn = document.getElementById('sendContactResponseBtn');
+                const originalBtnText = sendBtn.innerHTML;
+                const alert = document.getElementById('contactResponseAlert');
+                
+                // Disable button
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+                
+                // Hide previous alerts
+                if (alert) {
+                    alert.classList.add('d-none');
+                }
+                
+                fetch('ajax/send_contact_response.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (alert) {
+                            alert.classList.remove('d-none', 'alert-danger');
+                            alert.classList.add('alert-success');
+                            alert.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Response sent successfully!');
+                        }
+                        
+                        // Clear form
+                        document.getElementById('contactResponseMessage').value = '';
+                        
+                        // Optionally close modal after 2 seconds
+                        setTimeout(() => {
+                            if (contactMessageModal) {
+                                contactMessageModal.hide();
+                            }
+                        }, 2000);
+                    } else {
+                        if (alert) {
+                            alert.classList.remove('d-none', 'alert-success');
+                            alert.classList.add('alert-danger');
+                            alert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + (data.message || 'Failed to send response. Please try again.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (alert) {
+                        alert.classList.remove('d-none', 'alert-success');
+                        alert.classList.add('alert-danger');
+                        alert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Network error. Please check your connection and try again.';
+                    }
+                })
+                .finally(() => {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalBtnText;
+                });
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const month = monthNames[date.getMonth()];
+            const year = date.getFullYear();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            return `${day} ${month} ${year} at ${displayHours}:${displayMinutes} ${ampm}`;
+        }
     </script>
 </body>
 </html>

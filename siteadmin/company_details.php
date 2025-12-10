@@ -44,6 +44,8 @@ $stats = $companyModel->getCompanyStats($companyId);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($company['company_name']); ?> - Company Details</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../favicon(2).png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -396,7 +398,7 @@ $stats = $companyModel->getCompanyStats($companyId);
                     <i class="fas fa-building"></i>
                     Company Snapshot
                 </a>
-                <a href="contact_messages.php" class="nav-link">
+                <a href="index.php?section=contact" class="nav-link">
                     <i class="fas fa-comments"></i>
                     Contact Messages
                 </a>

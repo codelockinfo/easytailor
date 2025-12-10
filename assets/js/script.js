@@ -47,22 +47,8 @@ function initNavbar() {
         }
     });
     
-    // Active link highlighting
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
-            
-            if (targetSection) {
-                const offsetTop = targetSection.offsetTop - 80;
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
+    // Navigation links - let browser handle all navigation normally
+    // No JavaScript interference - URLs work as expected
     
     // Mobile menu close on link click
     const navbarToggler = document.querySelector('.navbar-toggler');
@@ -141,25 +127,11 @@ function animateCounter(element) {
 
 /**
  * Smooth scrolling for anchor links
+ * Disabled to allow normal browser navigation
  */
 function initSmoothScrolling() {
-    const links = document.querySelectorAll('a[href^="#"]');
-    
-    links.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                const offsetTop = targetElement.offsetTop - 80;
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
+    // Smooth scrolling disabled - browser handles all navigation normally
+    // This prevents JavaScript errors and allows proper URL navigation
 }
 
 /**

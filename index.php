@@ -84,7 +84,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
     <!-- Custom CSS -->
-    <link href="assets/css/style3.css" rel="stylesheet">
+    <link href="assets/css/style4.css" rel="stylesheet">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -293,42 +293,8 @@
         <div class="scroll-progress-bar" id="scrollProgressBar"></div>
     </div>
 
-    <!-- Sticky Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#home">
-                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#benefits">Benefits</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#pricing">Pricing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contact">Contact</a>
-                    </li>
-                    <li class="nav-item ms-3">
-                        <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
-                    </li>
-                    <li class="nav-item ms-2">
-                        <a href="admin/register.php" class="btn  btn-sm register-header-btn">Register</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation -->
+    <?php require_once 'includes/nav.php'; ?>
 
     <!-- Hero Section -->
     <section id="home" class="hero-section">
@@ -959,87 +925,7 @@
     </section>
 
     <!-- Footer -->
-    <footer id="contact" class="footer-section py-5 bg-dark text-light">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="footer-brand">
-                        <h3 class="brand-name">
-                            <img src="uploads/logos/main-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                            <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-                        </h3>
-                        <p class="brand-description">
-                            The complete tailoring management system for modern businesses. 
-                            Digitalize your workflow and grow your business.
-                        </p>
-                        <div class="social-links">
-                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-2">
-                    <div class="footer-links">
-                        <h5 class="link-title">Quick Links</h5>
-                        <ul class="link-list">
-                            <li><a href="#home">Home</a></li>
-                            <li><a href="#features">Features</a></li>
-                            <li><a href="#benefits">Benefits</a></li>
-                            <li><a href="#pricing">Pricing</a></li>
-                            <li><a href="contact.php">Contact Us</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-2">
-                    <div class="footer-links">
-                        <h5 class="link-title">Platform</h5>
-                        <ul class="link-list">
-                            <li><a href="admin/login.php">Login</a></li>
-                            <li><a href="admin/register.php">Register</a></li>
-                            <li><a href="#how-it-works">How It Works</a></li>
-                            <li><a href="#testimonials">Testimonials</a></li>
-                            <li><a href="#screenshots">Screenshots</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="footer-contact">
-                        <h5 class="link-title">Contact Info</h5>
-                        <div class="contact-item">
-                            <i class="fas fa-envelope me-2"></i>
-                            <span>codelockinfo@gmail.com</span>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-phone me-2"></i>
-                            <span>+917600464414</span>
-                        </div>
-                        <div class="contact-item">
-                            <i class="fas fa-map-marker-alt me-2"></i>
-                            <span>Silver business point, near vip circle, utran, Surat - 394105</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="copyright">
-                        &copy; 2025 TailorPro. All rights reserved by <a href="https://codelocksolutions.com/" target="_blank" class="legal-link">Codelock Solutions</a>
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="footer-legal">
-                        <a href="about.php" class="legal-link">About Us</a>
-                        <a href="privacy-policy.php" class="legal-link">Privacy Policy</a>
-                        <a href="terms-of-service.php" class="legal-link">Terms of Service</a>
-                        <!-- <a href="#" class="legal-link">Cookie Policy</a> -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php require_once 'includes/footer.php'; ?>
 
     <!-- Sticky CTA Button -->
     <div class="sticky-cta">

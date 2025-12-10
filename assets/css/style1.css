@@ -321,8 +321,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-outline-primary {
     background: transparent;
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
 }
 
 .tailors-section .btn-primary:hover {
@@ -334,13 +334,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .tailors-section .btn-primary {
     margin-top: 20px;
-}
-
-.btn-outline-primary:hover {
-    background: white;
-    color: #0d6efd;
-    border-color: #0d6efd;
-    transform: translateY(-2px);
 }
 
 .hero-stats {

@@ -92,7 +92,7 @@ if (file_exists($articlesFile)) {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 120px 0 80px;
-            margin-top: 76px;
+            margin-top: 70px;
         }
         
         .blog-hero h1 {
@@ -198,6 +198,10 @@ if (file_exists($articlesFile)) {
         }
         
         @media (max-width: 768px) {
+            .blog-hero {
+                margin-top: 0 !important;
+            }
+            
             .blog-hero h1 {
                 font-size: 2rem;
             }
@@ -210,6 +214,8 @@ if (file_exists($articlesFile)) {
                 height: 200px;
             }
         }
+        
+       
     </style>
 </head>
 <body>

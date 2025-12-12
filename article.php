@@ -43,6 +43,31 @@ if (!$article) {
     exit;
 }
 
+// Determine back link based on referrer or URL parameter
+$backLink = 'blog.php'; // Default to blog page
+$backText = 'Back to Blog';
+
+// Check for URL parameter first (more reliable)
+if (isset($_GET['from']) && $_GET['from'] === 'index') {
+    $backLink = './#blog';
+    $backText = 'Back to Home';
+} else {
+    // Fallback to HTTP_REFERER
+    $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+    
+    if (!empty($referrer)) {
+        $referrerPath = parse_url($referrer, PHP_URL_PATH);
+        // Check if referrer contains index.php or is the root/homepage
+        if (strpos($referrerPath, 'index.php') !== false || 
+            $referrerPath === '/' || 
+            empty(parse_url($referrer, PHP_URL_PATH)) ||
+            basename($referrerPath) === 'index.php') {
+            $backLink = './#blog';
+            $backText = 'Back to Home';
+        }
+    }
+}
+
 // Set page title
 $page_title = $article['title'];
 
@@ -210,7 +235,6 @@ $seoOptions = [
             color: #667eea;
             text-decoration: none;
             font-weight: 500;
-            margin-bottom: 2rem;
             transition: color 0.3s ease;
         }
         
@@ -233,6 +257,16 @@ $seoOptions = [
             
             .article-meta {
                 gap: 1rem;
+            }
+            .article-header{
+                margin-top: 0 !important;
+                padding: 60px 0 60px !important;
+            }
+            .back-to-blog{
+                margin-bottom: 0 !important;
+            }
+            .article-image-wrapper {
+                margin: 1.5rem 0 !important;
             }
         }
     </style>
@@ -257,10 +291,10 @@ $seoOptions = [
     </section>
 
     <!-- Article Content -->
-    <section class="py-5">
+    <section class="py-4">
         <div class="container">
-            <a href="blog.php" class="back-to-blog">
-                <i class="fas fa-arrow-left"></i> Back to Blog
+            <a href="<?php echo htmlspecialchars($backLink); ?>" class="back-to-blog">
+                <i class="fas fa-arrow-left"></i> <?php echo htmlspecialchars($backText); ?>
             </a>
             
             <div class="article-image-wrapper">

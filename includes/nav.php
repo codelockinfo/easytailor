@@ -46,6 +46,9 @@ $faviconLinks = '
                 <li class="nav-item">
                     <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>">Contact</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#blog' : $basePath . './#blog'; ?>">Blog</a>
+                </li>
                 <li class="nav-item ms-3">
                     <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn">Login</a>
                 </li>

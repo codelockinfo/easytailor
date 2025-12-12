@@ -89,6 +89,83 @@
     <!-- Custom CSS -->
     <link href="assets/css/style5.css" rel="stylesheet">
     
+    <!-- Blog Section Button Hover Styles -->
+    <style>
+        .blog-read-more-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .blog-read-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            opacity: 0.95;
+        }
+        
+        .blog-read-more-btn:hover i {
+            transform: translateX(5px);
+        }
+        
+        .blog-read-more-btn i {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        .btn-for-article{
+            background: #ffffff !important;
+        }
+
+        .btn-for-article:hover{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        
+        /* Blog Card Hover Effects */
+        .blog-section .article-card {
+            cursor: pointer;
+        }
+        
+        .blog-section .article-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .blog-section .article-card:hover img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        
+        .blog-section .article-card img {
+            transition: transform 0.4s ease, filter 0.4s ease;
+        }
+        
+        .blog-section .article-card h3 a {
+            transition: color 0.3s ease;
+        }
+        
+        .blog-section .article-card:hover h3 a {
+            color: #667eea !important;
+        }
+        
+        .blog-section .article-card .article-category {
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        
+        .blog-section .article-card:hover .article-category {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scale(1.05);
+        }
+    </style>
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -807,6 +884,90 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <?php
+    // Load articles from JSON
+    $blogArticles = [];
+    $dataDir = __DIR__ . '/data';
+    $articlesFile = $dataDir . '/articles.json';
+
+    if (file_exists($articlesFile)) {
+        $jsonContent = file_get_contents($articlesFile);
+        $articlesData = json_decode($jsonContent, true);
+        
+        if ($articlesData && isset($articlesData['articles']) && is_array($articlesData['articles'])) {
+            // Sort articles by published_date (newest first)
+            usort($articlesData['articles'], function($a, $b) {
+                return strtotime($b['published_date']) - strtotime($a['published_date']);
+            });
+            // Get first 3 latest articles
+            $blogArticles = array_slice($articlesData['articles'], 0, 3);
+        }
+    }
+    ?>
+    <section id="blog" class="blog-section py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center mb-5">
+                    <h2 class="section-title">Latest Blog Articles</h2>
+                    <p class="section-description">
+                        Discover insights, tips, and stories from the tailoring industry.
+                    </p>
+                </div>
+            </div>
+            <?php if (!empty($blogArticles)): ?>
+                <div class="row g-4">
+                    <?php foreach ($blogArticles as $article): ?>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="article-card" style="border: none; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.4s ease, box-shadow 0.4s ease; height: 100%; display: flex; flex-direction: column;">
+                                <div style="overflow: hidden;">
+                                    <img src="<?php echo htmlspecialchars($article['image']); ?>" 
+                                         alt="<?php echo htmlspecialchars($article['title']); ?>" 
+                                         style="width: 100%; height: 200px; object-fit: cover;"
+                                         onerror="this.onerror=null; this.style.display='none';">
+                                </div>
+                                
+                                <div style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
+                                    <span class="article-category" style="display: inline-block; background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500; margin-bottom: 1rem;">
+                                        <?php echo htmlspecialchars($article['category']); ?>
+                                    </span>
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; color: #2d3748; line-height: 1.3;">
+                                        <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" 
+                                           style="color: inherit; text-decoration: none;">
+                                            <?php echo htmlspecialchars($article['title']); ?>
+                                        </a>
+                                    </h3>
+                                    <p style="color: #4a5568; margin-bottom: 1rem; flex-grow: 1; font-size: 0.9rem;">
+                                        <?php echo htmlspecialchars($article['excerpt']); ?>
+                                    </p>
+                                    <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; color: #718096; margin-top: auto;">
+                                        <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
+                                        <span><i class="fas fa-clock"></i> <?php echo htmlspecialchars($article['read_time']); ?></span>
+                                    </div>
+                                    <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" 
+                                       class="blog-read-more-btn">
+                                        Read More <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="row mt-5">
+                    <div class="col-12 text-center">
+                        <a href="blog.php" class="btn btn-primary btn-lg btn-for-article" style="border: none; padding: 0.875rem 2.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-block; transition: opacity 0.3s ease;">
+                            View More Articles <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-5">
+                    <p style="color: #718096;">No articles available at the moment.</p>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 

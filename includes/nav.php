@@ -18,7 +18,13 @@ $faviconLinks = '
     <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" href="' . $basePath . 'favicon(2).png">
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="' . $basePath . 'favicon(2).png">';
+    <link rel="apple-touch-icon" href="' . $basePath . 'favicon(2).png">
+    <!-- Google AdSense -->
+    <meta name="google-adsense-account" content="ca-pub-2821959013351742">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';
+
+// Google AdSense script for footer/body section
+$googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';
 ?>
 <!-- Sticky Header -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">

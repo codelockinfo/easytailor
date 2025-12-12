@@ -48,6 +48,8 @@
     <meta name="twitter:image:alt" content="Tailoring Management System">
     <meta name="twitter:site" content="@TailorPro">
     <meta name="twitter:creator" content="@TailorPro">
+    <meta name="google-adsense-account" content="ca-pub-2821959013351742">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
     
     <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">

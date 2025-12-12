@@ -42,6 +42,7 @@ $seoOptions = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     
     <!-- Favicon -->
@@ -74,6 +75,8 @@ $seoOptions = [
         gtag('config', '<?php echo htmlspecialchars($ga4Id, ENT_QUOTES, 'UTF-8'); ?>');
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo htmlspecialchars($ga4Id, ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742"
+     crossorigin="anonymous"></script>
         <?php
     }
     ?>

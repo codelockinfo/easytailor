@@ -105,6 +105,10 @@ $currentYear = date('Y');
     </div>
 </footer>
 
+<!-- Google AdSense -->
+<meta name="google-adsense-account" content="ca-pub-2821959013351742">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
+
 <script>
 // Footer Mobile Toggle Functionality
 (function() {

@@ -15,8 +15,8 @@ $whatsapp_icon = file_exists($local_image)
     : 'https://cdn-icons-png.flaticon.com/512/3670/3670051.png';
 
 // Default WhatsApp message
-$whatsapp_Message = "Hello sir, Welcome to tailorpro.in";
-$whatsapp_url = "https://wa.me/7600464414?text=" . urlencode($whatsapp_Message);
+// $whatsapp_Message = "Hello sir, Welcome to tailorpro.in";
+$whatsapp_url = "https://wa.me/7600464414";
 ?>
 <!-- Sticky WhatsApp Button -->
 <div class="sticky-cta-left">

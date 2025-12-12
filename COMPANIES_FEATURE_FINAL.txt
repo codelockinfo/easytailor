@@ -122,7 +122,7 @@ UPDATED:
   ✅ ajax/get_tailor_locations.php (now uses companies)
   ✅ tailors.php (now shows companies)
   ✅ index.php (loads companies in slider)
-  ✅ assets/js/script.js (fixed console error)
+  ✅ assets/js/script1.js (fixed console error)
 
 DELETED:
   ❌ models/TailorProfile.php

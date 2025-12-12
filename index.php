@@ -1287,6 +1287,6 @@
     </script>
 
     <!-- Custom JS -->
-    <script src="assets/js/script.js"></script>
+    <script src="assets/js/script1.js"></script>
 </body>
 </html>

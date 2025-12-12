@@ -56,7 +56,7 @@ UPDATED:
   ✅ tailors.php (shows companies)
   ✅ models/Company.php (added listing methods)
   ✅ ajax/filter_tailors.php (uses companies table)
-  ✅ assets/js/script.js (fixed console error)
+  ✅ assets/js/script1.js (fixed console error)
 
 CREATED:
   ✅ database/setup_companies_for_listing.sql

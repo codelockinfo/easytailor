@@ -381,7 +381,7 @@ $seoOptions = [
 <!-- WhatsApp Button -->
 <?php require_once 'includes/whatsapp-button.php'; ?>
 <!-- Go to Top Button -->
-<script src="assets/js/script.js"></script> 
+<script src="assets/js/script1.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>
 </html>

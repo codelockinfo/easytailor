@@ -10,7 +10,7 @@
 $page_title = 'Contact Management';
 require_once 'includes/header.php';
 
-require_once 'models/Contact';
+require_once 'models/Contact.php';
 
 $contactModel = new Contact();
 $message = '';

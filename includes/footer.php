@@ -44,7 +44,7 @@ $currentYear = date('Y');
                         <li><a href="<?php echo $basePath; ?>./#features">Features</a></li>
                         <li><a href="<?php echo $basePath; ?>./#benefits">Benefits</a></li>
                         <li><a href="<?php echo $basePath; ?>./#pricing">Pricing</a></li>
-                        <li><a href="<?php echo $basePath; ?>contact.php">Contact Us</a></li>
+                        <li><a href="<?php echo $basePath; ?>contact">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
@@ -55,8 +55,8 @@ $currentYear = date('Y');
                         <span class="footer-toggle-icon">+</span>
                     </h5>
                     <ul class="link-list footer-toggle-content">
-                        <li><a href="<?php echo $basePath; ?>admin/login.php">Login</a></li>
-                        <li><a href="<?php echo $basePath; ?>admin/register.php">Register</a></li>
+                        <li><a href="<?php echo $basePath; ?>admin/login">Login</a></li>
+                        <li><a href="<?php echo $basePath; ?>admin/register">Register</a></li>
                         <li><a href="<?php echo $basePath; ?>./#how-it-works">How It Works</a></li>
                         <li><a href="<?php echo $basePath; ?>./#testimonials">Testimonials</a></li>
                         <li><a href="<?php echo $basePath; ?>./#screenshots">Screenshots</a></li>
@@ -95,10 +95,10 @@ $currentYear = date('Y');
             </div>
             <div class="col-md-6 text-md-end">
                 <div class="footer-legal">
-                    <a href="<?php echo $basePath; ?>about.php" class="legal-link me-3">About Us</a>
-                    <a href="<?php echo $basePath; ?>privacy-policy.php" class="legal-link me-3">Privacy Policy</a>
-                    <a href="<?php echo $basePath; ?>terms-of-service.php" class="legal-link">Terms of Service</a>
-                    <a href="<?php echo $basePath; ?>blog.php" class="legal-link">Blog</a>
+                    <a href="<?php echo $basePath; ?>about" class="legal-link me-3">About Us</a>
+                    <a href="<?php echo $basePath; ?>privacy-policy" class="legal-link me-3">Privacy Policy</a>
+                    <a href="<?php echo $basePath; ?>terms-of-service" class="legal-link">Terms of Service</a>
+                    <a href="<?php echo $basePath; ?>blog" class="legal-link">Blog</a>
                 </div>
             </div>
         </div>

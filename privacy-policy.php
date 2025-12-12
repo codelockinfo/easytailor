@@ -11,7 +11,7 @@ $page_title = 'Privacy Policy';
 require_once 'helpers/SEOHelper.php';
 
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-$canonicalUrl = $baseUrl . '/privacy-policy.php';
+$canonicalUrl = $baseUrl . '/privacy-policy';
 
 $seoOptions = [
     'title' => 'Privacy Policy - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),

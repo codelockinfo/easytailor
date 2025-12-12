@@ -250,7 +250,7 @@ if (file_exists($articlesFile)) {
                                 <div class="article-card-body">
                                     <span class="article-category"><?php echo htmlspecialchars($article['category']); ?></span>
                                     <h3 class="article-title">
-                                        <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>" 
+                                        <a href="article?slug=<?php echo htmlspecialchars($article['slug']); ?>" 
                                            style="color: inherit; text-decoration: none;">
                                             <?php echo htmlspecialchars($article['title']); ?>
                                         </a>
@@ -261,7 +261,7 @@ if (file_exists($articlesFile)) {
                                         <span><i class="fas fa-calendar"></i><?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
                                         <span><i class="fas fa-clock"></i><?php echo htmlspecialchars($article['read_time']); ?></span>
                                     </div>
-                                    <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>" class="read-more-btn mt-3">
+                                    <a href="article?slug=<?php echo htmlspecialchars($article['slug']); ?>" class="read-more-btn mt-3">
                                         Read More <i class="fas fa-arrow-right ms-2"></i>
                                     </a>
                                 </div>

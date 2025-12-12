@@ -25,7 +25,7 @@ if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
 }
 
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-$canonicalUrl = $baseUrl . '/contact.php';
+$canonicalUrl = $baseUrl . '/contact';
 
 $seoOptions = [
     'title' => 'Contact Us - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
@@ -397,7 +397,7 @@ $seoOptions = [
         const formData = new FormData(form);
         
         // Submit form
-        fetch('ajax/submit_contact.php', {
+        fetch('ajax/submit_contact', {
             method: 'POST',
             body: formData
         })

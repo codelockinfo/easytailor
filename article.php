@@ -52,7 +52,7 @@ if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
 }
 
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-$canonicalUrl = $baseUrl . '/article.php?slug=' . urlencode($slug);
+$canonicalUrl = $baseUrl . '/article?slug=' . urlencode($slug);
 
 $seoOptions = [
     'title' => htmlspecialchars($article['title']) . ' - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),

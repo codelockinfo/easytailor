@@ -26,25 +26,25 @@ $staticPages = [
         'priority' => '1.0'
     ],
     [
-        'loc' => $baseUrl . '/tailors.php',
+        'loc' => $baseUrl . '/tailors',
         'lastmod' => $currentDate,
         'changefreq' => 'daily',
         'priority' => '0.9'
     ],
     [
-        'loc' => $baseUrl . '/privacy-policy.php',
+        'loc' => $baseUrl . '/privacy-policy',
         'lastmod' => $currentDate,
         'changefreq' => 'monthly',
         'priority' => '0.3'
     ],
     [
-        'loc' => $baseUrl . '/terms-of-service.php',
+        'loc' => $baseUrl . '/terms-of-service',
         'lastmod' => $currentDate,
         'changefreq' => 'monthly',
         'priority' => '0.3'
     ],
     [
-        'loc' => $baseUrl . '/admin/register.php',
+        'loc' => $baseUrl . '/admin/register',
         'lastmod' => $currentDate,
         'changefreq' => 'weekly',
         'priority' => '0.8'

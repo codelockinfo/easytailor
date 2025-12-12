@@ -24,7 +24,7 @@ try {
         exit;
     }
 
-    require_once $rootDir . '/../models/Contact.php';
+    require_once $rootDir . '/../models/Contact';
 
     // Get filter parameters
     $category = $_GET['category'] ?? '';

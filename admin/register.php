@@ -657,7 +657,7 @@ $seoOptions = [
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="agree_terms" required>
                                 <label class="form-check-label" for="agree_terms">
-                                    I agree to the <a href="../terms-of-service.php" target="_blank">Terms of Service</a> and <a href="../privacy-policy.php" target="_blank">Privacy Policy</a>
+                                    I agree to the <a href="../terms-of-service" target="_blank">Terms of Service</a> and <a href="../privacy-policy" target="_blank">Privacy Policy</a>
                                 </label>
                             </div>
                             

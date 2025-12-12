@@ -14,7 +14,7 @@ if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
 }
 
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-$canonicalUrl = $baseUrl . '/about.php';
+$canonicalUrl = $baseUrl . '/about';
 
 $seoOptions = [
     'title' => 'About Us - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
@@ -271,7 +271,7 @@ if (file_exists($jsonFile)) {
         
         if (json_last_error() !== JSON_ERROR_NONE) {
             // Log error but don't break the page
-            error_log('JSON decode error in about.php: ' . json_last_error_msg());
+            error_log('JSON decode error in about: ' . json_last_error_msg());
             $aboutData = null;
         }
     }

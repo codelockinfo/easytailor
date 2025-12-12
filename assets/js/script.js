@@ -1081,6 +1081,28 @@ function initGoToTopButton() {
     
     if (!goToTopBtn) return;
     
+    // Check if we're on the home page (index.php or ./)
+    function isHomePage() {
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.split('/').pop();
+        return currentPage === '' || 
+               currentPage === 'index.php' || 
+               currentPath.endsWith('/') ||
+               currentPath === '/easytailor/' ||
+               currentPath === '/easytailor/index.php';
+    }
+    
+    // Apply home page class if on home page
+    if (isHomePage()) {
+        goToTopBtn.classList.add('home-page');
+    }
+    
+    // Handle window resize to maintain correct positioning
+    function handleResize() {
+        // The CSS media query will handle the positioning automatically
+        // This function can be used for any additional resize logic if needed
+    }
+    
     // Show/hide button based on scroll position
     function toggleGoToTopButton() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -1112,6 +1134,7 @@ function initGoToTopButton() {
     
     // Event listeners
     window.addEventListener('scroll', toggleGoToTopButton, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
     goToTopBtn.addEventListener('click', scrollToTop);
     
     // Initial check

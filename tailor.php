@@ -72,10 +72,14 @@ $seoOptions = [
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    <!-- Favicon - Primary ICO format for Google Search -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon - PNG fallback -->
+    <link rel="icon" type="image/png" href="favicon(2).png">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="favicon(2).png">
     <!-- Custom CSS -->
-    <link href="assets/css/style4.css" rel="stylesheet">
+    <link href="assets/css/style5.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;

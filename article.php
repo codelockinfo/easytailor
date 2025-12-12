@@ -87,8 +87,12 @@ $seoOptions = [
     }
     ?>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    <!-- Favicon - Primary ICO format for Google Search -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon - PNG fallback -->
+    <link rel="icon" type="image/png" href="favicon(2).png">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="favicon(2).png">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -100,7 +104,7 @@ $seoOptions = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link href="assets/css/style4.css" rel="stylesheet">
+    <link href="assets/css/style5.css" rel="stylesheet">
     
     <style>
         .article-header {
@@ -163,7 +167,7 @@ $seoOptions = [
         }
         
         .article-content {
-            max-width: 800px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 2rem 0;
         }
@@ -293,6 +297,9 @@ $seoOptions = [
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Go to Top Button -->
+<script src="assets/js/script.js"></script> 
+<?php require_once 'includes/go-to-top-button.php'; ?>
     
     <!-- GA4 Page View Tracking -->
     <?php

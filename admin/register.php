@@ -384,7 +384,7 @@ $seoOptions = [
             <div class="col-lg-8">
                 <div class="card register-card border-0">
                     <div class="register-header">
-                        <a href="../index.php" class="text-decoration-none">
+                        <a href="../" class="text-decoration-none">
                         <?php
                         // Get brand logo using smart path detection
                         $brandLogo = get_logo_path('footer-logo.png');

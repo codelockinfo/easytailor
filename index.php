@@ -49,8 +49,11 @@
     <meta name="twitter:site" content="@TailorPro">
     <meta name="twitter:creator" content="@TailorPro">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    <!-- Favicon - Primary ICO format for Google Search -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon - PNG fallback -->
+    <link rel="icon" type="image/png" href="favicon(2).png">
+    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="favicon(2).png">
     
     <!-- Theme Color -->
@@ -84,7 +87,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
     <!-- Custom CSS -->
-    <link href="assets/css/style4.css" rel="stylesheet">
+    <link href="assets/css/style5.css" rel="stylesheet">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -312,7 +315,7 @@
                             <a href="admin/register.php" class="btn btn-primary btn-lg me-3">
                                 <i class="fas fa-rocket me-2"></i>Register Your Business
                             </a>
-                            <a href="admin/login.php" class="btn btn-outline-primary btn-lg">
+                            <a href="admin/login.php" class="btn btn-outline-primary btn-lg btn-primary-login-index-page">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
                             </a>
                         </div>
@@ -902,7 +905,7 @@
     </section>
 
     <!-- Final CTA Section -->
-    <section id="final-cta" class="final-cta-section py-5">
+    <section id="final-cta" class="final-cta-section py-4">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -928,12 +931,7 @@
     <?php require_once 'includes/footer.php'; ?>
 
     <!-- Sticky CTA Button -->
-    <div class="sticky-cta">
-        <a href="admin/register.php" class="btn btn-primary btn-floating">
-            <i class="fas fa-rocket"></i>
-            <span>Get Started</span>
-        </a>
-    </div>
+    <?php require_once 'includes/sticky-cta-button.php'; ?>
 
     <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
@@ -948,9 +946,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
     <!-- Go to Top Button -->
-    <button id="goToTopBtn" class="go-to-top-btn" title="Go to Top">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <?php require_once 'includes/go-to-top-button.php'; ?>
 
     <!-- Tailors Slider Script -->
     <script>

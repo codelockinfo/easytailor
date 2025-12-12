@@ -10,6 +10,15 @@ $basePath = $isAdmin ? '../' : '';
 
 // Get current page to highlight active link
 $currentPage = basename($_SERVER['PHP_SELF']);
+
+// Favicon links for use in <head> section (multiple formats for maximum compatibility)
+$faviconLinks = '
+    <!-- Favicon - Primary ICO format for Google Search -->
+    <link rel="icon" type="image/x-icon" href="' . $basePath . 'favicon.ico">
+    <!-- Favicon - PNG fallback -->
+    <link rel="icon" type="image/png" href="' . $basePath . 'favicon(2).png">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="' . $basePath . 'favicon(2).png">';
 ?>
 <!-- Sticky Header -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">

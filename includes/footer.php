@@ -12,7 +12,7 @@ $basePath = $isAdmin ? '../' : '';
 $currentYear = date('Y');
 ?>
 <!-- Footer -->
-<footer id="contact" class="footer-section py-5">
+<footer id="contact" class="footer-section py-3">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4">
@@ -27,8 +27,8 @@ $currentYear = date('Y');
                     </p>
                     <div class="social-links">
                         <a href="#" class="social-link" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <!-- <a href="#" class="social-link" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a> -->
                         <a href="#" class="social-link" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>

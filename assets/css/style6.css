@@ -1519,16 +1519,55 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
 }
 
-/* Ensure 3 cards display evenly */
-.pricing-container .row > .col-lg-4 {
-    flex: 0 0 33.333333%;
-    max-width: 33.333333%;
-}
-
+/* Ensure 3 cards display evenly on desktop */
 @media (min-width: 992px) {
     .pricing-container .row > .col-lg-4 {
         flex: 0 0 33.333333%;
         max-width: 33.333333%;
+    }
+}
+
+/* Tablet: 2 cards per row */
+@media (min-width: 768px) and (max-width: 991px) {
+    .pricing-container .row > .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* Mobile: 1 card per row, centered */
+@media (max-width: 767px) {
+    .pricing-container .row {
+        justify-content: center;
+        margin: 0;
+    }
+    
+    .pricing-container .row > [class*="col-"] {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .pricing-card {
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .pricing-header {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+    
+    .pricing-features {
+        padding: 1.5rem;
+    }
+    
+    .pricing-footer {
+        padding: 0 1.5rem 2rem;
     }
 }
 
@@ -1977,8 +2016,8 @@ section:last-of-type + .footer-section {
 }
 
 .sticky-cta-left .whatsapp-icon {
-    width: 60px !important;
-    height: 60px !important;
+    width: 50px !important;
+    height: 50px !important;
     object-fit: contain;
 }
 
@@ -2091,7 +2130,7 @@ section:last-of-type + .footer-section {
     }
 
     .pricing-section {
-        padding: 2rem 0 3rem !important;
+        padding: 0rem 0 1rem !important;
     }
     
     .nav-item.ms-3 {

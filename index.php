@@ -89,7 +89,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
     <!-- Custom CSS -->
-    <link href="assets/css/style6.css" rel="stylesheet">
+    <link href="assets/css/style7.css" rel="stylesheet">
     
     <!-- Blog Section Button Hover Styles -->
     <style>

@@ -79,7 +79,7 @@ $seoOptions = [
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="favicon(2).png">
     <!-- Custom CSS -->
-    <link href="assets/css/style6.css" rel="stylesheet">
+    <link href="assets/css/style7.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;

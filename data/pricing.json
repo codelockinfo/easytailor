@@ -1,0 +1,117 @@
+{
+  "plans": {
+    "free": {
+      "name": "Free Trial",
+      "display_name": "Starter",
+      "price": 0,
+      "price_annual": 0,
+      "duration": "30 days",
+      "description": "Perfect for small tailoring shops",
+      "features": [
+        "Up to 30 customers",
+        "Up to 50 orders",
+        "Basic reporting",
+        "Email support",
+        "1 user account"
+      ],
+      "limits": {
+        "customers": 30,
+        "orders": 50,
+        "users": 1
+      },
+      "color": "secondary",
+      "popular": false,
+      "cta_text": "Get Started Free",
+      "cta_link": "admin/register.php",
+      "cta_class": "btn-outline-primary"
+    },
+    "basic": {
+      "name": "Basic Plan",
+      "display_name": "Basic",
+      "price": 99,
+      "price_annual": 89,
+      "duration": "per month",
+      "description": "Ideal for growing businesses",
+      "features": [
+        "Up to 100 customers",
+        "Up to 150 orders",
+        "Advanced reporting",
+        "Priority email support",
+        "Up to 3 users",
+        "Custom cloth types",
+        "Invoice generation",
+        "SMS notifications"
+      ],
+      "limits": {
+        "customers": 100,
+        "orders": 150,
+        "users": 3
+      },
+      "color": "info",
+      "popular": false,
+      "cta_text": "Choose Basic",
+      "cta_link": "admin/register.php",
+      "cta_class": "btn-outline-primary"
+    },
+    "premium": {
+      "name": "Premium Plan",
+      "display_name": "Professional",
+      "price": 199,
+      "price_annual": 179,
+      "duration": "per month",
+      "description": "Ideal for growing businesses",
+      "features": [
+        "Up to 500 customers",
+        "Up to 1,000 orders",
+        "Advanced reporting & analytics",
+        "Priority support (24/7)",
+        "Up to 10 users",
+        "SMS notifications",
+        "Export data",
+        "Custom integrations",
+        "Training & onboarding"
+      ],
+      "limits": {
+        "customers": 500,
+        "orders": 1000,
+        "users": 10
+      },
+      "color": "primary",
+      "popular": true,
+      "cta_text": "Choose Professional",
+      "cta_link": "admin/register.php",
+      "cta_class": "btn-primary"
+    },
+    "enterprise": {
+      "name": "Enterprise Plan",
+      "display_name": "Enterprise",
+      "price": 999,
+      "price_annual": 899,
+      "duration": "per month",
+      "description": "For large tailoring units",
+      "features": [
+        "Unlimited customers",
+        "Unlimited orders",
+        "Premium analytics & insights",
+        "Dedicated account manager",
+        "Unlimited users",
+        "Custom integrations",
+        "Training & onboarding",
+        "SLA guarantee",
+        "Data migration support",
+        "Priority support (24/7)"
+      ],
+      "limits": {
+        "customers": -1,
+        "orders": -1,
+        "users": -1
+      },
+      "color": "warning",
+      "popular": false,
+      "cta_text": "Contact Sales",
+      "cta_link": "#contact",
+      "cta_class": "btn-outline-primary"
+    }
+  }
+}
+

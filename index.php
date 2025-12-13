@@ -984,85 +984,54 @@
                     </p>
                 </div>
             </div>
-            <div class="pricing-slider">
-                <div class="pricing-slide">
-                    <div class="pricing-card">
-                        <div class="pricing-header">
-                            <h3 class="plan-name">Starter</h3>
-                            <div class="plan-price">
-                                <span class="currency">₹</span>
-                                <span class="amount">0</span>
-                                <span class="period">/month</span>
-                            </div>
-                            <p class="plan-description">Perfect for small tailoring shops</p>
-                        </div>
-                        <div class="pricing-features">
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Up to 50 customers</li>
-                                <li><i class="fas fa-check"></i> Basic order management</li>
-                                <li><i class="fas fa-check"></i> Simple invoicing</li>
-                                <li><i class="fas fa-check"></i> Email support</li>
-                                <li><i class="fas fa-check"></i> Mobile responsive</li>
-                            </ul>
-                        </div>
-                        <div class="pricing-footer">
-                            <a href="admin/register.php" class="btn btn-outline-primary w-100">Get Started Free</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="pricing-slide">
-                    <div class="pricing-card featured">
+            <?php
+            // Load pricing plans from JSON file
+            $pricingData = json_decode(file_get_contents('data/pricing.json'), true);
+            $plans = $pricingData['plans'] ?? [];
+            
+            // Define the order of plans to display
+            $planOrder = ['free', 'basic', 'premium', 'enterprise'];
+            ?>
+            <div class="row g-4 mt-3">
+                <?php foreach ($planOrder as $planKey): 
+                    if (!isset($plans[$planKey])) continue;
+                    $plan = $plans[$planKey];
+                    $isPopular = isset($plan['popular']) && $plan['popular'] === true;
+                    $cardClass = $isPopular ? 'pricing-card featured' : 'pricing-card';
+                ?>
+                <div class="col-lg-3 col-md-6">
+                    <div class="<?php echo $cardClass; ?> h-100">
+                        <?php if ($isPopular): ?>
                         <div class="pricing-badge">Most Popular</div>
+                        <?php endif; ?>
                         <div class="pricing-header">
-                            <h3 class="plan-name">Professional</h3>
+                            <h3 class="plan-name"><?php echo htmlspecialchars($plan['display_name'] ?? $plan['name']); ?></h3>
                             <div class="plan-price">
                                 <span class="currency">₹</span>
-                                <span class="amount">29</span>
-                                <span class="period">/month</span>
+                                <span class="amount"><?php echo number_format($plan['price']); ?></span>
+                                <span class="period"><?php 
+                                    if ($plan['duration'] === '30 days' || $plan['duration'] === 'per month') {
+                                        echo '/month';
+                                    } else {
+                                        echo '/' . $plan['duration'];
+                                    }
+                                ?></span>
                             </div>
-                            <p class="plan-description">Ideal for growing businesses</p>
+                            <p class="plan-description"><?php echo htmlspecialchars($plan['description'] ?? ''); ?></p>
                         </div>
                         <div class="pricing-features">
                             <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Unlimited customers</li>
-                                <li><i class="fas fa-check"></i> Advanced order tracking</li>
-                                <li><i class="fas fa-check"></i> Professional invoicing</li>
-                                <li><i class="fas fa-check"></i> Employee management</li>
-                                <li><i class="fas fa-check"></i> Analytics & reports</li>
-                                <li><i class="fas fa-check"></i> Priority support</li>
+                                <?php foreach ($plan['features'] as $feature): ?>
+                                <li><i class="fas fa-check"></i> <?php echo htmlspecialchars($feature); ?></li>
+                                <?php endforeach; ?>
                             </ul>
                         </div>
                         <div class="pricing-footer">
-                            <a href="admin/register.php" class="btn btn-primary w-100">Choose Professional</a>
+                            <a href="<?php echo htmlspecialchars($plan['cta_link'] ?? 'admin/register.php'); ?>" class="btn <?php echo htmlspecialchars($plan['cta_class'] ?? 'btn-outline-primary'); ?> w-100"><?php echo htmlspecialchars($plan['cta_text'] ?? 'Get Started'); ?></a>
                         </div>
                     </div>
                 </div>
-                <div class="pricing-slide">
-                    <div class="pricing-card">
-                        <div class="pricing-header">
-                            <h3 class="plan-name">Enterprise</h3>
-                            <div class="plan-price">
-                                <span class="currency">₹</span>
-                                <span class="amount">99</span>
-                                <span class="period">/month</span>
-                            </div>
-                            <p class="plan-description">For large tailoring units</p>
-                        </div>
-                        <div class="pricing-features">
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Everything in Professional</li>
-                                <li><i class="fas fa-check"></i> Multi-location support</li>
-                                <li><i class="fas fa-check"></i> Advanced analytics</li>
-                                <li><i class="fas fa-check"></i> API access</li>
-                                <li><i class="fas fa-check"></i> Custom integrations</li>
-                                <li><i class="fas fa-check"></i> 24/7 phone support</li>
-                            </ul>
-                        </div>
-                        <div class="pricing-footer">
-                            <a href="#contact" class="btn btn-outline-primary w-100">Contact Sales</a>
-                        </div>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>

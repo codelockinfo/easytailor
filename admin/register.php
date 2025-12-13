@@ -84,6 +84,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = $database->getConnection();
             $db->beginTransaction();
             
+            // Check if user came from promotional offer
+            $cameFromOffer = false;
+            $subscriptionPlan = 'free';
+            $subscriptionExpiry = date('Y-m-d', strtotime('+30 days'));
+            
+            if (isset($_COOKIE['promo_offer_source']) && $_COOKIE['promo_offer_source'] === 'promo_popup') {
+                $cameFromOffer = true;
+                // Apply Professional plan (premium) for 1 year free
+                $subscriptionPlan = 'premium';
+                $subscriptionExpiry = date('Y-m-d', strtotime('+1 year'));
+            }
+            
             // Create company
             $companyData = [
                 'company_name' => $companyName,
@@ -99,8 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'currency' => 'INR',
                 'timezone' => 'Asia/Kolkata',
                 'status' => 'active',
-                'subscription_plan' => 'free',
-                'subscription_expiry' => date('Y-m-d', strtotime('+30 days'))
+                'subscription_plan' => $subscriptionPlan,
+                'subscription_expiry' => $subscriptionExpiry
             ];
             
             // Handle logo upload
@@ -151,7 +163,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Attempt to send welcome email (non-blocking)
             $mailService = new MailService();
-            $welcomeMessage = 'Registration successful! Please login with your credentials.';
+            if ($cameFromOffer) {
+                $welcomeMessage = 'Congratulations! You have successfully registered and your Professional Plan (1 Year Free) has been activated! Please login with your credentials to get started.';
+                // Clear the offer source cookie after successful registration
+                setcookie('promo_offer_source', '', time() - 3600, '/');
+                // Set a persistent cookie to indicate offer was claimed (valid for 1 year)
+                setcookie('offer_claimed', '1', time() + (365 * 24 * 60 * 60), '/');
+            } else {
+                $welcomeMessage = 'Registration successful! Please login with your credentials.';
+            }
 
             $emailSent = false;
             $mailError = '';

@@ -11,7 +11,7 @@ $basePath = $isAdmin ? '../' : '';
 ?>
 <!-- Sticky CTA Button -->
 <div class="sticky-cta">
-    <a href="<?php echo $basePath; ?>admin/register.php" class="btn btn-primary btn-floating">
+    <a href="<?php echo $basePath; ?>admin/register.php" class="btn btn-primary btn-floating sticky-all-pages-button">
         <i class="fas fa-rocket"></i>
         <span>Get Started</span>
     </a>

@@ -31,9 +31,53 @@ class Invoice extends BaseModel {
         if (!isset($data['company_id'])) {
             $data['company_id'] = $this->getCompanyId();
         }
-        // Generate invoice number
-        $data['invoice_number'] = $this->generateInvoiceNumber();
-        return $this->create($data);
+        
+        $maxRetries = 20;
+        $attempt = 0;
+        
+        while ($attempt < $maxRetries) {
+            try {
+                // Generate invoice number
+                $data['invoice_number'] = $this->generateInvoiceNumber();
+                
+                // Attempt to create the invoice
+                $result = $this->create($data);
+                
+                if ($result !== false) {
+                    return $result;
+                }
+                
+                // If create returned false, try again with new number
+                $attempt++;
+                
+            } catch (PDOException $e) {
+                // Check if it's a duplicate key error
+                if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    $attempt++;
+                    if ($attempt >= $maxRetries) {
+                        // Use guaranteed unique fallback number
+                        $data['invoice_number'] = $this->generateGuaranteedUniqueInvoiceNumber($data['company_id']);
+                        try {
+                            $result = $this->create($data);
+                            if ($result !== false) {
+                                return $result;
+                            }
+                        } catch (PDOException $e2) {
+                            // Even fallback failed, throw user-friendly error
+                            throw new Exception('Unable to create invoice. Please try again or contact support.');
+                        }
+                    }
+                    // Wait a bit before retrying (helps with race conditions)
+                    usleep(100000); // 100ms delay
+                    continue;
+                } else {
+                    // If it's a different error, re-throw it
+                    throw $e;
+                }
+            }
+        }
+        
+        throw new Exception('Unable to create invoice after multiple attempts. Please try again.');
     }
 
     /**
@@ -65,6 +109,17 @@ class Invoice extends BaseModel {
         }
         
         return $prefix . str_pad($new_number, 6, '0', STR_PAD_LEFT);
+    }
+    
+    /**
+     * Generate guaranteed unique invoice number using timestamp
+     * Used as fallback when normal generation fails due to race conditions
+     */
+    private function generateGuaranteedUniqueInvoiceNumber($companyId = null) {
+        $prefix = 'INV';
+        $timestamp = time();
+        $random = mt_rand(100, 999);
+        return $prefix . str_pad($timestamp . $random, 12, '0', STR_PAD_LEFT);
     }
 
     /**

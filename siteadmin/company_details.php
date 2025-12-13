@@ -37,6 +37,22 @@ $planStyles = [
 $planKey = strtolower($company['subscription_plan'] ?? 'free');
 $planMeta = $planStyles[$planKey] ?? $planStyles['free'];
 $stats = $companyModel->getCompanyStats($companyId);
+
+// Check if company came from promotional offer
+// We can infer this from: premium plan + 1 year expiry + created recently (within offer period)
+$cameFromOffer = false;
+if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
+    $expiryDate = strtotime($company['subscription_expiry']);
+    $createdDate = strtotime($company['created_at'] ?? 'now');
+    $oneYearFromCreation = strtotime('+1 year', $createdDate);
+    
+    // If expiry is approximately 1 year from creation, likely from offer
+    // Also check if created recently (within last 30 days) to be more accurate
+    $daysSinceCreation = ($createdDate - strtotime('now')) / (60 * 60 * 24);
+    if (abs($expiryDate - $oneYearFromCreation) < (30 * 24 * 60 * 60) && $daysSinceCreation > -30) {
+        $cameFromOffer = true;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -528,6 +544,16 @@ $stats = $companyModel->getCompanyStats($companyId);
                                     <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
                                         <i class="fas fa-flag-checkered company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
                                         <span class="company-info-text">Expiry: <?php echo date('M d, Y', strtotime($company['subscription_expiry'])); ?></span>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php if ($cameFromOffer): ?>
+                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4; grid-column: span 2;">
+                                        <!-- <i class="fas fa-gift company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem; color: #c026d3;"></i> -->
+                                        <span class="company-info-text">
+                                            <span class="badge bg-success" style="background: linear-gradient(135deg, #c026d3 0%, #3b82f6 100%) !important; color: white; padding: 0.5rem 1rem;">
+                                                <i class="fas fa-gift me-1"></i>Registered via Promotional Offer (1 Year Free Professional Plan)
+                                            </span>
+                                        </span>
                                     </div>
                                     <?php endif; ?>
                                     <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; grid-column: span 2; line-height: 1.4;">

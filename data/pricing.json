@@ -23,7 +23,7 @@
       "popular": false,
       "cta_text": "Get Started Free",
       "cta_link": "admin/register.php",
-      "cta_class": "btn-outline-primary"
+      "cta_class": "btn-primary"
     },
     "basic": {
       "name": "Basic Plan",
@@ -51,7 +51,7 @@
       "popular": false,
       "cta_text": "Choose Basic",
       "cta_link": "admin/register.php",
-      "cta_class": "btn-outline-primary"
+      "cta_class": "btn-primary"
     },
     "premium": {
       "name": "Premium Plan",
@@ -110,7 +110,7 @@
       "popular": false,
       "cta_text": "Contact Sales",
       "cta_link": "#contact",
-      "cta_class": "btn-outline-primary"
+      "cta_class": "btn-primary"
     }
   }
 }

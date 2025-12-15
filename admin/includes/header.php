@@ -271,12 +271,80 @@ $seoOptions = [
             padding: 0.75rem 1rem;
             transition: all 0.3s ease;
             background-color: #fff;
+            color: #000000 !important;
+        }
+        
+        .form-control:hover,
+        input:hover,
+        textarea:hover {
+            color: #000000 !important;
         }
         
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
             background-color: #fff;
+            color: #000000 !important;
+        }
+        
+        /* Dropdown menu items hover - white text */
+        .dropdown-menu .dropdown-item:hover,
+        .dropdown-item:hover,
+        .autocomplete-item:hover,
+        .searchable-option:hover,
+        .dropdown-menu li:hover,
+        .dropdown-menu a:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Any list item in dropdowns */
+        .dropdown-menu li:hover a,
+        .dropdown-menu .dropdown-item:hover {
+            color: #ffffff !important;
+        }
+        
+        /* Input field dropdown options (for custom dropdowns) */
+        input + .dropdown-menu .dropdown-item:hover,
+        input + ul li:hover,
+        input + .list-group .list-group-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Placeholder text color - black */
+        .form-control::placeholder,
+        .form-select::placeholder,
+        input::placeholder,
+        textarea::placeholder,
+        select::placeholder {
+            color: #000000 !important;
+            opacity: 1;
+        }
+        
+        /* Input and textarea text color - black */
+        .form-control,
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="url"],
+        input[type="search"],
+        textarea {
+            color: #000000 !important;
+        }
+        
+        /* Select option text color - black */
+        .form-select,
+        select {
+            color: #000000 !important;
+        }
+        
+        .form-select option,
+        select option {
+            color: #000000 !important;
+            background-color: #ffffff;
         }
         
         /* Premium Dropdown Styling */
@@ -343,25 +411,27 @@ $seoOptions = [
             padding: 0.875rem 1.25rem;
             margin: 0.125rem 0.25rem;
             background-color: #ffffff;
-            color: #2d3748;
+            color: #000000 !important;
             border-radius: 8px;
             border: none;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         
-        .form-select option:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+        .form-select option:hover,
+        select option:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
             transform: translateX(4px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
             font-weight: 600;
         }
         
         .form-select option:checked,
-        .form-select option:focus {
+        .form-select option:focus,
+        .form-select option[selected] {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color:rgb(0, 0, 0);
+            color: #ffffff !important;
             font-weight: 600;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
@@ -408,21 +478,22 @@ $seoOptions = [
         
         /* Enhanced Typography */
         .form-select {
-            color: #2d3748;
+            color: #000000 !important;
         }
         
         .form-select::placeholder {
-            color: #a0aec0;
+            color: #000000 !important;
             font-weight: 400;
+            opacity: 1;
         }
         
         /* Disabled State */
         .form-select:disabled {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a0aec0'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f7fafc, #edf2f7);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23000000'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f7fafc, #edf2f7);
             background-position: right 0.875rem center, center;
             background-size: 18px 18px, 100% 100%;
             border-color: #e2e8f0;
-            color: #a0aec0;
+            color: #000000 !important;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -451,13 +522,21 @@ $seoOptions = [
             }
             
             .form-select option {
-                background-color: #2d3748;
-                color: #e2e8f0;
+                background-color: #ffffff;
+                color: #000000 !important;
             }
             
-            .form-select option:hover {
+            .form-select option:hover,
+            select option:hover {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: #ffffff !important;
+            }
+            
+            .form-select option:checked,
+            .form-select option:focus,
+            .form-select option[selected] {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: #ffffff;
+                color: #ffffff !important;
             }
         }
         
@@ -836,20 +915,27 @@ $seoOptions = [
                     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 }
                 
-                .form-select option:hover {
+                .form-select option:hover,
+                select option:hover {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                    color: white !important;
+                    color: #ffffff !important;
                     transform: translateX(4px) !important;
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25) !important;
                     font-weight: 600 !important;
                 }
                 
                 .form-select option:checked,
-                .form-select option:focus {
+                .form-select option:focus,
+                .form-select option[selected] {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                    color: Black !important;
+                    color: #ffffff !important;
                     font-weight: 600 !important;
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+                }
+                
+                .form-select option {
+                    color: #000000 !important;
+                    background-color: #ffffff !important;
                 }
                 
                 /* Enhanced dropdown container */

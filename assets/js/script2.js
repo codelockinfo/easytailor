@@ -822,7 +822,7 @@ function handleFormSubmission(form) {
     
     // Simulate form submission (replace with actual API call)
     setTimeout(() => {
-        showNotification('Thank you! We\'ll get back to you soon.', 'success');
+        // Success message removed - form just closes silently
         form.reset();
         submitButton.textContent = originalText;
         submitButton.disabled = false;

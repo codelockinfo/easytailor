@@ -89,6 +89,69 @@
     --border-radius: 12px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Announcement Bar Styles */
+.announcement-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1060;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.announcement-bar .container-fluid {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.announcement-bar .row {
+    margin: 0 !important;
+}
+
+.announcement-bar .col-12 {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Adjust navbar position when announcement bar is visible */
+body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top {
+    top: auto;
+}
+
+/* Fallback for browsers that don't support :has() */
+.announcement-bar:not(.hidden) ~ .scroll-indicator ~ .navbar.fixed-top {
+    top: auto;
+    margin-top: 0;
+}
+
+/* Ensure navbar stays below announcement bar */
+.navbar.fixed-top {
+    top: 0;
+    transition: top 0.3s ease;
+    margin: 0;
+    padding: 0;
+}
+
+body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top,
+
+:not(.hidden) ~ * .navbar.fixed-top {
+    position: relative;
+}
+
+/* Better approach: Use JavaScript to add class */
+body.announcement-visible .navbar.fixed-top {
+    top: auto;
+    position: relative;
+    margin-top: 0;
+}
+
+body.announcement-visible .announcement-bar:not(.hidden) ~ .navbar.fixed-top {
+    position: relative;
+    margin-top: 0;
+}
 .hero-logo-section{
     display: none;
 }
@@ -98,7 +161,6 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 5px;
     background:white;
     z-index: 10000;
     backdrop-filter: blur(10px);
@@ -138,8 +200,8 @@ body {
     color: var(--text-dark);
     overflow-x: clip;
     position: relative;
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
     transform: none !important;
     perspective: none !important;
 }
@@ -153,8 +215,8 @@ body > .sticky-cta-left {
 html {
     overflow-x: hidden;
     scroll-behavior: smooth;
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Remove any extra bottom spacing */
@@ -220,6 +282,17 @@ h1, h2, h3, h4, h5, h6 {
 .navbar {
     transition: var(--transition);
     padding: 0rem 0;
+}
+
+/* Adjust navbar when announcement bar is visible */
+body.announcement-visible .navbar.fixed-top {
+    top: auto;
+    position: relative;
+}
+
+/* Ensure proper spacing when announcement bar is visible */
+body.announcement-visible {
+    padding-top: 0;
 }
 
 /* Fixed navbar positioning - below scroll indicator */
@@ -874,40 +947,26 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     /* Testimonials Slider Desktop Grid */
-    .testimonials-slider {
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        margin: 0;
-        padding: 0;
+    /* Custom testimonials slider - override slick styles */
+    .testimonials-slider-wrapper {
+        position: relative;
+    }
+    
+    .testimonials-slider-container {
+        overflow: hidden;
+    }
+    
+    .testimonials-slider-track {
+        display: flex;
     }
     
     .testimonial-slide {
-        padding: 0;
-        width: 100% !important;
-        display: block !important;
+        flex-shrink: 0;
     }
     
-    .testimonials-slider .slick-track,
-    .testimonials-slider .slick-list {
-        display: block !important;
-        width: 100% !important;
-    }
-    
-    .testimonials-slider .slick-slide {
-        display: block !important;
-        width: 100% !important;
-        float: none !important;
-        opacity: 1 !important;
-    }
-    
-    .testimonials-slider .slick-arrow,
-    .testimonials-slider .slick-dots {
+    /* Hide slick slider if it exists */
+    .testimonials-slider.slick-initialized {
         display: none !important;
-    }
-    
-    .testimonials-slider > div {
-        display: contents !important;
     }
     
     /* Pricing Slider Desktop Grid */
@@ -3270,4 +3329,7 @@ section:last-of-type + .footer-section {
         font-size: 0.85rem !important;
         padding: 0.65rem 1rem !important;
     }
+}
+.passYourThoughts{
+    margin: 20px 0;
 }

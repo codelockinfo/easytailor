@@ -34,7 +34,7 @@ $seoOptions = [
     echo GA4Helper::generateBaseCode();
     ?>
     
-    <link href="assets/css/style7.css" rel="stylesheet">
+    <link href="assets/css/style8.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -326,7 +326,7 @@ $seoOptions = [
 <?php require_once 'includes/whatsapp-button.php'; ?>
 
 <!-- Go to Top Button -->
-<script src="assets/js/script1.js"></script>
+<script src="assets/js/script2.js"></script>
 <?php require_once 'includes/go-to-top-button.php'; ?>
 
 </body>

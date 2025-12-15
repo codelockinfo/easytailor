@@ -89,7 +89,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
     <!-- Custom CSS -->
-    <link href="assets/css/style7.css" rel="stylesheet">
+    <link href="assets/css/style8.css" rel="stylesheet">
     
     <!-- Blog Section Button Hover Styles -->
     <style>
@@ -370,6 +370,9 @@
     </script>
 </head>
 <body>
+    <!-- Announcement Bar -->
+    <?php require_once 'includes/announcement-bar.php'; ?>
+    
     <!-- Scroll Progress Indicator -->
     <div class="scroll-indicator" id="scrollIndicator">
         <div class="scroll-progress-bar" id="scrollProgressBar"></div>
@@ -818,76 +821,516 @@
                     </p>
                 </div>
             </div>
-            <div class="testimonials-slider">
-                <div class="testimonial-slide">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
+            <?php
+            // Fetch approved testimonials from database
+            require_once 'config/database.php';
+            $testimonials = [];
+            
+            try {
+                $database = new Database();
+                $db = $database->getConnection();
+                
+                if ($db) {
+                    // Fetch approved testimonials with company and user info
+                    $query = "SELECT 
+                                t.id,
+                                t.user_name,
+                                t.email,
+                                t.company_id,
+                                t.owner_name,
+                                t.user_id,
+                                t.star,
+                                t.comment,
+                                t.status,
+                                t.created_at,
+                                c.company_name,
+                                u.full_name as tailor_name
+                              FROM testimonials t 
+                              LEFT JOIN companies c ON t.company_id = c.id 
+                              LEFT JOIN users u ON t.user_id = u.id 
+                              WHERE t.status = 'approved' 
+                              ORDER BY t.created_at DESC
+                              LIMIT 50";
+                    
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $testimonials = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    // Debug: Check if testimonials are fetched (remove after testing)
+                    // error_log("Testimonials fetched: " . count($testimonials));
+                } else {
+                    error_log("Database connection failed in testimonials section");
+                }
+            } catch (PDOException $e) {
+                // Log error but don't break the page
+                error_log("Testimonials fetch PDO error: " . $e->getMessage());
+                $testimonials = [];
+            } catch (Exception $e) {
+                // Log error but don't break the page
+                error_log("Testimonials fetch error: " . $e->getMessage());
+                $testimonials = [];
+            }
+            ?>
+            <div class="testimonials-slider-wrapper">
+                <div class="testimonials-slider-container" id="testimonialsSlider">
+                    <div class="testimonials-slider-track" id="testimonialsTrack">
+                        <?php foreach ($testimonials as $testimonial): 
+                            $stars = isset($testimonial['star']) ? (int)$testimonial['star'] : 5;
+                            
+                            // Determine author title/role
+                            $authorTitle = '';
+                            if (!empty($testimonial['owner_name']) && !empty($testimonial['company_name'])) {
+                                $authorTitle = $testimonial['owner_name'] . ', ' . $testimonial['company_name'];
+                            } elseif (!empty($testimonial['tailor_name']) && !empty($testimonial['company_name'])) {
+                                $authorTitle = $testimonial['tailor_name'] . ', ' . $testimonial['company_name'];
+                            } elseif (!empty($testimonial['company_name'])) {
+                                $authorTitle = $testimonial['company_name'];
+                            } elseif (!empty($testimonial['owner_name'])) {
+                                $authorTitle = $testimonial['owner_name'];
+                            } elseif (!empty($testimonial['tailor_name'])) {
+                                $authorTitle = $testimonial['tailor_name'];
+                            }
+                        ?>
+                        <div class="testimonial-slide">
+                            <div class="testimonial-card">
+                                <div class="testimonial-content">
+                                    <div class="stars">
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <i class="fas fa-star <?php echo $i <= $stars ? 'active' : ''; ?>"></i>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <p class="testimonial-text">
+                                        "<?php echo htmlspecialchars($testimonial['comment'] ?? ''); ?>"
+                                    </p>
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-info">
+                                        <h5 class="author-name"><?php echo htmlspecialchars($testimonial['user_name'] ?? 'Anonymous'); ?></h5>
+                                        <?php if (!empty($authorTitle)): ?>
+                                        <p class="author-title">
+                                            <?php echo htmlspecialchars($authorTitle); ?>
+                                        </p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="testimonial-text">
-                                "This system has revolutionized our tailoring business. Managing customers and orders has never been easier. Highly recommended!"
-                            </p>
                         </div>
-                        <div class="testimonial-author">
-                            <div class="author-info">
-                                <h5 class="author-name">Rajesh Kumar</h5>
-                                <p class="author-title">Owner, StyleCraft Tailors</p>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
-                <div class="testimonial-slide">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p class="testimonial-text">
-                                "The measurement management feature is fantastic. No more lost measurements or confused orders. Our accuracy has improved significantly."
-                            </p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-info">
-                                <h5 class="author-name">Priya Sharma</h5>
-                                <p class="author-title">Manager, Elegant Stitches</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="testimonials-slider-nav">
+                    <button class="slider-nav-btn prev" id="testimonialsPrev" aria-label="Previous">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="slider-nav-btn next" id="testimonialsNext" aria-label="Next">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-                <div class="testimonial-slide">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p class="testimonial-text">
-                                "Customer support is excellent, and the platform is very user-friendly. Our team learned to use it in just one day."
-                            </p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-info">
-                                <h5 class="author-name">Amit Patel</h5>
-                                <p class="author-title">CEO, Fashion Forward</p>
-                            </div>
+            </div>
+
+            <div class="passYourThoughts-section text-center p">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <button type="button" class="btn btn-primary btn-lg" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 8px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                                <i class="fas fa-comment-dots me-2"></i>Pass Your Thoughts
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <style>
+    /* Testimonials Slider Styles */
+    .testimonials-slider-wrapper {
+        position: relative;
+        margin: 3rem 0;
+    }
+
+    .testimonials-slider-container {
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+
+    .testimonials-slider-track {
+        display: flex;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform;
+    }
+
+    .testimonials-slider-track.dragging {
+        transition: none;
+        cursor: grabbing;
+    }
+
+    .testimonial-slide {
+        flex: 0 0 calc(100% / 3);
+        padding: 0 8px;
+        box-sizing: border-box;
+    }
+
+    .testimonials-slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .slider-nav-btn {
+        background: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        pointer-events: all;
+        z-index: 11;
+    }
+
+    .slider-nav-btn:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .slider-nav-btn.prev {
+        left: -25px;
+    }
+
+    .slider-nav-btn.next {
+        right: -25px;
+    }
+
+    .slider-nav-btn i {
+        font-size: 18px;
+    }
+
+    .testimonials-slider-wrapper:hover .slider-nav-btn {
+        opacity: 1;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .testimonial-slide {
+            flex: 0 0 calc(100% / 2);
+        }
+    }
+
+    @media (max-width: 768px) {
+         {
+            padding: 0 40px;
+        }.testimonials-slider-wrapper
+
+        .testimonial-slide {
+            flex: 0 0 100%;
+        }
+
+        .slider-nav-btn {
+            width: 40px;
+            height: 40px;
+        }
+
+        .slider-nav-btn.prev {
+            left: -20px;
+        }
+
+        .slider-nav-btn.next {
+            right: -20px;
+        }
+    }
+
+    .stars .fa-star.active {
+        color: #ffc107;
+    }
+
+    .stars .fa-star:not(.active) {
+        color: #e0e0e0;
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('testimonialsSlider');
+        const track = document.getElementById('testimonialsTrack');
+        const prevBtn = document.getElementById('testimonialsPrev');
+        const nextBtn = document.getElementById('testimonialsNext');
+        const slides = track.querySelectorAll('.testimonial-slide');
+        
+        if (!slider || !track || slides.length === 0) return;
+
+        let currentIndex = 0;
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let offset = 0;
+        let autoSlideInterval = null;
+        let isPaused = false;
+        let slidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
+        const totalSlides = slides.length;
+        
+        // Clone slides for infinite loop (clone first and last)
+        function cloneSlides() {
+            if (totalSlides === 0) return;
+            
+            // Clone first few slides and append to end
+            for (let i = 0; i < slidesToShow && i < totalSlides; i++) {
+                const clone = slides[i].cloneNode(true);
+                track.appendChild(clone);
+            }
+            
+            // Clone last few slides and prepend to start
+            for (let i = totalSlides - slidesToShow; i < totalSlides; i++) {
+                if (i >= 0) {
+                    const clone = slides[i].cloneNode(true);
+                    track.insertBefore(clone, track.firstChild);
+                }
+            }
+        }
+        
+        cloneSlides();
+        
+        const allSlides = track.querySelectorAll('.testimonial-slide');
+        const slideWidth = 100 / slidesToShow;
+        
+        // Set initial position to first real slide
+        currentIndex = slidesToShow;
+        track.style.transform = `translateX(-${currentIndex * slideWidth}%)`;
+        track.style.willChange = 'transform';
+        
+        function updateSlider() {
+            const translateX = -(currentIndex * slideWidth);
+            track.style.transform = `translateX(${translateX}%)`;
+        }
+        
+        function nextSlide() {
+            currentIndex++;
+            updateSlider();
+            
+            // If we've reached the cloned slides at the end, reset to beginning
+            if (currentIndex >= allSlides.length - slidesToShow) {
+                setTimeout(() => {
+                    track.style.transition = 'none';
+                    currentIndex = slidesToShow;
+                    updateSlider();
+                    setTimeout(() => {
+                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    }, 50);
+                }, 600);
+            }
+        }
+        
+        function prevSlide() {
+            currentIndex--;
+            updateSlider();
+            
+            // If we've reached the cloned slides at the beginning, reset to end
+            if (currentIndex < slidesToShow) {
+                setTimeout(() => {
+                    track.style.transition = 'none';
+                    currentIndex = allSlides.length - (slidesToShow * 2);
+                    updateSlider();
+                    setTimeout(() => {
+                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    }, 50);
+                }, 600);
+            }
+        }
+        
+        // Continuous smooth scrolling
+        let scrollSpeed = 1; // pixels per frame (adjust for speed)
+        let animationFrameId = null;
+        
+        function continuousScroll() {
+            if (!isPaused && !isDragging) {
+                currentIndex += scrollSpeed / (slider.offsetWidth / slidesToShow);
+                
+                // If we've reached the end, reset to beginning seamlessly
+                if (currentIndex >= allSlides.length - slidesToShow) {
+                    track.style.transition = 'none';
+                    currentIndex = slidesToShow;
+                    updateSlider();
+                    setTimeout(() => {
+                        track.style.transition = '';
+                    }, 50);
+                }
+                
+                updateSlider();
+            }
+            animationFrameId = requestAnimationFrame(continuousScroll);
+        }
+        
+        function startAutoSlide() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            track.style.transition = 'transform 0.1s linear';
+            continuousScroll();
+        }
+        
+        function stopAutoSlide() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+        
+        // Mouse events - pause on hover
+        slider.addEventListener('mouseenter', () => {
+            isPaused = true;
+        });
+        
+        slider.addEventListener('mouseleave', () => {
+            isPaused = false;
+        });
+        
+        // Touch/Drag events
+        let mouseDownHandler = (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            track.classList.add('dragging');
+            stopAutoSlide();
+            e.preventDefault();
+        };
+        
+        let touchStartHandler = (e) => {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            track.classList.add('dragging');
+            stopAutoSlide();
+        };
+        
+        track.addEventListener('mousedown', mouseDownHandler);
+        track.addEventListener('touchstart', touchStartHandler);
+        
+        let mouseMoveHandler = (e) => {
+            if (!isDragging) return;
+            currentX = e.clientX;
+            offset = currentX - startX;
+            const translateX = -(currentIndex * slideWidth) + (offset / slider.offsetWidth * 100);
+            track.style.transform = `translateX(${translateX}%)`;
+        };
+        
+        let touchMoveHandler = (e) => {
+            if (!isDragging) return;
+            currentX = e.touches[0].clientX;
+            offset = currentX - startX;
+            const translateX = -(currentIndex * slideWidth) + (offset / slider.offsetWidth * 100);
+            track.style.transform = `translateX(${translateX}%)`;
+        };
+        
+        document.addEventListener('mousemove', mouseMoveHandler);
+        track.addEventListener('touchmove', touchMoveHandler);
+        
+        let mouseUpHandler = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            track.classList.remove('dragging');
+            
+            const threshold = slider.offsetWidth * 0.15;
+            if (Math.abs(offset) > threshold) {
+                if (offset > 0) {
+                    prevSlide();
+                } else {
+                    nextSlide();
+                }
+            } else {
+                updateSlider();
+            }
+            
+            offset = 0;
+            startAutoSlide();
+        };
+        
+        let touchEndHandler = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            track.classList.remove('dragging');
+            
+            const threshold = slider.offsetWidth * 0.15;
+            if (Math.abs(offset) > threshold) {
+                if (offset > 0) {
+                    prevSlide();
+                } else {
+                    nextSlide();
+                }
+            } else {
+                updateSlider();
+            }
+            
+            offset = 0;
+            startAutoSlide();
+        };
+        
+        document.addEventListener('mouseup', mouseUpHandler);
+        track.addEventListener('touchend', touchEndHandler);
+        
+        // Navigation buttons - temporarily pause and jump
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                isPaused = true;
+                setTimeout(() => {
+                    currentIndex += slidesToShow;
+                    if (currentIndex >= allSlides.length - slidesToShow) {
+                        currentIndex = slidesToShow;
+                    }
+                    track.style.transition = 'transform 0.3s ease';
+                    updateSlider();
+                    setTimeout(() => {
+                        track.style.transition = 'transform 0.05s linear';
+                        isPaused = false;
+                    }, 300);
+                }, 0);
+            });
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                isPaused = true;
+                setTimeout(() => {
+                    currentIndex -= slidesToShow;
+                    if (currentIndex < slidesToShow) {
+                        currentIndex = allSlides.length - (slidesToShow * 2);
+                    }
+                    track.style.transition = 'transform 0.3s ease';
+                    updateSlider();
+                    setTimeout(() => {
+                        track.style.transition = 'transform 0.05s linear';
+                        isPaused = false;
+                    }, 300);
+                }, 0);
+            });
+        }
+        
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const newSlidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
+                if (newSlidesToShow !== slidesToShow) {
+                    slidesToShow = newSlidesToShow;
+                    // Recalculate and reset
+                    currentIndex = slidesToShow;
+                    updateSlider();
+                }
+            }, 250);
+        });
+        
+        // Initialize
+        startAutoSlide();
+    });
+    </script>
 
     <!-- Blog Section -->
     <?php
@@ -1059,6 +1502,9 @@
             </div>
         </div>
     </section>
+
+    <!-- Testimonials Popup -->
+    <?php require_once 'includes/testimonial-popup.php'; ?>
 
     <!-- Footer -->
     <?php require_once 'includes/footer.php'; ?>
@@ -1423,6 +1869,6 @@
     </script>
 
     <!-- Custom JS -->
-    <script src="assets/js/script1.js"></script>
+    <script src="assets/js/script2.js"></script>
 </body>
 </html>

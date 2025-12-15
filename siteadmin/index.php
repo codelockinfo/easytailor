@@ -43,6 +43,48 @@ try {
     error_log('Error loading contact messages: ' . $e->getMessage());
 }
 
+// Get testimonials data (always load for stats, but only render if section is active)
+$testimonials = [];
+$testimonialStats = ['total' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
+try {
+    $testimonialStatusFilter = ($current_section === 'testimonials') ? ($_GET['status'] ?? 'pending') : null;
+    $testimonialStatusFilter = ($testimonialStatusFilter === 'all' || $testimonialStatusFilter === '') ? null : $testimonialStatusFilter;
+    
+    $testimonialQuery = "SELECT 
+                            t.*,
+                            c.company_name,
+                            u.full_name as tailor_name
+                          FROM testimonials t 
+                          LEFT JOIN companies c ON t.company_id = c.id 
+                          LEFT JOIN users u ON t.user_id = u.id";
+    
+    if ($testimonialStatusFilter) {
+        $testimonialQuery .= " WHERE t.status = :status";
+    }
+    
+    $testimonialQuery .= " ORDER BY t.created_at DESC";
+    
+    $testimonialStmt = $db->prepare($testimonialQuery);
+    if ($testimonialStatusFilter) {
+        $testimonialStmt->bindParam(':status', $testimonialStatusFilter);
+    }
+    $testimonialStmt->execute();
+    $testimonials = $testimonialStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get all testimonials for stats
+    $allTestimonialsQuery = "SELECT status FROM testimonials";
+    $allTestimonialsStmt = $db->prepare($allTestimonialsQuery);
+    $allTestimonialsStmt->execute();
+    $allTestimonials = $allTestimonialsStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $testimonialStats['total'] = count($allTestimonials);
+    $testimonialStats['pending'] = count(array_filter($allTestimonials, fn($t) => $t['status'] === 'pending'));
+    $testimonialStats['approved'] = count(array_filter($allTestimonials, fn($t) => $t['status'] === 'approved'));
+    $testimonialStats['rejected'] = count(array_filter($allTestimonials, fn($t) => $t['status'] === 'rejected'));
+} catch (Exception $e) {
+    error_log('Error loading testimonials: ' . $e->getMessage());
+}
+
 // Get filter status
 $status_filter = $_GET['status'] ?? 'pending';
 $requestStatus = ($status_filter === 'all' || $status_filter === '') ? null : $status_filter;
@@ -551,6 +593,10 @@ if (isset($_SESSION['message'])) {
                 <i class="fas fa-comments"></i>
                 Contact Messages
             </a>
+            <a href="#" class="nav-link <?php echo $current_section === 'testimonials' ? 'active' : ''; ?>" data-section-toggle="testimonials">
+                <i class="fas fa-star"></i>
+                Testimonials
+            </a>
             <div class="mt-auto">
                 <a href="../admin/logout.php" class="nav-link" onclick="return confirm('Are you sure you want to logout?');">
                     <i class="fas fa-sign-out-alt"></i>
@@ -566,11 +612,13 @@ if (isset($_SESSION['message'])) {
                     <div>
                         <h2 class="mb-1" id="pageTitle"><?php 
                             echo $current_section === 'company' ? 'Companies' : 
-                                ($current_section === 'contact' ? 'Contact Messages' : 'Email Requests'); 
+                                ($current_section === 'contact' ? 'Contact Messages' : 
+                                ($current_section === 'testimonials' ? 'Testimonials' : 'Email Requests')); 
                         ?></h2>
                         <p class="text-muted mb-0" id="pageSubtitle"><?php 
                             echo $current_section === 'company' ? 'Overview of all companies onboarded' : 
-                                ($current_section === 'contact' ? 'View all contact form submissions from users' : 'Review pending email change requests'); 
+                                ($current_section === 'contact' ? 'View all contact form submissions from users' : 
+                                ($current_section === 'testimonials' ? 'Review and manage customer testimonials' : 'Review pending email change requests')); 
                         ?></p>
                     </div>
                 </div>
@@ -849,6 +897,164 @@ if (isset($_SESSION['message'])) {
                 </div>
             </div>
         </section>
+
+        <section id="section-testimonials" class="content-section" style="display: <?php echo $current_section === 'testimonials' ? 'block' : 'none'; ?>;">
+        <?php 
+        $testimonial_status_filter = $_GET['status'] ?? 'pending';
+        ?>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-number"><?php echo $testimonialStats['total']; ?></div>
+                    <div class="stat-label">Total Testimonials</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center" style="border-top: 3px solid #ffc107;">
+                    <div class="stat-number text-warning"><?php echo $testimonialStats['pending']; ?></div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center" style="border-top: 3px solid #28a745;">
+                    <div class="stat-number text-success"><?php echo $testimonialStats['approved']; ?></div>
+                    <div class="stat-label">Approved</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center" style="border-top: 3px solid #dc3545;">
+                    <div class="stat-number text-danger"><?php echo $testimonialStats['rejected']; ?></div>
+                    <div class="stat-label">Rejected</div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-4 sticky-controls">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="btn-group" role="group">
+                            <a href="?section=testimonials&status=pending" class="btn btn-<?php echo $testimonial_status_filter === 'pending' ? 'warning' : 'outline-warning'; ?>">
+                                <i class="fas fa-clock me-2"></i>Pending (<?php echo $testimonialStats['pending']; ?>)
+                            </a>
+                            <a href="?section=testimonials&status=approved" class="btn btn-<?php echo $testimonial_status_filter === 'approved' ? 'success' : 'outline-success'; ?>">
+                                <i class="fas fa-check me-2"></i>Approved (<?php echo $testimonialStats['approved']; ?>)
+                            </a>
+                            <a href="?section=testimonials&status=rejected" class="btn btn-<?php echo $testimonial_status_filter === 'rejected' ? 'danger' : 'outline-danger'; ?>">
+                                <i class="fas fa-times me-2"></i>Rejected (<?php echo $testimonialStats['rejected']; ?>)
+                            </a>
+                            <a href="?section=testimonials&status=all" class="btn btn-<?php echo $testimonial_status_filter === 'all' ? 'primary' : 'outline-primary'; ?>">
+                                <i class="fas fa-list me-2"></i>All (<?php echo $testimonialStats['total']; ?>)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-star me-2"></i>
+                    Testimonials 
+                    <?php if ($testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
+                        <span class="badge bg-secondary"><?php echo ucfirst($testimonial_status_filter); ?></span>
+                    <?php endif; ?>
+                </h5>
+            </div>
+            <div class="card-body">
+                <?php if (empty($testimonials)): ?>
+                    <div class="text-center py-5">
+                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No testimonials found</h5>
+                        <p class="text-muted">
+                            <?php if ($testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
+                                No <?php echo $testimonial_status_filter; ?> testimonials at the moment.
+                            <?php else: ?>
+                                No testimonials have been submitted yet.
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr style="background: #667eea; color: white;">
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Shop</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($testimonials as $testimonial): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($testimonial['id']); ?></td>
+                                        <td>
+                                            <strong><?php echo htmlspecialchars($testimonial['user_name'] ?? 'N/A'); ?></strong>
+                                        </td>
+                                        <td>
+                                            <a href="mailto:<?php echo htmlspecialchars($testimonial['email']); ?>">
+                                                <?php echo htmlspecialchars($testimonial['email']); ?>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <?php echo htmlspecialchars($testimonial['company_name'] ?? 'N/A'); ?>
+                                            <?php if (!empty($testimonial['owner_name'])): ?>
+                                                <br><small class="text-muted"><?php echo htmlspecialchars($testimonial['owner_name']); ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-info" 
+                                                    onclick="viewTestimonialDetails(<?php echo $testimonial['id']; ?>)"
+                                                    title="View Details">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </button>
+                                            <?php 
+                                            // Show status badge in actions column
+                                            // Show all statuses in "All" view, or specific status in filtered views
+                                            $showStatusBadge = false;
+                                            if ($testimonial_status_filter === 'all' || $testimonial_status_filter === '') {
+                                                // In "All" view, show all status badges
+                                                $showStatusBadge = true;
+                                            } elseif ($testimonial_status_filter === $testimonial['status']) {
+                                                // In filtered views, show badge if it matches the filter
+                                                $showStatusBadge = true;
+                                            }
+                                            
+                                            if ($showStatusBadge): 
+                                                $statusBadgeClass = '';
+                                                $statusIcon = '';
+                                                if ($testimonial['status'] === 'approved') {
+                                                    $statusBadgeClass = 'btn-success';
+                                                    $statusIcon = 'fa-check';
+                                                } elseif ($testimonial['status'] === 'rejected') {
+                                                    $statusBadgeClass = 'btn-danger';
+                                                    $statusIcon = 'fa-times';
+                                                } elseif ($testimonial['status'] === 'pending') {
+                                                    $statusBadgeClass = 'btn-warning';
+                                                    $statusIcon = 'fa-clock';
+                                                }
+                                                if ($statusBadgeClass):
+                                            ?>
+                                                <span class="btn btn-sm <?php echo $statusBadgeClass; ?> ms-1" style="pointer-events: none; cursor: default;">
+                                                    <i class="fas <?php echo $statusIcon; ?> me-1"></i><?php echo strtoupper($testimonial['status']); ?>
+                                                </span>
+                                            <?php 
+                                                endif;
+                                            endif; 
+                                            ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        </section>
         </div>
         </main>
     </div>
@@ -880,6 +1086,92 @@ if (isset($_SESSION['message'])) {
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Testimonial Modal -->
+    <div class="modal fade" id="approveTestimonialModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Approve Testimonial</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="approveTestimonialForm">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                        <input type="hidden" name="testimonial_id" id="approveTestimonialId">
+                        <div class="text-center py-2">
+                            <i class="fas fa-question-circle fa-3x text-success mb-3"></i>
+                            <p class="mb-0">
+                                Are you sure you want to approve this testimonial? It will be displayed on the frontend.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Confirm Approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Testimonial Modal -->
+    <div class="modal fade" id="rejectTestimonialModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reject Testimonial</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="rejectTestimonialForm">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                        <input type="hidden" name="testimonial_id" id="rejectTestimonialId">
+                        <div class="text-center py-2 mb-3">
+                            <i class="fas fa-question-circle fa-3x text-danger mb-3"></i>
+                            <p class="mb-0">
+                                Are you sure you want to reject this testimonial? It will not be displayed on the frontend.
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rejectTestimonialNotes" class="form-label">Rejection Reason (Optional)</label>
+                            <textarea class="form-control" id="rejectTestimonialNotes" name="review_notes" rows="3" placeholder="Enter reason for rejection..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>Confirm Rejection
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Testimonial Modal -->
+    <div class="modal fade" id="viewTestimonialModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Testimonial Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="testimonialDetailsContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1258,6 +1550,218 @@ if (isset($_SESSION['message'])) {
             }, 3000);
         }
 
+        // Testimonial handlers
+        const approveTestimonialModalEl = document.getElementById('approveTestimonialModal');
+        const approveTestimonialForm = document.getElementById('approveTestimonialForm');
+        const rejectTestimonialModalEl = document.getElementById('rejectTestimonialModal');
+        const rejectTestimonialForm = document.getElementById('rejectTestimonialForm');
+        const viewTestimonialModalEl = document.getElementById('viewTestimonialModal');
+
+        function openApproveTestimonialModal(testimonialId) {
+            if (document.getElementById('approveTestimonialId')) {
+                document.getElementById('approveTestimonialId').value = testimonialId;
+                const modal = bootstrap.Modal.getOrCreateInstance(approveTestimonialModalEl);
+                modal.show();
+            }
+        }
+
+        function rejectTestimonial(testimonialId) {
+            if (document.getElementById('rejectTestimonialId')) {
+                document.getElementById('rejectTestimonialId').value = testimonialId;
+                const modal = bootstrap.Modal.getOrCreateInstance(rejectTestimonialModalEl);
+                modal.show();
+            }
+        }
+
+        function viewTestimonialDetails(testimonialId) {
+            if (!viewTestimonialModalEl) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(viewTestimonialModalEl);
+            const contentDiv = document.getElementById('testimonialDetailsContent');
+            
+            if (!contentDiv) return;
+            
+            contentDiv.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            modal.show();
+
+            fetch(`ajax/get_testimonial_details.php?id=${testimonialId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.testimonial) {
+                        const t = data.testimonial;
+                        const stars = parseInt(t.star) || 5;
+                        let starsHtml = '';
+                        for (let i = 1; i <= 5; i++) {
+                            starsHtml += `<i class="fas fa-star ${i <= stars ? 'text-warning' : 'text-muted'}"></i>`;
+                        }
+                        
+                        const statusClass = t.status === 'pending' ? 'warning' : 
+                                          t.status === 'approved' ? 'success' : 'danger';
+
+                        contentDiv.innerHTML = `
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Status</label>
+                                    <div>
+                                        <span class="badge bg-${statusClass} fs-6">${(t.status || 'pending').toUpperCase()}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Rating</label>
+                                    <div>
+                                        ${starsHtml}
+                                        <span class="ms-2">${stars}/5</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">User Name</label>
+                                    <p class="mb-0">${t.user_name || 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Email</label>
+                                    <p class="mb-0"><a href="mailto:${t.email}">${t.email || 'N/A'}</a></p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Shop Name</label>
+                                    <p class="mb-0">${t.company_name || 'N/A'}</p>
+                                </div>
+                                ${t.owner_name ? `
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Owner Name</label>
+                                    <p class="mb-0">${t.owner_name}</p>
+                                </div>
+                                ` : ''}
+                                ${t.tailor_name ? `
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Tailor</label>
+                                    <p class="mb-0">${t.tailor_name}</p>
+                                </div>
+                                ` : ''}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Submitted Date</label>
+                                    <p class="mb-0">${new Date(t.created_at).toLocaleString()}</p>
+                                </div>
+                                ${t.updated_at && t.updated_at !== t.created_at ? `
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Last Updated</label>
+                                    <p class="mb-0">${new Date(t.updated_at).toLocaleString()}</p>
+                                </div>
+                                ` : ''}
+                                <div class="col-12 mb-3">
+                                    <label class="form-label fw-bold text-muted small mb-1">Comment</label>
+                                    <div class="border rounded p-3 bg-light" style="min-height: 80px;">
+                                        <p class="mb-0" style="white-space: pre-wrap;">${t.comment || 'N/A'}</p>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3 pt-3 border-top">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        ${t.status !== 'approved' ? `
+                                        <button type="button" class="btn btn-success" onclick="approveFromViewModal(${t.id})">
+                                            <i class="fas fa-check me-1"></i>Approve
+                                        </button>
+                                        ` : ''}
+                                        ${t.status !== 'rejected' ? `
+                                        <button type="button" class="btn btn-danger" onclick="rejectFromViewModal(${t.id})">
+                                            <i class="fas fa-times me-1"></i>Reject
+                                        </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        contentDiv.innerHTML = '<div class="alert alert-danger">Failed to load testimonial details.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    contentDiv.innerHTML = '<div class="alert alert-danger">An error occurred while loading testimonial details.</div>';
+                });
+        }
+
+        function approveFromViewModal(testimonialId) {
+            if (viewTestimonialModalEl) {
+                bootstrap.Modal.getInstance(viewTestimonialModalEl).hide();
+            }
+            setTimeout(() => {
+                openApproveTestimonialModal(testimonialId);
+            }, 300);
+        }
+
+        function rejectFromViewModal(testimonialId) {
+            if (viewTestimonialModalEl) {
+                bootstrap.Modal.getInstance(viewTestimonialModalEl).hide();
+            }
+            setTimeout(() => {
+                rejectTestimonial(testimonialId);
+            }, 300);
+        }
+
+        if (approveTestimonialForm) {
+            approveTestimonialForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(approveTestimonialForm);
+                formData.append('action', 'approve');
+
+                fetch('ajax/process_testimonial.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(approveTestimonialModalEl).hide();
+                        showToast('success', 'Testimonial approved successfully!');
+                        // Reload while preserving the testimonials section
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('section', 'testimonials');
+                        setTimeout(() => {
+                            window.location.href = url.toString();
+                        }, 1000);
+                    } else {
+                        showToast('error', data.message || 'Failed to approve testimonial');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('error', 'An error occurred. Please try again.');
+                });
+            });
+        }
+
+        if (rejectTestimonialForm) {
+            rejectTestimonialForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(rejectTestimonialForm);
+                formData.append('action', 'reject');
+
+                fetch('ajax/process_testimonial.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(rejectTestimonialModalEl).hide();
+                        showToast('success', 'Testimonial rejected successfully!');
+                        // Reload while preserving the testimonials section
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('section', 'testimonials');
+                        setTimeout(() => {
+                            window.location.href = url.toString();
+                        }, 1000);
+                    } else {
+                        showToast('error', data.message || 'Failed to reject testimonial');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('error', 'An error occurred. Please try again.');
+                });
+            });
+        }
+
         // Section toggle
         const navLinks = document.querySelectorAll('[data-section-toggle]');
         const sections = document.querySelectorAll('.content-section');
@@ -1294,6 +1798,9 @@ if (isset($_SESSION['message'])) {
                 } else if (target === 'contact') {
                     // Set contact section in URL
                     url.searchParams.set('section', 'contact');
+                } else if (target === 'testimonials') {
+                    // Set testimonials section in URL
+                    url.searchParams.set('section', 'testimonials');
                 } else {
                     // For any other section, set it in URL
                     url.searchParams.set('section', target);
@@ -1367,6 +1874,13 @@ if (isset($_SESSION['message'])) {
                 // Restore scroll position for contact section
                 setTimeout(function() {
                     restoreSectionScrollPosition('contact');
+                }, 100);
+            } else if (target === 'testimonials') {
+                if (pageTitleEl) pageTitleEl.textContent = 'Testimonials';
+                if (pageSubtitleEl) pageSubtitleEl.textContent = 'Review and manage customer testimonials';
+                // Restore scroll position for testimonials section
+                setTimeout(function() {
+                    restoreSectionScrollPosition('testimonials');
                 }, 100);
             } else {
                 // Generic handling for any other section
@@ -1769,12 +2283,12 @@ if (isset($_SESSION['message'])) {
             const urlParams = new URLSearchParams(window.location.search);
             const urlSection = urlParams.get('section');
             // Prioritize URL parameter over localStorage, but validate it
-            if (urlSection && (urlSection === 'company' || urlSection === 'requests' || urlSection === 'contact')) {
+            if (urlSection && (urlSection === 'company' || urlSection === 'requests' || urlSection === 'contact' || urlSection === 'testimonials')) {
                 return urlSection;
             }
             // If no URL parameter or invalid, check localStorage
             const storedSection = localStorage.getItem('selectedSection');
-            if (storedSection && (storedSection === 'company' || storedSection === 'requests' || storedSection === 'contact')) {
+            if (storedSection && (storedSection === 'company' || storedSection === 'requests' || storedSection === 'contact' || storedSection === 'testimonials')) {
                 return storedSection;
             }
             return 'requests'; // default
@@ -1795,11 +2309,11 @@ if (isset($_SESSION['message'])) {
             const urlSection = urlParams.get('section');
             // Get section from URL or default to requests, validate it
             let section = 'requests';
-            if (urlSection && (urlSection === 'company' || urlSection === 'requests' || urlSection === 'contact')) {
+            if (urlSection && (urlSection === 'company' || urlSection === 'requests' || urlSection === 'contact' || urlSection === 'testimonials')) {
                 section = urlSection;
             } else {
                 const storedSection = localStorage.getItem('selectedSection');
-                if (storedSection && (storedSection === 'company' || storedSection === 'requests' || storedSection === 'contact')) {
+                if (storedSection && (storedSection === 'company' || storedSection === 'requests' || storedSection === 'contact' || storedSection === 'testimonials')) {
                     section = storedSection;
                 }
             }
@@ -1861,6 +2375,11 @@ if (isset($_SESSION['message'])) {
                     setTimeout(function() {
                         loadContactMessages();
                         restoreSectionScrollPosition('contact');
+                    }, 100);
+                } else if (initialSection === 'testimonials') {
+                    // Restore scroll position for testimonials section
+                    setTimeout(function() {
+                        restoreSectionScrollPosition('testimonials');
                     }, 100);
                 }
             }

@@ -79,7 +79,7 @@ $seoOptions = [
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="favicon(2).png">
     <!-- Custom CSS -->
-    <link href="assets/css/style7.css" rel="stylesheet">
+    <link href="assets/css/style8.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -472,7 +472,7 @@ $seoOptions = [
     <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
     <!-- Go to Top Button -->
-<script src="assets/js/script1.js"></script>
+<script src="assets/js/script2.js"></script>
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>
 </html>

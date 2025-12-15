@@ -129,7 +129,7 @@ $seoOptions = [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link href="assets/css/style7.css" rel="stylesheet">
+    <link href="assets/css/style8.css" rel="stylesheet">
     
     <style>
         .article-header {
@@ -332,7 +332,7 @@ $seoOptions = [
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Go to Top Button -->
-<script src="assets/js/script1.js"></script> 
+<script src="assets/js/script2.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
     
     <!-- GA4 Page View Tracking -->

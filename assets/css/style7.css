@@ -1748,7 +1748,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-outline-light:hover {
     background: white;
-    color: var(--primary-color);
+    color: #0a58ca;
     border-color: white;
 }
 
@@ -2859,7 +2859,11 @@ section:last-of-type + .footer-section {
     border: 2px solid #ffffff!important;
 }
 .btn-primary-login-index-page:hover{
-    border: 2px solid #0d6efd!important;
+    border: 2px solid #0a58ca !important;
+}
+.btn-primary-login-index-page-hover:hover{
+    color: #0a58ca!important;
+    border: 2px solid #ffffff !important;
 }
 
 /* .pricing-container{

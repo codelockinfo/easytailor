@@ -1051,7 +1051,7 @@
                         <a href="admin/register.php" class="btn btn-primary btn-lg register btn-primary-signup-index-page">
                             <i class="fas fa-rocket me-2"></i>Register Your Business
                         </a>
-                        <a href="admin/login.php" class="btn btn-outline-light btn-lg loginbtn btn-primary-login-index-page">
+                        <a href="admin/login.php" class="btn btn-outline-light btn-lg loginbtn btn-primary-login-index-page btn-primary-login-index-page-hover">
                             <i class="fas fa-sign-in-alt me-2"></i>Login Now
                         </a>
                     </div>

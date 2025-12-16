@@ -43,7 +43,7 @@ $currentYear = date('Y');
                         <li><a href="<?php echo $basePath; ?>./">Home</a></li>
                         <li><a href="<?php echo $basePath; ?>./#features">Features</a></li>
                         <li><a href="<?php echo $basePath; ?>./#benefits">Benefits</a></li>
-                        <li><a href="<?php echo $basePath; ?>./#pricing">Pricing</a></li>
+                        <li style="display: none;"><a href="<?php echo $basePath; ?>./#pricing">Pricing</a></li>
                         <li><a href="<?php echo $basePath; ?>contact">Contact Us</a></li>
                     </ul>
                 </div>

@@ -1417,7 +1417,7 @@
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="pricing-section py-5 bg-light">
+    <section id="pricing" class="pricing-section py-5 bg-light" style="display: none;">
         <div class="container pricing-container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">

@@ -47,7 +47,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
                     <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#benefits' : $basePath . './#benefits'; ?>">Benefits</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#pricing' : $basePath . './#pricing'; ?>">Pricing</a>
+                    <a class="nav-link active" style="display: none;" href="<?php echo ($currentPage === 'index.php') ? '#pricing' : $basePath . './#pricing'; ?>">Pricing</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>">Contact</a>

@@ -145,7 +145,7 @@ try {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    /* padding: 20px; */
     backdrop-filter: blur(5px);
 }
 
@@ -631,6 +631,53 @@ try {
     window.openTestimonialPopup = function() {
         const popup = document.getElementById('testimonialPopup');
         if (popup) {
+            // Reset form and submitting flag when opening popup
+            const form = document.getElementById('testimonialForm');
+            if (form) {
+                form.reset();
+                form.dataset.isSubmitting = 'false';
+                const submitBtn = form.querySelector('.btn-testimonial-submit');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Review';
+                }
+                // Reset star to default
+                const star5 = document.getElementById('star5');
+                if (star5) star5.checked = true;
+                
+                // Reset Shop Name and Tailor searchable dropdown fields
+                const companySearch = document.getElementById('company_search');
+                const companySelect = document.getElementById('company_id');
+                const tailorSearch = document.getElementById('tailor_search');
+                const tailorSelect = document.getElementById('user_id');
+                
+                if (companySearch) companySearch.value = '';
+                if (companySelect) companySelect.value = '';
+                if (tailorSearch) tailorSearch.value = '';
+                if (tailorSelect) tailorSelect.value = '';
+                
+                // Reset selected text variables stored on form
+                form.dataset.selectedCompanyText = '';
+                form.dataset.selectedTailorText = '';
+                
+                // Reset dropdown visibility
+                const companyDropdown = document.getElementById('company_dropdown');
+                const tailorDropdown = document.getElementById('tailor_dropdown');
+                if (companyDropdown) {
+                    companyDropdown.classList.remove('show');
+                    companyDropdown.style.display = 'none';
+                    companyDropdown.style.visibility = 'hidden';
+                    companyDropdown.style.opacity = '0';
+                    companyDropdown.innerHTML = '';
+                }
+                if (tailorDropdown) {
+                    tailorDropdown.classList.remove('show');
+                    tailorDropdown.style.display = 'none';
+                    tailorDropdown.style.visibility = 'hidden';
+                    tailorDropdown.style.opacity = '0';
+                    tailorDropdown.innerHTML = '';
+                }
+            }
             popup.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             return true;
@@ -670,17 +717,7 @@ try {
                 e.preventDefault();
                 e.stopPropagation();
                 window.openTestimonialPopup();
-                // Reset form and button when opening popup
-                if (form) {
-                    const submitBtn = form.querySelector('.btn-testimonial-submit');
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Review';
-                    }
-                    form.reset();
-                    const star5 = document.getElementById('star5');
-                    if (star5) star5.checked = true;
-                }
+                // Form reset is handled in openTestimonialPopup function
                 return false;
             };
         }
@@ -718,8 +755,18 @@ try {
             const tailorSearch = document.getElementById('tailor_search');
             const tailorSelect = document.getElementById('user_id');
             const tailorDropdown = document.getElementById('tailor_dropdown');
-            let selectedCompanyText = '';
-            let selectedTailorText = '';
+            // Store selected text on form element so it can be accessed globally
+            form.dataset.selectedCompanyText = '';
+            form.dataset.selectedTailorText = '';
+            // Helper functions to sync local variables with form dataset
+            const setSelectedCompanyText = (value) => {
+                form.dataset.selectedCompanyText = value || '';
+            };
+            const setSelectedTailorText = (value) => {
+                form.dataset.selectedTailorText = value || '';
+            };
+            const getSelectedCompanyText = () => form.dataset.selectedCompanyText || '';
+            const getSelectedTailorText = () => form.dataset.selectedTailorText || '';
             
             // Company searchable dropdown
             if (companySearch && companySelect && companyDropdown) {
@@ -729,7 +776,7 @@ try {
                     companyDropdown.innerHTML = '';
                     
                     // If value is selected and no search term, don't show dropdown
-                    if (companySelect.value && searchTerm === '' && companySearch.value === selectedCompanyText) {
+                    if (companySelect.value && searchTerm === '' && companySearch.value === getSelectedCompanyText()) {
                         companyDropdown.classList.remove('show');
                         companyDropdown.style.display = 'none';
                         companyDropdown.style.visibility = 'hidden';
@@ -750,7 +797,7 @@ try {
                                     e.stopPropagation();
                                     companySelect.value = '';
                                     companySearch.value = '';
-                                    selectedCompanyText = '';
+                                    setSelectedCompanyText('');
                                     companyDropdown.classList.remove('show');
                                     companyDropdown.style.display = 'none';
                                     companyDropdown.style.visibility = 'hidden';
@@ -776,8 +823,8 @@ try {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     companySelect.value = option.value;
-                                    selectedCompanyText = option.textContent.trim();
-                                    companySearch.value = selectedCompanyText;
+                                    setSelectedCompanyText(option.textContent.trim());
+                                    companySearch.value = getSelectedCompanyText();
                                     companyDropdown.classList.remove('show');
                                     companyDropdown.style.display = 'none';
                                     companyDropdown.style.visibility = 'hidden';
@@ -812,9 +859,9 @@ try {
                 
                 companySearch.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    if (companySearch.value === selectedCompanyText && companySelect.value) {
+                    if (companySearch.value === getSelectedCompanyText() && companySelect.value) {
                         companySearch.value = '';
-                        selectedCompanyText = '';
+                        setSelectedCompanyText('');
                         filterCompanyOptions();
                     } else {
                         filterCompanyOptions();
@@ -827,8 +874,8 @@ try {
                         companyDropdown.style.display = 'none';
                         companyDropdown.style.visibility = 'hidden';
                         companyDropdown.style.opacity = '0';
-                        if (!companySearch.value && selectedCompanyText) {
-                            companySearch.value = selectedCompanyText;
+                        if (!companySearch.value && getSelectedCompanyText()) {
+                            companySearch.value = getSelectedCompanyText();
                         }
                     }
                 });
@@ -842,7 +889,7 @@ try {
                     tailorDropdown.innerHTML = '';
                     
                     // If value is selected and no search term, don't show dropdown
-                    if (tailorSelect.value && searchTerm === '' && tailorSearch.value === selectedTailorText) {
+                    if (tailorSelect.value && searchTerm === '' && tailorSearch.value === getSelectedTailorText()) {
                         tailorDropdown.classList.remove('show');
                         tailorDropdown.style.display = 'none';
                         tailorDropdown.style.visibility = 'hidden';
@@ -863,7 +910,7 @@ try {
                                     e.stopPropagation();
                                     tailorSelect.value = '';
                                     tailorSearch.value = '';
-                                    selectedTailorText = '';
+                                    setSelectedTailorText('');
                                     tailorDropdown.classList.remove('show');
                                     tailorDropdown.style.display = 'none';
                                     tailorDropdown.style.visibility = 'hidden';
@@ -889,8 +936,8 @@ try {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     tailorSelect.value = option.value;
-                                    selectedTailorText = option.textContent.trim();
-                                    tailorSearch.value = selectedTailorText;
+                                    setSelectedTailorText(option.textContent.trim());
+                                    tailorSearch.value = getSelectedTailorText();
                                     tailorDropdown.classList.remove('show');
                                     tailorDropdown.style.display = 'none';
                                     tailorDropdown.style.visibility = 'hidden';
@@ -925,9 +972,9 @@ try {
                 
                 tailorSearch.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    if (tailorSearch.value === selectedTailorText && tailorSelect.value) {
+                    if (tailorSearch.value === getSelectedTailorText() && tailorSelect.value) {
                         tailorSearch.value = '';
-                        selectedTailorText = '';
+                        setSelectedTailorText('');
                         filterTailorOptions();
                     } else {
                         filterTailorOptions();
@@ -940,8 +987,8 @@ try {
                         tailorDropdown.style.display = 'none';
                         tailorDropdown.style.visibility = 'hidden';
                         tailorDropdown.style.opacity = '0';
-                        if (!tailorSearch.value && selectedTailorText) {
-                            tailorSearch.value = selectedTailorText;
+                        if (!tailorSearch.value && getSelectedTailorText()) {
+                            tailorSearch.value = getSelectedTailorText();
                         }
                     }
                 });
@@ -950,6 +997,11 @@ try {
             // Reset form function
             function resetForm() {
                 form.reset();
+                
+                // Reset submitting flag
+                if (form.dataset.isSubmitting) {
+                    form.dataset.isSubmitting = 'false';
+                }
                 
                 // Reset submit button
                 const submitBtn = form.querySelector('.btn-testimonial-submit');
@@ -981,44 +1033,89 @@ try {
                 const star5 = document.getElementById('star5');
                 if (star5) star5.checked = true;
                 
-                selectedCompanyText = '';
-                selectedTailorText = '';
+                form.dataset.selectedCompanyText = '';
+                form.dataset.selectedTailorText = '';
             }
             
-            // Form submission
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
+            // Form submission - prevent duplicate submissions
+            if (!form.dataset.submitListenerAttached) {
+                form.dataset.submitListenerAttached = 'true';
+                form.dataset.isSubmitting = 'false';
                 
-                const formData = new FormData(form);
-                const submitBtn = form.querySelector('.btn-testimonial-submit');
-                const originalText = submitBtn.innerHTML;
-                
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
-                
-                fetch('ajax/submit_testimonial.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        resetForm();
-                        window.closeTestimonialPopup();
-                        showMessagePopup('success', 'Thank you for your feedback! Your review has been submitted and will be reviewed.');
-                    } else {
-                        showMessagePopup('error', 'Error: ' + (data.message || 'Failed to submit review. Please try again.'));
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Prevent duplicate submissions
+                    if (form.dataset.isSubmitting === 'true') {
+                        return false;
+                    }
+                    
+                    form.dataset.isSubmitting = 'true';
+                    
+                    // Get the checked star value explicitly
+                    const testimonialForm = document.getElementById('testimonialForm');
+                    let starValue = 5; // default
+                    
+                    // Get all star radio buttons and find which one is checked
+                    // Note: Stars are displayed in reverse order (row-reverse), so we need to reverse the value
+                    // Visual order: 5,4,3,2,1 (left to right) but DOM values are 1,2,3,4,5
+                    // So if star5 (value=5) is checked, user selected 1 star visually
+                    // If star1 (value=1) is checked, user selected 5 stars visually
+                    const starInputs = testimonialForm.querySelectorAll('input[name="star"]');
+                    for (let i = 0; i < starInputs.length; i++) {
+                        if (starInputs[i].checked) {
+                            const checkedValue = parseInt(starInputs[i].value);
+                            // Reverse the value: 1->5, 2->4, 3->3, 4->2, 5->1
+                            starValue = 6 - checkedValue;
+                            break;
+                        }
+                    }
+                    
+                    // Create FormData fresh - don't use form directly to avoid old values
+                    const formData = new FormData();
+                    formData.append('user_name', testimonialForm.querySelector('[name="user_name"]').value);
+                    formData.append('email', testimonialForm.querySelector('[name="email"]').value);
+                    formData.append('company_id', testimonialForm.querySelector('[name="company_id"]').value);
+                    const userIdInput = testimonialForm.querySelector('[name="user_id"]');
+                    if (userIdInput && userIdInput.value) {
+                        formData.append('user_id', userIdInput.value);
+                    }
+                    // Set star value explicitly
+                    formData.append('star', starValue.toString());
+                    formData.append('comment', testimonialForm.querySelector('[name="comment"]').value);
+                    
+                    const submitBtn = form.querySelector('.btn-testimonial-submit');
+                    const originalText = submitBtn.innerHTML;
+                    
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+                    
+                    fetch('ajax/submit_testimonial.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        form.dataset.isSubmitting = 'false';
+                        if (data.success) {
+                            resetForm();
+                            window.closeTestimonialPopup();
+                            showMessagePopup('success', 'Thank you for your feedback! Your review has been submitted and will be reviewed.');
+                        } else {
+                            showMessagePopup('error', 'Error: ' + (data.message || 'Failed to submit review. Please try again.'));
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    })
+                    .catch(error => {
+                        form.dataset.isSubmitting = 'false';
+                        console.error('Error:', error);
+                        showMessagePopup('error', 'An error occurred. Please try again later.');
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalText;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showMessagePopup('error', 'An error occurred. Please try again later.');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
+                    });
                 });
-            });
+            }
             
             // Show message popup function
             function showMessagePopup(type, message) {

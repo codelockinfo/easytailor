@@ -691,7 +691,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             }
                         } else if (field === 'actions') {
                             value = `<button class="btn btn-sm btn-primary" onclick="viewCompanyReports(${companyId})" title="View Reports">
-                                        <i class="fas fa-eye"></i> View
+                                        <i class="fas fa-eye"></i>
                                      </button>`;
                         }
                     }
@@ -723,7 +723,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     else if (type === 'reports') {
                         if (field === 'actions') {
                             value = `<button class="btn btn-sm btn-primary" onclick="viewCompanyReports(${companyId})" title="View Reports">
-                                        <i class="fas fa-eye"></i> View
+                                        <i class="fas fa-eye"></i>
                                      </button>`;
                         } else if (field === 'generated_at') {
                             if (value && value !== '-') {
@@ -737,7 +737,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         if (field === 'actions') {
                             const customerId = row.id || row.customer_id || 0;
                             value = `<button class="btn btn-sm btn-info" onclick="viewCustomerDetails(${customerId})" title="View Details">
-                                        <i class="fas fa-eye"></i> View
+                                        <i class="fas fa-eye"></i>
                                     </button>`;
                         } else if (field === 'name') {
                             value = `<strong>${row.name || '-'}</strong>`;

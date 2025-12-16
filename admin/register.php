@@ -167,8 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $welcomeMessage = 'Congratulations! You have successfully registered and your Professional Plan (1 Year Free) has been activated! Please login with your credentials to get started.';
                 // Clear the offer source cookie after successful registration
                 setcookie('promo_offer_source', '', time() - 3600, '/');
-                // Set a persistent cookie to indicate offer was claimed (valid for 1 year)
-                setcookie('offer_claimed', '1', time() + (365 * 24 * 60 * 60), '/');
+                // Note: Removed offer_claimed cookie to allow users to claim offers multiple times through different profiles
             } else {
                 $welcomeMessage = 'Registration successful! Please login with your credentials.';
             }

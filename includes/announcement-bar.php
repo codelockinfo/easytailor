@@ -241,6 +241,34 @@ if (isset($announcement['enabled']) && $announcement['enabled'] === false) {
         padding: 0.2rem 0.4rem;
     }
 }
+
+@media (max-width: 375px) {
+    .announcement-content {
+        padding: 0.6rem 0.75rem;
+        padding-right: 2rem; /* Space for close button */
+    }
+    
+    .announcement-text {
+        font-size: 0.6rem;
+    }
+    
+    .announcement-click-hint {
+        font-size: 0.8rem;
+    }
+    
+    .announcement-icon {
+        font-size: 0.8rem;
+    }
+    
+    .announcement-close {
+        right: 0.5rem;
+        font-size: 1rem;
+        padding: 0.2rem 0.4rem;
+    }
+    .announcement-content{
+        gap: 0;
+    }
+}
 </style>
 
 <script>

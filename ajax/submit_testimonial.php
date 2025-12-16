@@ -15,8 +15,21 @@ try {
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $company_id = isset($_POST['company_id']) ? (int)$_POST['company_id'] : 0;
     $user_id = isset($_POST['user_id']) && !empty($_POST['user_id']) ? (int)$_POST['user_id'] : null;
-    $star = isset($_POST['star']) ? (int)$_POST['star'] : 5;
+    
+    // Get star value - ensure it's properly captured
+    $star = 5; // default
+    if (isset($_POST['star'])) {
+        $star = (int)$_POST['star'];
+        // Ensure star is between 1 and 5
+        if ($star < 1 || $star > 5) {
+            $star = 5;
+        }
+    }
+    
     $comment = isset($_POST['comment']) ? trim($_POST['comment']) : '';
+    
+    // Log the received star value for debugging
+    error_log("Testimonial submission - Star value received: " . $star . " (POST value: " . (isset($_POST['star']) ? $_POST['star'] : 'not set') . ")");
     
     // Validation
     if (empty($user_name)) {

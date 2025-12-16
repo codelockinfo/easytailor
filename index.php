@@ -811,6 +811,58 @@
     </section>
 
     <!-- Testimonials Section -->
+    <?php
+    // Fetch approved testimonials from database
+    require_once 'config/database.php';
+    $testimonials = [];
+    
+    try {
+        $database = new Database();
+        $db = $database->getConnection();
+        
+        if ($db) {
+            // Fetch approved testimonials with company and user info
+            $query = "SELECT 
+                        t.id,
+                        t.user_name,
+                        t.email,
+                        t.company_id,
+                        t.owner_name,
+                        t.user_id,
+                        t.star,
+                        t.comment,
+                        t.status,
+                        t.created_at,
+                        c.company_name,
+                        u.full_name as tailor_name
+                      FROM testimonials t 
+                      LEFT JOIN companies c ON t.company_id = c.id 
+                      LEFT JOIN users u ON t.user_id = u.id 
+                      WHERE t.status = 'approved' 
+                      ORDER BY t.created_at DESC
+                      LIMIT 50";
+            
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $testimonials = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Debug: Check if testimonials are fetched (remove after testing)
+            // error_log("Testimonials fetched: " . count($testimonials));
+        } else {
+            error_log("Database connection failed in testimonials section");
+        }
+    } catch (PDOException $e) {
+        // Log error but don't break the page
+        error_log("Testimonials fetch PDO error: " . $e->getMessage());
+        $testimonials = [];
+    } catch (Exception $e) {
+        // Log error but don't break the page
+        error_log("Testimonials fetch error: " . $e->getMessage());
+        $testimonials = [];
+    }
+    
+    // Always show testimonials section (title and button), but hide slider if no testimonials
+    ?>
     <section id="testimonials" class="testimonials-section py-5">
         <div class="container">
             <div class="row">
@@ -821,56 +873,7 @@
                     </p>
                 </div>
             </div>
-            <?php
-            // Fetch approved testimonials from database
-            require_once 'config/database.php';
-            $testimonials = [];
-            
-            try {
-                $database = new Database();
-                $db = $database->getConnection();
-                
-                if ($db) {
-                    // Fetch approved testimonials with company and user info
-                    $query = "SELECT 
-                                t.id,
-                                t.user_name,
-                                t.email,
-                                t.company_id,
-                                t.owner_name,
-                                t.user_id,
-                                t.star,
-                                t.comment,
-                                t.status,
-                                t.created_at,
-                                c.company_name,
-                                u.full_name as tailor_name
-                              FROM testimonials t 
-                              LEFT JOIN companies c ON t.company_id = c.id 
-                              LEFT JOIN users u ON t.user_id = u.id 
-                              WHERE t.status = 'approved' 
-                              ORDER BY t.created_at DESC
-                              LIMIT 50";
-                    
-                    $stmt = $db->prepare($query);
-                    $stmt->execute();
-                    $testimonials = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    
-                    // Debug: Check if testimonials are fetched (remove after testing)
-                    // error_log("Testimonials fetched: " . count($testimonials));
-                } else {
-                    error_log("Database connection failed in testimonials section");
-                }
-            } catch (PDOException $e) {
-                // Log error but don't break the page
-                error_log("Testimonials fetch PDO error: " . $e->getMessage());
-                $testimonials = [];
-            } catch (Exception $e) {
-                // Log error but don't break the page
-                error_log("Testimonials fetch error: " . $e->getMessage());
-                $testimonials = [];
-            }
-            ?>
+            <?php if (!empty($testimonials) && count($testimonials) > 0): ?>
             <div class="testimonials-slider-wrapper">
                 <div class="testimonials-slider-container" id="testimonialsSlider">
                     <div class="testimonials-slider-track" id="testimonialsTrack">
@@ -918,6 +921,7 @@
                         <?php endforeach; ?>
                     </div>
                 </div>
+                <?php if (count($testimonials) >= 3): ?>
                 <div class="testimonials-slider-nav">
                     <button class="slider-nav-btn prev" id="testimonialsPrev" aria-label="Previous">
                         <i class="fas fa-chevron-left"></i>
@@ -926,7 +930,9 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
+                <?php endif; ?>
             </div>
+            <?php endif; // End of slider conditional ?>
 
             <div class="passYourThoughts-section text-center p">
                 <div class="container">
@@ -1071,6 +1077,28 @@
         
         if (!slider || !track || slides.length === 0) return;
 
+        // Only initialize slider if we have 3 or more testimonials
+        const totalSlides = slides.length;
+        if (totalSlides < 3) {
+            // If less than 3 testimonials, display them statically without slider
+            track.style.display = 'flex';
+            track.style.flexWrap = 'wrap';
+            track.style.justifyContent = 'center';
+            track.style.gap = '1.5rem';
+            track.style.transform = 'none';
+            track.style.overflow = 'visible';
+            slider.style.overflow = 'visible';
+            
+            // Make each slide take appropriate width
+            slides.forEach(slide => {
+                slide.style.flex = '0 0 auto';
+                slide.style.width = '100%';
+                slide.style.maxWidth = '400px';
+            });
+            
+            return; // Exit early, no slider functionality needed
+        }
+
         let currentIndex = 0;
         let isDragging = false;
         let startX = 0;
@@ -1079,7 +1107,6 @@
         let autoSlideInterval = null;
         let isPaused = false;
         let slidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
-        const totalSlides = slides.length;
         
         // Clone slides for infinite loop (clone first and last)
         function cloneSlides() {

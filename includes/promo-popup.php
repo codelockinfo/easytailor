@@ -35,23 +35,14 @@ if ($sessionActive) {
     }
 }
 
-// Check if user has already claimed the offer (even if not logged in on this device)
-$offerClaimed = isset($_COOKIE['offer_claimed']) && $_COOKIE['offer_claimed'] === '1';
-
 // Only block popup if we're CERTAIN user is logged in (session active + user_id exists)
 // If session is not active or can't be checked, allow popup to show
 if ($isLoggedIn && $sessionActive) {
     return; // Exit early, don't render popup - user is definitely logged in
 }
 
-// If offer was claimed, also don't show
-if ($offerClaimed) {
-    return; // Exit early, don't render popup - offer already claimed
-}
-
 // Pass PHP variables to JavaScript for additional client-side check
 $jsIsLoggedIn = $isLoggedIn ? 'true' : 'false';
-$jsOfferClaimed = $offerClaimed ? 'true' : 'false';
 
 // Calculate next December date
 $currentYear = date('Y');
@@ -99,7 +90,6 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
     
     // PHP variables passed to JavaScript
     const PHP_IS_LOGGED_IN = <?php echo $jsIsLoggedIn; ?>;
-    const PHP_OFFER_CLAIMED = <?php echo $jsOfferClaimed; ?>;
     
     // Cookie helper functions
     function setCookie(name, value, days) {
@@ -128,14 +118,11 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
     // Cookie keys
     const POPUP_DISMISSED_COOKIE = 'promo_popup_dismissed';
     const OFFER_SOURCE_COOKIE = 'promo_offer_source';
-    const OFFER_CLAIMED_COOKIE = 'offer_claimed';
     const COOKIE_EXPIRY_DAYS = 1; // 24 hours = 1 day
     
     function shouldShowPopup() {
         console.log('Checking if popup should show...');
         console.log('PHP_IS_LOGGED_IN:', PHP_IS_LOGGED_IN);
-        console.log('PHP_OFFER_CLAIMED:', PHP_OFFER_CLAIMED);
-        console.log('offer_claimed cookie:', getCookie(OFFER_CLAIMED_COOKIE));
         console.log('dismissed cookie:', getCookie(POPUP_DISMISSED_COOKIE));
         
         // First check: If user is logged in (from PHP), don't show
@@ -145,13 +132,7 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
             return false;
         }
         
-        // Second check: If offer was claimed (from PHP or cookie), don't show
-        if (PHP_OFFER_CLAIMED === true || getCookie(OFFER_CLAIMED_COOKIE) === '1') {
-            console.log('Popup blocked: Offer already claimed');
-            return false;
-        }
-        
-        // Third check: If popup was dismissed, don't show (for 24 hours)
+        // Second check: If popup was dismissed, don't show (for 24 hours)
         const dismissed = getCookie(POPUP_DISMISSED_COOKIE);
         if (dismissed) {
             console.log('Popup blocked: Popup was dismissed (cookie exists)');
@@ -230,13 +211,13 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
         
         console.log('Popup element found, initializing...');
         
-        // Immediate check: If user is logged in or offer claimed, hide popup immediately
-        if (PHP_IS_LOGGED_IN === true || PHP_OFFER_CLAIMED === true || getCookie(OFFER_CLAIMED_COOKIE) === '1') {
+        // Immediate check: If user is logged in, hide popup immediately
+        if (PHP_IS_LOGGED_IN === true) {
             popup.style.display = 'none';
             popup.style.visibility = 'hidden';
             popup.classList.remove('show');
-            console.log('Popup hidden immediately: User logged in or offer claimed');
-            console.log('PHP_IS_LOGGED_IN:', PHP_IS_LOGGED_IN, 'PHP_OFFER_CLAIMED:', PHP_OFFER_CLAIMED, 'cookie:', getCookie(OFFER_CLAIMED_COOKIE));
+            console.log('Popup hidden immediately: User logged in');
+            console.log('PHP_IS_LOGGED_IN:', PHP_IS_LOGGED_IN);
             return; // Exit early, don't set up event listeners
         }
         

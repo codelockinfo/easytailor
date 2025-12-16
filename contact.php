@@ -249,7 +249,7 @@ $seoOptions = [
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container py-5" style="padding-top: 8rem!important;">
+<div class="container py-5">
     <div class="row">
         <div class="col-lg-10 mx-auto">
             <div class="card shadow-sm">

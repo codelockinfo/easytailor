@@ -45,8 +45,12 @@ $seoOptions = [
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="favicon(2).png">
+    <!-- Favicon - Primary ICO format for Google Search -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon - PNG fallback -->
+    <link rel="icon" type="image/png" href="/assets/images/favicon(2).png">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/assets/images/favicon(2).png">
     
     <!-- Google Analytics 4 (GA4) -->
     <?php

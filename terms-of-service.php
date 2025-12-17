@@ -46,9 +46,9 @@ $seoOptions = [
     <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <!-- Favicon - PNG fallback -->
-    <link rel="icon" type="image/png" href="favicon(2).png">
+    <link rel="icon" type="image/png" href="/assets/images/favicon(2).png">
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="favicon(2).png">
+    <link rel="apple-touch-icon" href="/assets/images/favicon(2).png">
     
     <style>
         body {

@@ -52,11 +52,12 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
     
     <!-- Favicon - Primary ICO format for Google Search -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
     <!-- Favicon - PNG fallback -->
-    <link rel="icon" type="image/png" href="/assets/images/favicon(2).png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/assets/images/favicon(2).png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     
     <!-- Theme Color -->
     <meta name="theme-color" content="#0d6efd">

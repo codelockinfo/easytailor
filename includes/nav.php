@@ -14,11 +14,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 // Favicon links for use in <head> section (multiple formats for maximum compatibility)
 $faviconLinks = '
     <!-- Favicon - Primary ICO format for Google Search -->
-    <link rel="icon" type="image/x-icon" href="' . $basePath . 'favicon.ico">
+    <link rel="icon" type="image/x-icon" href="' . $basePath . 'favicon.ico" sizes="16x16 32x32 48x48">
     <!-- Favicon - PNG fallback -->
-    <link rel="icon" type="image/png" href="/assets/images/favicon(2).png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/assets/images/favicon(2).png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     <!-- Google AdSense -->
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';

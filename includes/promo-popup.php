@@ -5,6 +5,9 @@
  * Valid until next December
  */
 
+// Temporarily disable popup
+return;
+
 // Determine base path for links based on current directory
 $isAdmin = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false);
 $basePath = $isAdmin ? '../' : '';

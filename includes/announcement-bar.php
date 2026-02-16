@@ -10,7 +10,7 @@
 
 // Announcement configuration - Easy to customize
 $announcement = [
-    'message' => 'Claim the professional plan on your first registration',
+    'message' => 'FREE TO USE, FREE REGISTRATION',
     'link' => null, // Link disabled - clicking bar shows popup instead
     'link_text' => 'Register Now', // Not used anymore
     'show_close_button' => true, // Show close button
@@ -332,24 +332,23 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             
             // Show the promo popup
-            const promoPopup = document.getElementById('promoPopup');
-            if (promoPopup) {
-                // Force show the popup when clicked from "Click Now"
-                promoPopup.style.display = 'flex';
-                promoPopup.classList.add('show');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
-                
-                // Add overlay click to close (only add once)
-                const handleOverlayClick = function(evt) {
-                    if (evt.target === promoPopup) {
-                        promoPopup.style.display = 'none';
-                        promoPopup.classList.remove('show');
-                        document.body.style.overflow = '';
-                        promoPopup.removeEventListener('click', handleOverlayClick);
-                    }
-                };
-                promoPopup.addEventListener('click', handleOverlayClick);
-            }
+            // const promoPopup = document.getElementById('promoPopup');
+            // if (promoPopup) {
+            //     promoPopup.style.display = 'flex';
+            //     promoPopup.classList.add('show');
+            //     document.body.style.overflow = 'hidden'; 
+            //     const handleOverlayClick = function(evt) {
+            //         if (evt.target === promoPopup) {
+            //             promoPopup.style.display = 'none';
+            //             promoPopup.classList.remove('show');
+            //             document.body.style.overflow = '';
+            //             promoPopup.removeEventListener('click', handleOverlayClick);
+            //         }
+            //     };
+            //     promoPopup.addEventListener('click', handleOverlayClick);
+            // }
+
+            window.location.href = './admin/register';
         });
     }
     

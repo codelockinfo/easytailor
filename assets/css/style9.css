@@ -1334,7 +1334,7 @@ body.announcement-visible {
 /* Steps Slider Styles */
 .steps-slider {
     margin: 0 -15px;
-    padding: 20px 0px!important;
+    padding: 0px 0px !important;
 }
 
 .step-slide {
@@ -1540,6 +1540,10 @@ body.announcement-visible {
 .testimonial-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-medium);
+}
+
+.testimonial-content {
+    flex-grow: 1;
 }
 
 .stars {

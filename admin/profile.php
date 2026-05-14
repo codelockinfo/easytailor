@@ -329,7 +329,7 @@ if (count($nameParts) >= 2) {
                     </button>
                 </div>
 
-                <input type="file" id="modal_image_input" class="d-none" accept="image/*">
+                <input type="file" id="modal_image_input" class="d-none" accept="image/jpeg, image/png, image/gif">
             </div>
         </div>
     </div>
@@ -376,7 +376,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalImageInput) {
         modalImageInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
-                selectedFile = this.files[0];
+                const file = this.files[0];
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Invalid file type. Only JPG, PNG, and GIF are allowed.');
+                    this.value = '';
+                    return;
+                }
+
+                selectedFile = file;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     modalAvatarPreview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`;

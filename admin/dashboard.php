@@ -137,17 +137,34 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
     
-    <!-- Order Status Chart -->
+    <!-- Quick Actions -->
     <div class="col-xl-4 col-lg-5 mb-4">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-chart-pie me-2"></i>
-                    Order Status
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
                 </h5>
             </div>
             <div class="card-body">
-                <canvas id="orderStatusChart"></canvas>
+                <div class="d-grid gap-2">
+                    <a href="orders.php?action=create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        New Order
+                    </a>
+                    <a href="customers.php?action=create" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Add Customer
+                    </a>
+                    <a href="invoices.php?action=create" class="btn btn-outline-primary">
+                        <i class="fas fa-file-invoice me-2"></i>
+                        Create Invoice
+                    </a>
+                    <a href="expenses.php?action=create" class="btn btn-outline-primary">
+                        <i class="fas fa-receipt me-2"></i>
+                        Record Expense
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -231,33 +248,16 @@ for ($i = 11; $i >= 0; $i--) {
     
     <!-- Quick Actions & Alerts -->
     <div class="col-xl-4 col-lg-5 mb-4">
-        <!-- Quick Actions -->
+        <!-- Order Status Chart -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-bolt me-2"></i>
-                    Quick Actions
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Order Status
                 </h5>
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="orders.php?action=create" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        New Order
-                    </a>
-                    <a href="customers.php?action=create" class="btn btn-outline-primary">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Add Customer
-                    </a>
-                    <a href="invoices.php?action=create" class="btn btn-outline-primary">
-                        <i class="fas fa-file-invoice me-2"></i>
-                        Create Invoice
-                    </a>
-                    <a href="expenses.php?action=create" class="btn btn-outline-primary">
-                        <i class="fas fa-receipt me-2"></i>
-                        Record Expense
-                    </a>
-                </div>
+                <canvas id="orderStatusChart"></canvas>
             </div>
         </div>
         

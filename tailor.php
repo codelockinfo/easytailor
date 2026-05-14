@@ -35,7 +35,7 @@ if (!empty($company['working_hours'])) {
 }
 
 function escape($value) {
-    return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(htmlspecialchars_decode($value ?? '', ENT_QUOTES), ENT_QUOTES, 'UTF-8');
 }
 ?>
 <?php

@@ -156,10 +156,10 @@
 
     function populateModal(payload) {
         const company = payload.company;
-        titleEl.textContent = company.shop_name || 'Tailor Details';
-        nameEl.textContent = company.shop_name || '';
-        ownerEl.textContent = company.owner_name ? `Owned by ${company.owner_name}` : '';
-        descriptionEl.textContent = company.description || 'No description provided yet.';
+        titleEl.innerHTML = company.shop_name || 'Tailor Details';
+        nameEl.innerHTML = company.shop_name || '';
+        ownerEl.innerHTML = company.owner_name ? `Owned by ${company.owner_name}` : '';
+        descriptionEl.innerHTML = company.description || 'No description provided yet.';
 
         imageEl.src = company.shop_image || 'uploads/logos/default-shop.jpg';
         imageEl.alt = company.shop_name || 'Tailor';

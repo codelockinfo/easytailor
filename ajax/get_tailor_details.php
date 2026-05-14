@@ -85,9 +85,9 @@ try {
         $imagePath = normalize_path($review['review_image'] ?? '', '');
         $reviews[] = [
             'id' => (int)$review['id'],
-            'reviewer_name' => htmlspecialchars($review['reviewer_name']),
+            'reviewer_name' => $review['reviewer_name'],
             'rating' => (int)$review['rating'],
-            'review_text' => isset($review['review_text']) ? htmlspecialchars($review['review_text']) : '',
+            'review_text' => $review['review_text'] ?? '',
             'review_image' => $imagePath,
             'created_at' => date('M d, Y', strtotime($review['created_at']))
         ];

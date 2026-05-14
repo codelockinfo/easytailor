@@ -218,7 +218,7 @@ $seoOptions = [
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             border-radius: 15px;
-            padding: 1.5rem;
+            padding: 17px;
             margin-bottom: 1rem;
         }
         
@@ -230,7 +230,6 @@ $seoOptions = [
         .stat-card .stat-number {
             font-size: 2rem;
             font-weight: 700;
-            margin: 0.5rem 0;
         }
         
         .stat-card .stat-label {

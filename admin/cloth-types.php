@@ -318,7 +318,7 @@ $categoriesList = array_column($dbCategories, 'name');
                         <tr>
                             <td>
                                 <div>
-                                    <strong><?php echo htmlspecialchars($clothType['name']); ?></strong>
+                                    <strong><?php echo ucwords(htmlspecialchars($clothType['name'])); ?></strong>
                                     <?php if (!empty($clothType['description'])): ?>
                                         <br>
                                         <small class="text-muted"><?php echo htmlspecialchars(substr($clothType['description'], 0, 50)); ?><?php echo strlen($clothType['description']) > 50 ? '...' : ''; ?></small>
@@ -327,7 +327,7 @@ $categoriesList = array_column($dbCategories, 'name');
                             </td>
                             <td>
                                 <?php if (!empty($clothType['category'])): ?>
-                                    <span class="badge bg-info"><?php echo htmlspecialchars($clothType['category']); ?></span>
+                                    <span class="badge bg-info"><?php echo ucwords(htmlspecialchars($clothType['category'])); ?></span>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>

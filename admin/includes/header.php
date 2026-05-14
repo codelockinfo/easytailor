@@ -569,6 +569,7 @@ $seoOptions = [
             padding: 0.5rem 0.75rem;
             border-radius: 20px;
             font-weight: 500;
+            text-transform: capitalize;
         }
         
         /* Responsive */

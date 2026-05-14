@@ -1009,7 +1009,7 @@ function displayFilterResults(expenses) {
                     </div>
                 </td>
                 <td>
-                    <span class="badge bg-info">${expense.category}</span>
+                    <span class="badge bg-info">${expense.category.replace(/\b\w/g, l => l.toUpperCase())}</span>
                 </td>
                 <td>
                     <div>

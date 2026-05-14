@@ -367,8 +367,10 @@ try {
 }
 
 .btn-testimonial-submit:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.5);
+    color: white;
 }
 
 .btn-testimonial-submit:disabled {

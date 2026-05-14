@@ -1085,6 +1085,23 @@
     .stars .fa-star:not(.active) {
         color: #e0e0e0;
     }
+
+    .btn-for-article:hover {
+        background-color: #667eea !important;
+        opacity: 1 !important;
+        color: white !important;
+    }
+
+    .btn-primary-signup-index-page:hover {
+        background-color: #667eea !important;
+        border-color: #667eea !important;
+    }
+
+    .btn-primary-login-index-page-hover:hover {
+        background-color: #667eea !important;
+        border-color: #667eea !important;
+        color: white !important;
+    }
     </style>
 
     <script>
@@ -1403,7 +1420,7 @@
     <section id="blog" class="blog-section bg-light">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center mb-3">
                     <h2 class="section-title">Latest Blog Articles</h2>
                     <p class="section-description">
                         Discover insights, tips, and stories from the tailoring industry.
@@ -1450,7 +1467,7 @@
                 </div>
                 <div class="row mt-5">
                     <div class="col-12 text-center">
-                        <a href="blog.php" class="btn btn-primary btn-lg btn-for-article" style="border: none; padding: 0.875rem 2.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-block; transition: opacity 0.3s ease;">
+                        <a href="blog.php" class="btn btn-primary btn-lg btn-for-article" style="border: none; padding: 0.875rem 2.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-block; transition: all 0.3s ease;">
                             View More Articles <i class="fas fa-arrow-right ms-2"></i>
                         </a>
                     </div>
@@ -1538,10 +1555,10 @@
                         Start your free trial today and see the difference.
                     </p>
                     <div class="cta-buttons">
-                        <a href="admin/register.php" class="btn btn-primary btn-lg register btn-primary-signup-index-page">
+                        <a href="admin/register.php" class="btn btn-primary btn-lg register btn-primary-signup-index-page" style="transition: all 0.3s ease;">
                             <i class="fas fa-rocket me-2"></i>Register Your Business
                         </a>
-                        <a href="admin/login.php" class="btn btn-outline-light btn-lg loginbtn btn-primary-login-index-page btn-primary-login-index-page-hover">
+                        <a href="admin/login.php" class="btn btn-outline-light btn-lg loginbtn btn-primary-login-index-page btn-primary-login-index-page-hover" style="transition: all 0.3s ease;">
                             <i class="fas fa-sign-in-alt me-2"></i>Login Now
                         </a>
                     </div>

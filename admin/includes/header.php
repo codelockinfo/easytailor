@@ -661,14 +661,35 @@ $seoOptions = [
                         Dashboard
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a href="cloth-types.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'cloth-types.php' && isset($_GET['view']) && $_GET['view'] == 'categories' ? 'active' : ''; ?>">
+                        <i class="fas fa-tags"></i>
+                        Category
+                    </a>
+                </li>
                 
+                <li class="nav-item">
+                    <a href="cloth-types.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'cloth-types.php' && !isset($_GET['view']) ? 'active' : ''; ?>">
+                        <i class="fas fa-tshirt"></i>
+                        Cloth type
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a href="customers.php" class="nav-link <?php echo in_array(basename($_SERVER['PHP_SELF']), ['customers.php', 'customer-details.php']) ? 'active' : ''; ?>">
                         <i class="fas fa-users"></i>
                         Customers
                     </a>
                 </li>
-                
+
+                <li class="nav-item">
+                    <a href="measurements.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'measurements.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-ruler"></i>
+                        Measurement
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a href="orders.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'orders.php' ? 'active' : ''; ?>">
                         <i class="fas fa-clipboard-list"></i>
@@ -680,20 +701,6 @@ $seoOptions = [
                     <a href="invoices.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'invoices.php' ? 'active' : ''; ?>">
                         <i class="fas fa-file-invoice"></i>
                         Invoices
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="measurements.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'measurements.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-ruler"></i>
-                        Measurements
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="cloth-types.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'cloth-types.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-tshirt"></i>
-                        Cloth Types
                     </a>
                 </li>
                 

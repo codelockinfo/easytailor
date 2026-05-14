@@ -578,7 +578,7 @@
     <section id="tailors-near-you" class="tailors-section">
         <div class="container">
             <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-5">
+                <div class="col-lg-8 mx-auto text-center mb-3">
                     <h2 class="section-title">Tailor Shops Near You</h2>
                     <p class="section-description">
                         Find experienced and verified tailor shops in your area. Connect with professional tailoring businesses for all your stitching needs.

@@ -674,8 +674,7 @@ body.announcement-visible {
     margin: 0px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 350px;
+     min-height: 300px;
 }
 
 .feature-card:hover {

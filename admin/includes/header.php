@@ -381,12 +381,12 @@ $seoOptions = [
         
         .form-select:hover {
             border-color: #cbd5e0;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234a5568'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #ffffff, #f7fafc);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234a5568'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), #ffffff;
             background-position: right 0.875rem center, center !important;
             background-size: 18px 18px, 100% 100% !important;
             background-repeat: no-repeat, no-repeat !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-            transform: none!important;
+            transform: none !important;
         }
         
         .form-select:focus {
@@ -435,10 +435,11 @@ $seoOptions = [
         .form-select option:checked,
         .form-select option:focus,
         .form-select option[selected] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff !important;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            background-color: #667eea !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #f70707ff !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
         }
         
         /* Elegant Dropdown Container */
@@ -520,7 +521,7 @@ $seoOptions = [
             }
             
             .form-select:hover {
-                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a0aec0'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #4a5568, #2d3748);
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a0aec0'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), #ffffff;
                 background-position: right 0.875rem center, center;
                 background-size: 18px 18px, 100% 100%;
                 border-color: #667eea;
@@ -936,18 +937,19 @@ $seoOptions = [
                     font-weight: 600 !important;
                 }
                 
+                .form-select option {
+                    color: #000000;
+                    background-color: #ffffff;
+                }
+                
                 .form-select option:checked,
                 .form-select option:focus,
                 .form-select option[selected] {
+                    background-color: #667eea !important;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                    color: #ffffff !important;
+                    color: #000000ff !important;
                     font-weight: 600 !important;
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
-                }
-                
-                .form-select option {
-                    color: #000000 !important;
-                    background-color: #ffffff !important;
                 }
                 
                 /* Enhanced dropdown container */
@@ -971,4 +973,3 @@ $seoOptions = [
             document.head.appendChild(style);
         });
         </script>
-

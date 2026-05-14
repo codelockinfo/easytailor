@@ -588,8 +588,11 @@ body.announcement-visible {
 }
 
 /* About Section */
+.blog-section {
+    padding: 30px 0;
+}
 .about-section {
-    padding: 8rem 0 5rem;
+    padding:  30px 0px;
     position: relative;
     z-index: 2;
     background-color: var(--bg-white);
@@ -597,7 +600,7 @@ body.announcement-visible {
 
 /* Features Section */
 .features-section {
-    padding: 5rem 0;
+   padding:  30px 0px;
 }
 
 /* Features Slider Styles */
@@ -773,7 +776,7 @@ body.announcement-visible {
 
 /* Benefits Section */
 .benefits-section {
-    padding: 5rem 0;
+     padding:  30px 0px;
 }
 
 /* Benefits Slider Styles */
@@ -1391,7 +1394,7 @@ body.announcement-visible {
 
 /* How It Works Section */
 .how-it-works-section {
-    padding: 5rem 0;
+    padding: 30px 0;
 }
 
 .step-card {
@@ -1464,7 +1467,7 @@ body.announcement-visible {
 
 /* Screenshots Section */
 .screenshots-section {
-    padding: 5rem 0;
+    padding: 30px 0;
 }
 
 .screenshot-card {
@@ -1518,7 +1521,7 @@ body.announcement-visible {
 
 /* Testimonials Section */
 .testimonials-section {
-    padding: 5rem 0;
+    padding: 30px 0;
 }
 
 .testimonial-card {
@@ -2603,6 +2606,7 @@ section:last-of-type + .footer-section {
 .tailors-section {
     position: relative;
     overflow: hidden;
+     padding:  30px 0px;
 }
 
 .tailors-slider-container {

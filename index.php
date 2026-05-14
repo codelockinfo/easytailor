@@ -444,7 +444,7 @@
     </section>
 
     <!-- About Section -->
-    <section id="about" class="about-section py-5">
+    <section id="about" class="about-section">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -575,7 +575,7 @@
     </section>
 
     <!-- Tailors Near You Section -->
-    <section id="tailors-near-you" class="tailors-section py-5">
+    <section id="tailors-near-you" class="tailors-section">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center mb-5">
@@ -611,7 +611,7 @@
     </section>
 
     <!-- Benefits Section -->
-    <section id="benefits" class="benefits-section py-5 bg-light">
+    <section id="benefits" class="benefits-section  bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -705,7 +705,7 @@
     </section>
 
     <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works-section py-5">
+    <section id="how-it-works" class="how-it-works-section">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center ">
@@ -769,7 +769,7 @@
     </section>
 
     <!-- Screenshots Section -->
-    <section id="screenshots" class="screenshots-section py-5 bg-light">
+    <section id="screenshots" class="screenshots-section bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -864,7 +864,7 @@
     
     // Always show testimonials section (title and button), but hide slider if no testimonials
     ?>
-    <section id="testimonials" class="testimonials-section py-5">
+    <section id="testimonials" class="testimonials-section">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -1381,7 +1381,7 @@
         }
     }
     ?>
-    <section id="blog" class="blog-section py-5 bg-light">
+    <section id="blog" class="blog-section bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center mb-5">

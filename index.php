@@ -960,6 +960,8 @@
         overflow: hidden;
         position: relative;
         width: 100%;
+        padding-top: 20px;
+        margin-top: -20px;
     }
 
     .testimonials-slider-track {

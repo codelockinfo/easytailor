@@ -17,8 +17,10 @@ $page_title = 'Expense Management';
 require_once 'includes/header.php';
 
 require_once 'models/Expense.php';
+require_once 'models/Category.php';
 
 $expenseModel = new Expense();
+$categoryModel = new Category();
 $message = '';
 $messageType = '';
 
@@ -114,9 +116,11 @@ if (isset($_GET['edit'])) {
 
 // Get statistics
 $expenseStats = $expenseModel->getExpenseStats();
-$categories = $expenseModel->getExpenseCategories();
+// Get categories from database
+$dbCategories = $categoryModel->findAll(['status' => 'active'], 'name ASC');
+$categories = array_column($dbCategories, 'name');
 
-// Add common categories if none exist
+// If no categories in DB, use default list
 if (empty($categories)) {
     $categories = ['Rent', 'Utilities', 'Salaries', 'Materials', 'Equipment', 'Marketing', 'Transportation', 'Other'];
 }
@@ -404,17 +408,22 @@ if (empty($categories)) {
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="category" class="form-label">Category *</label>
-                            <select class="form-select" id="category" name="category" required>
-                                <option value="">Select Category</option>
-                                <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo htmlspecialchars($category); ?>">
-                                        <?php echo htmlspecialchars($category); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                                <?php if (!in_array('Other', $categories)): ?>
-                                    <option value="Other">Other</option>
-                                <?php endif; ?>
-                            </select>
+                            <div class="input-group">
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <?php foreach ($categories as $category): ?>
+                                        <option value="<?php echo htmlspecialchars($category); ?>">
+                                            <?php echo htmlspecialchars($category); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                    <?php if (!in_array('Other', $categories)): ?>
+                                        <option value="Other">Other</option>
+                                    <?php endif; ?>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quickCategoryModal" title="Add New Category">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="amount" class="form-label">Amount *</label>
@@ -553,7 +562,86 @@ if (empty($categories)) {
     </div>
 </div>
 
+<!-- Quick Category Modal -->
+<div class="modal fade" id="quickCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="categoryMsg" class="alert d-none"></div>
+                <div class="mb-3">
+                    <label for="new_category_name" class="form-label">Category Name *</label>
+                    <input type="text" class="form-control" id="new_category_name" placeholder="Enter category name">
+                </div>
+                <div class="mb-3">
+                    <label for="new_category_desc" class="form-label">Description</label>
+                    <textarea class="form-control" id="new_category_desc" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveQuickCategory()">Save Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function saveQuickCategory() {
+    const name = document.getElementById('new_category_name').value.trim();
+    const desc = document.getElementById('new_category_desc').value.trim();
+    const msgDiv = document.getElementById('categoryMsg');
+    
+    if (!name) {
+        msgDiv.className = 'alert alert-danger';
+        msgDiv.textContent = 'Please enter a category name';
+        msgDiv.classList.remove('d-none');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+    formData.append('name', name);
+    formData.append('description', desc);
+    
+    fetch('ajax/add_category.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add to dropdown
+            const categorySelect = document.getElementById('category');
+            const option = new Option(name, name);
+            categorySelect.add(option, categorySelect.options[1]);
+            categorySelect.value = name;
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('quickCategoryModal')).hide();
+            
+            // Reset form
+            document.getElementById('new_category_name').value = '';
+            document.getElementById('new_category_desc').value = '';
+            msgDiv.classList.add('d-none');
+            
+            showToast('✅ Category added successfully', 'success');
+        } else {
+            msgDiv.className = 'alert alert-danger';
+            msgDiv.textContent = data.error || 'Failed to add category';
+            msgDiv.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        msgDiv.className = 'alert alert-danger';
+        msgDiv.textContent = 'Server error. Please try again.';
+        msgDiv.classList.remove('d-none');
+    });
+}
 function editExpense(expense) {
     document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
     document.getElementById('expenseAction').value = 'update';

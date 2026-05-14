@@ -25,6 +25,7 @@ try {
     }
 
     require_once $rootDir . '/models/Expense.php';
+    require_once $rootDir . '/models/Category.php';
 
     // Get filter parameters
     $category = $_GET['category'] ?? '';
@@ -115,19 +116,12 @@ try {
         // Re-index array after filtering
         $allExpenses = array_values($allExpenses);
     }
-    
-    // Apply pagination
     $totalExpenses = count($allExpenses);
     $expenses = array_slice($allExpenses, $offset, $limit);
     $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
-    
-    // Get filter options - get unique categories from database
-    $allExpenses = $expenseModel->findAll([], 'category');
-    $categories = array_unique(array_column($allExpenses, 'category'));
-    $categories = array_filter($categories); // Remove empty values
-    $categories = array_values($categories); // Re-index array
-    
-    // Format expenses for display - match original table structure exactly
+    $categoryModel = new Category();
+    $dbCategories = $categoryModel->findAll(['status' => 'active'], 'name ASC');
+    $categories = array_column($dbCategories, 'name');
     $formattedExpenses = [];
     foreach ($expenses as $expense) {
         $formattedExpenses[] = [
@@ -143,13 +137,9 @@ try {
             'created_at' => $expense['created_at'] ?? ''
         ];
     }
-    
-    // Ensure formattedExpenses is always an array
     if (!is_array($formattedExpenses)) {
         $formattedExpenses = [];
     }
-    
-    // Format filter options - ensure categories is an array
     $filterOptions = [
         'categories' => array_values(array_map(function($category) {
             return htmlspecialchars($category);

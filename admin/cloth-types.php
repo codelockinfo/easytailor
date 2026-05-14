@@ -16,8 +16,10 @@ $page_title = 'Cloth Type Management';
 require_once 'includes/header.php';
 
 require_once 'models/ClothType.php';
+require_once 'models/Category.php';
 
 $clothTypeModel = new ClothType();
+$categoryModel = new Category();
 $message = '';
 $messageType = '';
 
@@ -170,6 +172,10 @@ if (isset($_GET['edit'])) {
 
 // Get statistics
 $clothTypeStats = $clothTypeModel->getClothTypeStats();
+
+// Get active categories for filtering and dropdowns
+$dbCategories = $categoryModel->findAll(['status' => 'active'], 'name ASC');
+$categoriesList = array_column($dbCategories, 'name');
 ?>
 
 
@@ -257,8 +263,13 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
                 </div>
             </div>
             <div class="col-md-4">
-                <select class="form-select" id="categoryFilter">
+                <select class="form-select" id="categoryFilter" onchange="applyFilters()">
                     <option value="">All Categories</option>
+                    <?php foreach ($categoriesList as $catName): ?>
+                        <option value="<?php echo htmlspecialchars($catName); ?>" <?php echo $category_filter === $catName ? 'selected' : ''; ?>>
+                            <?php echo ucwords(htmlspecialchars($catName)); ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-md-2">
@@ -436,7 +447,14 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="category" class="form-label">Category</label>
-                            <input type="text" class="form-control" id="category" name="category" placeholder="e.g., Men's Wear, Women's Wear">
+                            <select class="form-select" id="category" name="category">
+                                <option value="">Select Category</option>
+                                <?php foreach ($categoriesList as $catName): ?>
+                                    <option value="<?php echo htmlspecialchars($catName); ?>">
+                                        <?php echo ucwords(htmlspecialchars($catName)); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="standard_rate" class="form-label">Standard Rate</label>
@@ -538,6 +556,23 @@ $clothTypeStats = $clothTypeModel->getClothTypeStats();
 </div>
 
 <script>
+function applyFilters() {
+    const category = document.getElementById('categoryFilter').value;
+    const search = document.getElementById('searchInput').value;
+    window.location.href = `cloth-types.php?category=${encodeURIComponent(category)}&search=${encodeURIComponent(search)}`;
+}
+
+// Add event listener for search input Enter key
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        applyFilters();
+    }
+});
+
+document.getElementById('clearFilters').addEventListener('click', function() {
+    window.location.href = 'cloth-types.php';
+});
+
 function editClothType(clothType) {
     document.getElementById('clothTypeModalTitle').textContent = 'Edit Cloth Type';
     document.getElementById('clothTypeAction').value = 'update';

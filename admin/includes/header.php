@@ -663,7 +663,7 @@ $seoOptions = [
                 </li>
 
                 <li class="nav-item">
-                    <a href="cloth-types.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'cloth-types.php' && isset($_GET['view']) && $_GET['view'] == 'categories' ? 'active' : ''; ?>">
+                    <a href="categories.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'categories.php' ? 'active' : ''; ?>">
                         <i class="fas fa-tags"></i>
                         Category
                     </a>

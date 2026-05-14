@@ -17,6 +17,17 @@ $current_user = [
     'role' => get_user_role(),
     'username' => $_SESSION['username'] ?? ''
 ];
+
+// Fetch user profile image for header
+require_once __DIR__ . '/../../config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+$stmt = $db->prepare("SELECT profile_image FROM users WHERE id = :id");
+$userId = $current_user['id'];
+$stmt->bindParam(':id', $userId);
+$stmt->execute();
+$headerUserData = $stmt->fetch(PDO::FETCH_ASSOC);
+$current_user['profile_image'] = $headerUserData['profile_image'] ?? null;
 ?>
 <?php
 require_once __DIR__ . '/../../helpers/SEOHelper.php';
@@ -770,8 +781,7 @@ $seoOptions = [
                 
                 <!-- User Dropdown -->
                 <div class="dropdown">
-                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="text-transform: capitalize;">
-                <i class="fas fa-user-circle me-1"></i>
+                <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center py-1 pe-2 ps-1" type="button" data-bs-toggle="dropdown" style="text-transform: capitalize; border-radius: 30px;">
                     <?php
                     // Get user initials
                     $name = $current_user['name'];
@@ -782,9 +792,19 @@ $seoOptions = [
                     } else {
                         $initials = strtoupper(substr($name, 0, 2));
                     }
+                    
+                    $hasHeaderImage = !empty($current_user['profile_image']) && file_exists(__DIR__ . '/../../' . $current_user['profile_image']);
                     ?>
-                        <span class="user-initials-badge"><?php echo htmlspecialchars($initials); ?></span>
-                    </button>
+                    
+                    <div class="user-avatar-header me-2" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background-color: var(--primary-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">
+                        <?php if ($hasHeaderImage): ?>
+                            <img src="../<?php echo htmlspecialchars($current_user['profile_image']); ?>" alt="<?php echo htmlspecialchars($initials); ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <span><?php echo htmlspecialchars($initials); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <span class="d-none d-md-inline me-1"><?php echo htmlspecialchars($current_user['name']); ?></span>
+                </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><h6 class="dropdown-header"><?php echo htmlspecialchars($current_user['name']); ?></h6></li>
                         <li><hr class="dropdown-divider"></li>

@@ -100,8 +100,18 @@ if (!$currentUser) {
                 </h5>
             </div>
             <div class="card-body text-center">
-                <div class="avatar-circle bg-primary text-white mx-auto mb-3" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
-                    <?php echo strtoupper(substr($currentUser['full_name'], 0, 1)); ?>
+                <div class="position-relative d-inline-block mb-3">
+                    <div class="avatar-circle bg-primary text-white mx-auto" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; overflow: hidden; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <?php if (!empty($currentUser['profile_image'])): ?>
+                            <img id="profilePreview" src="../<?php echo htmlspecialchars($currentUser['profile_image']); ?>" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <span id="profileLetter"><?php echo strtoupper(substr($currentUser['full_name'], 0, 1)); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <label for="profile_image_input" class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle shadow" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;">
+                        <i class="fas fa-pencil-alt" style="font-size: 0.8rem;"></i>
+                    </label>
+                    <input type="file" id="profile_image_input" class="d-none" accept="image/*">
                 </div>
                 <h4 class="mb-1"><?php echo htmlspecialchars($currentUser['full_name']); ?></h4>
                 <p class="text-muted mb-2">@<?php echo htmlspecialchars($currentUser['username']); ?></p>
@@ -278,6 +288,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Set the phone value with prefix for submission
                 phoneInput.value = phoneValue;
+            }
+        });
+    }
+    
+    // Profile image upload
+    const imageInput = document.getElementById('profile_image_input');
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const formData = new FormData();
+                formData.append('profile_image', this.files[0]);
+                formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+                
+                // Show loading state
+                const avatarCircle = document.querySelector('.avatar-circle');
+                const originalContent = avatarCircle.innerHTML;
+                avatarCircle.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>';
+                
+                fetch('ajax/upload_profile_image.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update image
+                        avatarCircle.innerHTML = `<img id="profilePreview" src="${data.image_url}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">`;
+                        // Optional: update header avatar if exists
+                        const headerAvatar = document.querySelector('.header-avatar img');
+                        if (headerAvatar) headerAvatar.src = data.image_url;
+                    } else {
+                        avatarCircle.innerHTML = originalContent;
+                        alert(data.error || 'Failed to upload image');
+                    }
+                })
+                .catch(error => {
+                    avatarCircle.innerHTML = originalContent;
+                    console.error('Error:', error);
+                    alert('An error occurred during upload');
+                });
             }
         });
     }

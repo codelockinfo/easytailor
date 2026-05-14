@@ -80,6 +80,16 @@ if (!$currentUser) {
     echo '<div class="alert alert-danger">User not found</div>';
     exit;
 }
+
+// Get user initials (2 letters)
+$name = $currentUser['full_name'];
+$nameParts = explode(' ', trim($name));
+$userInitials = '';
+if (count($nameParts) >= 2) {
+    $userInitials = strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[count($nameParts) - 1], 0, 1));
+} else {
+    $userInitials = strtoupper(substr($name, 0, 2));
+}
 ?>
 
 <?php if ($message): ?>
@@ -106,7 +116,7 @@ if (!$currentUser) {
                             <?php if (!empty($currentUser['profile_image'])): ?>
                                 <img id="profilePreviewMain" src="../<?php echo htmlspecialchars($currentUser['profile_image']); ?>" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
                             <?php else: ?>
-                                <span id="profileLetterMain"><?php echo strtoupper(substr($currentUser['full_name'], 0, 1)); ?></span>
+                                <span id="profileLetterMain"><?php echo htmlspecialchars($userInitials); ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle shadow" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;">
@@ -283,7 +293,7 @@ if (!$currentUser) {
                         <?php if (!empty($currentUser['profile_image'])): ?>
                             <img src="../<?php echo htmlspecialchars($currentUser['profile_image']); ?>" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
                         <?php else: ?>
-                            <span><?php echo strtoupper(substr($currentUser['full_name'], 0, 1)); ?></span>
+                            <span><?php echo htmlspecialchars($userInitials); ?></span>
                         <?php endif; ?>
                     </div>
                 </div>

@@ -52,9 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
         $stmt->execute();
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-        $initial = strtoupper(substr($userData['full_name'] ?? 'U', 0, 1));
+        $name = $userData['full_name'] ?? 'User';
+        $nameParts = explode(' ', trim($name));
+        $initials = '';
+        if (count($nameParts) >= 2) {
+            $initials = strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[count($nameParts) - 1], 0, 1));
+        } else {
+            $initials = strtoupper(substr($name, 0, 2));
+        }
         
-        echo json_encode(['success' => true, 'initial' => $initial]);
+        echo json_encode(['success' => true, 'initial' => $initials]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Failed to update database']);
     }

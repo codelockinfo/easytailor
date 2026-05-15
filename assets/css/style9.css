@@ -639,7 +639,7 @@ body.announcement-visible {
 /* Features Slider Styles */
 .features-slider {
     margin: 0 -15px;
-    padding: 0px !important;
+    padding: 30px 0 !important;
 }
 
 .feature-slide {
@@ -814,7 +814,7 @@ body.announcement-visible {
 /* Benefits Slider Styles */
 .benefits-slider {
     margin: 0 -15px;
-    padding: 0px !important;
+    padding: 30px 0 !important;
 }
 
 .benefit-slide {
@@ -842,7 +842,7 @@ body.announcement-visible {
 }
 
 .benefit-item:hover {
-    transform: translateX(10px);
+    transform: translateY(-10px);
         box-shadow: var(--shadow-medium);
 }
 
@@ -882,7 +882,7 @@ body.announcement-visible {
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
             margin: 0;
-            padding: 0;
+            padding: 30px 0;
         }
     
         .benefit-slide {
@@ -920,7 +920,7 @@ body.announcement-visible {
     	    grid-template-columns: repeat(4, 1fr);
     	    gap: 2rem;
     	    margin: 0;
-    	    padding: 0;
+            padding: 30px 0;
     	}
     
     	.step-slide {
@@ -1364,7 +1364,7 @@ body.announcement-visible {
 /* Steps Slider Styles */
 .steps-slider {
     margin: 0 -15px;
-        padding: 0px 0px !important;
+    padding: 30px 0 !important;
 }
 
 .step-slide {
@@ -1379,7 +1379,7 @@ body.announcement-visible {
 /* Screenshots Slider Styles */
 .screenshots-slider {
     margin: 0 -15px;
-    padding: 0px !important;
+    padding: 30px 0 !important;
 }
 
 .screenshot-slide {
@@ -1394,7 +1394,7 @@ body.announcement-visible {
 /* Testimonials Slider Styles */
 .testimonials-slider {
     margin: 0 -15px;
-    padding: 0px !important;
+    padding: 30px 0 !important;
 }
 
 .testimonial-slide {
@@ -1409,7 +1409,7 @@ body.announcement-visible {
 /* Pricing Slider Styles */
 .pricing-slider {
     margin: 20px -15px 0;
-    padding: 0px !important;
+    padding: 30px 0 !important;
 }
 
 .pricing-slide {
@@ -2201,10 +2201,6 @@ section:last-of-type+.footer-section {
         .slick-dots {
             display: none !important;
         }
-        
-        .tailors-section .slick-dotted.slick-slider {
-            margin-bottom: 0px;
-        }
 
     	.features-section {
         padding-top: 16px !important;
@@ -2212,9 +2208,16 @@ section:last-of-type+.footer-section {
         }
 
     	.tailors-section {
-        padding: 1rem 0 3rem !important;
+        padding: 1rem 0 2rem !important;
         }
-
+        
+                                .slick-dotted.slick-slider {
+                                    margin-bottom: 0px !important;
+                                }
+                
+                                .screenshots-slider {
+                                    padding: 0px 0 !important;
+                                }
     	.tailors-section .mb-5 {
     	    margin-bottom: 0 !important;
     	}
@@ -2263,7 +2266,7 @@ section:last-of-type+.footer-section {
     	}
 
     	.hero-description {
-    	    font-size: 16px;
+            font-size: 17px;
     	}
     
     	.section-title {
@@ -2271,7 +2274,7 @@ section:last-of-type+.footer-section {
     	}
 
     	.section-description {
-    	    font-size: 16px;
+            font-size: 17px;
     	}
 
     	.benefit-title {
@@ -2283,11 +2286,19 @@ section:last-of-type+.footer-section {
     	    font-size: 18px;
     	}
 
-    	.author-title {
-    	    font-size: 16px;
-    	}
-    
-    	.hero-cta .btn {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                .author-title {
+        font-size: 17px;
+        }
+        
+        .feature-description,
+        .benefit-description,
+        .step-description,
+        .testimonial-text,
+        .btn {
+            font-size: 17px !important;
+        }
+        
+        .hero-cta .btn {
     	    display: block;
     	    width: 100%;
     	    margin-bottom: 1rem;
@@ -2325,7 +2336,7 @@ section:last-of-type+.footer-section {
     	.footer-section {
     	    padding-top: 1.5rem !important;
     	    padding-bottom: 1rem !important;
-    	    margin-bottom: 100px !important;
+            margin-bottom: 50px !important;
     	}
     
     	.footer-section .row.g-4 {

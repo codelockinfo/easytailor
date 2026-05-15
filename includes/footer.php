@@ -86,7 +86,7 @@ $currentYear = date('Y');
                 </div>
             </div>
         </div>
-        <hr class="my-4" style="border-color: rgba(0, 0, 0, 0.1);">
+        <hr class="my-0 my-lg-4" style="border-color: rgba(0, 0, 0, 0.1);">
         <div class="row align-items-center">
             <div class="col-md-6">
                 <p class="copyright mb-0">

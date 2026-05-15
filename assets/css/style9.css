@@ -869,7 +869,7 @@ body.announcement-visible {
 }
 
 .feature-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(0px);
         box-shadow: var(--shadow-heavy);
         border-color: var(--primary-color);
 }
@@ -2858,11 +2858,6 @@ section:last-of-type+.footer-section {
         object-fit: cover;
         transition: transform 0.3s ease;
 }
-
-.tailor-slider-card:hover .tailor-slider-image img {
-    transform: scale(1.05);
-}
-
 .featured-badge-slider {
     position: absolute;
         top: 10px;

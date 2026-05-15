@@ -62,9 +62,7 @@
     const modal = new bootstrap.Modal(modalElement);
 
     modalElement.addEventListener('hidden.bs.modal', () => {
-        modalElement.classList.remove('show');
-        modalElement.style.display = '';
-        modalElement.setAttribute('aria-hidden', 'true');
+        // Bootstrap handles cleanup automatically
     });
     const loadingEl = modalElement.querySelector('#tailorModalLoading');
     const contentEl = modalElement.querySelector('#tailorModalContent');
@@ -94,9 +92,8 @@
         }
         currentCompanyId = companyId;
         resetModal();
-        modalElement.removeAttribute('aria-hidden');
-        modalElement.classList.add('show');
-        modalElement.style.display = 'block';
+        
+        // Let Bootstrap handle the modal state correctly
         modal.show();
         loadTailorDetails(companyId);
     }

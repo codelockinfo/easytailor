@@ -206,6 +206,12 @@ body {
     perspective: none !important;
 }
 
+/* Prevent background scrolling when modal is open */
+body.modal-open {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
 /* Ensure sticky buttons work - body should not interfere */
 body > .sticky-cta,
 body > .sticky-cta-left {

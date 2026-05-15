@@ -108,6 +108,12 @@ $seoOptions = [
             color: #333;
         }
 
+        /* Prevent background scrolling when modal is open */
+        body.modal-open {
+            overflow: hidden !important;
+            height: 100vh !important;
+        }
+
         /* Header */
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

@@ -224,8 +224,9 @@ $seoOptions = [
         }
 
         .tailor-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+            border: 1px solid rgba(102, 126, 234, 0.3);
         }
 
         .tailor-image {
@@ -484,6 +485,19 @@ $seoOptions = [
                 margin-bottom: 10px;
             }
         }
+        #tailorDetailModal .modal-body {
+            padding: 18px 25px;
+        }
+
+        #tailorModalContact .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #tailorModalContact .btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
         @media (min-width: 768px) {
             .modal-dialog {
                 width: 100% !important;

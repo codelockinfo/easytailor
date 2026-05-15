@@ -635,7 +635,7 @@ $seoOptions = [
                                     <div id="tailorModalStats" class="mt-2 small text-muted"></div>
                                     <div id="tailorRatingBreakdown" class="mt-3"></div>
                                     <div id="tailorModalLocation" class="mt-3 small"></div>
-                                    <div id="tailorModalContact" class="mt-3 d-flex gap-2 flex-wrap"></div>
+                                    <div id="tailorModalContact" class="mt-3 d-flex gap-2 "></div>
                                 </div>
                             </div>
                             <div class="col-md-8">

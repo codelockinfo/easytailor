@@ -212,6 +212,7 @@ body.modal-open {
     height: 100vh !important;
 }
 
+
 /* Ensure sticky buttons work - body should not interfere */
 body > .sticky-cta,
 body > .sticky-cta-left {
@@ -442,7 +443,9 @@ body.announcement-visible {
     position: relative;
     overflow: hidden;
 }
-
+.no-tailor-modal.btn {
+    padding: 0.75rem 1rem !important;
+}
 .btn-primary {
     background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
     color: var(--primary-color);

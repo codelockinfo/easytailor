@@ -185,8 +185,8 @@
         const contactLinks = [];
         if (company.phone) {
             const tel = company.phone.replace(/[^0-9+]/g, '');
-            contactLinks.push(`<a href="tel:${tel}" class="btn btn-outline-primary btn-sm me-2 no-tailor-modal">
-                <i class="fas fa-phone me-1"></i> Call
+            contactLinks.push(`<a href="tel:${tel}" class="btn btn-outline-primary btn-sm no-tailor-modal">
+                <i class="fas fa-phone me-1"></i> 
             </a>`);
         }
         if (company.whatsapp) {

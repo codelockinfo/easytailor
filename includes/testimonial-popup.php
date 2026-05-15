@@ -98,16 +98,16 @@ try {
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Rating *</label>
                             <div class="star-rating">
-                                <input type="radio" id="star1" name="star" value="1">
-                                <label for="star1" class="star-label"><i class="fas fa-star"></i></label>
-                                <input type="radio" id="star2" name="star" value="2">
-                                <label for="star2" class="star-label"><i class="fas fa-star"></i></label>
-                                <input type="radio" id="star3" name="star" value="3">
-                                <label for="star3" class="star-label"><i class="fas fa-star"></i></label>
-                                <input type="radio" id="star4" name="star" value="4">
-                                <label for="star4" class="star-label"><i class="fas fa-star"></i></label>
                                 <input type="radio" id="star5" name="star" value="5" checked>
-                                <label for="star5" class="star-label"><i class="fas fa-star"></i></label>
+                                <label for="star5" class="star-label" title="Excellent"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star4" name="star" value="4">
+                                <label for="star4" class="star-label" title="Very Good"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star3" name="star" value="3">
+                                <label for="star3" class="star-label" title="Good"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star2" name="star" value="2">
+                                <label for="star2" class="star-label" title="Fair"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star1" name="star" value="1">
+                                <label for="star1" class="star-label" title="Poor"><i class="fas fa-star"></i></label>
                             </div>
                         </div>
                     </div>

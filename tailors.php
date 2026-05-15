@@ -700,7 +700,7 @@ $seoOptions = [
                                     <div class="mb-2">
                                     <label class="form-label">Rating *</label>
                                     <div class="star-rating-input" id="tailorRatingInput">
-                                        <input type="radio" id="tailorRating5" name="rating" value="5">
+                                        <input type="radio" id="tailorRating5" name="rating" value="5" checked>
                                         <label for="tailorRating5" title="Excellent"><i class="fas fa-star"></i></label>
                                         <input type="radio" id="tailorRating4" name="rating" value="4">
                                         <label for="tailorRating4" title="Very good"><i class="fas fa-star"></i></label>

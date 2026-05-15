@@ -477,6 +477,7 @@ body.announcement-visible {
 
 .btn-outline-primary:hover {
     background: var(--primary-color);
+    border: var(--primary-color);
     color: white !important;
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);

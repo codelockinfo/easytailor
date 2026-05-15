@@ -2385,10 +2385,6 @@ section:last-of-type+.footer-section {
             flex-shrink: 0;
         }
         
-        .footer-toggle-title.active .footer-toggle-icon {
-            /* No rotation needed if we change text to - */
-        }
-        
         .footer-toggle-content {
             overflow: hidden;
             transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
@@ -3000,11 +2996,11 @@ section:last-of-type+.footer-section {
     border: 2px solid #ffffff !important;
 }
 .btn-primary-login-index-page:hover {
-    border: 2px solid #0a58ca !important;
+    border-color: transparent !important;
 }
 .btn-primary-login-index-page-hover:hover {
     color: #0a58ca !important;
-    border: 2px solid #ffffff !important;
+    border-color: transparent !important;
 }
 
 /* .pricing-container{

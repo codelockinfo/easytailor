@@ -489,6 +489,28 @@ $seoOptions = [
             padding: 18px 25px;
         }
 
+        /* Pagination Styling */
+        .pagination .page-link {
+            color: var(--primary-color);
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
         #tailorModalContact .btn {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -666,16 +688,16 @@ $seoOptions = [
                                 <form id="tailorReviewForm" enctype="multipart/form-data" novalidate>
                                     <input type="hidden" name="company_id" value="">
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-2">
                                             <label class="form-label">Your Name *</label>
                                             <input type="text" name="reviewer_name" class="form-control" required>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 mb-2">
                                             <label class="form-label">Email (optional)</label>
                                             <input type="email" name="reviewer_email" class="form-control">
                                         </div>
                                     </div>
-                                    <div class="mb-3">
+                                    <div class="mb-2">
                                     <label class="form-label">Rating *</label>
                                     <div class="star-rating-input" id="tailorRatingInput">
                                         <input type="radio" id="tailorRating5" name="rating" value="5">

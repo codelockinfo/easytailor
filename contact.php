@@ -138,6 +138,7 @@ $seoOptions = [
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px 15px 0 0 !important;
+            padding: 15px !important;
         }
 
         .card-header h1 {

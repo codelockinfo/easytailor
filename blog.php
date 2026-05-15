@@ -249,7 +249,7 @@ if (file_exists($articlesFile)) {
             <?php else: ?>
                 <div class="row g-4">
                     <?php foreach ($articles as $article): ?>
-                        <div class="col-lg-6">
+                        <div class="col-lg-4">
                             <div class="article-card">
                                 <img src="<?php echo htmlspecialchars($article['image']); ?>" 
                                      alt="<?php echo htmlspecialchars($article['title']); ?>" 

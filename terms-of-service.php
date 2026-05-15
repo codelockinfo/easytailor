@@ -92,16 +92,19 @@ $seoOptions = [
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
         }
 
         .card-header h1 {
             font-size: 24px;
         }
+
+        .terms-of-service-section .card-body{
+            padding: 25px !important;
+        }
         
         .content h2 {
             color: #2d3748;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
             font-weight: 600;
             font-size: 24px;
         }
@@ -168,9 +171,9 @@ $seoOptions = [
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container py-5">
+<div class="container terms-of-service-section py-5">
     <div class="row">
-        <div class="col-lg-8 mx-auto w-100">
+        <div class="col-lg-8 mx-auto p-0 w-100">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h1 class="h3 mb-0">

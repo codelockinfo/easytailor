@@ -2330,6 +2330,9 @@ section:last-of-type+.footer-section {
 }
 
 @media (max-width: 768px) {
+    .step-card {
+            min-height: 228px;
+        }
     .navbar {
             position: sticky;
             padding: 5px 0px;

@@ -92,146 +92,32 @@ if (file_exists($articlesFile)) {
         .blog-hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 60px 0;
-        }
-        .blog-section{
-            background-color: #f9f9f9;
+            padding: 50px 0;
+            text-align: center;
         }
         
         .blog-hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
+            font-size: 3.5rem;
+            font-weight: 800;
             margin-bottom: 1rem;
+            letter-spacing: -1px;
         }
         
         .blog-hero p {
             font-size: 1.25rem;
             opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        
-        .article-card {
-            border: none;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .article-image {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .article-card-body {
-            padding: 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .article-category {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-        }
-        
-        .article-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2d3748;
-            line-height: 1.3;
-        }
-        
-        .article-excerpt {
-            color: #4a5568;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-        
-        .article-meta {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 0.875rem;
-            color: #718096;
-            margin-top: auto;
-        }
-        
-        .article-meta i {
-            margin-right: 0.25rem;
-        }
-        
-        .read-more-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-block;
-            transition: opacity 0.3s ease;
-        }
-        
-        .read-more-btn:hover {
-            opacity: 0.9;
-            color: white;
-        }
-        
-        .no-articles {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #718096;
-        }
-        
+
         @media (max-width: 768px) {
             .blog-hero {
-                margin-top: 0 !important;
-                padding: 30px 0px;
-            }
-            .article-card-body{
-                padding: 12px;
-            }
-            .article-title{
-                font-size: 20px;
-            }
-            .article-excerpt{
-                font-size: 14px;
-            }
-            .read-more-btn{
-                font-size: 14px;
-                text-align: center;
+                padding: 40px 0;
             }
             .blog-hero h1 {
-                font-size: 28px;
-            }
-            
-            .blog-hero p {
-                font-size: 1rem;
-            }
-            
-            .article-image {
-                height: 200px;
+                font-size: 2.5rem;
             }
         }
-        
-       
     </style>
 </head>
 <body>
@@ -262,18 +148,18 @@ if (file_exists($articlesFile)) {
             <?php else: ?>
                 <div class="row g-4">
                     <?php foreach ($articles as $article): ?>
-                        <div class="col-lg-4">
+                        <div class="col-lg-4 col-md-6">
                             <div class="article-card">
-                                <img src="<?php echo htmlspecialchars($article['image']); ?>" 
-                                     alt="<?php echo htmlspecialchars($article['title']); ?>" 
-                                     class="article-image"
-                                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <div class="article-image-wrapper">
+                                    <img src="<?php echo htmlspecialchars($article['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($article['title']); ?>"
+                                        onerror="this.onerror=null; this.style.display='none';">
+                                </div>
                                 
-                                <div class="article-card-body">
+                                <div class="article-body">
                                     <span class="article-category"><?php echo htmlspecialchars($article['category']); ?></span>
                                     <h3 class="article-title">
-                                        <a href="article?slug=<?php echo htmlspecialchars($article['slug']); ?>" 
-                                           style="color: inherit; text-decoration: none;">
+                                        <a href="article?slug=<?php echo htmlspecialchars($article['slug']); ?>">
                                             <?php echo htmlspecialchars($article['title']); ?>
                                         </a>
                                     </h3>
@@ -283,8 +169,8 @@ if (file_exists($articlesFile)) {
                                         <span><i class="fas fa-calendar"></i><?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
                                         <span><i class="fas fa-clock"></i><?php echo htmlspecialchars($article['read_time']); ?></span>
                                     </div>
-                                    <a href="article?slug=<?php echo htmlspecialchars($article['slug']); ?>" class="read-more-btn mt-3">
-                                        Read More <i class="fas fa-arrow-right ms-2"></i>
+                                    <a href="article?slug=<?php echo htmlspecialchars($article['slug']); ?>" class="blog-read-more-btn">
+                                        Read More <i class="fas fa-arrow-right"></i>
                                     </a>
                                 </div>
                             </div>

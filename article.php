@@ -136,10 +136,11 @@ $seoOptions = [
         .article-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 120px 0 60px;
-            margin-top: 76px;
+            padding: 60px 0;
         }
-        
+        .articale-section{
+            background-color:#f9f9f9;
+        }
         .article-header-content {
             max-width: 800px;
             margin: 0 auto;
@@ -179,7 +180,7 @@ $seoOptions = [
         }
         
         .article-image-wrapper {
-            margin: 3rem 0;
+            margin: 1rem 0;
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -195,7 +196,7 @@ $seoOptions = [
         .article-content {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 2rem 0;
+            padding: 1rem 0;
         }
         
         .article-content p {
@@ -292,7 +293,7 @@ $seoOptions = [
     </section>
 
     <!-- Article Content -->
-    <section class="py-4">
+    <section class="py-4 articale-section">
         <div class="container">
             <a href="<?php echo htmlspecialchars($backLink); ?>" class="back-to-blog">
                 <i class="fas fa-arrow-left"></i> <?php echo htmlspecialchars($backText); ?>

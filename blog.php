@@ -92,8 +92,10 @@ if (file_exists($articlesFile)) {
         .blog-hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 120px 0 80px;
-            margin-top: 70px;
+            padding: 60px 0;
+        }
+        .blog-section{
+            background-color: #f9f9f9;
         }
         
         .blog-hero h1 {
@@ -236,7 +238,7 @@ if (file_exists($articlesFile)) {
     </section>
 
     <!-- Blog Articles Section -->
-    <section class="py-5">
+    <section class="py-5 blog-section">
         <div class="container">
             <?php if (empty($articles)): ?>
                 <div class="no-articles">

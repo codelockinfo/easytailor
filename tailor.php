@@ -202,9 +202,6 @@ $seoOptions = [
                 flex-direction: column;
                 align-items: flex-start !important;
             }
-            .profile-rating {
-                width: 100%;
-            }
         }
     </style>
 </head>

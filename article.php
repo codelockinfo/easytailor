@@ -246,7 +246,7 @@ $seoOptions = [
         
         @media (max-width: 768px) {
             .article-title {
-                font-size: 1.75rem;
+                font-size: 23px;
             }
             
             .article-image {
@@ -262,7 +262,7 @@ $seoOptions = [
             }
             .article-header{
                 margin-top: 0 !important;
-                padding: 60px 0 60px !important;
+                padding: 30px 0  !important;
             }
             .back-to-blog{
                 margin-bottom: 0 !important;

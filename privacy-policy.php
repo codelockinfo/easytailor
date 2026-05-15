@@ -164,13 +164,26 @@ $seoOptions = [
         .footer a:hover {
             color: white;
         }
+        @media (max-width: 768px) {
+           .btn-primary{
+            font-size: 16px !important;
+           }
+           .card-header{
+            border-radius: 0 !important;
+           }
+           .content h2{
+            font-size: 23px !important;
+           }
+           
+           
+        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container privacy-section py-5" >
+<div class="container privacy-section py-0 py-lg-5" >
     <div class="row">
         <div class="col-lg-8 mx-auto p-0 w-100">
             <div class="card shadow-sm">

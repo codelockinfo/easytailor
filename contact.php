@@ -245,15 +245,30 @@ $seoOptions = [
             font-size: 0.875rem;
             margin-top: 0.25rem;
         }
+          @media (max-width: 768px) {
+            .card-header{
+                border-radius: 0px !important;
+            }
+            .card-header h1 {
+                font-size: 20px;
+            }
+             .card-header p{
+                font-size: 13px;
+             }
+             .contact-info-box{
+                padding: 15px !important;
+             }
+        }
+
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container py-5">
+<div class="container py-0 py-lg-5">
     <div class="row">
-        <div class="col-lg-10 mx-auto">
+        <div class="col-lg-10 mx-auto p-0 w-100">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h1 class="h3 mb-0">
@@ -273,19 +288,19 @@ $seoOptions = [
                                 
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Your Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name" required maxlength="100">
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter your full name" required maxlength="100">
                                     <div class="invalid-feedback"></div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label for="emailId" class="form-label">Email Address <span class="text-danger">*</span></label>
-                                    <input type="email" class="form-control" id="emailId" name="emailId" required maxlength="150">
+                                    <input type="email" class="form-control" id="emailId" name="emailId" placeholder="Enter your email address" required maxlength="150">
                                     <div class="invalid-feedback"></div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
+                                    <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." required></textarea>
                                     <div class="invalid-feedback"></div>
                                 </div>
                                 

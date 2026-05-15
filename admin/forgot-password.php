@@ -120,6 +120,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        @media (max-width: 768px) {
+            .reset-header {
+                padding: 1.5rem;
+            }
+            .reset-header i {
+                font-size: 2.5rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            .reset-header h3 {
+                font-size: 1.25rem;
+            }
+            .reset-header p {
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>

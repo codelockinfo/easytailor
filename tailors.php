@@ -458,6 +458,13 @@ $seoOptions = [
 
             .tailor-card-body {
                 padding: 15px;
+                text-align: center;
+            }
+            .rating, .tailor-location, .specialties, .contact-buttons {
+                justify-content: center;
+            }
+            .info-item {
+                justify-content: center;
             }
             .page-header {
                 padding: 15px 0 20px;

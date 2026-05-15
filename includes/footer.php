@@ -182,6 +182,8 @@ $currentYear = date('Y');
             allTitles.forEach(function(title) {
                 if (title !== toggleTitle) {
                     title.classList.remove('active');
+                    const icon = title.querySelector('.footer-toggle-icon');
+                    if (icon) icon.textContent = '+';
                 }
             });
             
@@ -195,9 +197,13 @@ $currentYear = date('Y');
             if (isActive) {
                 toggleTitle.classList.remove('active');
                 content.classList.remove('active');
+                const icon = toggleTitle.querySelector('.footer-toggle-icon');
+                if (icon) icon.textContent = '+';
             } else {
                 toggleTitle.classList.add('active');
                 content.classList.add('active');
+                const icon = toggleTitle.querySelector('.footer-toggle-icon');
+                if (icon) icon.textContent = '-';
             }
         });
         

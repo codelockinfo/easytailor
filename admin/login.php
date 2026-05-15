@@ -161,6 +161,14 @@ $seoOptions = [
         .mt-4 {
             margin-top: 0.5rem !important;
         }
+        @media (max-width: 768px) {
+            .login-header p {
+                font-size: 14px;
+            }
+            .text-center.mt-4 a {
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -175,7 +183,7 @@ $seoOptions = [
                         $brandLogo = get_logo_path('footer-logo.png');
                         if ($brandLogo):
                         ?>
-                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
+                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 80px; max-width: 200px;">
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
@@ -257,7 +265,7 @@ $seoOptions = [
                                 Don't have an account? 
                             </p>
                                 
-                            <a href="register.php" class="text-decoration-none fw-bold">
+                            <a href="register.php" class="text-decoration-none fw-semibold">
                                 <i class="fas fa-user-plus me-1"></i>Register Your Tailor Shop
                             </a><br><br>
                             

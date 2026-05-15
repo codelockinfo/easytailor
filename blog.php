@@ -203,10 +203,23 @@ if (file_exists($articlesFile)) {
         @media (max-width: 768px) {
             .blog-hero {
                 margin-top: 0 !important;
+                padding: 30px 0px;
             }
-            
+            .article-card-body{
+                padding: 12px;
+            }
+            .article-title{
+                font-size: 20px;
+            }
+            .article-excerpt{
+                font-size: 14px;
+            }
+            .read-more-btn{
+                font-size: 14px;
+                text-align: center;
+            }
             .blog-hero h1 {
-                font-size: 2rem;
+                font-size: 28px;
             }
             
             .blog-hero p {
@@ -238,7 +251,7 @@ if (file_exists($articlesFile)) {
     </section>
 
     <!-- Blog Articles Section -->
-    <section class="py-5 blog-section">
+    <section class="py-3 py-md-5 blog-section">
         <div class="container">
             <?php if (empty($articles)): ?>
                 <div class="no-articles">

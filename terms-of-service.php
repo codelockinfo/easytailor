@@ -164,6 +164,11 @@ $seoOptions = [
         .footer a:hover {
             color: white;
         }
+        @media (max-width: 768px) {
+            .card-header{
+                border-radius: 0px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -171,7 +176,7 @@ $seoOptions = [
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container terms-of-service-section py-5">
+<div class="container terms-of-service-section py-0 py-lg-5">
     <div class="row">
         <div class="col-lg-8 mx-auto p-0 w-100">
             <div class="card shadow-sm">

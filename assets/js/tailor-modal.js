@@ -191,7 +191,7 @@
         }
         if (company.whatsapp) {
             const wa = company.whatsapp.replace(/[^0-9]/g, '');
-            contactLinks.push(`<a href="https://wa.me/${wa}" target="_blank" class="btn btn-success btn-sm no-tailor-modal">
+            contactLinks.push(`<a href="https://wa.me/${wa}" target="_blank" class="btn btn-success btn-sm no-tailor-modal d-flex align-items-center justify-content-center">
                 <i class="fab fa-whatsapp me-1"></i> WhatsApp
             </a>`);
         }

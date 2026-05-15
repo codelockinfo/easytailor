@@ -2374,11 +2374,11 @@ section:last-of-type+.footer-section {
         display: none;
             /* Hidden by default - will show only on mobile */
             visibility: hidden;
-            width: 20px;
-            height: 20px;
-            line-height: 20px;
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             font-weight: bold;
             color: var(--primary-color);
             transition: transform 0.3s ease;
@@ -2386,7 +2386,7 @@ section:last-of-type+.footer-section {
         }
         
         .footer-toggle-title.active .footer-toggle-icon {
-            transform: rotate(45deg);
+            /* No rotation needed if we change text to - */
         }
         
         .footer-toggle-content {
@@ -2407,8 +2407,8 @@ section:last-of-type+.footer-section {
                 display: inline-block !important;
                 visibility: visible !important;
                 opacity: 1 !important;
-                width: 20px !important;
-                height: 20px !important;
+                width: 22px !important;
+                height: 22px !important;
                 overflow: visible !important;
             }
         
@@ -2970,8 +2970,17 @@ section:last-of-type+.footer-section {
 
     	.tailor-slider-body {
     	    padding: 15px;
+            text-align: center;
     	}
-
+        .tailor-slider-rating, .tailor-slider-location, .tailor-slider-specialties, .tailor-slider-actions {
+            justify-content: center;
+        }
+        .form-label{
+            font-size: 15px;
+        }
+        .fa-star{
+            font-size: 24px;
+        }
     	.tailor-slider-name {
     	    font-size: 1rem;
     	}

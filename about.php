@@ -248,6 +248,11 @@ $seoOptions = [
         .footer a:hover {
             color: white;
         }
+        @media (max-width: 768px) {
+           .btn-primary{
+            font-size: 16px !important;
+           }    
+        }
     </style>
 </head>
 <body>
@@ -283,7 +288,7 @@ if (file_exists($jsonFile)) {
 }
 ?>
 
-<div class="container py-5 about-section">
+<div class="container py-0 py-lg-5 about-section">
     <div class="row">
         <div class="col-lg-10 mx-auto p-0 w-100">
             <div class="card shadow-sm">

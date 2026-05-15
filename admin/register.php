@@ -400,6 +400,21 @@ $seoOptions = [
             padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
         }
+        @media (max-width: 768px) {
+            .register-header h2 {
+                font-size: 22px;
+            }
+            .register-header p {
+                font-size: 14px;
+            }
+            .section-title {
+                font-size: 18px;
+            }
+            .btn-register {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -414,7 +429,7 @@ $seoOptions = [
                         $brandLogo = get_logo_path('footer-logo.png');
                         if ($brandLogo):
                         ?>
-                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="mb-3" style="max-height: 80px; max-width: 200px;">
+                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 80px; max-width: 200px;">
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
@@ -696,7 +711,7 @@ $seoOptions = [
                         <div class="text-center mt-4">
                             <p class="text-muted">
                                 Already have an account? 
-                                <a href="login.php" class="text-decoration-none fw-bold">
+                                <a href="login.php" class="text-decoration-none fw-semibold">
                                     Sign In
                                 </a>
                             </p>

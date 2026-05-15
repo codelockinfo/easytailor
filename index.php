@@ -602,7 +602,7 @@
             </div>
 
             <!-- Show All Button -->
-            <div class="text-center mt-4">
+            <div class="text-center mt-0  mt-md-4 ">
                 <a href="tailors.php" class="btn btn-primary btn-lg">
                     <i class="fas fa-th-large me-2"></i>Show All Tailors
                 </a>
@@ -1465,7 +1465,7 @@
                         </div>
                     <?php endforeach; ?>
                 </div>
-                <div class="row mt-5">
+                <div class="row mt-3 mt-md-4 ">
                     <div class="col-12 text-center">
                         <a href="blog.php" class="btn btn-primary btn-lg btn-for-article" style="border: none; padding: 0.875rem 2.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-block; transition: all 0.3s ease;">
                             View More Articles <i class="fas fa-arrow-right ms-2"></i>

@@ -168,7 +168,16 @@ $seoOptions = [
             .card-header{
                 border-radius: 0px !important;
             }
+           
         }
+         @media (min-width: 576px) {
+             .card-header{
+                border-radius: 15px 15px 0 0 !important;      
+            }
+             .card{
+                border-radius: 15px 15px 0 0 !important;      
+            }
+         }
     </style>
 </head>
 <body>
@@ -176,7 +185,7 @@ $seoOptions = [
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container terms-of-service-section py-0 py-lg-5">
+<div class="container terms-of-service-section py-0 py-sm-5">
     <div class="row">
         <div class="col-lg-8 mx-auto p-0 w-100">
             <div class="card shadow-sm">

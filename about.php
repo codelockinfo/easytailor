@@ -253,6 +253,14 @@ $seoOptions = [
             font-size: 16px !important;
            }    
         }
+         @media (min-width: 576px) {
+             .card-header{
+                border-radius: 15px 15px 0 0 !important;      
+            }
+             .card{
+                border-radius: 15px 15px 0 0 !important;      
+            }
+         }
     </style>
 </head>
 <body>
@@ -288,7 +296,7 @@ if (file_exists($jsonFile)) {
 }
 ?>
 
-<div class="container py-0 py-lg-5 about-section">
+<div class="container py-0 py-sm-5 about-section">
     <div class="row">
         <div class="col-lg-10 mx-auto p-0 w-100">
             <div class="card shadow-sm">

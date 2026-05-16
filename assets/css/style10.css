@@ -123,6 +123,21 @@
 
 /* Adjust navbar position when announcement bar is visible */
 /* Ensure navbar stays below announcement bar */
+body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top {
+    top: auto;
+}
+
+/* Fallback for browsers that don't support :has() */
+.announcement-bar:not(.hidden)~.scroll-indicator~.navbar.fixed-top {
+    top: auto;
+    margin-top: 0;
+}
+
+body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top,
+
+:not(.hidden)~* .navbar.fixed-top {
+    position: relative;
+}
 .navbar.fixed-top {
     top: 0;
     transition: top 0.3s ease;

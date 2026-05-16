@@ -2366,7 +2366,6 @@ section:last-of-type+.footer-section {
 
     	.features-section {
         padding-top: 16px !important;
-            padding-bottom: 1px;
         }
 
     	.tailors-section {
@@ -2463,11 +2462,11 @@ section:last-of-type+.footer-section {
     	    display: block;
     	    width: 100%;
     	    margin-bottom: 1rem;
-    	}
-    
+        }
+
     	.hero-cta .btn:last-child {
     	    margin-bottom: 0;
-    	}
+        }
     
     	.benefit-item {
     	    flex-direction: column;
@@ -3638,6 +3637,12 @@ section:last-of-type+.footer-section {
     }
 }
 
+/* Adjust navbar toggler size */
+.navbar-toggler {
+    padding: 0.2rem 0.55rem !important;
+    font-size: 1.1rem !important;
+    border-radius: 6px !important;
+}
 /* Remove toggler focus outline */
 .navbar-toggler:focus,
 .navbar-toggler:active,

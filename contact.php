@@ -259,14 +259,18 @@ $seoOptions = [
                 padding: 15px !important;
              }
         }
-
+         @media (min-width: 576px) {
+             .card-header{
+                border-radius: 15px 15px 0 0 !important;      
+            }
+         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
-<div class="container py-0 py-lg-5">
+<div class="container py-0 py-sm-5">
     <div class="row">
         <div class="col-lg-10 mx-auto p-0 w-100">
             <div class="card shadow-sm">

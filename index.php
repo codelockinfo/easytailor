@@ -309,7 +309,7 @@
     <!-- Hero Section -->
     <section id="home" class="hero-section">
         <div class="container">
-            <div class="row align-items-center min-vh-100">
+            <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content">
                         <h1 class="hero-title">Smart Tailoring Management System</h1>

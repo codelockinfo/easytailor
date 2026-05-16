@@ -122,41 +122,19 @@
 }
 
 /* Adjust navbar position when announcement bar is visible */
-body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top {
-    top: auto;
-}
-
-/* Fallback for browsers that don't support :has() */
-.announcement-bar:not(.hidden)~.scroll-indicator~.navbar.fixed-top {
-    top: auto;
-    margin-top: 0;
-}
-
 /* Ensure navbar stays below announcement bar */
 .navbar.fixed-top {
     top: 0;
-        transition: top 0.3s ease;
+    transition: top 0.3s ease;
         margin: 0;
         padding: 0;
 }
 
-body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top,
-
-:not(.hidden)~* .navbar.fixed-top {
-    position: relative;
-}
-
-/* Better approach: Use JavaScript to add class */
 body.announcement-visible .navbar.fixed-top {
-    top: auto;
-        position: relative;
+    /* JS sets top dynamically */
         margin-top: 0;
 }
 
-body.announcement-visible .announcement-bar:not(.hidden)~.navbar.fixed-top {
-    position: relative;
-    margin-top: 0;
-}
 .hero-logo-section {
     display: none;
 }
@@ -305,8 +283,7 @@ h6 {
 
 /* Adjust navbar when announcement bar is visible */
 body.announcement-visible .navbar.fixed-top {
-    top: auto;
-        position: relative;
+    /* Handled by JS */
 }
 
 /* Ensure proper spacing when announcement bar is visible */
@@ -395,15 +372,23 @@ body.announcement-visible {
 /* Hero Section */
 .hero-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        color: white;
+    color: white;
         position: relative;
         overflow: hidden;
         min-height: 100vh;
         display: flex;
         align-items: center;
-        padding-bottom: 2rem;
+    padding-top: 130px;
+    padding-bottom: 2rem;
 }
 
+/* Fix top cutoff on short screens */
+@media (max-height: 800px) {
+    .hero-section {
+        align-items: flex-start;
+        padding-top: 150px;
+    }
+}
 .hero-section::before {
     content: '';
         position: absolute;
@@ -2414,8 +2399,7 @@ section:last-of-type+.footer-section {
     	}
 
     	.hero-title {
-    	    font-size: 28px;
-    	    padding-top: 2rem;
+            font-size: 28px;
     	}
     
     	.hero-shape svg {

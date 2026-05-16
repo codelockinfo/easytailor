@@ -80,7 +80,7 @@ $seoOptions = [
     }
     ?>
     
-    <link href="assets/css/style11.css" rel="stylesheet">
+    <link href="assets/css/style12.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     

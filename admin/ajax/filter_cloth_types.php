@@ -25,6 +25,8 @@ try {
     }
 
     require_once $rootDir . '/models/ClothType.php';
+    require_once $rootDir . '/models/Category.php';
+    $categoryModel = new Category();
 
     // Get filter parameters
     $category = $_GET['category'] ?? '';
@@ -96,8 +98,9 @@ try {
     $totalPages = $limit > 0 ? ceil($totalClothTypes / $limit) : 1;
     
     // Get filter options - get unique categories from database
-    $allClothTypes = $clothTypeModel->findAll([], 'category');
-    $categories = array_unique(array_column($allClothTypes, 'category'));
+    $current_company_id = get_company_id();
+    $dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
+    $categories = array_unique(array_column($dbCategories, 'name'));
     $categories = array_filter($categories); // Remove empty values
     $categories = array_values($categories); // Re-index array
     

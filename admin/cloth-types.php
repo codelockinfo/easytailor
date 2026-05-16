@@ -174,8 +174,9 @@ if (isset($_GET['edit'])) {
 $clothTypeStats = $clothTypeModel->getClothTypeStats();
 
 // Get active categories for filtering and dropdowns
-$dbCategories = $categoryModel->findAll(['status' => 'active'], 'name ASC');
-$categoriesList = array_column($dbCategories, 'name');
+$current_company_id = get_company_id();
+$dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
+$categoriesList = array_unique(array_column($dbCategories, 'name'));
 ?>
 
 

@@ -120,8 +120,9 @@ try {
     $expenses = array_slice($allExpenses, $offset, $limit);
     $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
     $categoryModel = new Category();
-    $dbCategories = $categoryModel->findAll(['status' => 'active'], 'name ASC');
-    $categories = array_column($dbCategories, 'name');
+    $current_company_id = get_company_id();
+    $dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
+    $categories = array_unique(array_column($dbCategories, 'name'));
     $formattedExpenses = [];
     foreach ($expenses as $expense) {
         $formattedExpenses[] = [

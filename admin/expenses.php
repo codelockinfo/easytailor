@@ -117,8 +117,9 @@ if (isset($_GET['edit'])) {
 // Get statistics
 $expenseStats = $expenseModel->getExpenseStats();
 // Get categories from database
-$dbCategories = $categoryModel->findAll(['status' => 'active'], 'name ASC');
-$categories = array_column($dbCategories, 'name');
+$current_company_id = get_company_id();
+$dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
+$categories = array_unique(array_column($dbCategories, 'name'));
 
 // If no categories in DB, use default list
 if (empty($categories)) {

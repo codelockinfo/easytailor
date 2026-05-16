@@ -402,6 +402,7 @@ body.announcement-visible {
     .hero-section {
         align-items: flex-start;
         padding-top: 150px;
+        padding-bottom: 100px;
     }
 }
 .hero-section::before {

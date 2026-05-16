@@ -313,7 +313,7 @@ $seoOptions = [
                         <div class="contact-info bg-light p-4 rounded mt-3">
                             <h4><i class="fas fa-envelope me-2"></i>Email</h4>
                             <p class="mb-2">
-                                <a href="mailto:codelockinfo@gmail.com" class="text-decoration-none">
+                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=codelockinfo@gmail.com" target="_blank" class="text-decoration-none">
                                     codelockinfo@gmail.com
                                 </a>
                             </p>

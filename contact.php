@@ -328,7 +328,7 @@ $seoOptions = [
                                     <i class="fas fa-envelope"></i>
                                     <div class="contact-info-item-content">
                                         <h5>Email Us</h5>
-                                        <p><a href="mailto:codelockinfo@gmail.com">codelockinfo@gmail.com</a></p>
+                                        <p><a href="https://mail.google.com/mail/?view=cm&fs=1&to=codelockinfo@gmail.com" target="_blank">codelockinfo@gmail.com</a></p>
                                     </div>
                                 </div>
                                 

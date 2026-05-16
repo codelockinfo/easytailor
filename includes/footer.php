@@ -72,7 +72,7 @@ $currentYear = date('Y');
                     <div class="footer-toggle-content">
                         <div class="contact-item">
                             <i class="fas fa-envelope me-2"></i>
-                            <span><a href="mailto:codelockinfo@gmail.com">codelockinfo@gmail.com</a></span>
+                            <span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=codelockinfo@gmail.com" target="_blank">codelockinfo@gmail.com</a></span>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-phone me-2"></i>

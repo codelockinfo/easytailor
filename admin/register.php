@@ -132,6 +132,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Failed to create company');
             }
             
+            // Populate default cloth types with measurement chart images (farmas)
+            require_once '../helpers/DefaultDataHelper.php';
+            DefaultDataHelper::createDefaultClothTypes($companyId);
+            
             // Create owner user account
             $userData = [
                 'company_id' => $companyId,

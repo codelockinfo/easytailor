@@ -11,7 +11,12 @@ class Company extends BaseModel {
      * Create new company (for registration)
      */
     public function createCompany($data) {
-        return $this->create($data);
+        $companyId = $this->create($data);
+        if ($companyId) {
+            require_once __DIR__ . '/../../helpers/DefaultDataHelper.php';
+            DefaultDataHelper::createDefaultClothTypes($companyId);
+        }
+        return $companyId;
     }
 
     /**

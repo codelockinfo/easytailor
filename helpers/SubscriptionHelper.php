@@ -198,8 +198,8 @@ class SubscriptionHelper {
         ];
         
         $planName = $planNames[$plan] ?? 'Free Trial';
-        
-        return "Upgrade to a higher plan to unlock this feature. <a href='subscriptions.php' class='alert-link'>View Plans & Upgrade</a>";
+
+        return "none";
     }
 }
 ?>

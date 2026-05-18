@@ -307,7 +307,6 @@ $seoOptions = [
         .dropdown-item:hover,
         .autocomplete-item:hover,
         .searchable-option:hover,
-        .dropdown-menu li:hover,
         .dropdown-menu a:hover {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             color: #ffffff !important;
@@ -317,6 +316,23 @@ $seoOptions = [
         .dropdown-menu li:hover a,
         .dropdown-menu .dropdown-item:hover {
             color: #ffffff !important;
+        }
+
+        /* Prevent hover background on non-clickable dropdown headers and dividers */
+        .dropdown-menu li:has(.dropdown-header):hover,
+        .dropdown-menu li:has(.dropdown-divider):hover,
+        .dropdown-menu li:hover .dropdown-header,
+        .dropdown-menu li:hover .dropdown-divider {
+            background: transparent !important;
+        }
+        
+        /* Ensure dropdown header text is always clearly visible and premium */
+        .dropdown-menu .dropdown-header {
+            color: #667eea !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            padding: 0.5rem 1rem !important;
+            background: transparent !important;
         }
         
         /* Input field dropdown options (for custom dropdowns) */

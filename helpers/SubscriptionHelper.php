@@ -199,7 +199,7 @@ class SubscriptionHelper {
         
         $planName = $planNames[$plan] ?? 'Free Trial';
 
-        return "none";
+        return "";
     }
 }
 ?>

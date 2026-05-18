@@ -2,13 +2,13 @@
 /**
  * Default Data Helper
  * Tailoring Management System
- * Automatically populates default records (like 10 Cloth Types with Farmas) for new companies.
+ * Automatically populates default records (like 11 Cloth Types with Farmas) for new companies.
  */
 
 class DefaultDataHelper {
     /**
-     * Create 10 default cloth types with measurement chart images (farmas) for a company
-     * Ensures exactly 10 default cloth types exist without creating duplicates.
+     * Create 11 default cloth types with measurement chart images (farmas) for a company
+     * Ensures exactly 11 default cloth types exist without creating duplicates.
      *
      * @param int $companyId
      * @return bool
@@ -22,38 +22,46 @@ class DefaultDataHelper {
         $db = new Database();
         $conn = $db->getConnection();
 
-        // 10 Default Cloth Types with Farmas (Measurement Chart Images)
+        // 11 Default Cloth Types with Farmas (Measurement Chart Images)
         $defaultClothTypes = [
             [
                 'name' => 'Shirt',
                 'description' => 'Men\'s formal and casual shirts',
                 'standard_rate' => 350.00,
                 'category' => 'Men\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/shirt.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/shirt_guide.jpg',
                 'status' => 'active'
             ],
             [
-                'name' => 'Pants / Trousers',
-                'description' => 'Men\'s formal and casual trousers',
+                'name' => 'Pants',
+                'description' => 'Men\'s formal and casual pants',
                 'standard_rate' => 450.00,
                 'category' => 'Men\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/pants.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/pants_guide.jpg',
                 'status' => 'active'
             ],
             [
-                'name' => 'Suit / Blazer',
+                'name' => 'Suit',
                 'description' => 'Men\'s formal two-piece suit or blazer',
                 'standard_rate' => 2500.00,
                 'category' => 'Men\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/suit.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/suit_guide.png',
+                'status' => 'active'
+            ],
+            [
+                'name' => 'Kurta',
+                'description' => 'Traditional men\'s kurta shirt',
+                'standard_rate' => 400.00,
+                'category' => 'Men\'s Wear',
+                'measurement_chart_image' => 'uploads/measurement-charts/kurta_guide.png',
                 'status' => 'active'
             ],
             [
                 'name' => 'Kurta Pajama',
-                'description' => 'Traditional men\'s kurta and pajama',
+                'description' => 'Traditional men\'s kurta and pajama suit',
                 'standard_rate' => 600.00,
                 'category' => 'Men\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/kurta.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/kurta_pajama_guide.png',
                 'status' => 'active'
             ],
             [
@@ -61,15 +69,15 @@ class DefaultDataHelper {
                 'description' => 'Men\'s traditional festive sherwani',
                 'standard_rate' => 3500.00,
                 'category' => 'Men\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/suit.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/sherwani_guide.png',
                 'status' => 'active'
             ],
             [
-                'name' => 'Saree Fall & Pico',
+                'name' => 'Saree',
                 'description' => 'Saree fall finishing and pico work',
                 'standard_rate' => 150.00,
                 'category' => 'Women\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/saree.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/saree_guide.png',
                 'status' => 'active'
             ],
             [
@@ -77,7 +85,7 @@ class DefaultDataHelper {
                 'description' => 'Custom stitched designer blouse',
                 'standard_rate' => 500.00,
                 'category' => 'Women\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/blouse.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/blouse_guide.png',
                 'status' => 'active'
             ],
             [
@@ -85,7 +93,7 @@ class DefaultDataHelper {
                 'description' => 'Women\'s traditional salwar suit',
                 'standard_rate' => 750.00,
                 'category' => 'Women\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/dress.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/salwar_guide.png',
                 'status' => 'active'
             ],
             [
@@ -93,7 +101,7 @@ class DefaultDataHelper {
                 'description' => 'Festive and bridal lehenga choli',
                 'standard_rate' => 3000.00,
                 'category' => 'Women\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/lehenga.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/lehenga_guide.png',
                 'status' => 'active'
             ],
             [
@@ -101,7 +109,7 @@ class DefaultDataHelper {
                 'description' => 'Western evening gown or one-piece dress',
                 'standard_rate' => 1200.00,
                 'category' => 'Women\'s Wear',
-                'measurement_chart_image' => 'uploads/measurement-charts/dress.svg',
+                'measurement_chart_image' => 'uploads/measurement-charts/dress_guide.png',
                 'status' => 'active'
             ]
         ];

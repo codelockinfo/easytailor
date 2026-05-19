@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'state' => sanitize_input($_POST['state']),
                     'postal_code' => sanitize_input($_POST['postal_code']),
                     'date_of_birth' => $_POST['date_of_birth'] ?: null,
+                    'status' => $_POST['status'] ?? 'active',
                     'notes' => sanitize_input($_POST['notes'])
                 ];
                 
@@ -84,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'state' => sanitize_input($_POST['state']),
                     'postal_code' => sanitize_input($_POST['postal_code']),
                     'date_of_birth' => $_POST['date_of_birth'] ?: null,
+                    'status' => $_POST['status'] ?? 'active',
                     'notes' => sanitize_input($_POST['notes'])
                 ];
                 
@@ -438,6 +440,13 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                             <label for="date_of_birth" class="form-label">Date of Birth</label>
                             <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -552,6 +561,7 @@ function editCustomer(customer) {
     document.getElementById('state').value = customer.state || '';
     document.getElementById('postal_code').value = customer.postal_code || '';
     document.getElementById('date_of_birth').value = customer.date_of_birth || '';
+    document.getElementById('status').value = customer.status || 'active';
     document.getElementById('notes').value = customer.notes || '';
     
     // Show modal

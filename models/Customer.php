@@ -263,8 +263,7 @@ class Customer extends BaseModel {
         
         // Build query
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE (" . implode(' OR ', $where_conditions) . ")
-                  AND status = 'active'";
+                  WHERE (" . implode(' OR ', $where_conditions) . ")";
         
         if ($companyId) {
             $query .= " AND company_id = :company_id";
@@ -318,7 +317,7 @@ class Customer extends BaseModel {
                   FROM " . $this->table . " c 
                   LEFT JOIN orders o ON c.id = o.customer_id";
         
-        $where_clauses = ["c.status = 'active'"];
+        $where_clauses = ["1=1"];
         $params = [];
         
         if ($companyId) {

@@ -410,10 +410,9 @@ require_once 'includes/header.php';
 
 <!-- Add/Edit Measurement Modal -->
 <div class="modal fade" id="addMeasurementModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="POST" id="measurementForm" onsubmit="debugFormSubmission(event)">
-                <div class="modal-header">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form method="POST" id="measurementForm" class="modal-content" onsubmit="debugFormSubmission(event)">
+            <div class="modal-header">
                     <h5 class="modal-title">
                         <?php echo $editMeasurement ? 'Edit Measurement' : 'Add New Measurement'; ?>
                     </h5>
@@ -493,8 +492,7 @@ require_once 'includes/header.php';
                         <?php echo $editMeasurement ? 'Update Measurement' : 'Add Measurement'; ?>
                     </button>
                 </div>
-            </form>
-        </div>
+        </form>
     </div>
 </div>
 

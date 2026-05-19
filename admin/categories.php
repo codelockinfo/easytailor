@@ -214,7 +214,7 @@ $catStats = $categoryModel->getCategoryStats();
 
 <!-- Category Modal -->
 <div class="modal fade" id="categoryModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="POST" id="categoryForm">
                 <div class="modal-header">

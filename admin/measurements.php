@@ -757,16 +757,46 @@ function loadPentFields() {
     
     // Add pent-specific fields
     addMeasurementField('waist', '', 'text');
-    addMeasurementField('hip', '', 'text');
-    addMeasurementField('seat', '', 'text');
-    addMeasurementField('rise', '', 'text');
+    addMeasurementField('hip/seat', '', 'text');
     addMeasurementField('thigh', '', 'text');
     addMeasurementField('knee', '', 'text');
-    addMeasurementField('calf', '', 'text');
-    addMeasurementField('ankle_bottom_opening', '', 'text');
-    addMeasurementField('outseam_full_length', '', 'text');
-    addMeasurementField('inseam', '', 'text');
-    addMeasurementField('crotch_depth', '', 'text');
+    addMeasurementField('bottom', '', 'text');
+    addMeasurementField('length', '', 'text');
+}
+
+function loadSareeFields() {
+    // Clear existing fields
+    const container = document.getElementById('measurementFieldsContainer');
+    container.innerHTML = '';
+    measurementFieldCount = 0;
+    
+    // Add saree/blouse-specific fields
+    addMeasurementField('blouse_length', '', 'text');
+    addMeasurementField('chest', '', 'text');
+    addMeasurementField('waist', '', 'text');
+    addMeasurementField('shoulder', '', 'text');
+    addMeasurementField('sleeve_length', '', 'text');
+    addMeasurementField('armhole', '', 'text');
+    addMeasurementField('front_neck_depth', '', 'text');
+    addMeasurementField('back_neck_depth', '', 'text');
+}
+
+function loadDressFields() {
+    // Clear existing fields
+    const container = document.getElementById('measurementFieldsContainer');
+    container.innerHTML = '';
+    measurementFieldCount = 0;
+    
+    // Add dress-specific fields
+    addMeasurementField('length', '', 'text');
+    addMeasurementField('shoulder', '', 'text');
+    addMeasurementField('chest', '', 'text');
+    addMeasurementField('waist', '', 'text');
+    addMeasurementField('hips', '', 'text');
+    addMeasurementField('sleeve_length', '', 'text');
+    addMeasurementField('armhole', '', 'text');
+    addMeasurementField('front_neck_depth', '', 'text');
+    addMeasurementField('back_neck_depth', '', 'text');
 }
 
 function loadFieldsForClothType(clothTypeId) {
@@ -779,10 +809,19 @@ function loadFieldsForClothType(clothTypeId) {
 
     if (clothTypeId && clothTypeNames[clothTypeId]) {
         const clothTypeName = clothTypeNames[clothTypeId].toLowerCase();
-        if (clothTypeName.includes('shirt')) {
+        
+        // Match various top garments (including suit, coat, blazer, sherwani)
+        if (clothTypeName.includes('shirt') || clothTypeName.includes('kurta') || clothTypeName.includes('kameez') || clothTypeName.includes('top') || clothTypeName.includes('suit') || clothTypeName.includes('coat') || clothTypeName.includes('blazer') || clothTypeName.includes('jacket') || clothTypeName.includes('servani') || clothTypeName.includes('sherwani')) {
             loadShirtFields();
-        } else if (clothTypeName.includes('pent')) {
+        // Match various bottom garments
+        } else if (clothTypeName.includes('pent') || clothTypeName.includes('pant') || clothTypeName.includes('trouser') || clothTypeName.includes('pajama') || clothTypeName.includes('salwar') || clothTypeName.includes('bottom')) {
             loadPentFields();
+        // Match saree and blouse
+        } else if (clothTypeName.includes('saree') || clothTypeName.includes('sari') || clothTypeName.includes('blouse') || clothTypeName.includes('choli')) {
+            loadSareeFields();
+        // Match dresses
+        } else if (clothTypeName.includes('dress') || clothTypeName.includes('gown') || clothTypeName.includes('frock')) {
+            loadDressFields();
         } else {
             // Add default measurement fields for other types
             addMeasurementField('chest', '');

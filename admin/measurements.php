@@ -616,16 +616,6 @@ function loadMeasurementChart(clothTypeId) {
         console.log('No chart available for this cloth type');
         chartContainer.style.display = 'none';
     }
-    
-    // Load default fields for specific cloth types
-    if (clothTypeId && clothTypeNames[clothTypeId]) {
-        const clothTypeName = clothTypeNames[clothTypeId].toLowerCase();
-        if (clothTypeName.includes('shirt')) {
-            loadShirtFields();
-        } else if (clothTypeName.includes('pent')) {
-            loadPentFields();
-        }
-    }
 }
 
 // Load chart on page load if editing
@@ -782,13 +772,28 @@ function loadPentFields() {
 function loadFieldsForClothType(clothTypeId) {
     // Only load fields if not editing (to preserve existing data when editing)
     <?php if (!$editMeasurement): ?>
+    // Clear existing fields whenever cloth type changes
+    const container = document.getElementById('measurementFieldsContainer');
+    container.innerHTML = '';
+    measurementFieldCount = 0;
+
     if (clothTypeId && clothTypeNames[clothTypeId]) {
         const clothTypeName = clothTypeNames[clothTypeId].toLowerCase();
         if (clothTypeName.includes('shirt')) {
             loadShirtFields();
         } else if (clothTypeName.includes('pent')) {
             loadPentFields();
+        } else {
+            // Add default measurement fields for other types
+            addMeasurementField('chest', '');
+            addMeasurementField('waist', '');
+            addMeasurementField('length', '');
         }
+    } else {
+        // Add default measurement fields if no specific type is selected
+        addMeasurementField('chest', '');
+        addMeasurementField('waist', '');
+        addMeasurementField('length', '');
     }
     <?php endif; ?>
 }

@@ -123,12 +123,14 @@ class Order extends BaseModel {
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
                          ct.name as cloth_type_name,
                          u.full_name as tailor_name,
-                         creator.full_name as created_by_name
+                         creator.full_name as created_by_name,
+                         COALESCE(ms.name, o.customer_name) as measurement_customer_name
                   FROM " . $this->table . " o
                   LEFT JOIN customers c ON o.customer_id = c.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
                   LEFT JOIN users u ON o.assigned_tailor_id = u.id
-                  LEFT JOIN users creator ON o.created_by = creator.id";
+                  LEFT JOIN users creator ON o.created_by = creator.id
+                  LEFT JOIN measurements ms ON o.measurement_id = ms.id";
         
         $params = [];
         $where_clauses = [];

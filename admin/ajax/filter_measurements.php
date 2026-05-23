@@ -98,10 +98,20 @@ try {
                 $notes = strtolower($m['notes'] ?? '');
                 $customerCode = strtolower($m['customer_code'] ?? '');
                 
+                // Specific measurement customer fields
+                $mName = strtolower($m['name'] ?? '');
+                $mEmail = strtolower($m['email'] ?? '');
+                $mPhone = strtolower($m['phone_number'] ?? '');
+                $mAddress = strtolower($m['address'] ?? '');
+                
                 return strpos($customerName, $searchLower) !== false ||
                        strpos($clothType, $searchLower) !== false ||
                        strpos($notes, $searchLower) !== false ||
-                       strpos($customerCode, $searchLower) !== false;
+                       strpos($customerCode, $searchLower) !== false ||
+                       strpos($mName, $searchLower) !== false ||
+                       strpos($mEmail, $searchLower) !== false ||
+                       strpos($mPhone, $searchLower) !== false ||
+                       strpos($mAddress, $searchLower) !== false;
             });
             // Re-index array after filtering
             $allMeasurements = array_values($allMeasurements);
@@ -130,7 +140,8 @@ try {
     $formattedMeasurements = [];
     foreach ($measurements as $measurement) {
         // Combine first_name and last_name to create customer_name
-        $customerName = trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
+        $customerName = !empty($measurement['name']) ? $measurement['name'] : trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
+        $customerPhone = !empty($measurement['phone_number']) ? $measurement['phone_number'] : ($measurement['customer_phone'] ?? ($measurement['customer_code'] ?? ''));
         
         $formattedMeasurements[] = [
             'id' => $measurement['id'],
@@ -138,7 +149,7 @@ try {
             'cloth_type_id' => $measurement['cloth_type_id'] ?? null,
             'customer_name' => htmlspecialchars($customerName),
             'customer_code' => htmlspecialchars($measurement['customer_code'] ?? ''),
-            'customer_phone' => htmlspecialchars($measurement['customer_phone'] ?? ''),
+            'customer_phone' => htmlspecialchars($customerPhone),
             'cloth_type_name' => htmlspecialchars($measurement['cloth_type_name'] ?? ''),
             'measurement_data' => $measurement['measurement_data'],
             'notes' => htmlspecialchars($measurement['notes'] ?? ''),

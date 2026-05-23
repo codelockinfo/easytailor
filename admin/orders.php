@@ -20,12 +20,14 @@ require_login();
 
 require_once 'models/Order.php';
 require_once '../models/Customer.php';
+require_once '../models/Measurement.php';
 require_once 'models/ClothType.php';
 require_once 'models/User.php';
 require_once '../helpers/SubscriptionHelper.php';
 
 $orderModel = new Order();
 $customerModel = new Customer();
+$measurementModel = new Measurement();
 $clothTypeModel = new ClothType();
 $userModel = new User();
 
@@ -68,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $data = [
-                    'customer_id' => (int)$_POST['customer_id'],
+                    'customer_name' => sanitize_input($_POST['customer_id']),
+                    'customer_id' => null,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
                     'assigned_tailor_id' => !empty($_POST['assigned_tailor_id']) ? (int)$_POST['assigned_tailor_id'] : null,
@@ -115,7 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'update':
                 $orderId = (int)$_POST['order_id'];
                 $data = [
-                    'customer_id' => (int)$_POST['customer_id'],
+                    'customer_name' => sanitize_input($_POST['customer_id']),
+                    'customer_id' => null,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
                     'assigned_tailor_id' => !empty($_POST['assigned_tailor_id']) ? (int)$_POST['assigned_tailor_id'] : null,
@@ -207,6 +211,7 @@ $totalPages = ceil($totalOrders / $limit);
 
 // Get data for dropdowns
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
+$measurementCustomers = $measurementModel->getDistinctCustomerNames();
 $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
 $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
 
@@ -400,9 +405,7 @@ $orderStats = $orderModel->getOrderStats();
                             </td>
                             <td>
                                 <div>
-                                    <strong><?php echo htmlspecialchars($order['first_name'] . ' ' . $order['last_name']); ?></strong>
-                                    <br>
-                                    <small class="text-muted"><?php echo htmlspecialchars($order['customer_code']); ?></small>
+                                    <strong><?php echo htmlspecialchars($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name'])); ?></strong>
                                 </div>
                             </td>
                             <td><?php echo htmlspecialchars($order['cloth_type_name']); ?></td>
@@ -451,6 +454,7 @@ $orderStats = $orderModel->getOrderStats();
                                             onclick="editOrder(<?php echo htmlspecialchars(json_encode([
                                                 'id' => $order['id'],
                                                 'customer_id' => $order['customer_id'],
+                                                'customer_name' => $order['measurement_customer_name'] ?? '',
                                                 'cloth_type_id' => $order['cloth_type_id'],
                                                 'measurement_id' => $order['measurement_id'],
                                                 'assigned_tailor_id' => $order['assigned_tailor_id'],
@@ -557,9 +561,9 @@ $orderStats = $orderModel->getOrderStats();
                             <label for="customer_id" class="form-label">Customer *</label>
                             <select class="form-select" id="customer_id" name="customer_id" required>
                                 <option value="">Select Customer</option>
-                                <?php foreach ($customers as $customer): ?>
-                                    <option value="<?php echo $customer['id']; ?>">
-                                        <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'] . ' (' . $customer['customer_code'] . ')'); ?>
+                                <?php foreach ($measurementCustomers as $mc): ?>
+                                    <option value="<?php echo htmlspecialchars($mc['customer_name']); ?>">
+                                        <?php echo htmlspecialchars($mc['customer_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -693,11 +697,11 @@ function editOrder(order) {
     document.getElementById('orderId').value = order.id || '';
     
     // Populate form fields - convert to string and handle null/undefined
-    const customerId = order.customer_id ? String(order.customer_id) : '';
+    const customerName = order.customer_name || '';
     const clothTypeId = order.cloth_type_id ? String(order.cloth_type_id) : '';
     const assignedTailorId = order.assigned_tailor_id ? String(order.assigned_tailor_id) : '';
     
-    document.getElementById('customer_id').value = customerId;
+    document.getElementById('customer_id').value = customerName;
     document.getElementById('cloth_type_id').value = clothTypeId;
     document.getElementById('assigned_tailor_id').value = assignedTailorId;
     document.getElementById('order_date').value = order.order_date || '';
@@ -706,17 +710,17 @@ function editOrder(order) {
     document.getElementById('advance_amount').value = order.advance_amount || '';
     document.getElementById('special_instructions').value = order.special_instructions || '';
     
-    console.log('Set values:', { customerId, clothTypeId, assignedTailorId }); // Debug log
+    console.log('Set values:', { customerName, clothTypeId, assignedTailorId }); // Debug log
     
-    // Load measurements for the selected customer
+    // Load measurements for the selected customer name
     const measurementSelect = document.getElementById('measurement_id');
     
-    if (customerId) {
+    if (customerName) {
         // Show loading state
         measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
         
-        // Load measurements via AJAX
-        fetch(`ajax/get_customer_measurements.php?customer_id=${customerId}`)
+        // Load measurements via AJAX by name
+        fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
             .then(response => response.json())
             .then(data => {
                 measurementSelect.innerHTML = '<option value="">No Measurement</option>';
@@ -729,7 +733,6 @@ function editOrder(order) {
                         measurementSelect.appendChild(option);
                     });
                 } else {
-                    // Add option to show no measurements available
                     const noMeasurementsOption = document.createElement('option');
                     noMeasurementsOption.value = '';
                     noMeasurementsOption.textContent = 'No measurements available for this customer';
@@ -958,17 +961,17 @@ document.getElementById('cloth_type_id').addEventListener('change', function() {
     }
 });
 
-// Load measurements when customer is selected
+// Load measurements when customer name is selected
 document.getElementById('customer_id').addEventListener('change', function() {
-    const customerId = this.value;
+    const customerName = this.value;
     const measurementSelect = document.getElementById('measurement_id');
     
-    if (customerId) {
+    if (customerName) {
         // Show loading state
         measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
         
-        // Load measurements via AJAX
-        fetch(`ajax/get_customer_measurements.php?customer_id=${customerId}`)
+        // Load measurements via AJAX by name
+        fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
             .then(response => response.json())
             .then(data => {
                 measurementSelect.innerHTML = '<option value="">No Measurement</option>';
@@ -981,7 +984,6 @@ document.getElementById('customer_id').addEventListener('change', function() {
                         measurementSelect.appendChild(option);
                     });
                 } else {
-                    // Add option to show no measurements available
                     const noMeasurementsOption = document.createElement('option');
                     noMeasurementsOption.value = '';
                     noMeasurementsOption.textContent = 'No measurements available for this customer';
@@ -1221,9 +1223,7 @@ function displayFilterResults(orders) {
                 </td>
                 <td>
                     <div>
-                        <strong>${order.first_name} ${order.last_name}</strong>
-                        <br>
-                        <small class="text-muted">${order.customer_code}</small>
+                        <strong>${order.customer_name || (order.first_name + ' ' + order.last_name)}</strong>
                     </div>
                 </td>
                 <td>${order.cloth_type_name}</td>
@@ -1255,6 +1255,7 @@ function displayFilterResults(orders) {
                                 data-order='${JSON.stringify({
                                     id: order.id,
                                     customer_id: order.customer_id,
+                                    customer_name: order.customer_name || '',
                                     cloth_type_id: order.cloth_type_id,
                                     measurement_id: order.measurement_id,
                                     assigned_tailor_id: order.assigned_tailor_id,

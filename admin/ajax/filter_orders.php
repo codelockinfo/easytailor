@@ -26,6 +26,7 @@ try {
 
     require_once $rootDir . '/../models/Order.php';
     require_once $rootDir . '/../models/Customer.php';
+    require_once $rootDir . '/../models/Measurement.php';
     require_once $rootDir . '/../models/ClothType.php';
     require_once $rootDir . '/../models/User.php';
 
@@ -50,6 +51,7 @@ try {
 
     $orderModel = new Order();
     $customerModel = new Customer();
+    $measurementModel = new Measurement();
     $clothTypeModel = new ClothType();
     $userModel = new User();
     
@@ -88,6 +90,7 @@ try {
     
     // Get filter options
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
+    $measurementCustomers = $measurementModel->getDistinctCustomerNames();
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
     
     // Get tailors - try different approaches
@@ -105,6 +108,7 @@ try {
             'id' => $order['id'],
             'order_number' => htmlspecialchars($order['order_number']),
             'customer_id' => $order['customer_id'] ?? null,
+            'customer_name' => htmlspecialchars($order['measurement_customer_name'] ?? ''),
             'cloth_type_id' => $order['cloth_type_id'] ?? null,
             'measurement_id' => $order['measurement_id'] ?? null,
             'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,
@@ -127,15 +131,14 @@ try {
         ];
     }
     
-    // Format filter options
+    // Format filter options - use measurement customer names
     $filterOptions = [
-        'customers' => array_map(function($customer) {
+        'customers' => array_map(function($mc) {
             return [
-                'id' => $customer['id'],
-                'name' => htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']),
-                'phone' => htmlspecialchars($customer['phone'] ?? '')
+                'id' => htmlspecialchars($mc['customer_name']),
+                'name' => htmlspecialchars($mc['customer_name'])
             ];
-        }, $customers),
+        }, $measurementCustomers),
         'cloth_types' => array_map(function($clothType) {
             return [
                 'id' => $clothType['id'],

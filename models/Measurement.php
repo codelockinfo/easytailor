@@ -81,13 +81,21 @@ class Measurement extends BaseModel {
                                 OR c.customer_code LIKE :search_code 
                                 OR CONCAT(c.first_name, ' ', c.last_name) LIKE :search_fullname
                                 OR ct.name LIKE :search_cloth
-                                OR m.notes LIKE :search_notes)";
+                                OR m.notes LIKE :search_notes
+                                OR m.name LIKE :search_mname
+                                OR m.email LIKE :search_memail
+                                OR m.phone_number LIKE :search_mphone
+                                OR m.address LIKE :search_maddress)";
             $params['search_fname'] = $searchPattern;
             $params['search_lname'] = $searchPattern;
             $params['search_code'] = $searchPattern;
             $params['search_fullname'] = $searchPattern;
             $params['search_cloth'] = $searchPattern;
             $params['search_notes'] = $searchPattern;
+            $params['search_mname'] = $searchPattern;
+            $params['search_memail'] = $searchPattern;
+            $params['search_mphone'] = $searchPattern;
+            $params['search_maddress'] = $searchPattern;
         }
         
         if (!empty($where_clauses)) {
@@ -216,6 +224,53 @@ class Measurement extends BaseModel {
             $conditions['company_id'] = $companyId;
         }
         return $this->findOne($conditions);
+    }
+
+    /**
+     * Get distinct customer names from measurements
+     * Used in order form to populate customer dropdown from measurement records
+     */
+    public function getDistinctCustomerNames() {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT DISTINCT m.name as customer_name, m.customer_id
+                  FROM " . $this->table . " m
+                  WHERE m.name IS NOT NULL AND m.name != ''";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " ORDER BY m.name ASC";
+        
+        $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get measurements by name (for loading measurements by customer name in order form)
+     */
+    public function getMeasurementsByName($name) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT m.*, ct.name as cloth_type_name
+                  FROM " . $this->table . " m
+                  LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
+                  WHERE m.name = :name";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " ORDER BY m.created_at DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
     }
 
     /**

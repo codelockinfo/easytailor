@@ -23,6 +23,33 @@ $measurementModel = new Measurement();
 $customerModel = new Customer();
 $clothTypeModel = new ClothType();
 
+/**
+ * Helper to find or create the default Walk-in Customer record for the company
+ */
+function getDefaultCustomerId($companyId, $customerModel) {
+    $conditions = ['customer_code' => 'CUST000000'];
+    if ($companyId) {
+        $conditions['company_id'] = $companyId;
+    }
+    $existing = $customerModel->findOne($conditions);
+    if ($existing) {
+        return (int)$existing['id'];
+    }
+    
+    // Create default customer for this company
+    $data = [
+        'customer_code' => 'CUST000000',
+        'first_name' => 'Walk-in',
+        'last_name' => 'Customer',
+        'phone' => '0000000000',
+        'status' => 'active'
+    ];
+    if ($companyId) {
+        $data['company_id'] = $companyId;
+    }
+    return (int)$customerModel->createCustomer($data);
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
@@ -46,10 +73,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Debug: Log processed measurement data
                 error_log('Processed measurement data: ' . print_r($measurement_data, true));
                 
+                $name = sanitize_input($_POST['name'] ?? '');
+                $phone = sanitize_input($_POST['phone_number'] ?? '');
+                $email = sanitize_input($_POST['email'] ?? '');
+                $address = sanitize_input($_POST['address'] ?? '');
+                $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+
+                $companyId = get_company_id();
+                $customerId = getDefaultCustomerId($companyId, $customerModel);
+
                 $data = [
-                    'customer_id' => (int)$_POST['customer_id'],
+                    'customer_id' => $customerId,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_data' => $measurement_data,
+                    'name' => $name,
+                    'email' => $email,
+                    'phone_number' => $phone,
+                    'address' => $address,
+                    'date_of_birth' => $dob,
                     'notes' => sanitize_input($_POST['notes'] ?? ''),
                     'images' => $_POST['images'] ?? []
                 ];
@@ -79,8 +120,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
+                $name = sanitize_input($_POST['name'] ?? '');
+                $phone = sanitize_input($_POST['phone_number'] ?? '');
+                $email = sanitize_input($_POST['email'] ?? '');
+                $address = sanitize_input($_POST['address'] ?? '');
+                $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+
+                $companyId = get_company_id();
+                $customerId = getDefaultCustomerId($companyId, $customerModel);
+
                 $data = [
+                    'customer_id' => $customerId,
                     'measurement_data' => $measurement_data,
+                    'name' => $name,
+                    'email' => $email,
+                    'phone_number' => $phone,
+                    'address' => $address,
+                    'date_of_birth' => $dob,
                     'notes' => sanitize_input($_POST['notes'] ?? ''),
                     'images' => $_POST['images'] ?? []
                 ];
@@ -315,9 +371,9 @@ require_once 'includes/header.php';
                                         <tr>
                                             <td>
                                                 <div>
-                                                    <strong><?php echo htmlspecialchars($measurement['first_name'] . ' ' . $measurement['last_name']); ?></strong>
+                                                    <strong><?php echo htmlspecialchars(!empty($measurement['name']) ? $measurement['name'] : trim($measurement['first_name'] . ' ' . $measurement['last_name'])); ?></strong>
                                                     <br>
-                                                    <small class="text-muted"><?php echo htmlspecialchars($measurement['customer_code']); ?></small>
+                                                    <small class="text-muted"><?php echo htmlspecialchars(!empty($measurement['phone_number']) ? $measurement['phone_number'] : $measurement['customer_code']); ?></small>
                                                 </div>
                                             </td>
                                             <td>
@@ -427,19 +483,46 @@ require_once 'includes/header.php';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="customer_id" class="form-label">Customer *</label>
-                                <select class="form-select" id="customer_id" name="customer_id" required <?php echo $editMeasurement ? 'readonly' : ''; ?>>
-                                    <option value="">Select Customer</option>
-                                    <?php foreach ($customers as $customer): ?>
-                                        <option value="<?php echo $customer['id']; ?>" 
-                                                <?php echo ($editMeasurement && $editMeasurement['customer_id'] == $customer['id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <label for="name" class="form-label">Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required placeholder="Enter customer name" 
+                                       value="<?php echo htmlspecialchars($editMeasurement['name'] ?? ''); ?>">
                             </div>
                         </div>
                         <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address"
+                                       value="<?php echo htmlspecialchars($editMeasurement['email'] ?? ''); ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number *</label>
+                                <input type="text" class="form-control" id="phone_number" name="phone_number" required placeholder="Enter phone number"
+                                       value="<?php echo htmlspecialchars($editMeasurement['phone_number'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                                       value="<?php echo htmlspecialchars($editMeasurement['date_of_birth'] ?? ''); ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="2" placeholder="Enter customer address"><?php echo htmlspecialchars($editMeasurement['address'] ?? ''); ?></textarea>
+                    </div>
+
+                    <input type="hidden" id="customer_id" name="customer_id" value="<?php echo htmlspecialchars($editMeasurement['customer_id'] ?? ''); ?>">
+
+                    <div class="row">
+                        <div class="col-md-12">
                             <div class="mb-3">
                                 <label for="cloth_type_id" class="form-label">Cloth Type *</label>
                                 <select class="form-select" id="cloth_type_id" name="cloth_type_id" required <?php echo $editMeasurement ? 'readonly' : ''; ?> onchange="loadMeasurementChart(this.value); loadFieldsForClothType(this.value)">
@@ -653,11 +736,18 @@ function debugFormSubmission(event) {
     });
     
     // Basic validation
-    const customerId = document.getElementById('customer_id').value;
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone_number').value.trim();
     const clothTypeId = document.getElementById('cloth_type_id').value;
     
-    if (!customerId) {
-        alert('Please select a customer.');
+    if (!name) {
+        alert('Please enter customer name.');
+        event.preventDefault();
+        return false;
+    }
+    
+    if (!phone) {
+        alert('Please enter phone number.');
         event.preventDefault();
         return false;
     }
@@ -921,6 +1011,11 @@ function editMeasurement(measurement) {
     // Populate form fields
     document.getElementById('customer_id').value = measurement.customer_id || '';
     document.getElementById('cloth_type_id').value = measurement.cloth_type_id || '';
+    document.getElementById('name').value = measurement.name || '';
+    document.getElementById('email').value = measurement.email || '';
+    document.getElementById('phone_number').value = measurement.phone_number || '';
+    document.getElementById('address').value = measurement.address || '';
+    document.getElementById('date_of_birth').value = measurement.date_of_birth || '';
     document.getElementById('notes').value = measurement.notes || '';
     
     // Load cloth type chart if available
@@ -981,7 +1076,42 @@ document.getElementById('addMeasurementModal').addEventListener('hidden.bs.modal
     document.getElementById('measurementFieldsContainer').innerHTML = '';
     
     // Clear chart
-    document.getElementById('measurementChart').style.display = 'none';
+    const chart = document.getElementById('measurementChart');
+    if (chart) {
+        chart.style.display = 'none';
+    }
+    const chartContainer = document.getElementById('measurementChartContainer');
+    if (chartContainer) {
+        chartContainer.style.display = 'none';
+    }
+});
+
+// Fetch customer details on selection
+document.getElementById('customer_id').addEventListener('change', function() {
+    const customerId = this.value;
+    if (customerId) {
+        fetch('ajax/get_customer_details.php?customer_id=' + customerId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.customer) {
+                    document.getElementById('name').value = data.customer.name || '';
+                    document.getElementById('email').value = data.customer.email || '';
+                    document.getElementById('phone_number').value = data.customer.phone || '';
+                    document.getElementById('address').value = data.customer.address || '';
+                    document.getElementById('date_of_birth').value = data.customer.date_of_birth || '';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching customer details:', error);
+            });
+    } else {
+        // Clear fields
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('phone_number').value = '';
+        document.getElementById('address').value = '';
+        document.getElementById('date_of_birth').value = '';
+    }
 });
 
 function viewMeasurement(id) {
@@ -1090,13 +1220,36 @@ function displayMeasurementDetails(measurement) {
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <small class="text-muted d-block">Customer Name</small>
-                            <h5 class="mb-0">${measurement.first_name} ${measurement.last_name}</h5>
+                            <small class="text-muted d-block">Linked Account</small>
+                            <h5 class="mb-0">${(measurement.first_name + ' ' + (measurement.last_name || '')).trim()} <span class="badge bg-primary fs-7">${measurement.customer_code}</span></h5>
                         </div>
+                        <hr class="my-2">
                         <div class="mb-3">
-                            <small class="text-muted d-block">Customer Code</small>
-                            <span class="badge bg-primary fs-6">${measurement.customer_code}</span>
+                            <small class="text-muted d-block mb-2">Recorded Measurement Details</small>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <small class="text-muted d-block">Name</small>
+                                    <strong>${measurement.name || 'N/A'}</strong>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <small class="text-muted d-block">Phone</small>
+                                    <strong>${measurement.phone_number || 'N/A'}</strong>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <small class="text-muted d-block">Email</small>
+                                    <strong>${measurement.email || 'N/A'}</strong>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <small class="text-muted d-block">DOB</small>
+                                    <strong>${measurement.date_of_birth ? new Date(measurement.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</strong>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block">Address</small>
+                                    <span>${measurement.address || 'N/A'}</span>
+                                </div>
+                            </div>
                         </div>
+                        <hr class="my-2">
                         <div class="mb-3">
                             <small class="text-muted d-block">Cloth Type</small>
                             <span class="badge bg-secondary fs-6">${measurement.cloth_type_name || 'N/A'}</span>

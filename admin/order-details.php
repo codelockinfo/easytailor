@@ -164,11 +164,6 @@ if (empty($orders)) {
 
 // Get customer details - use data from order if available, otherwise fetch
 $customer = !empty($order['customer_id']) ? $customerModel->find($order['customer_id']) : false;
-if (!$customer && !empty($order['customer_id'])) {
-    // Customer not found or doesn't belong to company - redirect
-    header('Location: orders.php');
-    exit;
-}
 
 // Get measurement details if available
 $measurement = null;
@@ -344,6 +339,13 @@ require_once 'includes/header.php';
                     <p class="mb-0"><?php echo nl2br(htmlspecialchars($customer['address'])); ?></p>
                 </div>
                 <?php endif; ?>
+                <?php elseif (!empty($order['measurement_customer_name'])): ?>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Name</small>
+                    <h5 class="mb-0">
+                        <?php echo htmlspecialchars($order['measurement_customer_name']); ?>
+                    </h5>
+                </div>
                 <?php else: ?>
                 <p class="text-muted mb-0">Customer information not available</p>
                 <?php endif; ?>

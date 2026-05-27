@@ -569,17 +569,10 @@ $orderStats = $orderModel->getOrderStats();
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="cloth_type_id" class="form-label">Cloth Type *</label>
-                            <select class="form-select" id="cloth_type_id" name="cloth_type_id" required>
-                                <option value="">Select Cloth Type</option>
-                                <?php foreach ($clothTypes as $clothType): ?>
-                                    <option value="<?php echo $clothType['id']; ?>" data-rate="<?php echo $clothType['standard_rate']; ?>">
-                                        <?php echo htmlspecialchars($clothType['name']); ?>
-                                        <?php if ($clothType['standard_rate']): ?>
-                                            - <?php echo format_currency($clothType['standard_rate']); ?>
-                                        <?php endif; ?>
-                                    </option>
-                                <?php endforeach; ?>
+                            <label for="measurement_id" class="form-label">Measurement</label>
+                            <select class="form-select" id="measurement_id" name="measurement_id">
+                                <option value="">No Measurement</option>
+                                <!-- Measurements will be loaded via AJAX -->
                             </select>
                         </div>
                     </div>
@@ -597,10 +590,17 @@ $orderStats = $orderModel->getOrderStats();
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="measurement_id" class="form-label">Measurement</label>
-                            <select class="form-select" id="measurement_id" name="measurement_id">
-                                <option value="">No Measurement</option>
-                                <!-- Measurements will be loaded via AJAX -->
+                            <label for="cloth_type_id" class="form-label">Cloth Type *</label>
+                            <select class="form-select" id="cloth_type_id" name="cloth_type_id" required>
+                                <option value="">Select Cloth Type</option>
+                                <?php foreach ($clothTypes as $clothType): ?>
+                                    <option value="<?php echo $clothType['id']; ?>" data-rate="<?php echo $clothType['standard_rate']; ?>">
+                                        <?php echo htmlspecialchars($clothType['name']); ?>
+                                        <?php if ($clothType['standard_rate']): ?>
+                                            - <?php echo format_currency($clothType['standard_rate']); ?>
+                                        <?php endif; ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>

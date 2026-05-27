@@ -23,7 +23,7 @@ class Measurement extends BaseModel {
         $query = "SELECT m.*, ct.name as cloth_type_name
                   FROM " . $this->table . " m
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
-                  WHERE m.customer_id = :customer_id";
+                  WHERE m.id = :customer_id";
         if ($companyId) {
             $query .= " AND m.company_id = :company_id";
         }
@@ -48,7 +48,7 @@ class Measurement extends BaseModel {
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
                          ct.name as cloth_type_name, ct.category as cloth_category
                   FROM " . $this->table . " m
-                  LEFT JOIN customers c ON m.customer_id = c.id
+                  LEFT JOIN customers c ON m.id = c.id
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id";
         
         $params = [];
@@ -232,7 +232,7 @@ class Measurement extends BaseModel {
      */
     public function getDistinctCustomerNames() {
         $companyId = $this->getCompanyId();
-        $query = "SELECT DISTINCT m.name as customer_name, m.customer_id
+        $query = "SELECT DISTINCT m.name as customer_name, m.id
                   FROM " . $this->table . " m
                   WHERE m.name IS NOT NULL AND m.name != ''";
         if ($companyId) {

@@ -5,281 +5,69 @@
  */
 
 class Customer extends BaseModel {
-    protected $table = 'customers';
+    protected $table = 'measurements';
 
-    /**
-     * Get company ID from session
-     */
     private function getCompanyId() {
         require_once __DIR__ . '/../config/config.php';
         return get_company_id();
     }
 
-    /**
-     * Check if current user is admin
-     */
     private function isAdmin() {
         require_once __DIR__ . '/../config/config.php';
         return get_user_role() === 'admin';
     }
 
-    /**
-     * Create new customer with auto-generated customer code
-     * Handles duplicate code errors with retry mechanism
-     */
     public function createCustomer($data) {
-        // Ensure company_id is set
         if (!isset($data['company_id'])) {
             $data['company_id'] = $this->getCompanyId();
         }
         
-        $maxRetries = 20; // Increased from 5 to 20
-        $attempt = 0;
+        $insertData = [
+            'company_id' => $data['company_id'],
+            'cloth_type_id' => null,
+            'name' => trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')),
+            'email' => $data['email'] ?? null,
+            'phone_number' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
+            'date_of_birth' => $data['date_of_birth'] ?? null,
+            'measurement_data' => '{}',
+            'notes' => $data['notes'] ?? null
+        ];
         
-        while ($attempt < $maxRetries) {
-            try {
-                // Generate customer code (pass attempt number to vary generation)
-                $data['customer_code'] = $this->generateCustomerCode($attempt);
-                
-                // Attempt to create the customer
-                $result = $this->create($data);
-                
-                if ($result !== false) {
-                    return $result;
-                }
-                
-                // If create returned false, try again with new code
-                $attempt++;
-                
-            } catch (PDOException $e) {
-                // Check if it's a duplicate key error
-                if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                    $attempt++;
-                    if ($attempt >= $maxRetries) {
-                        // Use guaranteed unique fallback code
-                        $data['customer_code'] = $this->generateGuaranteedUniqueCode($data['company_id']);
-                        try {
-                            $result = $this->create($data);
-                            if ($result !== false) {
-                                return $result;
-                            }
-                        } catch (PDOException $e2) {
-                            // Even fallback failed, throw user-friendly error
-                            throw new Exception('Unable to create customer. Please try again or contact support.');
-                        }
-                    }
-                    // Wait a bit before retrying (helps with race conditions)
-                    usleep(100000); // Increased to 100ms delay
-                    continue;
-                } else {
-                    // If it's a different error, re-throw it
-                    throw $e;
-                }
-            }
-        }
-        
-        return false;
+        return $this->create($insertData);
     }
 
-    /**
-     * Generate unique customer code
-     * Uses retry mechanism to ensure uniqueness and prevent race conditions
-     */
-    private function generateCustomerCode($offset = 0) {
-        $companyId = $this->getCompanyId();
-        $prefix = 'CUST';
-        $maxAttempts = 100; // Increased from 50 to 100
-        $attempt = 0;
-        $startNumber = 1;
-        
-        // Get the highest existing customer code number
-        $query = "SELECT customer_code FROM " . $this->table . " WHERE customer_code LIKE :pattern";
-        if ($companyId) {
-            $query .= " AND company_id = :company_id";
-        }
-        $query .= " ORDER BY CAST(SUBSTRING(customer_code, 5) AS UNSIGNED) DESC LIMIT 1";
-        $stmt = $this->conn->prepare($query);
-        $pattern = $prefix . '%';
-        $stmt->bindParam(':pattern', $pattern);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
-        }
-        $stmt->execute();
-        
-        $last_customer = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($last_customer && isset($last_customer['customer_code'])) {
-            $last_code = $last_customer['customer_code'];
-            $last_number = (int) substr($last_code, 4);
-            $startNumber = $last_number + 1 + $offset; // Add offset to vary starting point
-        } else {
-            $startNumber = 1 + $offset;
-        }
-        
-        // Try to generate a unique code starting from startNumber
-        while ($attempt < $maxAttempts) {
-            $new_number = $startNumber + $attempt;
-            $new_code = $prefix . str_pad($new_number, 6, '0', STR_PAD_LEFT);
-            
-            // Check if this code already exists (prevent duplicates)
-            $checkQuery = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE customer_code = :code";
-            if ($companyId) {
-                $checkQuery .= " AND company_id = :company_id";
-            }
-            $checkStmt = $this->conn->prepare($checkQuery);
-            $checkStmt->bindParam(':code', $new_code);
-            if ($companyId) {
-                $checkStmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
-            }
-            $checkStmt->execute();
-            $exists = $checkStmt->fetch(PDO::FETCH_ASSOC);
-            
-            // If code doesn't exist, return it
-            if ($exists && isset($exists['count']) && $exists['count'] == 0) {
-                return $new_code;
-            }
-            
-            // If code exists, try next number
-            $attempt++;
-        }
-        
-        // If we've exhausted retries, use guaranteed unique fallback
-        return $this->generateGuaranteedUniqueCode($companyId);
-    }
-    
-    /**
-     * Generate a guaranteed unique customer code using timestamp and random
-     * This is used as a fallback when normal code generation fails
-     */
-    private function generateGuaranteedUniqueCode($companyId) {
-        $prefix = 'CUST';
-        $maxAttempts = 50;
-        $attempt = 0;
-        
-        while ($attempt < $maxAttempts) {
-            // Use timestamp + microseconds + random + company_id for uniqueness
-            $timestamp = time();
-            $microseconds = (int)(microtime(true) * 1000000) % 1000000;
-            $random = mt_rand(100, 999);
-            $companyHash = $companyId ? ($companyId % 100) : 0;
-            
-            // Combine: last 4 digits of timestamp + last 2 digits of microseconds + random
-            $uniqueNumber = ($timestamp % 10000) * 1000 + ($microseconds % 100) * 10 + ($random % 10);
-            $uniqueNumber = $uniqueNumber % 1000000; // Ensure it fits in 6 digits
-            
-            $new_code = $prefix . str_pad($uniqueNumber, 6, '0', STR_PAD_LEFT);
-            
-            // Double-check it doesn't exist
-            $checkQuery = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE customer_code = :code";
-            if ($companyId) {
-                $checkQuery .= " AND company_id = :company_id";
-            }
-            $checkStmt = $this->conn->prepare($checkQuery);
-            $checkStmt->bindParam(':code', $new_code);
-            if ($companyId) {
-                $checkStmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
-            }
-            $checkStmt->execute();
-            $exists = $checkStmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($exists && isset($exists['count']) && $exists['count'] == 0) {
-                return $new_code;
-            }
-            
-            $attempt++;
-            usleep(1000); // Small delay between attempts
-        }
-        
-        // Final fallback - use current timestamp with microseconds (very unlikely to collide)
-        $finalCode = $prefix . str_pad((int)(microtime(true) * 100) % 1000000, 6, '0', STR_PAD_LEFT);
-        return $finalCode;
-    }
-
-    /**
-     * Search customers - handles both single word and full name searches
-     */
     public function searchCustomers($search_term, $limit = 20) {
         $companyId = $this->getCompanyId();
-        
-        // Trim search term and handle URL encoding
-        $search_term = trim($search_term);
-        // Replace %20 with space if still present (shouldn't be, but just in case)
-        $search_term = str_replace('%20', ' ', $search_term);
-        $search_term = trim($search_term);
+        $search_term = trim(str_replace('%20', ' ', $search_term));
         $search_lower = strtolower($search_term);
         
-        // Debug logging
-        error_log("Customer search - Search term received: " . var_export($search_term, true));
-        error_log("Customer search - Search term length: " . strlen($search_term));
-        error_log("Customer search - Search term bytes: " . bin2hex($search_term));
-        
-        // Check if search term contains a space (full name search)
-        $has_space = strpos($search_term, ' ') !== false;
-        error_log("Customer search - Has space: " . ($has_space ? 'yes' : 'no'));
-        
-        // Build WHERE conditions
         $where_conditions = [];
         $params = [];
         
-        if ($has_space) {
-            // Full name search - split into parts
-            $name_parts = preg_split('/\s+/', $search_term);
-            $first_part = trim($name_parts[0]);
-            $last_part = count($name_parts) > 1 ? trim(end($name_parts)) : '';
-            
-            error_log("Customer search - Name parts: " . json_encode($name_parts));
-            error_log("Customer search - First part: '$first_part', Last part: '$last_part'");
-            
-            if (!empty($first_part) && !empty($last_part)) {
-                // Match: first part in first_name AND last part in last_name
-                $where_conditions[] = "(LOWER(COALESCE(first_name, '')) LIKE :fn1 AND LOWER(COALESCE(last_name, '')) LIKE :ln1)";
-                $params[':fn1'] = '%' . strtolower($first_part) . '%';
-                $params[':ln1'] = '%' . strtolower($last_part) . '%';
-                
-                // Match: last part in first_name AND first part in last_name (reverse)
-                $where_conditions[] = "(LOWER(COALESCE(first_name, '')) LIKE :fn2 AND LOWER(COALESCE(last_name, '')) LIKE :ln2)";
-                $params[':fn2'] = '%' . strtolower($last_part) . '%';
-                $params[':ln2'] = '%' . strtolower($first_part) . '%';
-                
-                // Match: full concatenated name
-                $where_conditions[] = "LOWER(CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, ''))) LIKE :full_name";
-                $params[':full_name'] = '%' . $search_lower . '%';
-            }
-        } else {
-            // Single word search - search in individual fields
-            $where_conditions[] = "LOWER(COALESCE(first_name, '')) LIKE :search1";
-            $where_conditions[] = "LOWER(COALESCE(last_name, '')) LIKE :search2";
-            $params[':search1'] = '%' . $search_lower . '%';
-            $params[':search2'] = '%' . $search_lower . '%';
-        }
+        $where_conditions[] = "LOWER(c.name) LIKE :name";
+        $params[':name'] = '%' . $search_lower . '%';
         
-        // Always search in these fields
-        $where_conditions[] = "COALESCE(customer_code, '') LIKE :code";
-        $where_conditions[] = "LOWER(COALESCE(email, '')) LIKE :email";
-        $where_conditions[] = "COALESCE(phone, '') LIKE :phone";
-        $params[':code'] = '%' . $search_term . '%';
+        $where_conditions[] = "LOWER(c.email) LIKE :email";
         $params[':email'] = '%' . $search_lower . '%';
+        
+        $where_conditions[] = "c.phone_number LIKE :phone";
         $params[':phone'] = '%' . $search_term . '%';
         
-        // Build query
-        $query = "SELECT * FROM " . $this->table . " 
+        $query = "SELECT c.*, COUNT(o.id) as order_count 
+                  FROM " . $this->table . " c
+                  LEFT JOIN orders o ON c.id = o.measurement_id
                   WHERE (" . implode(' OR ', $where_conditions) . ")";
         
         if ($companyId) {
-            $query .= " AND company_id = :company_id";
+            $query .= " AND c.company_id = :company_id";
             $params[':company_id'] = $companyId;
         }
         
-        $query .= " ORDER BY first_name, last_name LIMIT :limit";
+        $query .= " GROUP BY c.phone_number, c.name ORDER BY c.name LIMIT :limit";
         $params[':limit'] = $limit;
         
-        // Log the query and parameters
-        error_log("Customer search - SQL Query: " . $query);
-        error_log("Customer search - Parameters: " . json_encode($params));
-        
         $stmt = $this->conn->prepare($query);
-        
-        // Bind all parameters
         foreach ($params as $key => $value) {
             if ($key === ':limit' || $key === ':company_id') {
                 $stmt->bindValue($key, $value, PDO::PARAM_INT);
@@ -288,34 +76,16 @@ class Customer extends BaseModel {
             }
         }
         
-        try {
-            $stmt->execute();
-            $results = $stmt->fetchAll();
-            
-            error_log("Customer search - Results count: " . count($results));
-            if (count($results) > 0) {
-                error_log("Customer search - First result name: " . ($results[0]['first_name'] ?? '') . ' ' . ($results[0]['last_name'] ?? ''));
-            } else {
-                error_log("Customer search - No results found. Query executed successfully but no matches.");
-            }
-            
-            return $results;
-        } catch (PDOException $e) {
-            error_log("Customer search - PDO Exception: " . $e->getMessage());
-            error_log("Customer search - Query: " . $query);
-            error_log("Customer search - Params: " . json_encode($params));
-            return [];
-        }
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+        return array_map([$this, 'formatCustomerRow'], $rows);
     }
 
-    /**
-     * Get customers with order count
-     */
     public function getCustomersWithOrderCount($limit = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT c.*, COUNT(o.id) as order_count 
                   FROM " . $this->table . " c 
-                  LEFT JOIN orders o ON c.id = o.customer_id";
+                  LEFT JOIN orders o ON c.id = o.measurement_id";
         
         $where_clauses = ["1=1"];
         $params = [];
@@ -323,13 +93,12 @@ class Customer extends BaseModel {
         if ($companyId) {
             $where_clauses[] = "c.company_id = :customer_company_id";
             $params['customer_company_id'] = $companyId;
-            // Also filter orders by company_id if they exist
             $where_clauses[] = "(o.company_id = :order_company_id OR o.company_id IS NULL)";
             $params['order_company_id'] = $companyId;
         }
         
         $query .= " WHERE " . implode(" AND ", $where_clauses);
-        $query .= " GROUP BY c.id ORDER BY c.first_name, c.last_name";
+        $query .= " GROUP BY c.phone_number, c.name ORDER BY c.name";
         
         if ($limit) {
             $query .= " LIMIT " . (int)$limit;
@@ -341,28 +110,25 @@ class Customer extends BaseModel {
         }
         $stmt->execute();
         
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return array_map([$this, 'formatCustomerRow'], $rows);
     }
 
-    /**
-     * Get customer statistics
-     */
+    public function getAllCustomers() {
+        return $this->findAll();
+    }
+
     public function getCustomerStats() {
         $companyId = $this->getCompanyId();
         $stats = [];
         
-        // Total customers
         $conditions = [];
         if ($companyId) {
             $conditions['company_id'] = $companyId;
         }
         $stats['total'] = $this->count($conditions);
+        $stats['active'] = $stats['total'];
         
-        // Active customers
-        $conditions['status'] = 'active';
-        $stats['active'] = $this->count($conditions);
-        
-        // New customers this month
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
         if ($companyId) {
@@ -380,21 +146,13 @@ class Customer extends BaseModel {
         return $stats;
     }
 
-    /**
-     * Get customer by customer code
-     */
     public function findByCustomerCode($customer_code) {
-        $companyId = $this->getCompanyId();
-        $conditions = ['customer_code' => $customer_code];
-        if ($companyId) {
-            $conditions['company_id'] = $companyId;
+        if (preg_match('/^CUST0*(\d+)$/i', $customer_code, $matches)) {
+            return $this->find((int)$matches[1]);
         }
-        return $this->findOne($conditions);
+        return false;
     }
 
-    /**
-     * Check if email exists for customer
-     */
     public function emailExists($email, $exclude_id = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT id FROM " . $this->table . " WHERE email = :email";
@@ -418,35 +176,38 @@ class Customer extends BaseModel {
         return $stmt->fetch() ? true : false;
     }
 
-    /**
-     * Get customer's recent orders
-     */
     public function getCustomerOrders($customer_id, $limit = 10) {
         $companyId = $this->getCompanyId();
+        
+        $stmt = $this->conn->prepare("SELECT name FROM measurements WHERE id = :id");
+        $stmt->execute([':id' => $customer_id]);
+        $measurement = $stmt->fetch();
+        $customer_name = $measurement ? $measurement['name'] : '';
+
         $query = "SELECT o.*, ct.name as cloth_type_name, u.full_name as tailor_name
                   FROM orders o
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
                   LEFT JOIN users u ON o.assigned_tailor_id = u.id
-                  WHERE o.customer_id = :customer_id";
+                  WHERE (o.measurement_id = :customer_id" . (!empty($customer_name) ? " OR o.customer_name = :customer_name" : "") . ")";
         if ($companyId) {
             $query .= " AND o.company_id = :company_id";
         }
         $query .= " ORDER BY o.created_at DESC LIMIT :limit";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        $stmt->bindValue(':customer_id', $customer_id, PDO::PARAM_INT);
+        if (!empty($customer_name)) {
+            $stmt->bindValue(':customer_name', $customer_name);
         }
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        if ($companyId) {
+            $stmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         
         return $stmt->fetchAll();
     }
 
-    /**
-     * Override find to include company_id filter for non-admin users
-     */
     public function find($id) {
         $companyId = $this->getCompanyId();
         $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
@@ -460,71 +221,149 @@ class Customer extends BaseModel {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
-        
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        return $row ? $this->formatCustomerRow($row) : false;
     }
 
-    /**
-     * Override findAll to include company_id filter for non-admin users
-     */
     public function findAll($conditions = [], $order_by = null, $limit = null) {
+        if ($order_by === 'first_name, last_name') {
+            $order_by = 'name';
+        }
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
-        return parent::findAll($conditions, $order_by, $limit);
+        if (isset($conditions['customer_code'])) {
+            $code = $conditions['customer_code'];
+            if (preg_match('/^CUST0*(\d+)$/i', $code, $matches)) {
+                $conditions['id'] = (int)$matches[1];
+            }
+            unset($conditions['customer_code']);
+        }
+        if (isset($conditions['phone'])) {
+            $conditions['phone_number'] = $conditions['phone'];
+            unset($conditions['phone']);
+        }
+        if (isset($conditions['status'])) {
+            unset($conditions['status']);
+        }
+        $rows = parent::findAll($conditions, $order_by, $limit);
+        if ($rows) {
+            return array_map([$this, 'formatCustomerRow'], $rows);
+        }
+        return $rows;
     }
 
-    /**
-     * Override findOne to include company_id filter for non-admin users
-     */
     public function findOne($conditions = []) {
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
-        return parent::findOne($conditions);
+        if (isset($conditions['customer_code'])) {
+            $code = $conditions['customer_code'];
+            if (preg_match('/^CUST0*(\d+)$/i', $code, $matches)) {
+                $conditions['id'] = (int)$matches[1];
+            }
+            unset($conditions['customer_code']);
+        }
+        if (isset($conditions['phone'])) {
+            $conditions['phone_number'] = $conditions['phone'];
+            unset($conditions['phone']);
+        }
+        if (isset($conditions['status'])) {
+            unset($conditions['status']);
+        }
+        $row = parent::findOne($conditions);
+        return $row ? $this->formatCustomerRow($row) : false;
     }
 
-    /**
-     * Override count to include company_id filter for non-admin users
-     */
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
+        if (isset($conditions['customer_code'])) {
+            $code = $conditions['customer_code'];
+            if (preg_match('/^CUST0*(\d+)$/i', $code, $matches)) {
+                $conditions['id'] = (int)$matches[1];
+            }
+            unset($conditions['customer_code']);
+        }
+        if (isset($conditions['phone'])) {
+            $conditions['phone_number'] = $conditions['phone'];
+            unset($conditions['phone']);
+        }
+        if (isset($conditions['status'])) {
+            unset($conditions['status']);
+        }
         return parent::count($conditions);
     }
 
-    /**
-     * Override update to ensure company_id is checked
-     */
     public function update($id, $data) {
         $companyId = $this->getCompanyId();
-        // First verify the record belongs to this company
-        if ($companyId) {
-            $existing = $this->find($id);
-            if (!$existing || $existing['company_id'] != $companyId) {
-                return false; // Record doesn't exist or doesn't belong to this company
-            }
+        $existing = $this->find($id);
+        if (!$existing) {
+            return false;
         }
-        return parent::update($id, $data);
+        if ($companyId && $existing['company_id'] != $companyId) {
+            return false;
+        }
+        
+        $updateData = [];
+        if (isset($data['first_name']) || isset($data['last_name'])) {
+            $first = $data['first_name'] ?? ($existing['first_name'] ?? '');
+            $last = $data['last_name'] ?? ($existing['last_name'] ?? '');
+            $updateData['name'] = trim($first . ' ' . $last);
+        }
+        if (isset($data['email'])) {
+            $updateData['email'] = $data['email'];
+        }
+        if (isset($data['phone'])) {
+            $updateData['phone_number'] = $data['phone'];
+        }
+        if (isset($data['address'])) {
+            $updateData['address'] = $data['address'];
+        }
+        if (isset($data['date_of_birth'])) {
+            $updateData['date_of_birth'] = $data['date_of_birth'];
+        }
+        if (isset($data['notes'])) {
+            $updateData['notes'] = $data['notes'];
+        }
+        
+        if (empty($updateData)) {
+            return true;
+        }
+        
+        return parent::update($id, $updateData);
     }
 
-    /**
-     * Override delete to ensure company_id is checked
-     */
     public function delete($id) {
         $companyId = $this->getCompanyId();
-        // First verify the record belongs to this company
-        if ($companyId) {
-            $existing = $this->find($id);
-            if (!$existing || $existing['company_id'] != $companyId) {
-                return false; // Record doesn't exist or doesn't belong to this company
-            }
+        $existing = $this->find($id);
+        if (!$existing) {
+            return false;
         }
+        if ($companyId && $existing['company_id'] != $companyId) {
+            return false;
+        }
+        
         return parent::delete($id);
+    }
+
+    public function formatCustomerRow($row) {
+        if (!$row) return $row;
+        
+        $name = trim($row['name'] ?? '');
+        $parts = explode(' ', $name, 2);
+        $row['first_name'] = $parts[0] ?? '';
+        $row['last_name'] = $parts[1] ?? '';
+        
+        $row['phone'] = $row['phone_number'] ?? '';
+        $row['customer_code'] = 'CUST' . str_pad($row['id'], 6, '0', STR_PAD_LEFT);
+        $row['status'] = 'active';
+        
+        return $row;
     }
 }
 ?>

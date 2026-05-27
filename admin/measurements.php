@@ -80,10 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
 
                 $companyId = get_company_id();
-                $customerId = getDefaultCustomerId($companyId, $customerModel);
-
+                
                 $data = [
-                    'customer_id' => $customerId,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_data' => $measurement_data,
                     'name' => $name,
@@ -127,10 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
 
                 $companyId = get_company_id();
-                $customerId = getDefaultCustomerId($companyId, $customerModel);
 
                 $data = [
-                    'customer_id' => $customerId,
                     'measurement_data' => $measurement_data,
                     'name' => $name,
                     'email' => $email,

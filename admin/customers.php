@@ -203,12 +203,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <label class="form-label d-block" style="visibility: hidden;">&nbsp;</label>
-                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#customerModal">
-                    <i class="fas fa-plus me-2"></i>Add Customer
-                </button>
-            </div>
+            
         </div>
     </div>
 </div>
@@ -238,7 +233,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                             <th>Location</th>
                             <th>Orders</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -296,27 +290,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                                     <?php echo ucfirst($customer['status']); ?>
                                 </span>
                             </td>
-                            <td>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button type="button" 
-                                            class="btn btn-outline-primary" 
-                                            onclick="editCustomer(<?php echo htmlspecialchars(json_encode($customer)); ?>)"
-                                            title="Edit" style="border: 1px solid #667eea;">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <a href="customer-details.php?id=<?php echo $customer['id']; ?>" 
-                                       class="btn btn-outline-info" 
-                                       title="View Details" style="border: 1px solid #667eea;">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <button type="button" 
-                                            class="btn btn-outline-danger" 
-                                            onclick="deleteCustomer(<?php echo $customer['id']; ?>, '<?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>')"
-                                            title="Delete" style="border: 1px solid #667eea;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
+                           
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -358,113 +332,11 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                         Get started by adding your first customer.
                     <?php endif; ?>
                 </p>
-                <?php if (empty($search)): ?>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
-                        <i class="fas fa-plus me-2"></i>Add Customer
-                    </button>
-                <?php endif; ?>
+               
             </div>
         <?php endif; ?>
     </div>
 </div>
-
-<!-- Customer Modal -->
-<div class="modal fade" id="customerModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="POST" id="customerForm">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="customerModalTitle">Add Customer</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
-                    <input type="hidden" name="action" id="customerAction" value="create">
-                    <input type="hidden" name="customer_id" id="customerId">
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone *</label>
-                            <div class="input-group">
-                                <span class="input-group-text">+91</span>
-                                <input type="tel" 
-                                       class="form-control" 
-                                       id="phone" 
-                                       name="phone" 
-                                       placeholder="10-digit mobile number"
-                                       maxlength="10"
-                                       pattern="[0-9]{10}"
-                                       required>
-                            </div>
-                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Address</label>
-                        <textarea class="form-control" id="address" name="address" rows="2"></textarea>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Mumbai">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="state" class="form-label">State</label>
-                            <input type="text" class="form-control" id="state" name="state" placeholder="e.g., Maharashtra">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="postal_code" class="form-label">PIN Code</label>
-                            <input type="text" class="form-control" id="postal_code" name="postal_code" placeholder="e.g., 400001" maxlength="6" pattern="[0-9]{6}">
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="date_of_birth" class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Save Customer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

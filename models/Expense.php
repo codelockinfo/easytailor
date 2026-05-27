@@ -137,18 +137,7 @@ class Expense extends BaseModel {
         $stats['this_month_amount'] = $result['total'] ?? 0;
         
         // Expenses by category
-        $query = "SELECT category, COUNT(*) as count, SUM(amount) as total 
-                  FROM " . $this->table;
-        if ($companyId) {
-            $query .= " WHERE company_id = :company_id";
-        }
-        $query .= " GROUP BY category ORDER BY total DESC";
-        $stmt = $this->conn->prepare($query);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
-        }
-        $stmt->execute();
-        $stats['by_category'] = $stmt->fetchAll();
+        $stats['by_category'] = [];
         
         // Expenses by payment method
         $query = "SELECT payment_method, COUNT(*) as count, SUM(amount) as total 
@@ -225,7 +214,7 @@ class Expense extends BaseModel {
      * Get expenses by category
      */
     public function getExpensesByCategory($category) {
-        return $this->getExpensesWithDetails(['category' => $category]);
+        return [];
     }
 
     /**
@@ -243,8 +232,7 @@ class Expense extends BaseModel {
         $query = "SELECT e.*, u.full_name as created_by_name
                   FROM " . $this->table . " e
                   LEFT JOIN users u ON e.created_by = u.id
-                  WHERE (e.category LIKE :search 
-                      OR e.description LIKE :search
+                  WHERE (e.description LIKE :search
                       OR e.reference_number LIKE :search)";
         if ($companyId) {
             $query .= " AND e.company_id = :company_id";
@@ -267,19 +255,7 @@ class Expense extends BaseModel {
      * Get expense categories
      */
     public function getExpenseCategories() {
-        $companyId = $this->getCompanyId();
-        $query = "SELECT DISTINCT category FROM " . $this->table . " WHERE category IS NOT NULL";
-        if ($companyId) {
-            $query .= " AND company_id = :company_id";
-        }
-        $query .= " ORDER BY category";
-        $stmt = $this->conn->prepare($query);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
-        }
-        $stmt->execute();
-        
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return [];
     }
 
     /**

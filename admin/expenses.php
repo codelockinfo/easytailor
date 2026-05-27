@@ -1,20 +1,15 @@
-
-<!-- Favicon - Primary ICO format for Google Search -->
-<link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
 /**
  * Expenses Page
  * Tailoring Management System
  */
 
-$page_title = 'Expense Management';
-require_once 'includes/header.php';
+require_once __DIR__ . '/../config/config.php';
+
+// Check if user is logged in
+if (!is_logged_in()) {
+    smart_redirect('login.php');
+}
 
 require_once 'models/Expense.php';
 require_once 'models/Category.php';
@@ -24,7 +19,7 @@ $categoryModel = new Category();
 $message = '';
 $messageType = '';
 
-// Handle form submissions
+// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
@@ -32,13 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         switch ($action) {
             case 'create':
                 $data = [
-                    'category' => sanitize_input($_POST['category']),
                     'description' => sanitize_input($_POST['description']),
                     'amount' => (float)$_POST['amount'],
                     'expense_date' => $_POST['expense_date'],
                     'payment_method' => $_POST['payment_method'],
-                    'reference_number' => sanitize_input($_POST['reference_number']),
-                    'receipt_image' => $_POST['receipt_image'] ?: null,
                     'created_by' => get_user_id()
                 ];
                 
@@ -55,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'update':
                 $expenseId = (int)$_POST['expense_id'];
                 $data = [
-                    'category' => sanitize_input($_POST['category']),
                     'description' => sanitize_input($_POST['description']),
                     'amount' => (float)$_POST['amount'],
                     'expense_date' => $_POST['expense_date'],
@@ -88,7 +79,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = 'Invalid request';
         $messageType = 'error';
     }
+    
+    // Standard PHP PRG Redirect
+    if ($messageType === 'success') {
+        $msgType = match($action) {
+            'create' => 'created',
+            'update' => 'updated',
+            'delete' => 'deleted',
+            default => 'success'
+        };
+        header('Location: expenses.php?msg=' . $msgType);
+        exit;
+    }
 }
+
+// Show success message from GET parameter
+if (empty($message) && isset($_GET['msg'])) {
+    $msgMap = [
+        'created' => ['Expense recorded successfully!', 'success'],
+        'updated' => ['Expense updated successfully!', 'success'],
+        'deleted' => ['Expense deleted successfully!', 'success'],
+    ];
+    if (isset($msgMap[$_GET['msg']])) {
+        [$message, $messageType] = $msgMap[$_GET['msg']];
+    }
+}
+
+// Now include the header which outputs HTML
+$page_title = 'Expense Management';
+require_once 'includes/header.php';
 
 // Get expenses
 $category_filter = $_GET['category'] ?? '';
@@ -260,11 +279,11 @@ if (empty($categories)) {
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Category</th>
+                            
                             <th>Description</th>
                             <th>Amount</th>
                             <th>Payment Method</th>
-                            <th>Reference</th>
+                            
                             <th>Created By</th>
                             <th>Actions</th>
                         </tr>
@@ -279,9 +298,7 @@ if (empty($categories)) {
                                     <small class="text-muted"><?php echo format_date($expense['created_at'], 'H:i'); ?></small>
                                 </div>
                             </td>
-                            <td>
-                                <span class="badge bg-info"><?php echo htmlspecialchars($expense['category']); ?></span>
-                            </td>
+                         
                             <td>
                                 <div>
                                     <?php echo htmlspecialchars($expense['description']); ?>
@@ -299,22 +316,13 @@ if (empty($categories)) {
                             <td>
                                 <span class="badge bg-<?php 
                                     echo match($expense['payment_method']) {
-                                        'cash' => 'success',
-                                        'bank_transfer' => 'primary',
-                                        'card' => 'info',
-                                        'cheque' => 'warning',
+                                        'cash_in' => 'success',
+                                        'cash_out' => 'danger',
                                         default => 'secondary'
                                     };
                                 ?>">
                                     <?php echo ucfirst(str_replace('_', ' ', $expense['payment_method'])); ?>
                                 </span>
-                            </td>
-                            <td>
-                                <?php if (!empty($expense['reference_number'])): ?>
-                                    <?php echo htmlspecialchars($expense['reference_number']); ?>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
                             </td>
                             <td><?php echo htmlspecialchars($expense['created_by_name']); ?></td>
                             <td>
@@ -407,25 +415,10 @@ if (empty($categories)) {
                     <input type="hidden" name="expense_id" id="expenseId">
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="category" class="form-label">Category *</label>
-                            <div class="input-group">
-                                <select class="form-select" id="category" name="category" required>
-                                    <option value="">Select Category</option>
-                                    <?php foreach ($categories as $category): ?>
-                                        <option value="<?php echo htmlspecialchars($category); ?>">
-                                            <?php echo htmlspecialchars($category); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                    <?php if (!in_array('Other', $categories)): ?>
-                                        <option value="Other">Other</option>
-                                    <?php endif; ?>
-                                </select>
-                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quickCategoryModal" title="Add New Category">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
+                         <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="2" required></textarea>
+                    </div>
                         <div class="col-md-6 mb-3">
                             <label for="amount" class="form-label">Amount *</label>
                             <div class="input-group">
@@ -433,37 +426,19 @@ if (empty($categories)) {
                                 <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description *</label>
-                        <textarea class="form-control" id="description" name="description" rows="2" required></textarea>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                         <div class="col-md-6 mb-3">
                             <label for="expense_date" class="form-label">Expense Date *</label>
                             <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?php echo date('Y-m-d'); ?>" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                    </div> 
+                    <div class="row">
+                       
+                        <div class="col-md-12 mb-3">
                             <label for="payment_method" class="form-label">Payment Method *</label>
                             <select class="form-select" id="payment_method" name="payment_method" required>
-                                <option value="cash">Cash</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="card">Card</option>
-                                <option value="cheque">Cheque</option>
+                                <option value="cash_in">Cash In</option>
+                                <option value="cash_out">Cash Out</option>
                             </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="reference_number" class="form-label">Reference Number</label>
-                            <input type="text" class="form-control" id="reference_number" name="reference_number" placeholder="Transaction ID, Check number, etc.">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="receipt_image" class="form-label">Receipt Image</label>
-                            <input type="file" class="form-control" id="receipt_image" name="receipt_image" accept="image/*">
                         </div>
                     </div>
                 </div>

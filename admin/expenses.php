@@ -135,6 +135,18 @@ if (isset($_GET['edit'])) {
 
 // Get statistics
 $expenseStats = $expenseModel->getExpenseStats();
+
+$totalCashIn = 0;
+$totalCashOut = 0;
+$profit = 0; // profit = cash in - cash out
+foreach ($expenseStats['by_payment_method'] as $pm) {
+    if ($pm['payment_method'] === 'cash_in') {
+        $totalCashIn = $pm['total'];
+    } elseif ($pm['payment_method'] === 'cash_out') {
+        $totalCashOut = $pm['total'];
+    }
+}
+$profit = $totalCashIn - $totalCashOut;
 // Get categories from database
 $current_company_id = get_company_id();
 $dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
@@ -175,11 +187,11 @@ if (empty($categories)) {
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo format_currency($expenseStats['total_amount']); ?></div>
-                    <div class="stat-label">Total Amount</div>
+                    <div class="stat-number"><?php echo format_currency($totalCashIn); ?></div>
+                    <div class="stat-label">Total Cash In</div>
                 </div>
                 <div class="stat-icon">
-                    <i class="fas fa-dollar-sign"></i>
+                    <i class="fas fa-arrow-down"></i>
                 </div>
             </div>
         </div>
@@ -188,10 +200,10 @@ if (empty($categories)) {
     <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo number_format($expenseStats['this_month_count']); ?></div>
-                    <div class="stat-label">This Month</div>
-                </div>
+                 <div>
+                    <div class="stat-number"><?php echo format_currency($totalCashOut); ?></div>
+                    <div class="stat-label">Total Cash Out</div>
+                 </div>
                 <div class="stat-icon">
                     <i class="fas fa-calendar-alt"></i>
                 </div>
@@ -203,13 +215,16 @@ if (empty($categories)) {
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo format_currency($expenseStats['this_month_amount']); ?></div>
-                    <div class="stat-label">Monthly Total</div>
+                    <div class="stat-number"><?php echo format_currency($profit); ?></div>
+                        <div class="stat-label">Profit</div>
                 </div>
                 <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
+                <div class="col-xl-3 col-md-6">
+         
+        </div>
         </div>
     </div>
 </div>

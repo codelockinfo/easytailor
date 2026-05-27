@@ -32,7 +32,7 @@ define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif']);
 
 // Pagination settings
-define('RECORDS_PER_PAGE', 20);
+define('RECORDS_PER_PAGE', 10);
 
 // Date and time settings
 date_default_timezone_set('Asia/Kolkata'); // Change to your timezone

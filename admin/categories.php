@@ -76,7 +76,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$categories = $categoryModel->getCategoriesWithStats();
+// Get categories
+$search = $_GET['search'] ?? '';
+$page = (int)($_GET['page'] ?? 1);
+$limit = RECORDS_PER_PAGE;
+$offset = ($page - 1) * $limit;
+
+$allCategories = $categoryModel->getCategoriesWithStats();
+
+// Apply search filter if provided
+if (!empty($search)) {
+    $searchLower = mb_strtolower($search);
+    $allCategories = array_filter($allCategories, function($cat) use ($searchLower) {
+        $nameMatch = mb_stripos($cat['name'], $searchLower) !== false;
+        $descriptionMatch = !empty($cat['description']) && mb_stripos($cat['description'], $searchLower) !== false;
+        return $nameMatch || $descriptionMatch;
+    });
+}
+
+$allCategories = array_values($allCategories);
+$totalCategories = count($allCategories);
+
+if ($limit > 0) {
+    $categories = array_slice($allCategories, $offset, $limit);
+    $totalPages = max(1, ceil($totalCategories / $limit));
+} else {
+    $categories = $allCategories;
+    $totalPages = 1;
+}
+
 $catStats = $categoryModel->getCategoryStats();
 ?>
 
@@ -150,7 +178,7 @@ $catStats = $categoryModel->getCategoryStats();
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
-            <i class="fas fa-tags me-2"></i>Expense Categories
+            <i class="fas fa-tags me-2"></i>Expense Categories (<?php echo number_format($totalCategories); ?>)
         </h5>
         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#categoryModal">
             <i class="fas fa-plus me-1"></i>Add Category
@@ -162,7 +190,7 @@ $catStats = $categoryModel->getCategoryStats();
             <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off">
+                    <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>">
                 </div>
             </div>
         </div>
@@ -203,10 +231,41 @@ $catStats = $categoryModel->getCategoryStats();
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination -->
+            <?php if ($totalPages > 1): ?>
+                <nav aria-label="Category pagination">
+                    <ul class="pagination justify-content-center">
+                        <?php if ($page > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Previous</a>
+                            </li>
+                        <?php endif; ?>
+                        
+                        <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                            <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                                <a class="page-link" href="?page=<?php echo $i; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        
+                        <?php if ($page < $totalPages): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Next</a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+            <?php endif; ?>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-tags fa-3x text-muted mb-3"></i>
-                <p>No categories found. Start by adding one!</p>
+                <p>
+                    <?php if (!empty($search)): ?>
+                        No categories match your search criteria.
+                    <?php else: ?>
+                        No categories found. Start by adding one!
+                    <?php endif; ?>
+                </p>
             </div>
         <?php endif; ?>
     </div>
@@ -294,20 +353,15 @@ function deleteCategory(id, name) {
 }
 
 // Search Functionality
-document.getElementById('categorySearch').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('.category-row');
-    
-    rows.forEach(row => {
-        const name = row.querySelector('.cat-name').textContent.toLowerCase();
-        const desc = row.querySelector('.cat-desc').textContent.toLowerCase();
-        
-        if (name.includes(searchTerm) || desc.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+function applySearch() {
+    const search = document.getElementById('categorySearch').value.trim();
+    window.location.href = `categories.php?search=${encodeURIComponent(search)}`;
+}
+
+document.getElementById('categorySearch').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        applySearch();
+    }
 });
 
 document.getElementById('categoryModal').addEventListener('hidden.bs.modal', function() {

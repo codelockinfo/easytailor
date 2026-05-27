@@ -79,7 +79,7 @@ class User extends BaseModel {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
         $query = "SELECT id FROM " . $this->table . " WHERE username = :username";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         if ($exclude_id) {
@@ -88,7 +88,7 @@ class User extends BaseModel {
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':username', $username);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         if ($exclude_id) {
@@ -106,7 +106,7 @@ class User extends BaseModel {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
         $query = "SELECT id FROM " . $this->table . " WHERE email = :email";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         if ($exclude_id) {
@@ -115,7 +115,7 @@ class User extends BaseModel {
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         if ($exclude_id) {
@@ -136,7 +136,7 @@ class User extends BaseModel {
         
         // Total users
         $conditions = [];
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $conditions['company_id'] = $companyId;
         }
         $stats['total'] = $this->count($conditions);
@@ -163,13 +163,13 @@ class User extends BaseModel {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
         $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
         $query .= " LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
@@ -183,7 +183,7 @@ class User extends BaseModel {
     public function findAll($conditions = [], $order_by = null, $limit = null) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+        if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::findAll($conditions, $order_by, $limit);
@@ -195,7 +195,7 @@ class User extends BaseModel {
     public function findOne($conditions = []) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+        if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::findOne($conditions);
@@ -207,7 +207,7 @@ class User extends BaseModel {
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId && !isset($conditions['company_id'])) {
+        if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
         return parent::count($conditions);
@@ -219,7 +219,7 @@ class User extends BaseModel {
     public function update($id, $data) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $existing = $this->find($id);
             if (!$existing || $existing['company_id'] != $companyId) {
                 return false;
@@ -234,7 +234,7 @@ class User extends BaseModel {
     public function delete($id) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $companyId) {
+        if ($companyId) {
             $existing = $this->find($id);
             if (!$existing || $existing['company_id'] != $companyId) {
                 return false;

@@ -657,6 +657,35 @@ $seoOptions = [
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
+        
+        /* Pagination Styling */
+        .pagination .page-item .page-link {
+            color: #667eea;
+            border-color: #dee2e6;
+            box-shadow: none;
+        }
+        
+        .pagination .page-item .page-link:hover {
+            color: #ffffff;
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .pagination .page-item.active .page-link {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-color: #667eea;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+        
+        .pagination .page-link:focus {
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
 
     </style>
 </head>

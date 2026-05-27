@@ -119,10 +119,21 @@ try {
     $totalExpenses = count($allExpenses);
     $expenses = array_slice($allExpenses, $offset, $limit);
     $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
-    $categoryModel = new Category();
-    $current_company_id = get_company_id();
-    $dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
-    $categories = array_unique(array_column($dbCategories, 'name'));
+    
+    // Calculate dynamic stats based on filtered expenses
+    $totalCashIn = 0;
+    $totalCashOut = 0;
+    foreach ($allExpenses as $expense) {
+        $amount = (float)($expense['amount'] ?? 0);
+        $method = $expense['payment_method'] ?? '';
+        if ($method === 'cash_in') {
+            $totalCashIn += $amount;
+        } elseif ($method === 'cash_out') {
+            $totalCashOut += $amount;
+        }
+    }
+    $profit = $totalCashIn - $totalCashOut;
+    
     $formattedExpenses = [];
     foreach ($expenses as $expense) {
         $formattedExpenses[] = [
@@ -141,16 +152,16 @@ try {
     if (!is_array($formattedExpenses)) {
         $formattedExpenses = [];
     }
-    $filterOptions = [
-        'categories' => array_values(array_map(function($category) {
-            return htmlspecialchars($category);
-        }, $categories))
-    ];
     
     echo json_encode([
         'success' => true,
         'expenses' => $formattedExpenses,
-        'filter_options' => $filterOptions,
+        'stats' => [
+            'total_expenses' => $totalExpenses,
+            'total_cash_in' => $totalCashIn,
+            'total_cash_out' => $totalCashOut,
+            'profit' => $profit
+        ],
         'pagination' => [
             'current_page' => $page,
             'total_pages' => $totalPages,

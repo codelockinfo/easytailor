@@ -173,7 +173,7 @@ if (empty($categories)) {
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo number_format($expenseStats['total']); ?></div>
+                    <div class="stat-number" id="statTotalExpenses"><?php echo number_format($expenseStats['total']); ?></div>
                     <div class="stat-label">Total Expenses</div>
                 </div>
                 <div class="stat-icon">
@@ -187,7 +187,7 @@ if (empty($categories)) {
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo format_currency($totalCashIn); ?></div>
+                    <div class="stat-number" id="statTotalCashIn"><?php echo format_currency($totalCashIn); ?></div>
                     <div class="stat-label">Total Cash In</div>
                 </div>
                 <div class="stat-icon">
@@ -201,7 +201,7 @@ if (empty($categories)) {
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
                  <div>
-                    <div class="stat-number"><?php echo format_currency($totalCashOut); ?></div>
+                    <div class="stat-number" id="statTotalCashOut"><?php echo format_currency($totalCashOut); ?></div>
                     <div class="stat-label">Total Cash Out</div>
                  </div>
                 <div class="stat-icon">
@@ -215,7 +215,7 @@ if (empty($categories)) {
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo format_currency($profit); ?></div>
+                    <div class="stat-number" id="statProfit"><?php echo format_currency($profit); ?></div>
                         <div class="stat-label">Profit</div>
                 </div>
                 <div class="stat-icon">
@@ -223,7 +223,7 @@ if (empty($categories)) {
                 </div>
             </div>
                 <div class="col-xl-3 col-md-6">
-         
+          
         </div>
         </div>
     </div>
@@ -233,7 +233,7 @@ if (empty($categories)) {
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
@@ -245,18 +245,13 @@ if (empty($categories)) {
                            autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-2">
-                <select class="form-select" id="categoryFilter">
-                    <option value="">All Categories</option>
-                </select>
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <input type="date" class="form-control" id="dateFromFilter" placeholder="From Date">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <input type="date" class="form-control" id="dateToFilter" placeholder="To Date">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
                     <i class="fas fa-times"></i> Clear
                 </button>
@@ -639,12 +634,14 @@ function editExpense(expense) {
     document.getElementById('expenseId').value = expense.id;
     
     // Populate form fields
-    document.getElementById('category').value = expense.category || '';
+    const catEl = document.getElementById('category');
+    if (catEl) catEl.value = expense.category || '';
     document.getElementById('description').value = expense.description || '';
     document.getElementById('amount').value = expense.amount || '';
     document.getElementById('expense_date').value = expense.expense_date || '';
     document.getElementById('payment_method').value = expense.payment_method || 'cash';
-    document.getElementById('reference_number').value = expense.reference_number || '';
+    const refEl = document.getElementById('reference_number');
+    if (refEl) refEl.value = expense.reference_number || '';
     
     // Show modal
     new bootstrap.Modal(document.getElementById('expenseModal')).show();
@@ -731,9 +728,9 @@ document.getElementById('expenseModal').addEventListener('hidden.bs.modal', func
 
 // AJAX Expense Filtering
 document.addEventListener('DOMContentLoaded', function() {
+    const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
     let filterTimeout;
     const searchInput = document.getElementById('searchInput');
-    const categoryFilter = document.getElementById('categoryFilter');
     const dateFromFilter = document.getElementById('dateFromFilter');
     const dateToFilter = document.getElementById('dateToFilter');
     const clearFilters = document.getElementById('clearFilters');
@@ -742,324 +739,244 @@ document.addEventListener('DOMContentLoaded', function() {
     const expensesTable = document.querySelector('.table tbody');
 
     // Check if all required elements exist
-    if (!searchInput || !categoryFilter || !expensesTable) {
+    if (!searchInput || !expensesTable) {
         console.error('Required DOM elements not found for expense filtering');
         return;
     }
 
     // Store original table content
     const originalTableContent = expensesTable.innerHTML;
-    // console.log('Original table content stored, rows:', expensesTable.querySelectorAll('tr').length);
 
-    // Load filter options on page load (only once)
-    if (!window.filterOptionsLoaded) {
-        loadFilterOptions();
-        window.filterOptionsLoaded = true;
-    }
-
-function loadFilterOptions() {
-    // console.log('Loading filter options...');
-    fetch('ajax/filter_expenses.php?page=1&limit=0')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    // Add event listeners for all filters
+    [searchInput, dateFromFilter, dateToFilter].forEach(element => {
+        if (element) {
+            element.addEventListener('change', performFilter);
+            if (element === searchInput) {
+                element.addEventListener('input', performFilter);
             }
-            return response.text();
-        })
-        .then(text => {
-            if (text.trim().startsWith('<')) {
-                throw new Error('Server returned HTML instead of JSON');
-            }
-            
-            try {
-                const data = JSON.parse(text);
-                // console.log('Filter options response:', data);
-                if (data.success) {
-                    populateFilterOptions(data.filter_options);
-                    // console.log('Filter options populated successfully');
-                } else {
-                    console.error('Filter options error:', data.error);
-                }
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.error('Response text:', text);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading filter options:', error);
-        });
-}
-
-function populateFilterOptions(options) {
-    // console.log('Populating filter options with:', options);
-    // Populate categories
-    const categorySelect = document.getElementById('categoryFilter');
-    if (!categorySelect) {
-        console.error('Category filter element not found');
-        return;
-    }
-    
-    categorySelect.innerHTML = '<option value="">All Categories</option>';
-    
-    // Ensure categories is an array and decode HTML entities
-    const categories = Array.isArray(options.categories) ? options.categories : Object.values(options.categories);
-    // console.log('Categories to populate:', categories);
-    
-    categories.forEach(category => {
-        // Decode HTML entities
-        const decodedCategory = category.replace(/&#039;/g, "'").replace(/&amp;/g, "&");
-        categorySelect.innerHTML += `<option value="${decodedCategory}">${decodedCategory}</option>`;
+        }
     });
-    
-    // console.log('Filter options populated successfully');
-}
 
-// Add event listeners for all filters
-[searchInput, categoryFilter, dateFromFilter, dateToFilter].forEach(element => {
-    element.addEventListener('change', performFilter);
-    if (element === searchInput) {
-        element.addEventListener('input', performFilter);
-    }
-});
+    clearFilters.addEventListener('click', function() {
+        searchInput.value = '';
+        dateFromFilter.value = '';
+        dateToFilter.value = '';
+        
+        // Reload the page to show all expenses
+        window.location.href = 'expenses.php';
+    });
 
-clearFilters.addEventListener('click', function() {
-    searchInput.value = '';
-    categoryFilter.value = '';
-    dateFromFilter.value = '';
-    dateToFilter.value = '';
-    
-    // Reload the page to show all expenses
-    window.location.href = 'expenses.php';
-});
-
-function performFilter() {
-    // Clear previous timeout
-    clearTimeout(filterTimeout);
-    
-    // Debounce search input
-    if (this === searchInput) {
-        filterTimeout = setTimeout(() => {
+    function performFilter() {
+        // Clear previous timeout
+        clearTimeout(filterTimeout);
+        
+        // Debounce search input
+        if (this === searchInput) {
+            filterTimeout = setTimeout(() => {
+                executeFilter();
+            }, 300);
+        } else {
             executeFilter();
-        }, 300);
-    } else {
-        executeFilter();
+        }
     }
-}
 
-function executeFilter() {
-    const search = searchInput.value.trim();
-    const category = categoryFilter.value;
-    const dateFrom = dateFromFilter.value;
-    const dateTo = dateToFilter.value;
-    
-    // Show loading state
-    filterResults.style.display = 'block';
-    filterCount.textContent = 'Filtering...';
-    
-    // Build query string
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (category) params.append('category', category);
-    if (dateFrom) params.append('date_from', dateFrom);
-    if (dateTo) params.append('date_to', dateTo);
-    params.append('page', '1');
-    params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
-    
-    const url = `ajax/filter_expenses.php?${params.toString()}`;
-    // console.log('Fetching from URL:', url);
-    
-    fetch(url)
-        .then(response => {
-            // console.log('Response status:', response.status, response.statusText);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            // console.log('Raw response text (first 500 chars):', text.substring(0, 500));
-            if (text.trim().startsWith('<')) {
-                console.error('Server returned HTML instead of JSON. Full response:', text);
-                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
-            }
-            
-            try {
-                const data = JSON.parse(text);
-                // console.log('Parsed JSON data:', data);
-                // console.log('Success:', data.success);
-                // console.log('Expenses array:', data.expenses);
-                // console.log('Expenses length:', data.expenses ? data.expenses.length : 'undefined');
+    function executeFilter() {
+        const search = searchInput.value.trim();
+        const dateFrom = dateFromFilter.value;
+        const dateTo = dateToFilter.value;
+        
+        // Show loading state
+        filterResults.style.display = 'block';
+        filterCount.textContent = 'Filtering...';
+        
+        // Build query string
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (dateFrom) params.append('date_from', dateFrom);
+        if (dateTo) params.append('date_to', dateTo);
+        params.append('page', '1');
+        params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
+        
+        const url = `ajax/filter_expenses.php?${params.toString()}`;
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                if (text.trim().startsWith('<')) {
+                    console.error('Server returned HTML instead of JSON. Full response:', text);
+                    throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+                }
                 
-                if (data.success) {
-                    // Ensure expenses is an array
-                    const expenses = Array.isArray(data.expenses) ? data.expenses : [];
-                    // console.log('Final expenses count:', expenses.length);
-                    
-                    if (expenses.length > 0) {
-                        // console.log('First expense:', expenses[0]);
-                    }
-                    
-                    displayFilterResults(expenses);
-                    if (data.pagination && data.pagination.total_expenses !== undefined) {
-                        filterCount.textContent = data.pagination.total_expenses;
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        // Ensure expenses is an array
+                        const expenses = Array.isArray(data.expenses) ? data.expenses : [];
+                        
+                        displayFilterResults(expenses);
+                        if (data.pagination && data.pagination.total_expenses !== undefined) {
+                            filterCount.textContent = data.pagination.total_expenses;
+                        } else {
+                            filterCount.textContent = expenses.length;
+                        }
+                        
+                        // Dynamically update stats above table
+                        if (data.stats) {
+                            const statTotalExpenses = document.getElementById('statTotalExpenses');
+                            const statTotalCashIn = document.getElementById('statTotalCashIn');
+                            const statTotalCashOut = document.getElementById('statTotalCashOut');
+                            const statProfit = document.getElementById('statProfit');
+                            
+                            if (statTotalExpenses) statTotalExpenses.textContent = data.stats.total_expenses.toLocaleString('en-IN');
+                            if (statTotalCashIn) statTotalCashIn.textContent = formatCurrency(data.stats.total_cash_in);
+                            if (statTotalCashOut) statTotalCashOut.textContent = formatCurrency(data.stats.total_cash_out);
+                            if (statProfit) statProfit.textContent = formatCurrency(data.stats.profit);
+                        }
                     } else {
-                        filterCount.textContent = expenses.length;
+                        console.error('Filter error:', data.error);
+                        filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                        if (expensesTable) {
+                            expensesTable.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="alert alert-danger">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        ${data.error || 'Unknown error'}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        }
                     }
-                } else {
-                    console.error('Filter error:', data.error);
-                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Response text:', text);
+                    filterCount.textContent = 'Invalid response from server';
                     if (expensesTable) {
                         expensesTable.innerHTML = `
                         <tr>
-                            <td colspan="8" class="text-center py-4">
+                            <td colspan="6" class="text-center py-4">
                                 <div class="alert alert-danger">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                    ${data.error || 'Unknown error'}
+                                    Invalid response from server. Please check the console for details.
                                 </div>
                             </td>
                         </tr>
                     `;
                     }
                 }
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.error('Response text:', text);
-                filterCount.textContent = 'Invalid response from server';
-                if (expensesTable) {
-                    expensesTable.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-4">
-                            <div class="alert alert-danger">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Invalid response from server. Please check the console for details.
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Filter fetch error:', error);
-            filterCount.textContent = 'Filter failed: ' + error.message;
-        });
-}
-
-function displayFilterResults(expenses) {
-    // console.log('Displaying filter results, count:', expenses ? expenses.length : 0);
-    
-    if (!expenses || expenses.length === 0) {
-        if (expensesTable) {
-            expensesTable.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center py-4">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted">No expenses found</h5>
-                    <p class="text-muted">Try adjusting your filter criteria</p>
-                </td>
-            </tr>
-        `;
-        }
-        return;
+            })
+            .catch(error => {
+                console.error('Filter fetch error:', error);
+                filterCount.textContent = 'Filter failed: ' + error.message;
+            });
     }
-    
-    let tableHTML = '';
-    expenses.forEach(expense => {
-        // Format date to match PHP format (YYYY-MM-DD)
-        const expenseDateObj = new Date(expense.expense_date);
-        const expenseDate = expenseDateObj.getFullYear() + '-' + 
-            String(expenseDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
-            String(expenseDateObj.getDate()).padStart(2, '0');
+
+    function displayFilterResults(expenses) {
+        if (!expenses || expenses.length === 0) {
+            if (expensesTable) {
+                expensesTable.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                        <h5 class="text-muted">No expenses found</h5>
+                        <p class="text-muted">Try adjusting your filter criteria</p>
+                    </td>
+                </tr>
+            `;
+            }
+            return;
+        }
         
-        // Format time to match PHP format (HH:MM - 24 hour format)
-        const createdTimeObj = new Date(expense.created_at);
-        const createdTime = String(createdTimeObj.getHours()).padStart(2, '0') + ':' + 
-            String(createdTimeObj.getMinutes()).padStart(2, '0');
-        
-        // Format currency
-        const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
-        
-        // Format payment method badge
-        const getPaymentMethodBadge = (method) => {
-            const badges = {
-                'cash': 'success',
-                'bank_transfer': 'primary', 
-                'card': 'info',
-                'cheque': 'warning'
+        let tableHTML = '';
+        expenses.forEach(expense => {
+            // Format date to match PHP format (YYYY-MM-DD)
+            const expenseDateObj = new Date(expense.expense_date);
+            const expenseDate = expenseDateObj.getFullYear() + '-' + 
+                String(expenseDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(expenseDateObj.getDate()).padStart(2, '0');
+            
+            // Format time to match PHP format (HH:MM - 24 hour format)
+            const createdTimeObj = new Date(expense.created_at);
+            const createdTime = String(createdTimeObj.getHours()).padStart(2, '0') + ':' + 
+                String(createdTimeObj.getMinutes()).padStart(2, '0');
+            
+            // Format payment method badge
+            const getPaymentMethodBadge = (method) => {
+                const badges = {
+                    'cash_in': 'success',
+                    'cash_out': 'danger'
+                };
+                return badges[method] || 'secondary';
             };
-            return badges[method] || 'secondary';
-        };
-        
-        tableHTML += `
-            <tr>
-                <td>
-                    <div>
-                        ${expenseDate}
-                        <br>
-                        <small class="text-muted">${createdTime}</small>
-                    </div>
-                </td>
-                <td>
-                    <span class="badge bg-info">${expense.category.replace(/\b\w/g, l => l.toUpperCase())}</span>
-                </td>
-                <td>
-                    <div>
-                        ${expense.description}
-                        ${expense.receipt_image ? `
+            
+            tableHTML += `
+                <tr>
+                    <td>
+                        <div>
+                            ${expenseDate}
                             <br>
-                            <small class="text-muted">
-                                <i class="fas fa-paperclip"></i> Receipt attached
-                            </small>
-                        ` : ''}
-                    </div>
-                </td>
-                <td>
-                    <strong class="text-danger">${formatCurrency(expense.amount)}</strong>
-                </td>
-                <td>
-                    <span class="badge bg-${getPaymentMethodBadge(expense.payment_method)}">
-                        ${expense.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                </td>
-                <td>
-                    ${expense.reference_number ? expense.reference_number : '<span class="text-muted">-</span>'}
-                </td>
-                <td>
-                    ${expense.created_by_name || '-'}
-                </td>
-                <td>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" 
-                                class="btn btn-outline-primary" 
-                                onclick="editExpense(${JSON.stringify(expense).replace(/"/g, '&quot;')})"
-                                title="Edit" style="border: 1px solid #667eea;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        ${expense.receipt_image ? `
+                            <small class="text-muted">${createdTime}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            ${expense.description}
+                            ${expense.receipt_image ? `
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-paperclip"></i> Receipt attached
+                                </small>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <strong class="text-danger">${formatCurrency(expense.amount)}</strong>
+                    </td>
+                    <td>
+                        <span class="badge bg-${getPaymentMethodBadge(expense.payment_method)}">
+                            ${expense.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                    </td>
+                    <td>
+                        ${expense.created_by_name || '-'}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
                             <button type="button" 
-                                    class="btn btn-outline-info" 
-                                    onclick="viewReceipt('${expense.receipt_image}')"
-                                    title="View Receipt" style="border: 1px solid #667eea;">
-                                <i class="fas fa-eye"></i>
+                                    class="btn btn-outline-primary" 
+                                    onclick="editExpense(${JSON.stringify(expense).replace(/"/g, '&quot;')})"
+                                    title="Edit" style="border: 1px solid #667eea;">
+                                <i class="fas fa-edit"></i>
                             </button>
-                        ` : ''}
-                        <button type="button" 
-                                class="btn btn-outline-danger" 
-                                onclick="deleteExpense(${expense.id}, '${expense.description.replace(/'/g, "\\'")}')"
-                                title="Delete" style="border: 1px solid #667eea;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
-    
-    // console.log('Setting table innerHTML with', expenses.length, 'expenses');
-    expensesTable.innerHTML = tableHTML;
-    // console.log('Table updated, current rows:', expensesTable.querySelectorAll('tr').length);
-}
-}); // Close the DOMContentLoaded event listener
+                            ${expense.receipt_image ? `
+                                <button type="button" 
+                                        class="btn btn-outline-info" 
+                                        onclick="viewReceipt('${expense.receipt_image}')"
+                                        title="View Receipt" style="border: 1px solid #667eea;">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            ` : ''}
+                            <button type="button" 
+                                    class="btn btn-outline-danger" 
+                                    onclick="deleteExpense(${expense.id}, '${expense.description.replace(/'/g, "\\'")}')"
+                                    title="Delete" style="border: 1px solid #667eea;">
+                                    <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        expensesTable.innerHTML = tableHTML;
+    }
+});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

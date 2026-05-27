@@ -205,12 +205,12 @@ for ($i = 11; $i >= 0; $i--) {
                                     </td>
                                     <td>
                                         <div>
-                                            <strong><?php echo htmlspecialchars($order['first_name'] . ' ' . $order['last_name']); ?></strong>
+                                            <strong><?php echo htmlspecialchars($order['customer_name'] ?? (($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''))); ?></strong>
                                             <br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($order['customer_code']); ?></small>
+                                            <small class="text-muted"><?php echo htmlspecialchars($order['customer_code'] ?? ''); ?></small>
                                         </div>
                                     </td>
-                                    <td><?php echo htmlspecialchars($order['cloth_type_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($order['cloth_type_name'] ?? ''); ?></td>
                                     <td>
                                         <span class="badge bg-<?php 
                                             echo match($order['status']) {

@@ -55,7 +55,11 @@ class Company extends BaseModel {
         
         $stats['total_customers'] = $customerModel->count(['company_id' => $company_id]);
         $stats['total_orders'] = $orderModel->count(['company_id' => $company_id]);
-        $stats['total_users'] = $userModel->count(['company_id' => $company_id]);
+        
+        // Count users excluding admins for subscription limits
+        $stmt = $userModel->query("SELECT COUNT(*) as count FROM users WHERE company_id = :company_id AND role != 'admin'", [':company_id' => $company_id]);
+        $result = $stmt->fetch();
+        $stats['total_users'] = (int)($result['count'] ?? 0);
         
         return $stats;
     }

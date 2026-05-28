@@ -294,9 +294,9 @@ if ($company['subscription_expiry']) {
                     </tr>
                     <tr>
                         <td>Team Members</td>
-                        <td class="text-center">1</td>
                         <td class="text-center">3</td>
-                        <td class="text-center bg-light">10</td>
+                        <td class="text-center">10</td>
+                        <td class="text-center bg-light">20</td>
                         <td class="text-center">Unlimited</td>
                     </tr>
                     <tr>

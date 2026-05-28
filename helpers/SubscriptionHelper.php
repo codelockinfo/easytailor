@@ -15,19 +15,19 @@ class SubscriptionHelper {
             'free' => [
                 'customers' => 30,
                 'orders' => 50,
-                'users' => 1,
+                'users' => 3,
                 'invoice_generation' => false
             ],
             'basic' => [
                 'customers' => 100,
                 'orders' => 150,
-                'users' => 3,
+                'users' => 10,
                 'invoice_generation' => true
             ],
             'premium' => [
                 'customers' => 500,
                 'orders' => 1000,
-                'users' => 10,
+                'users' => 20,
                 'invoice_generation' => true
             ],
             'enterprise' => [
@@ -146,10 +146,12 @@ class SubscriptionHelper {
             return ['allowed' => true];
         }
         
-        // Get current count
+        // Get current count excluding admins
         require_once __DIR__ . '/../admin/models/User.php';
         $userModel = new User();
-        $currentCount = $userModel->count(['company_id' => $companyId]);
+        $stmt = $userModel->query("SELECT COUNT(*) as count FROM users WHERE company_id = :company_id AND role != 'admin'", [':company_id' => $companyId]);
+        $result = $stmt->fetch();
+        $currentCount = (int)($result['count'] ?? 0);
         
         if ($currentCount >= $limits['users']) {
             return [

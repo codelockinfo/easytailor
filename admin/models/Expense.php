@@ -283,11 +283,35 @@ class Expense extends BaseModel {
     }
     
     /**
-     * Get all expenses for export
+     * Get all expenses for export (filtered by company and user)
      */
-    public function getAllExpenses() {
-        $query = "SELECT * FROM " . $this->table . " ORDER BY expense_date DESC, created_at DESC";
+    public function getAllExpenses($created_by = null) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT * FROM " . $this->table;
+        
+        $where_clauses = [];
+        $params = [];
+        
+        if ($companyId) {
+            $where_clauses[] = "company_id = :company_id";
+            $params['company_id'] = $companyId;
+        }
+        
+        if ($created_by) {
+            $where_clauses[] = "created_by = :created_by";
+            $params['created_by'] = $created_by;
+        }
+        
+        if (!empty($where_clauses)) {
+            $query .= " WHERE " . implode(" AND ", $where_clauses);
+        }
+        
+        $query .= " ORDER BY expense_date DESC, created_at DESC";
+        
         $stmt = $this->conn->prepare($query);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue(':' . $param, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();

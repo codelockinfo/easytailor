@@ -41,8 +41,8 @@ try {
     $expenseModel = new Expense();
     $userModel = new User();
     
-    // Get all expenses
-    $expenses = $expenseModel->getAllExpenses();
+    // Get all expenses created by the logged-in user
+    $expenses = $expenseModel->getAllExpenses(get_user_id());
     
     // Set headers for Excel download
     $filename = 'expenses_export_' . date('Y-m-d_H-i-s') . '.xls';

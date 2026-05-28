@@ -374,7 +374,7 @@ class AuthController {
                 .code-box { background: white; border: 2px dashed #667eea; padding: 20px; text-align: center; margin: 20px 0; border-radius: 10px; }
                 .code { font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 5px; }
                 .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
-                .button { background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+                .button { background: #667eea; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
             </style>
         </head>
         <body>
@@ -392,7 +392,7 @@ class AuthController {
                     </div>
                     
                     <p style='text-align:center; color: white;'>
-                        <a href='" . $resetUrl . "' class='button'>Reset Password</a>
+                        <a href='" . $resetUrl . "' class='button' style='color:#ffffff !important;'><span style='color:#ffffff !important;'>Reset Password</span></a>
                     </p>
                     
                     <p><strong>This code will expire in 15 minutes.</strong></p>

@@ -196,7 +196,6 @@ if (empty($categories)) {
             </div>
         </div>
     </div>
-    
     <div class="col-xl-3 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
             <div class="d-flex justify-content-between align-items-center">
@@ -205,7 +204,7 @@ if (empty($categories)) {
                     <div class="stat-label">Total Cash Out</div>
                  </div>
                 <div class="stat-icon">
-                    <i class="fas fa-calendar-alt"></i>
+                    <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
         </div>
@@ -219,7 +218,7 @@ if (empty($categories)) {
                         <div class="stat-label">Profit</div>
                 </div>
                 <div class="stat-icon">
-                    <i class="fas fa-arrow-up"></i>
+                    <i class="fas fa-chart-line"></i>
                 </div>
             </div>
                 <div class="col-xl-3 col-md-6">

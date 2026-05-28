@@ -32,8 +32,8 @@
                                 Click the button below to start managing your tailor shop right away.
                             </p>
                             <p style="text-align:center;margin:32px 0; color: #ffffff !important;">
-                                <a href="<?= htmlspecialchars($manageUrl ?? '#'); ?>" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#4c51bf 0%,#667eea 100%);color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">
-                                    Manage Your Tailor
+                                <a href="<?= htmlspecialchars($manageUrl ?? '#'); ?>" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#4c51bf 0%,#667eea 100%);color:#ffffff !important;text-decoration:none;border-radius:8px;font-weight:600;">
+                                    <span style="color:#ffffff !important;">Manage Your Tailor</span>
                                 </a>
                             </p>
                             <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5568;">

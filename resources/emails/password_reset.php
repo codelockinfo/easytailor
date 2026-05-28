@@ -37,8 +37,8 @@
                                 </tr>
                             </table>
                             <p style="text-align:center;margin:28px 0;">
-                                <a href="<?= htmlspecialchars($resetUrl ?? '#'); ?>" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#e53e3e 0%,#f56565 100%);color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">
-                                    Reset Password
+                                <a href="<?= htmlspecialchars($resetUrl ?? '#'); ?>" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#e53e3e 0%,#f56565 100%);color:#ffffff !important;text-decoration:none;border-radius:8px;font-weight:600;">
+                                    <span style="color:#ffffff !important;">Reset Password</span>
                                 </a>
                             </p>
                             <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5568;">

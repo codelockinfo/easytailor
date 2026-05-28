@@ -265,8 +265,8 @@ class MailService
                 </ul>
                 <p><strong>Reason Provided:</strong><br>{$safeReason}</p>
                 <p>
-                    <a href=\"{$dashboardUrl}\" style=\"display:inline-block;padding:10px 18px;background:#667eea;color:#fff;
-                    border-radius:6px;text-decoration:none;\">View Request</a>
+                    <a href=\"{$dashboardUrl}\" style=\"display:inline-block;padding:10px 18px;background:#667eea;color:#ffffff !important;
+                    border-radius:6px;text-decoration:none;\"><span style=\"color:#ffffff !important;\">View Request</span></a>
                 </p>
                 <p>This is an automated notification from " . APP_NAME . ".</p>
             ";

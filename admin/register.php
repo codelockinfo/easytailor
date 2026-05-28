@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             .header h1 { color:#ffffff; margin:0; font-size:28px; }
                             .content { padding:32px 40px 24px; color:#2d3748; }
                             .content p { font-size:16px; line-height:1.6; margin:0 0 16px; }
-                            .button { display:inline-block; padding:16px 32px; background:linear-gradient(135deg,#4c51bf 0%,#667eea 100%); color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; }
+                            .button { display:inline-block; padding:16px 32px; background:linear-gradient(135deg,#4c51bf 0%,#667eea 100%); color:#ffffff !important; text-decoration:none; border-radius:8px; font-weight:600; }
                             .footer { padding:24px 40px 40px; border-top:1px solid #edf2f7; text-align:center; color:#718096; font-size:13px; }
                         </style>
                     </head>
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $body .= "
                                     <p>Click the button below to start managing your tailor shop right away.</p>
                                     <p style='text-align:center; margin:32px 0;'>
-                                        <a class='button' href='" . htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') . "'>Manage Your Tailor</a>
+                                        <a class='button' href='" . htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') . "' style='color:#ffffff !important;'><span style='color:#ffffff !important;'>Manage Your Tailor</span></a>
                                     </p>
                                     <p>If you need help, reply to this email or contact us at <a href='mailto:" . htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') . "</a>.</p>
                                 </div>

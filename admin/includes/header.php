@@ -635,7 +635,7 @@ $seoOptions = [
             padding: 2rem;
         }
         
-        .spinner-border {
+        .spinner-border:not(.spinner-border-sm) {
             width: 3rem;
             height: 3rem;
         }

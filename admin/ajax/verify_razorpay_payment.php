@@ -66,16 +66,20 @@ try {
     // Verify payment with Razorpay API
     $ch = curl_init('https://api.razorpay.com/v1/payments/' . $paymentId);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Basic ' . base64_encode(RAZORPAY_KEY_ID . ':' . $razorpayKeySecret)
     ]);
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
     if ($httpCode !== 200) {
-        echo json_encode(['success' => false, 'message' => 'Failed to verify payment with Razorpay']);
+        error_log("Razorpay verification failed. HTTP Code: $httpCode, Curl Error: $curlError, Response: $response");
+        echo json_encode(['success' => false, 'message' => 'Failed to verify payment with Razorpay. (HTTP ' . $httpCode . ') ' . $curlError]);
         exit;
     }
     

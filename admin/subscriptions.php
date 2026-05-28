@@ -482,7 +482,7 @@ function proceedToPayment() {
     const form = document.getElementById('subscriptionForm');
     const customerName = document.getElementById('customerName').value.trim();
     const customerEmail = document.getElementById('customerEmail').value.trim();
-    const customerPhone = document.getElementById('customerPhone').value.trim();
+    let customerPhone = document.getElementById('customerPhone').value.trim();
     
     // Reset validation
     form.classList.remove('was-validated');
@@ -661,8 +661,7 @@ function handlePaymentSuccess(response, paymentData) {
             const modal = bootstrap.Modal.getInstance(document.getElementById('upgradeModal'));
             modal.hide();
             
-            // Show success message and reload page
-            alert('Payment successful! Your subscription has been upgraded.');
+            // Close modal and reload page (success message is set in session and will show on reload)
             window.location.reload();
         } else {
             alert('Payment verification failed: ' + (data.message || 'Please contact support.'));

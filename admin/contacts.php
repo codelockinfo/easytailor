@@ -1,27 +1,19 @@
-<!-- Favicon - Primary ICO format for Google Search -->
-<link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
 /**
  * Contacts Page
  * Tailoring Management System
  */
 
-$page_title = 'Contact Management';
-require_once 'includes/header.php';
-
+// Bootstrap: load config & model before any output (needed for PRG redirect)
+require_once __DIR__ . '/../config/config.php';
+require_login(); // enforce authentication before any logic runs
 require_once 'models/Contact.php';
 
 $contactModel = new Contact();
 $message = '';
 $messageType = '';
 
-// Handle form submissions
+// Handle form submissions (POST-Redirect-GET pattern to prevent duplicate submissions)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
@@ -43,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Track generate lead event
                     require_once '../helpers/GA4Helper.php';
                     $_SESSION['ga4_event'] = GA4Helper::trackGenerateLead('contact', null);
-                    $message = 'Contact added successfully';
-                    $messageType = 'success';
+                    $_SESSION['flash_message'] = 'Contact added successfully';
+                    $_SESSION['flash_type'] = 'success';
                 } else {
-                    $message = 'Failed to add contact';
-                    $messageType = 'error';
+                    $_SESSION['flash_message'] = 'Failed to add contact';
+                    $_SESSION['flash_type'] = 'error';
                 }
                 break;
                 
@@ -64,29 +56,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ];
                 
                 if ($contactModel->update($contactId, $data)) {
-                    $message = 'Contact updated successfully';
-                    $messageType = 'success';
+                    $_SESSION['flash_message'] = 'Contact updated successfully';
+                    $_SESSION['flash_type'] = 'success';
                 } else {
-                    $message = 'Failed to update contact';
-                    $messageType = 'error';
+                    $_SESSION['flash_message'] = 'Failed to update contact';
+                    $_SESSION['flash_type'] = 'error';
                 }
                 break;
                 
             case 'delete':
                 $contactId = (int)$_POST['contact_id'];
                 if ($contactModel->delete($contactId)) {
-                    $message = 'Contact deleted successfully';
-                    $messageType = 'success';
+                    $_SESSION['flash_message'] = 'Contact deleted successfully';
+                    $_SESSION['flash_type'] = 'success';
                 } else {
-                    $message = 'Failed to delete contact';
-                    $messageType = 'error';
+                    $_SESSION['flash_message'] = 'Failed to delete contact';
+                    $_SESSION['flash_type'] = 'error';
                 }
+                break;
+
+            default:
+                $_SESSION['flash_message'] = 'Invalid action';
+                $_SESSION['flash_type'] = 'error';
                 break;
         }
     } else {
-        $message = 'Invalid request';
-        $messageType = 'error';
+        $_SESSION['flash_message'] = 'Invalid request';
+        $_SESSION['flash_type'] = 'error';
     }
+
+    // PRG: redirect to GET to prevent form resubmission on refresh / back-button
+    $redirect_url = 'contacts.php';
+    $qs = [];
+    if (!empty($_GET['page']))     $qs[] = 'page='     . (int)$_GET['page'];
+    if (!empty($_GET['search']))   $qs[] = 'search='   . urlencode($_GET['search']);
+    if (!empty($_GET['category'])) $qs[] = 'category=' . urlencode($_GET['category']);
+    if ($qs) $redirect_url .= '?' . implode('&', $qs);
+    header('Location: ' . $redirect_url);
+    exit;
+}
+
+// Read and clear flash message (set by the POST branch above)
+if (!empty($_SESSION['flash_message'])) {
+    $message     = $_SESSION['flash_message'];
+    $messageType = $_SESSION['flash_type'] ?? 'success';
+    unset($_SESSION['flash_message'], $_SESSION['flash_type']);
 }
 
 // Get contacts
@@ -113,8 +127,11 @@ if (isset($_GET['edit'])) {
 
 // Get categories
 $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
-?>
 
+// ---- All PHP logic is done; now safe to output HTML ----
+$page_title = 'Contact Management';
+require_once 'includes/header.php';
+?>
 
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">

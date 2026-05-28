@@ -150,7 +150,7 @@ $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
                 </div>
             </div>
             <div class="col-md-4">
-                <select class="form-select" id="categoryFilter" name="category">
+                <select class="form-select" id="categoryFilter">
                     <option value="">All Categories</option>
                     <?php foreach ($categories as $category): ?>
                         <option value="<?php echo htmlspecialchars($category); ?>" <?php echo $category_filter === $category ? 'selected' : ''; ?>>
@@ -547,6 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set initial search results if there's a search term
     const searchTerm = searchInput.value.trim();
     if (searchTerm) {
+        clearBtn.style.display = 'block';
         const searchResults = document.getElementById('searchResults');
         const searchCount = document.getElementById('searchCount');
         if (searchResults && searchCount) {

@@ -118,7 +118,7 @@ $catStats = $categoryModel->getCategoryStats();
 
 <!-- Category Statistics -->
 <div class="row mb-4">
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-4 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -132,7 +132,7 @@ $catStats = $categoryModel->getCategoryStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-4 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -146,29 +146,15 @@ $catStats = $categoryModel->getCategoryStats();
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl-4 col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo number_format($catStats['expense_count']); ?></div>
-                    <div class="stat-label">Total Expenses</div>
+                    <div class="stat-number"><?php echo number_format($catStats['inactive']); ?></div>
+                    <div class="stat-label">Inactive Categories</div>
                 </div>
                 <div class="stat-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo format_currency($catStats['total_amount']); ?></div>
-                    <div class="stat-label">Total Amount</div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-coins"></i>
+                    <i class="fas fa-ban"></i>
                 </div>
             </div>
         </div>
@@ -187,7 +173,7 @@ $catStats = $categoryModel->getCategoryStats();
     <div class="card-body">
         <!-- Search and Filter -->
         <div class="row mb-3">
-            <div class="col-md-4">
+            <div class="col-12">
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>">

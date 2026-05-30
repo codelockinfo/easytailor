@@ -37,6 +37,9 @@ $userStats = $userModel->getUserStats();
 // Get recent orders
 $recentOrders = $orderModel->getOrdersWithDetails([], 5);
 
+// Check if any orders exist for chart
+$totalOrderCount = ($orderStats['pending'] ?? 0) + ($orderStats['in_progress'] ?? 0) + ($orderStats['completed'] ?? 0) + ($orderStats['delivered'] ?? 0) + ($orderStats['cancelled'] ?? 0);
+
 // Get overdue orders
 $overdueOrders = $orderModel->getOverdueOrders();
 
@@ -152,9 +155,9 @@ for ($i = 11; $i >= 0; $i--) {
                         <i class="fas fa-plus me-2"></i>
                         New Order
                     </a>
-                    <a href="customers.php?action=create" class="btn btn-outline-primary">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Add Customer
+                    <a href="measurements.php?action=create" class="btn btn-outline-primary">
+                        <i class="fas fa-ruler-combined me-2"></i>
+                        Add Measurement
                     </a>
                     <a href="invoices.php?action=create" class="btn btn-outline-primary">
                         <i class="fas fa-file-invoice me-2"></i>
@@ -237,9 +240,22 @@ for ($i = 11; $i >= 0; $i--) {
                         </table>
                     </div>
                 <?php else: ?>
-                    <div class="text-center py-4">
-                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No orders found</p>
+                    <div class="no-orders-empty">
+                        <div class="no-orders-gradient-top"></div>
+                        <div class="no-orders-body">
+                            <div class="no-orders-scissors-wrap">
+                                <span class="scissors-icon">&#9988;</span>
+                                <span class="thread-line"></span>
+                            </div>
+                            <div class="no-orders-texts">
+                                <span class="no-orders-tag">Nothing here yet</span>
+                                <h5 class="no-orders-heading">No Recent Orders</h5>
+                                <p class="no-orders-desc">Your workspace is ready — start stitching orders for your customers!</p>
+                            </div>
+                            <a href="orders.php?action=create" class="no-orders-cta">
+                                <i class="fas fa-plus"></i> Create First Order
+                            </a>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
@@ -248,16 +264,50 @@ for ($i = 11; $i >= 0; $i--) {
     
     <!-- Quick Actions & Alerts -->
     <div class="col-xl-4 col-lg-5 mb-4">
-        <!-- Order Status Chart -->
-        <div class="card mb-4">
-            <div class="card-header">
+        <!-- Order Status Breakdown -->
+        <?php
+            $statusItems = [
+                ['label'=>'Pending',     'key'=>'pending',     'color'=>'#f59e0b', 'count'=>(int)($orderStats['pending'] ?? 0)],
+                ['label'=>'In Progress', 'key'=>'in_progress', 'color'=>'#06b6d4', 'count'=>(int)($orderStats['in_progress'] ?? 0)],
+                ['label'=>'Completed',   'key'=>'completed',   'color'=>'#10b981', 'count'=>(int)($orderStats['completed'] ?? 0)],
+                ['label'=>'Delivered',   'key'=>'delivered',   'color'=>'#6366f1', 'count'=>(int)($orderStats['delivered'] ?? 0)],
+                ['label'=>'Cancelled',   'key'=>'cancelled',   'color'=>'#ef4444', 'count'=>(int)($orderStats['cancelled'] ?? 0)],
+            ];
+        ?>
+        <div class="card mb-4 order-status-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-chart-pie me-2"></i>
+                    <i class="fas fa-layer-group me-2"></i>
                     Order Status
                 </h5>
+                <span class="osc-total-badge"><?php echo $totalOrderCount; ?> Total</span>
             </div>
-            <div class="card-body">
-                <canvas id="orderStatusChart"></canvas>
+            <div class="card-body osc-body">
+                <?php foreach ($statusItems as $item): ?>
+                <?php $pct = $totalOrderCount > 0 ? round(($item['count'] / $totalOrderCount) * 100) : 0; ?>
+                <div class="osc-row">
+                    <div class="osc-label-wrap">
+                        <span class="osc-dot" style="background:<?php echo $item['color']; ?>"></span>
+                        <span class="osc-label"><?php echo $item['label']; ?></span>
+                    </div>
+                    <div class="osc-bar-track">
+                        <div class="osc-bar-fill"
+                             style="background:<?php echo $item['color']; ?>;"
+                             data-width="<?php echo $pct; ?>"></div>
+                    </div>
+                    <div class="osc-meta">
+                        <span class="osc-count"><?php echo $item['count']; ?></span>
+                        <span class="osc-pct"><?php echo $pct; ?>%</span>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <?php if ($totalOrderCount === 0): ?>
+                <div class="osc-empty-note">
+                    <a href="orders.php?action=create" class="sbe-cta">
+                        <i class="fas fa-plus-circle me-1"></i> Add your first order
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         
@@ -355,43 +405,14 @@ const revenueChart = new Chart(revenueCtx, {
     }
 });
 
-// Order Status Chart
-const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
-const orderStatusChart = new Chart(orderStatusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Pending', 'In Progress', 'Completed', 'Delivered', 'Cancelled'],
-        datasets: [{
-            data: [
-                <?php echo $orderStats['pending']; ?>,
-                <?php echo $orderStats['in_progress']; ?>,
-                <?php echo $orderStats['completed']; ?>,
-                <?php echo $orderStats['delivered']; ?>,
-                <?php echo $orderStats['cancelled']; ?>
-            ],
-            backgroundColor: [
-                '#ffc107',
-                '#17a2b8',
-                '#28a745',
-                '#007bff',
-                '#dc3545'
-            ],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    padding: 20,
-                    usePointStyle: true
-                }
-            }
-        }
-    }
+// Animate Order Status bars on load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.osc-bar-fill').forEach(function(bar) {
+        var target = bar.getAttribute('data-width');
+        setTimeout(function() {
+            bar.style.width = target + '%';
+        }, 200);
+    });
 });
 </script>
 
@@ -407,4 +428,215 @@ const orderStatusChart = new Chart(orderStatusCtx, {
         color: #667eea;
         border: 1px solid #667eea !important;
     }
+
+    /* ════════════════════════════════════════
+       RECENT ORDERS — Empty State
+    ════════════════════════════════════════ */
+    .no-orders-empty {
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .no-orders-gradient-top {
+        height: 6px;
+        background: linear-gradient(90deg, #667eea 0%, #a78bfa 40%, #f472b6 70%, #fb923c 100%);
+        border-radius: 0;
+    }
+    .no-orders-body {
+        padding: 2rem 1.5rem 1.8rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    .no-orders-scissors-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .scissors-icon {
+        font-size: 2.4rem;
+        filter: drop-shadow(0 2px 8px rgba(102,126,234,0.18));
+        animation: scissors-bounce 2.5s ease-in-out infinite;
+    }
+    .thread-line {
+        display: inline-block;
+        width: 60px;
+        height: 2px;
+        background: repeating-linear-gradient(90deg, #a78bfa 0px, #a78bfa 6px, transparent 6px, transparent 12px);
+        border-radius: 2px;
+        opacity: 0.5;
+    }
+    @keyframes scissors-bounce {
+        0%,100% { transform: translateY(0) rotate(-5deg); }
+        50%      { transform: translateY(-6px) rotate(5deg); }
+    }
+    .no-orders-texts { text-align: center; }
+    .no-orders-tag {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #a78bfa;
+        background: rgba(167,139,250,0.10);
+        padding: 2px 10px;
+        border-radius: 20px;
+        margin-bottom: 6px;
+    }
+    .no-orders-heading {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin-bottom: 0.3rem;
+    }
+    .no-orders-desc {
+        font-size: 0.80rem;
+        color: #94a3b8;
+        margin-bottom: 0;
+        line-height: 1.6;
+    }
+    .no-orders-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 22px;
+        border-radius: 30px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.35);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .no-orders-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.45);
+        color: #fff;
+    }
+
+    /* ════════════════════════════════════════
+       ORDER STATUS — New Bar Card
+    ════════════════════════════════════════ */
+    .order-status-card .osc-total-badge {
+        font-size: 0.80rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12));
+        color: #ffffff;
+        padding: 3px 12px;
+        border-radius: 20px;
+        letter-spacing: 0.03em;
+    }
+    .osc-body {
+        padding: 0.9rem 1.1rem 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+    .osc-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+    .osc-label-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 90px;
+    }
+    .osc-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .osc-label {
+        font-size: 0.88rem;
+        color: #475569;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .osc-bar-track {
+        flex: 1;
+        height: 8px;
+        background: #f1f5f9;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    .osc-bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 20px;
+        transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0.85;
+    }
+    .osc-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-width: 36px;
+    }
+    .osc-count {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.1;
+    }
+    .osc-pct {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        line-height: 1.1;
+    }
+    .osc-empty-note {
+        margin-top: 0.5rem;
+        padding-top: 0.8rem;
+        border-top: 1px dashed #e2e8f0;
+        text-align: center;
+    }
+    .sbe-cta {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .sbe-cta:hover { color: #764ba2; }
+
+    /* legacy cleanup */
+    .sbe-bar-wrap {
+        flex: 1;
+        height: 7px;
+        background: #f1f5f9;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    .sbe-bar {
+        height: 100%;
+        border-radius: 20px;
+        min-width: 0;
+        transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        opacity: 0.35;
+    }
+    .sbe-count {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #94a3b8;
+        min-width: 18px;
+        text-align: right;
+    }
+    .sbe-footer {
+        margin-top: 1.1rem;
+        padding-top: 0.9rem;
+        border-top: 1px solid #f1f5f9;
+        text-align: center;
+    }
+    .sbe-cta {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .sbe-cta:hover { color: #764ba2; }
 </style>

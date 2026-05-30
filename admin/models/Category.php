@@ -104,6 +104,9 @@ class Category extends BaseModel {
         $stats['expense_count'] = $result['expense_count'] ?? 0;
         $stats['total_amount'] = $result['total_amount'] ?? 0;
         
+        // Inactive categories
+        $stats['inactive'] = max(0, $stats['total'] - $stats['active']);
+        
         return $stats;
     }
 

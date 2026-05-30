@@ -732,21 +732,18 @@ $seoOptions = [
                         Cloth type
                     </a>
                 </li>
-
-                <li class="nav-item">
-                    <a href="customers.php" class="nav-link <?php echo in_array(basename($_SERVER['PHP_SELF']), ['customers.php', 'customer-details.php']) ? 'active' : ''; ?>">
-                        <i class="fas fa-users"></i>
-                        Customers
-                    </a>
-                </li>
-
                 <li class="nav-item">
                     <a href="measurements.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'measurements.php' ? 'active' : ''; ?>">
                         <i class="fas fa-ruler"></i>
                         Measurement
                     </a>
                 </li>
-
+                <li class="nav-item">
+                    <a href="customers.php" class="nav-link <?php echo in_array(basename($_SERVER['PHP_SELF']), ['customers.php', 'customer-details.php']) ? 'active' : ''; ?>">
+                        <i class="fas fa-users"></i>
+                        Customers
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a href="orders.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'orders.php' ? 'active' : ''; ?>">
                         <i class="fas fa-clipboard-list"></i>

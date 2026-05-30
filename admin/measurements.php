@@ -1690,4 +1690,19 @@ function displayFilterResults(measurements) {
 .modal-header.bg-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
 }
+
+/* Measurement input placeholder - light gray so it doesn't look like a real value */
+#measurementFieldsContainer .form-control::placeholder,
+#measurementFieldsContainer input::placeholder {
+    color: #b0b0b1 !important;
+    opacity: 1;
+  
+    font-size: 0.85rem;
+}
+#addMeasurementModal .form-control::placeholder,
+#addMeasurementModal input::placeholder,
+#addMeasurementModal textarea::placeholder {
+    color: #adb5bd !important;
+    opacity: 1;
+}
 </style>

@@ -181,7 +181,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3 align-items-start">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <label for="searchInput" class="form-label">Search Customers</label>
                 <div class="input-group">
                     <span class="input-group-text">

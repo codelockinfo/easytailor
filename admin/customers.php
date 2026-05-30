@@ -524,12 +524,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Reset modal when closed
-document.getElementById('customerModal').addEventListener('hidden.bs.modal', function() {
-    document.getElementById('customerModalTitle').textContent = 'Add Customer';
-    document.getElementById('customerAction').value = 'create';
-    document.getElementById('customerId').value = '';
-    document.getElementById('customerForm').reset();
-});
+const customerModal = document.getElementById('customerModal');
+if (customerModal) {
+    customerModal.addEventListener('hidden.bs.modal', function() {
+        const title = document.getElementById('customerModalTitle');
+        if (title) title.textContent = 'Add Customer';
+        const form = document.getElementById('customerForm');
+        if (form) form.reset();
+        const idInput = document.getElementById('customerId');
+        if (idInput) idInput.value = '';
+        const actionInput = document.getElementById('action');
+        if (actionInput) actionInput.value = 'create';
+    });
+}
 
 // AJAX Customer Search
 let searchTimeout;
@@ -684,27 +691,6 @@ function displaySearchResults(customers) {
                 </td>
                 <td>
                     <span class="badge bg-${customer.status === 'active' ? 'success' : 'secondary'}">${customer.status ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1).toLowerCase() : 'Active'}</span>
-                </td>
-                <td>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" 
-                                class="btn btn-outline-primary" 
-                                onclick="editCustomer(${JSON.stringify(customer).replace(/"/g, '&quot;')})"
-                                title="Edit" style="border: 1px solid #667eea;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <a href="customer-details.php?id=${customer.id}" 
-                           class="btn btn-outline-info" 
-                           title="View Details" style="border: 1px solid #667eea;">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <button type="button" 
-                                class="btn btn-outline-danger" 
-                                onclick="deleteCustomer(${customer.id}, '${customer.name.replace(/'/g, "\\'")}')"
-                                title="Delete" style="border: 1px solid #667eea;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
                 </td>
             </tr>
         `;

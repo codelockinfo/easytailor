@@ -729,6 +729,7 @@ function editOrder(order) {
                     data.forEach(measurement => {
                         const option = document.createElement('option');
                         option.value = measurement.id;
+                        option.setAttribute('data-cloth-type-id', measurement.cloth_type_id);
                         option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
                         measurementSelect.appendChild(option);
                     });
@@ -980,6 +981,7 @@ document.getElementById('customer_id').addEventListener('change', function() {
                     data.forEach(measurement => {
                         const option = document.createElement('option');
                         option.value = measurement.id;
+                        option.setAttribute('data-cloth-type-id', measurement.cloth_type_id);
                         option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
                         measurementSelect.appendChild(option);
                     });
@@ -997,6 +999,20 @@ document.getElementById('customer_id').addEventListener('change', function() {
             });
     } else {
         measurementSelect.innerHTML = '<option value="">No Measurement</option>';
+    }
+});
+
+// Auto-fill cloth type when measurement is selected
+document.getElementById('measurement_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption) {
+        const clothTypeId = selectedOption.getAttribute('data-cloth-type-id');
+        if (clothTypeId) {
+            const clothTypeSelect = document.getElementById('cloth_type_id');
+            clothTypeSelect.value = clothTypeId;
+            // Trigger change event to auto-fill total amount
+            clothTypeSelect.dispatchEvent(new Event('change'));
+        }
     }
 });
 

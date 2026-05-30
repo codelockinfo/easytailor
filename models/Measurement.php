@@ -232,7 +232,7 @@ class Measurement extends BaseModel {
      */
     public function getDistinctCustomerNames() {
         $companyId = $this->getCompanyId();
-        $query = "SELECT DISTINCT m.name as customer_name, m.id
+        $query = "SELECT DISTINCT m.name as customer_name
                   FROM " . $this->table . " m
                   WHERE m.name IS NOT NULL AND m.name != ''";
         if ($companyId) {

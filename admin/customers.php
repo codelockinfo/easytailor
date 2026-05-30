@@ -270,15 +270,9 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                                 </div>
                             </td>
                             <td>
-                                <?php if (!empty($customer['city']) || !empty($customer['state'])): ?>
+                                <?php if (!empty($customer['address'])): ?>
                                     <div>
-                                        <?php if (!empty($customer['city'])): ?>
-                                            <?php echo display_val($customer['city']); ?>
-                                        <?php endif; ?>
-                                        <?php if (!empty($customer['state'])): ?>
-                                            <?php if (!empty($customer['city'])): ?>, <?php endif; ?>
-                                            <?php echo display_val($customer['state']); ?>
-                                        <?php endif; ?>
+                                        <?php echo display_val($customer['address']); ?>
                                     </div>
                                 <?php endif; ?>
                             </td>
@@ -663,8 +657,7 @@ function displaySearchResults(customers) {
             `<div><i class="fas fa-envelope me-1"></i>${customer.email}</div>` : '';
         
         // Format location
-        const locationDisplay = customer.city || customer.state ? 
-            `${customer.city || ''}${customer.city && customer.state ? ', ' : ''}${customer.state || ''}` : '';
+        const locationDisplay = customer.address ? customer.address : '';
         
         tableHTML += `
             <tr>

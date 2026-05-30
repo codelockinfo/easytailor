@@ -56,7 +56,7 @@ try {
     
     // Add headers
     $excelContent .= '<Row>' . "\n";
-    $headers = ['Customer Code', 'First Name', 'Last Name', 'Email', 'Phone', 'Address', 'City', 'State', 'Postal Code', 'Date of Birth', 'Notes', 'Status', 'Created Date'];
+    $headers = ['Customer Code', 'First Name', 'Last Name', 'Email', 'Phone', 'Address', 'Date of Birth', 'Notes', 'Status', 'Created Date'];
     foreach ($headers as $header) {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($header) . '</Data></Cell>' . "\n";
     }
@@ -71,9 +71,6 @@ try {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['email'] ?: '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['phone']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['address'] ?: '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['city'] ?: '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['state'] ?: '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['postal_code'] ?: '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['date_of_birth'] ?: '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['notes'] ?: '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst($customer['status'])) . '</Data></Cell>' . "\n";

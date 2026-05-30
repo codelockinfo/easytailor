@@ -210,16 +210,16 @@ require_once 'includes/header.php';
                         <tr>
                             <td>
                                 <div>
-                                    <strong><?php echo htmlspecialchars($contact['name']); ?></strong>
+                                    <strong><?php echo display_val($contact['name']); ?></strong>
                                     <?php if (!empty($contact['notes'])): ?>
                                         <br>
-                                        <small class="text-muted"><?php echo htmlspecialchars(substr($contact['notes'], 0, 50)); ?><?php echo strlen($contact['notes']) > 50 ? '...' : ''; ?></small>
+                                        <small class="text-muted"><?php echo display_val(substr($contact['notes'], 0, 50)); ?><?php echo strlen($contact['notes']) > 50 ? '...' : ''; ?></small>
                                     <?php endif; ?>
                                 </div>
                             </td>
                             <td>
                                 <?php if (!empty($contact['company'])): ?>
-                                    <?php echo htmlspecialchars($contact['company']); ?>
+                                    <?php echo display_val($contact['company']); ?>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
@@ -229,20 +229,20 @@ require_once 'includes/header.php';
                                     <?php if (!empty($contact['phone'])): ?>
                                         <div>
                                             <i class="fas fa-phone me-1"></i>
-                                            <?php echo htmlspecialchars($contact['phone']); ?>
+                                            <?php echo display_val($contact['phone']); ?>
                                         </div>
                                     <?php endif; ?>
                                     <?php if (!empty($contact['email'])): ?>
                                         <div>
                                             <i class="fas fa-envelope me-1"></i>
-                                            <?php echo htmlspecialchars($contact['email']); ?>
+                                            <?php echo display_val($contact['email']); ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             </td>
                             <td>
                                 <?php if (!empty($contact['category'])): ?>
-                                    <span class="badge bg-info"><?php echo htmlspecialchars($contact['category']); ?></span>
+                                    <span class="badge bg-info"><?php echo display_val($contact['category']); ?></span>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>

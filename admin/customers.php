@@ -243,7 +243,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                             </td>
                             <td>
                                 <div>
-                                    <strong><?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?></strong>
+                                    <strong><?php echo display_val($customer['first_name'] . ' ' . $customer['last_name']); ?></strong>
                                     <?php if (!empty($customer['date_of_birth'])): ?>
                                         <br>
                                         <small class="text-muted">
@@ -258,13 +258,13 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                                     <?php if (!empty($customer['phone'])): ?>
                                         <div>
                                             <i class="fas fa-phone me-1"></i>
-                                            <?php echo htmlspecialchars($customer['phone']); ?>
+                                            <?php echo display_val($customer['phone']); ?>
                                         </div>
                                     <?php endif; ?>
                                     <?php if (!empty($customer['email'])): ?>
                                         <div>
                                             <i class="fas fa-envelope me-1"></i>
-                                            <?php echo htmlspecialchars($customer['email']); ?>
+                                            <?php echo display_val($customer['email']); ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -273,11 +273,11 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                                 <?php if (!empty($customer['city']) || !empty($customer['state'])): ?>
                                     <div>
                                         <?php if (!empty($customer['city'])): ?>
-                                            <?php echo htmlspecialchars($customer['city']); ?>
+                                            <?php echo display_val($customer['city']); ?>
                                         <?php endif; ?>
                                         <?php if (!empty($customer['state'])): ?>
                                             <?php if (!empty($customer['city'])): ?>, <?php endif; ?>
-                                            <?php echo htmlspecialchars($customer['state']); ?>
+                                            <?php echo display_val($customer['state']); ?>
                                         <?php endif; ?>
                                     </div>
                                 <?php endif; ?>

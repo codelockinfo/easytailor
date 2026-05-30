@@ -90,12 +90,12 @@ try {
     foreach ($users as $user) {
         $formattedUsers[] = [
             'id' => $user['id'],
-            'username' => htmlspecialchars($user['username']),
-            'email' => htmlspecialchars($user['email']),
-            'full_name' => htmlspecialchars($user['full_name']),
+            'username' => $user['username'],
+            'email' => $user['email'],
+            'full_name' => $user['full_name'],
             'role' => $user['role'],
-            'phone' => htmlspecialchars($user['phone'] ?? ''),
-            'address' => htmlspecialchars($user['address'] ?? ''),
+            'phone' => $user['phone'] ?? '',
+            'address' => $user['address'] ?? '',
             'status' => $user['status'],
             'created_at' => $user['created_at']
         ];

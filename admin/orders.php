@@ -405,13 +405,13 @@ $orderStats = $orderModel->getOrderStats();
                             </td>
                             <td>
                                 <div>
-                                    <strong><?php echo htmlspecialchars($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name'])); ?></strong>
+                                    <strong><?php echo display_val($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name'])); ?></strong>
                                 </div>
                             </td>
-                            <td><?php echo htmlspecialchars($order['cloth_type_name']); ?></td>
+                            <td><?php echo display_val($order['cloth_type_name']); ?></td>
                             <td>
                                 <?php if (!empty($order['tailor_name'])): ?>
-                                    <?php echo htmlspecialchars($order['tailor_name']); ?>
+                                    <?php echo display_val($order['tailor_name']); ?>
                                 <?php else: ?>
                                     <span class="text-muted">Unassigned</span>
                                 <?php endif; ?>

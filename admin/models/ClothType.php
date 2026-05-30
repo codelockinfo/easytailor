@@ -57,8 +57,15 @@ class ClothType extends BaseModel {
         $conditions['status'] = 'active';
         $stats['active'] = $this->count($conditions);
         
-        // Get categories
-        $query = "SELECT DISTINCT category FROM " . $this->table . " WHERE category IS NOT NULL AND status = 'active'";
+        // Inactive cloth types
+        $inactiveConditions = ['status' => 'inactive'];
+        if ($companyId) {
+            $inactiveConditions['company_id'] = $companyId;
+        }
+        $stats['inactive'] = $this->count($inactiveConditions);
+        
+        // Get categories (all statuses)
+        $query = "SELECT DISTINCT category FROM " . $this->table . " WHERE category IS NOT NULL";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
@@ -108,7 +115,7 @@ class ClothType extends BaseModel {
                   FROM " . $this->table . " ct 
                   LEFT JOIN orders o ON ct.id = o.cloth_type_id";
         
-        $where_clauses = ["ct.status = 'active'"];
+        $where_clauses = [];
         $params = [];
         
         if ($companyId) {
@@ -119,7 +126,9 @@ class ClothType extends BaseModel {
             $params['order_company_id'] = $companyId;
         }
         
-        $query .= " WHERE " . implode(" AND ", $where_clauses);
+        if (!empty($where_clauses)) {
+            $query .= " WHERE " . implode(" AND ", $where_clauses);
+        }
         $query .= " GROUP BY ct.id 
                   ORDER BY ct.name";
         

@@ -87,13 +87,13 @@ try {
         $customerName = trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''));
         $formattedInvoices[] = [
             'id' => $invoice['id'],
-            'invoice_number' => htmlspecialchars($invoice['invoice_number']),
-            'customer_name' => htmlspecialchars($customerName ?: 'N/A'),
+            'invoice_number' => $invoice['invoice_number'],
+            'customer_name' => $customerName ?: 'N/A',
             'customer_name_raw' => $customerName ?: 'N/A',
-            'customer_code' => htmlspecialchars($invoice['customer_code'] ?? ''),
-            'customer_phone' => htmlspecialchars($invoice['customer_phone'] ?? 'N/A'),
+            'customer_code' => $invoice['customer_code'] ?? '',
+            'customer_phone' => $invoice['customer_phone'] ?? 'N/A',
             'order_id' => $invoice['order_id'],
-            'order_number' => htmlspecialchars($invoice['order_number'] ?? 'N/A'),
+            'order_number' => $invoice['order_number'] ?? 'N/A',
             'invoice_date' => $invoice['invoice_date'],
             'due_date' => $invoice['due_date'],
             'payment_status' => $invoice['payment_status'],
@@ -114,8 +114,8 @@ try {
         'customers' => array_map(function($customer) {
             return [
                 'id' => $customer['id'],
-                'name' => htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']),
-                'phone' => htmlspecialchars($customer['phone'] ?? '')
+                'name' => $customer['first_name'] . ' ' . $customer['last_name'],
+                'phone' => $customer['phone'] ?? ''
             ];
         }, $customers)
     ];

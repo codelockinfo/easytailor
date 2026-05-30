@@ -106,18 +106,18 @@ try {
     foreach ($orders as $order) {
         $formattedOrders[] = [
             'id' => $order['id'],
-            'order_number' => htmlspecialchars($order['order_number']),
+            'order_number' => $order['order_number'],
             'customer_id' => $order['customer_id'] ?? null,
-            'customer_name' => htmlspecialchars($order['measurement_customer_name'] ?? ''),
+            'customer_name' => $order['measurement_customer_name'] ?? '',
             'cloth_type_id' => $order['cloth_type_id'] ?? null,
             'measurement_id' => $order['measurement_id'] ?? null,
             'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,
-            'first_name' => htmlspecialchars($order['first_name'] ?? ''),
-            'last_name' => htmlspecialchars($order['last_name'] ?? ''),
-            'customer_code' => htmlspecialchars($order['customer_code'] ?? ''),
-            'customer_phone' => htmlspecialchars($order['customer_phone'] ?? ''),
-            'cloth_type_name' => htmlspecialchars($order['cloth_type_name'] ?? ''),
-            'tailor_name' => htmlspecialchars($order['tailor_name'] ?? ''),
+            'first_name' => $order['first_name'] ?? '',
+            'last_name' => $order['last_name'] ?? '',
+            'customer_code' => $order['customer_code'] ?? '',
+            'customer_phone' => $order['customer_phone'] ?? '',
+            'cloth_type_name' => $order['cloth_type_name'] ?? '',
+            'tailor_name' => $order['tailor_name'] ?? '',
             'order_date' => $order['order_date'],
             'due_date' => $order['due_date'],
             'delivery_date' => $order['delivery_date'] ?? null,
@@ -125,8 +125,8 @@ try {
             'total_amount' => $order['total_amount'],
             'advance_amount' => $order['advance_amount'],
             'balance_amount' => $order['balance_amount'],
-            'special_instructions' => htmlspecialchars($order['special_instructions'] ?? ''),
-            'created_by_name' => htmlspecialchars($order['created_by_name'] ?? ''),
+            'special_instructions' => $order['special_instructions'] ?? '',
+            'created_by_name' => $order['created_by_name'] ?? '',
             'created_at' => $order['created_at']
         ];
     }
@@ -135,22 +135,22 @@ try {
     $filterOptions = [
         'customers' => array_map(function($mc) {
             return [
-                'id' => htmlspecialchars($mc['customer_name']),
-                'name' => htmlspecialchars($mc['customer_name'])
+                'id' => $mc['customer_name'],
+                'name' => $mc['customer_name']
             ];
         }, $measurementCustomers),
         'cloth_types' => array_map(function($clothType) {
             return [
                 'id' => $clothType['id'],
-                'name' => htmlspecialchars($clothType['name']),
-                'category' => htmlspecialchars($clothType['category'] ?? '')
+                'name' => $clothType['name'],
+                'category' => $clothType['category'] ?? ''
             ];
         }, $clothTypes),
         'tailors' => array_map(function($tailor) {
             return [
                 'id' => $tailor['id'],
-                'name' => htmlspecialchars($tailor['full_name'] ?? 'Unknown'),
-                'phone' => htmlspecialchars($tailor['phone'] ?? '')
+                'name' => $tailor['full_name'] ?? 'Unknown',
+                'phone' => $tailor['phone'] ?? ''
             ];
         }, $tailors ?: [])
     ];

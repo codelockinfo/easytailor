@@ -97,8 +97,19 @@ spl_autoload_register(function ($class_name) {
 function sanitize_input($data) {
     $data = trim($data);
     $data = stripslashes($data);
-    $data = htmlspecialchars($data);
+    // NOTE: Do NOT apply htmlspecialchars() here - data is stored raw in DB.
+    // HTML encoding is applied in the view layer via htmlspecialchars() when outputting.
     return $data;
+}
+
+/**
+ * Safe display function: decodes any pre-existing HTML entities from DB,
+ * then re-encodes for safe HTML output. Handles both old double-encoded
+ * data (Men&#039;s Wear) and new clean data (Men's Wear) correctly.
+ */
+function display_val($data) {
+    if ($data === null) return '';
+    return htmlspecialchars(html_entity_decode((string)$data, ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8');
 }
 
 function generate_csrf_token() {

@@ -76,13 +76,13 @@ try {
     foreach ($contacts as $contact) {
         $formattedContacts[] = [
             'id' => $contact['id'],
-            'name' => htmlspecialchars($contact['name']),
-            'company' => htmlspecialchars($contact['company'] ?? ''),
-            'email' => htmlspecialchars($contact['email'] ?? ''),
-            'phone' => htmlspecialchars($contact['phone'] ?? ''),
-            'address' => htmlspecialchars($contact['address'] ?? ''),
-            'category' => htmlspecialchars($contact['category']),
-            'notes' => htmlspecialchars($contact['notes'] ?? ''),
+            'name' => $contact['name'],
+            'company' => $contact['company'] ?? '',
+            'email' => $contact['email'] ?? '',
+            'phone' => $contact['phone'] ?? '',
+            'address' => $contact['address'] ?? '',
+            'category' => $contact['category'],
+            'notes' => $contact['notes'] ?? '',
             'status' => $contact['status'],
             'created_at' => $contact['created_at']
         ];
@@ -93,7 +93,7 @@ try {
         'categories' => array_map(function($category) {
             return [
                 'value' => $category,
-                'label' => htmlspecialchars($category)
+                'label' => $category
             ];
         }, $categories)
     ];

@@ -138,14 +138,14 @@ try {
     foreach ($expenses as $expense) {
         $formattedExpenses[] = [
             'id' => $expense['id'] ?? null,
-            'category' => htmlspecialchars($expense['category'] ?? ''),
-            'description' => htmlspecialchars($expense['description'] ?? ''),
+            'category' => $expense['category'] ?? '',
+            'description' => $expense['description'] ?? '',
             'amount' => $expense['amount'] ?? 0,
             'expense_date' => $expense['expense_date'] ?? '',
-            'payment_method' => htmlspecialchars($expense['payment_method'] ?? 'cash'),
-            'reference_number' => htmlspecialchars($expense['reference_number'] ?? ''),
+            'payment_method' => $expense['payment_method'] ?? 'cash',
+            'reference_number' => $expense['reference_number'] ?? '',
             'receipt_image' => $expense['receipt_image'] ?? null,
-            'created_by_name' => htmlspecialchars($expense['created_by_name'] ?? ''),
+            'created_by_name' => $expense['created_by_name'] ?? '',
             'created_at' => $expense['created_at'] ?? ''
         ];
     }

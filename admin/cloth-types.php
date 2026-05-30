@@ -190,7 +190,7 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
 
 <!-- Cloth Type Statistics -->
 <div class="row mb-2">
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -204,7 +204,7 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
+    <div class="col-xl col-md-6">
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -217,30 +217,16 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
+
+    <div class="col-xl col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #e1ad0f 0%, #fd7e14 100%)">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="stat-number"><?php echo count($clothTypeStats['categories']); ?></div>
-                    <div class="stat-label">Categories</div>
+                    <div class="stat-number"><?php echo number_format($clothTypeStats['inactive']); ?></div>
+                    <div class="stat-label">Inactive Types</div>
                 </div>
                 <div class="stat-icon">
-                    <i class="fas fa-tags"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo array_sum(array_column($clothTypes, 'order_count')); ?></div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-clipboard-list"></i>
+                    <i class="fas fa-ban"></i>
                 </div>
             </div>
         </div>
@@ -267,8 +253,8 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                 <select class="form-select" id="categoryFilter" onchange="applyFilters()">
                     <option value="">All Categories</option>
                     <?php foreach ($categoriesList as $catName): ?>
-                        <option value="<?php echo htmlspecialchars($catName); ?>" <?php echo $category_filter === $catName ? 'selected' : ''; ?>>
-                            <?php echo ucwords(htmlspecialchars($catName)); ?>
+                        <option value="<?php echo display_val($catName); ?>" <?php echo $category_filter === $catName ? 'selected' : ''; ?>>
+                            <?php echo ucwords(display_val($catName)); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -319,16 +305,16 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                         <tr>
                             <td>
                                 <div>
-                                    <strong><?php echo ucwords(htmlspecialchars($clothType['name'])); ?></strong>
+                                    <strong><?php echo ucwords(display_val($clothType['name'])); ?></strong>
                                     <?php if (!empty($clothType['description'])): ?>
                                         <br>
-                                        <small class="text-muted"><?php echo htmlspecialchars(substr($clothType['description'], 0, 50)); ?><?php echo strlen($clothType['description']) > 50 ? '...' : ''; ?></small>
+                                        <small class="text-muted"><?php echo display_val(substr($clothType['description'], 0, 50)); ?><?php echo strlen($clothType['description']) > 50 ? '...' : ''; ?></small>
                                     <?php endif; ?>
                                 </div>
                             </td>
                             <td>
                                 <?php if (!empty($clothType['category'])): ?>
-                                    <span class="badge bg-info"><?php echo ucwords(htmlspecialchars($clothType['category'])); ?></span>
+                                    <span class="badge bg-info"><?php echo ucwords(display_val($clothType['category'])); ?></span>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
@@ -359,7 +345,7 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
-                                            onclick="deleteClothType(<?php echo $clothType['id']; ?>, '<?php echo htmlspecialchars($clothType['name']); ?>')"
+                                            onclick="deleteClothType(<?php echo $clothType['id']; ?>, '<?php echo display_val($clothType['name']); ?>')"
                                             title="Delete" style="border: 1px solid #667eea;">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -451,8 +437,8 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                             <select class="form-select" id="category" name="category">
                                 <option value="">Select Category</option>
                                 <?php foreach ($categoriesList as $catName): ?>
-                                    <option value="<?php echo htmlspecialchars($catName); ?>">
-                                        <?php echo ucwords(htmlspecialchars($catName)); ?>
+                                    <option value="<?php echo display_val($catName); ?>">
+                                        <?php echo ucwords(display_val($catName)); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

@@ -515,10 +515,6 @@ document.addEventListener('DOMContentLoaded', function() {
         box-shadow: 0 6px 20px rgba(102,126,234,0.45);
         color: #fff;
     }
-
-    /* ════════════════════════════════════════
-       ORDER STATUS — New Bar Card
-    ════════════════════════════════════════ */
     .order-status-card .osc-total-badge {
         font-size: 0.80rem;
         font-weight: 700;

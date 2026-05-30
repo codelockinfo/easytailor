@@ -195,8 +195,8 @@ $catStats = $categoryModel->getCategoryStats();
                     <tbody id="categoryTableBody">
                         <?php foreach ($categories as $cat): ?>
                         <tr class="category-row">
-                            <td><strong class="cat-name"><?php echo ucwords(htmlspecialchars($cat['name'])); ?></strong></td>
-                            <td class="cat-desc"><?php echo htmlspecialchars($cat['description']); ?></td>
+                            <td><strong class="cat-name"><?php echo ucwords(htmlspecialchars(html_entity_decode($cat['name'], ENT_QUOTES, 'UTF-8'))); ?></strong></td>
+                            <td class="cat-desc"><?php echo htmlspecialchars(html_entity_decode($cat['description'] ?? '', ENT_QUOTES, 'UTF-8')); ?></td>
                             <td>
                                 <span class="badge bg-<?php echo $cat['status'] === 'active' ? 'success' : 'secondary'; ?>">
                                     <?php echo ucfirst($cat['status']); ?>
@@ -204,10 +204,10 @@ $catStats = $categoryModel->getCategoryStats();
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button type="button" class="btn btn-outline-primary" onclick="editCategory(<?php echo htmlspecialchars(json_encode($cat)); ?>)">
+                                    <button type="button" class="btn btn-outline-primary" onclick="editCategory(<?php echo htmlspecialchars(json_encode(array_map(function($v){ return is_string($v) ? html_entity_decode($v, ENT_QUOTES, 'UTF-8') : $v; }, $cat))); ?>)">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button type="button" class="btn btn-outline-danger" onclick="deleteCategory(<?php echo $cat['id']; ?>, '<?php echo htmlspecialchars($cat['name']); ?>')">
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteCategory(<?php echo $cat['id']; ?>, '<?php echo htmlspecialchars(html_entity_decode($cat['name'], ENT_QUOTES, 'UTF-8')); ?>')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>

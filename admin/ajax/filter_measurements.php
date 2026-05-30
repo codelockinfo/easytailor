@@ -147,12 +147,12 @@ try {
             'id' => $measurement['id'],
             'customer_id' => $measurement['customer_id'] ?? null,
             'cloth_type_id' => $measurement['cloth_type_id'] ?? null,
-            'customer_name' => htmlspecialchars($customerName),
-            'customer_code' => htmlspecialchars($measurement['customer_code'] ?? ''),
-            'customer_phone' => htmlspecialchars($customerPhone),
-            'cloth_type_name' => htmlspecialchars($measurement['cloth_type_name'] ?? ''),
+            'customer_name' => $customerName,
+            'customer_code' => $measurement['customer_code'] ?? '',
+            'customer_phone' => $customerPhone,
+            'cloth_type_name' => $measurement['cloth_type_name'] ?? '',
             'measurement_data' => $measurement['measurement_data'],
-            'notes' => htmlspecialchars($measurement['notes'] ?? ''),
+            'notes' => $measurement['notes'] ?? '',
             'created_at' => $measurement['created_at']
         ];
     }
@@ -162,15 +162,15 @@ try {
         'customers' => array_map(function($customer) {
             return [
                 'id' => $customer['id'],
-                'name' => htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']),
-                'phone' => htmlspecialchars($customer['phone'] ?? '')
+                'name' => $customer['first_name'] . ' ' . $customer['last_name'],
+                'phone' => $customer['phone'] ?? ''
             ];
         }, $customers),
         'cloth_types' => array_map(function($clothType) {
             return [
                 'id' => $clothType['id'],
-                'name' => htmlspecialchars($clothType['name']),
-                'category' => htmlspecialchars($clothType['category'] ?? '')
+                'name' => $clothType['name'],
+                'category' => $clothType['category'] ?? ''
             ];
         }, $clothTypes)
     ];

@@ -109,9 +109,9 @@ try {
     foreach ($clothTypes as $clothType) {
         $formattedClothTypes[] = [
             'id' => $clothType['id'] ?? null,
-            'name' => htmlspecialchars($clothType['name'] ?? ''),
-            'category' => htmlspecialchars($clothType['category'] ?? ''),
-            'description' => htmlspecialchars($clothType['description'] ?? ''),
+            'name' => $clothType['name'] ?? '',
+            'category' => $clothType['category'] ?? '',
+            'description' => $clothType['description'] ?? '',
             'standard_rate' => $clothType['standard_rate'] ?? null,
             'order_count' => $clothType['order_count'] ?? 0,
             'status' => $clothType['status'] ?? 'active',
@@ -125,11 +125,9 @@ try {
         $formattedClothTypes = [];
     }
     
-    // Format filter options - ensure categories is an array
+    // Format filter options - raw values for JSON (JS handles display)
     $filterOptions = [
-        'categories' => array_values(array_map(function($category) {
-            return htmlspecialchars($category);
-        }, $categories))
+        'categories' => array_values($categories)
     ];
     
     echo json_encode([

@@ -310,7 +310,7 @@ if (empty($categories)) {
                          
                             <td>
                                 <div>
-                                    <?php echo htmlspecialchars($expense['description']); ?>
+                                    <?php echo display_val($expense['description']); ?>
                                     <?php if (!empty($expense['receipt_image'])): ?>
                                         <br>
                                         <small class="text-muted">
@@ -333,7 +333,7 @@ if (empty($categories)) {
                                     <?php echo ucfirst(str_replace('_', ' ', $expense['payment_method'])); ?>
                                 </span>
                             </td>
-                            <td><?php echo htmlspecialchars($expense['created_by_name']); ?></td>
+                            <td><?php echo display_val($expense['created_by_name']); ?></td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button type="button" 

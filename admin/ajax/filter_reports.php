@@ -329,8 +329,8 @@ try {
     $formattedOrders = [];
     foreach ($recentOrders as $order) {
         $formattedOrders[] = [
-            'order_number' => htmlspecialchars($order['order_number']),
-            'customer_name' => htmlspecialchars($order['first_name'] . ' ' . $order['last_name']),
+            'order_number' => $order['order_number'],
+            'customer_name' => $order['first_name'] . ' ' . $order['last_name'],
             'total_amount' => format_currency($order['total_amount']),
             'status' => ucfirst(str_replace('_', ' ', $order['status'])),
             'status_badge' => match($order['status']) {
@@ -348,7 +348,7 @@ try {
     if (!empty($filteredExpenseStats['by_category'])) {
         foreach (array_slice($filteredExpenseStats['by_category'], 0, 5) as $category) {
             $formattedExpenseCategories[] = [
-                'category' => htmlspecialchars($category['category']),
+                'category' => $category['category'],
                 'count' => $category['count'],
                 'total' => format_currency($category['total'])
             ];

@@ -73,7 +73,7 @@ try {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['order_number'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['order_date'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['cloth_type_name'] ?? '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $invoice['status'] ?? ''))) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $invoice['order_status'] ?? ''))) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['subtotal'] ?? 0) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['tax_rate'] ?? 0) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['tax_amount'] ?? 0) . '</Data></Cell>' . "\n";

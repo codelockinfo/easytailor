@@ -120,7 +120,7 @@ class Invoice extends BaseModel {
     public function getInvoicesWithDetails($conditions = [], $limit = null, $offset = 0, $search = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT i.*, 
-                         o.order_number, o.order_date, o.due_date as order_due_date, o.customer_name as order_customer_name,
+                         o.order_number, o.order_date, o.due_date as order_due_date, o.customer_name as order_customer_name, o.status as order_status,
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone, c.email as customer_email,
                          ct.name as cloth_type_name,
                          creator.full_name as created_by_name,

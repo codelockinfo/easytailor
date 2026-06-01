@@ -534,17 +534,17 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                         <?php foreach ($invoices as $invoice): ?>
                         <tr>
                             <td>
-                                <span class="badge bg-primary"><?php echo htmlspecialchars($invoice['invoice_number']); ?></span>
+                                <span class="badge bg-primary"><?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?></span>
                             </td>
                             <td>
                                 <div>
-                                    <strong><?php echo htmlspecialchars($invoice['first_name'] . ' ' . $invoice['last_name']); ?></strong>
+                                    <strong><?php echo htmlspecialchars($invoice['measurement_customer_name'] ?? (($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''))); ?></strong>
                                     <br>
-                                    <small class="text-muted"><?php echo htmlspecialchars($invoice['customer_code']); ?></small>
+                                    <small class="text-muted"><?php echo htmlspecialchars($invoice['customer_code'] ?? ''); ?></small>
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-info"><?php echo htmlspecialchars($invoice['order_number']); ?></span>
+                                <span class="badge bg-info"><?php echo htmlspecialchars($invoice['order_number'] ?? ''); ?></span>
                             </td>
                             <td><?php echo format_date($invoice['invoice_date']); ?></td>
                             <td>
@@ -590,7 +590,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                                             'discount_amount' => $invoice['discount_amount'],
                                             'total_amount' => $invoice['total_amount'],
                                             'notes' => $invoice['notes'] ?? '',
-                                            'customer_name' => trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''))
+                                            'customer_name' => $invoice['measurement_customer_name'] ?? trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''))
                                         ];
                                         $invoiceJson = htmlspecialchars(json_encode($invoicePayload), ENT_QUOTES, 'UTF-8');
                                     ?>
@@ -608,7 +608,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                                     </button>
                                     <button type="button" 
                                             class="btn btn-outline-success" 
-                                            onclick="addPayment(<?php echo $invoice['id']; ?>, '<?php echo htmlspecialchars($invoice['invoice_number']); ?>', <?php echo $invoice['balance_amount']; ?>)"
+                                            onclick="addPayment(<?php echo $invoice['id']; ?>, '<?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?>', <?php echo $invoice['balance_amount']; ?>)"
                                             title="Add Payment" style="border: 1px solid #667eea;">
                                         <i class="fas fa-plus"></i>
                                     </button>

@@ -117,18 +117,20 @@ class Invoice extends BaseModel {
     /**
      * Get invoices with order and customer details
      */
-    public function getInvoicesWithDetails($conditions = [], $limit = null, $offset = 0) {
+    public function getInvoicesWithDetails($conditions = [], $limit = null, $offset = 0, $search = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT i.*, 
-                         o.order_number, o.order_date, o.due_date as order_due_date,
+                         o.order_number, o.order_date, o.due_date as order_due_date, o.customer_name as order_customer_name,
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone, c.email as customer_email,
                          ct.name as cloth_type_name,
-                         creator.full_name as created_by_name
+                         creator.full_name as created_by_name,
+                         COALESCE(ms.name, o.customer_name) as measurement_customer_name
                   FROM " . $this->table . " i
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN customers c ON o.customer_id = c.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
-                  LEFT JOIN users creator ON i.created_by = creator.id";
+                  LEFT JOIN users creator ON i.created_by = creator.id
+                  LEFT JOIN measurements ms ON o.measurement_id = ms.id";
         
         $params = [];
         $where_clauses = [];
@@ -149,6 +151,11 @@ class Invoice extends BaseModel {
                     $params[$column] = $value;
                 }
             }
+        }
+        
+        if ($search) {
+            $where_clauses[] = "(i.invoice_number LIKE :search OR o.order_number LIKE :search OR c.first_name LIKE :search OR c.last_name LIKE :search OR o.customer_name LIKE :search OR ms.name LIKE :search)";
+            $params['search'] = "%{$search}%";
         }
         
         if (!empty($where_clauses)) {

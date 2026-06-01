@@ -38,7 +38,7 @@ try {
     $customerModel = new Customer();
     $paymentModel = new Payment();
     
-    $invoices = $invoiceModel->getAllInvoices();
+    $invoices = $invoiceModel->getInvoicesWithDetails();
     
     $filename = 'invoices_export_' . date('Y-m-d_H-i-s') . '.xls';
     
@@ -54,7 +54,7 @@ try {
     
     $excelContent .= '<Row>' . "\n";
     $headers = [
-        'Invoice Number', 'Invoice Date', 'Due Date', 'Customer Name', 'Customer Phone', 'Customer Email',
+        'Invoice Number', 'Invoice Date', 'Due Date', 'Customer',
         'Order Number', 'Order Date', 'Cloth Type', 'Order Status', 'Subtotal', 'Tax Rate (%)', 'Tax Amount',
         'Discount Amount', 'Total Amount', 'Paid Amount', 'Balance Amount', 'Payment Status', 'Notes', 'Created Date'
     ];
@@ -63,36 +63,17 @@ try {
     }
     $excelContent .= '</Row>' . "\n";
     foreach ($invoices as $invoice) {
-        
-        $order = $orderModel->getOrderById($invoice['order_id']);
-        
-        $customer = !empty($order['customer_id']) ? $customerModel->find($order['customer_id']) : false;
-        
-        $customerName = '';
-        $customerPhone = '';
-        $customerEmail = '';
-        
-        if ($customer) {
-            $customerName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
-            $customerPhone = $customer['phone'] ?? '';
-            $customerEmail = $customer['email'] ?? '';
-        } else {
-            $customerName = $order['customer_name'] ?? '';
-        }
-        $clothType = !empty($order['cloth_type_id']) ? $orderModel->getClothTypeById($order['cloth_type_id']) : false;
-        $clothTypeName = $clothType ? ($clothType['name'] ?? '') : '';
+        $customerName = trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? '')) ?: ($invoice['measurement_customer_name'] ?? ($invoice['order_customer_name'] ?? 'Unknown'));
         
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_number'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_date'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['due_date'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerName) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerPhone) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerEmail) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_number'] ?? '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_date'] ?? '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($clothTypeName) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $order['status'] ?? ''))) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['order_number'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['order_date'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['cloth_type_name'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $invoice['status'] ?? ''))) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['subtotal'] ?? 0) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['tax_rate'] ?? 0) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['tax_amount'] ?? 0) . '</Data></Cell>' . "\n";

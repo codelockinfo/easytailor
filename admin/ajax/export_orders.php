@@ -50,7 +50,7 @@ try {
     $excelContent .= '<Row>' . "\n";
     $headers = [
         'Order Number', 'Order Date', 'Due Date', 'Delivery Date',
-        'Customer Name', 'Customer Code', 'Customer Phone', 'Customer Email',
+        'Customer',
         'Cloth Type', 'Assigned Tailor', 'Status',
         'Total Amount', 'Advance Amount', 'Balance Amount',
         'Special Instructions', 'Created By', 'Created Date'
@@ -61,16 +61,13 @@ try {
     $excelContent .= '</Row>' . "\n";
 
     foreach ($orders as $order) {
-        $customerName = trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+        $customerName = trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')) ?: ($order['measurement_customer_name'] ?? ($order['customer_name'] ?? 'Unknown'));
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_number']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_date']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['due_date']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['delivery_date'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerName) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['customer_code'] ?? '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['customer_phone'] ?? '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['customer_email'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['cloth_type_name'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['tailor_name'] ?? 'Unassigned') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $order['status']))) . '</Data></Cell>' . "\n";

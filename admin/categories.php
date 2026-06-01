@@ -338,16 +338,21 @@ function deleteCategory(id, name) {
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
-// Search Functionality
-function applySearch() {
-    const search = document.getElementById('categorySearch').value.trim();
-    window.location.href = `categories.php?search=${encodeURIComponent(search)}`;
-}
-
-document.getElementById('categorySearch').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        applySearch();
-    }
+// Client-side Search Functionality
+document.getElementById('categorySearch').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('.category-row');
+    
+    rows.forEach(row => {
+        const name = row.querySelector('.cat-name').textContent.toLowerCase();
+        const desc = row.querySelector('.cat-desc').textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || desc.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
 });
 
 document.getElementById('categoryModal').addEventListener('hidden.bs.modal', function() {

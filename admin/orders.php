@@ -316,22 +316,18 @@ $orderStats = $orderModel->getOrderStats();
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-3">
+        <div class="row g-2 align-items-end">
+            <div class="col">
+                <label for="searchInput" class="form-label mb-1" style="font-size: 0.85rem;">Search</label>
                 <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" 
-                           id="searchInput"
-                           class="form-control" 
-                           placeholder="Search orders..."
-                           autocomplete="off">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search orders..." autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col">
+                <label for="statusFilter" class="form-label mb-1" style="font-size: 0.85rem;">Status</label>
                 <select class="form-select" id="statusFilter">
-                    <option value="">All Statuses</option>
+                    <option value="">All</option>
                     <option value="pending">Pending</option>
                     <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
@@ -339,25 +335,28 @@ $orderStats = $orderModel->getOrderStats();
                     <option value="cancelled">Cancelled</option>
                 </select>
             </div>
-
-            <div class="col-md-2">
+            <div class="col">
+                <label for="clothTypeFilter" class="form-label mb-1" style="font-size: 0.85rem;">Cloth Type</label>
                 <select class="form-select" id="clothTypeFilter">
-                    <option value="">All Cloth Types</option>
+                    <option value="">All</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col">
+                <label for="tailorFilter" class="form-label mb-1" style="font-size: 0.85rem;">Tailor</label>
                 <select class="form-select" id="tailorFilter">
-                    <option value="">All Tailors</option>
+                    <option value="">All</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <input type="date" class="form-control" id="startDateFilter" title="Start Date">
+            <div class="col">
+                <label for="startDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">Start Date</label>
+                <input type="date" class="form-control" id="startDateFilter">
             </div>
-            <div class="col-md-2">
-                <input type="date" class="form-control" id="endDateFilter" title="End Date">
+            <div class="col">
+                <label for="endDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">End Date</label>
+                <input type="date" class="form-control" id="endDateFilter">
             </div>
-            <div class="col-md-1">
-                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+            <div class="col-auto">
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary" title="Clear Filters">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

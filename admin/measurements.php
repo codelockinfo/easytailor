@@ -290,35 +290,32 @@ require_once 'includes/header.php';
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="searchInput" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="searchInput" 
-                                   placeholder="Search..."
-                                   autocomplete="off">
+                    <div class="row g-2 align-items-end">
+                        <div class="col">
+                            <label for="searchInput" class="form-label mb-1" style="font-size: 0.85rem;">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Search..." autocomplete="off">
+                            </div>
                         </div>
-
-                        <div class="col-md-2">
-                            <label for="clothTypeFilter" class="form-label">Cloth Type</label>
+                        <div class="col">
+                            <label for="clothTypeFilter" class="form-label mb-1" style="font-size: 0.85rem;">Cloth Type</label>
                             <select class="form-select" id="clothTypeFilter">
                                 <option value="">All Types</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label for="startDateFilter" class="form-label">Start Date</label>
+                        <div class="col">
+                            <label for="startDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">Start Date</label>
                             <input type="date" class="form-control" id="startDateFilter">
                         </div>
-                        <div class="col-md-2">
-                            <label for="endDateFilter" class="form-label">End Date</label>
+                        <div class="col">
+                            <label for="endDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">End Date</label>
                             <input type="date" class="form-control" id="endDateFilter">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-grid">
-                                <button type="button" id="clearFilters" class="btn btn-outline-secondary">
-                                    <i class="fas fa-times"></i> Clear
-                                </button>
-                            </div>
+                        <div class="col-auto">
+                            <button type="button" id="clearFilters" class="btn btn-outline-secondary" title="Clear Filters">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                     <div id="filterResults" class="mt-3" style="display: none;">

@@ -180,30 +180,26 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-6">
-                <label for="searchInput" class="form-label">Search Customers</label>
+        <div class="row g-2 align-items-end">
+            <div class="col">
+                <label for="searchInput" class="form-label mb-1" style="font-size: 0.85rem;">Search Customers</label>
                 <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" 
-                           id="searchInput"
-                           class="form-control" 
-                           placeholder="Search customers by name, code, email, or phone..."
-                           autocomplete="off">
-                    <button type="button" id="clearSearch" class="btn btn-outline-secondary" style="display: none;">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search customers by name, code, email, or phone..." autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-3">
-                <label for="startDateFilter" class="form-label">Start Date</label>
+            <div class="col">
+                <label for="startDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">Start Date</label>
                 <input type="date" class="form-control" id="startDateFilter">
             </div>
-            <div class="col-md-3">
-                <label for="endDateFilter" class="form-label">End Date</label>
+            <div class="col">
+                <label for="endDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">End Date</label>
                 <input type="date" class="form-control" id="endDateFilter">
+            </div>
+            <div class="col-auto">
+                <button type="button" id="clearSearch" class="btn btn-outline-secondary" title="Clear Filters" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
         <div class="row">

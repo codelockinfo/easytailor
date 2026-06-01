@@ -14,22 +14,16 @@ if (!is_logged_in()) {
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
-
-// Check if user has admin role
 if (!has_role('admin')) {
     http_response_code(403);
     echo json_encode(['error' => 'Access denied']);
     exit;
 }
-
-// Check if it's a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
     exit;
 }
-
-// Verify CSRF token
 if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid CSRF token']);
@@ -37,17 +31,10 @@ if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
 }
 
 try {
-    // Get all expenses with related data
     $expenseModel = new Expense();
     $userModel = new User();
-    
-    // Get all expenses created by the logged-in user
     $expenses = $expenseModel->getAllExpenses(get_user_id());
-    
-    // Set headers for Excel download
     $filename = 'expenses_export_' . date('Y-m-d_H-i-s') . '.xls';
-    
-    // Create Excel XML content
     $excelContent = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     $excelContent .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
     $excelContent .= '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">' . "\n";
@@ -58,7 +45,6 @@ try {
     $excelContent .= '<Worksheet ss:Name="Expenses">' . "\n";
     $excelContent .= '<Table>' . "\n";
     
-    // Add headers
     $excelContent .= '<Row>' . "\n";
     $headers = [
         'Expense ID', 'Category', 'Description', 'Amount', 'Expense Date', 'Payment Method',
@@ -68,10 +54,7 @@ try {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($header) . '</Data></Cell>' . "\n";
     }
     $excelContent .= '</Row>' . "\n";
-    
-    // Add data rows
     foreach ($expenses as $expense) {
-        // Get user who created the expense
         $createdBy = $userModel->getUserById($expense['created_by']);
         $createdByName = $createdBy ? $createdBy['full_name'] : 'Unknown';
         
@@ -92,15 +75,11 @@ try {
     $excelContent .= '</Table>' . "\n";
     $excelContent .= '</Worksheet>' . "\n";
     $excelContent .= '</Workbook>';
-    
-    // Set headers for Excel download
     header('Content-Type: application/vnd.ms-excel');
     header('Content-Disposition: attachment;filename="' . $filename . '"');
     header('Cache-Control: max-age=0');
     header('Pragma: public');
     header('Content-Length: ' . strlen($excelContent));
-    
-    // Output Excel content
     echo $excelContent;
     
 } catch (Exception $e) {

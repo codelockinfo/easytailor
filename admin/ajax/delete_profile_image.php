@@ -12,8 +12,6 @@ if (!is_logged_in()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
-
-// Database connection
 require_once __DIR__ . '/../../config/database.php';
 $database = new Database();
 $db = $database->getConnection();
@@ -25,8 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $userId = get_user_id();
-
-    // Get current image path to delete file
     $query = "SELECT profile_image FROM users WHERE id = :id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
@@ -39,14 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unlink($filePath);
         }
     }
-
-    // Update database
     $query = "UPDATE users SET profile_image = NULL WHERE id = :id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
     
     if ($stmt->execute()) {
-        // Get first letter of name for the placeholder
         $query = "SELECT full_name FROM users WHERE id = :id";
         $stmt = $db->prepare($query);
         $stmt->bindParam(':id', $userId, PDO::PARAM_INT);

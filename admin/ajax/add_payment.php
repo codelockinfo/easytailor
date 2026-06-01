@@ -6,32 +6,23 @@
 
 // Set content type to JSON
 header('Content-Type: application/json');
-
-// Start output buffering to catch any errors
 ob_start();
 
 try {
-    // Get the directory of this script
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
     
     require_once $rootDir . '/../config/config.php';
-
-    // Check if user is logged in
     if (!is_logged_in()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Unauthorized']);
         exit;
     }
-
-    // Check if it's a POST request
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
         echo json_encode(['success' => false, 'error' => 'Method not allowed']);
         exit;
     }
-
-    // Verify CSRF token
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
@@ -40,15 +31,11 @@ try {
 
     require_once $rootDir . '/../models/Payment.php';
     require_once $rootDir . '/../models/Invoice.php';
-
-    // Get parameters
     $invoiceId = (int)($_POST['invoice_id'] ?? 0);
     $amount = (float)($_POST['amount'] ?? 0);
     $paymentMethod = sanitize_input($_POST['payment_method'] ?? '');
     $paymentDate = sanitize_input($_POST['payment_date'] ?? '');
     $notes = sanitize_input($_POST['notes'] ?? '');
-
-    // Validate inputs
     if ($invoiceId <= 0) {
         echo json_encode(['success' => false, 'error' => 'Invalid invoice ID']);
         exit;
@@ -69,14 +56,11 @@ try {
         exit;
     }
 
-    // Validate payment method
     $validMethods = ['cash', 'card', 'bank_transfer', 'check', 'upi', 'other'];
     if (!in_array($paymentMethod, $validMethods)) {
         echo json_encode(['success' => false, 'error' => 'Invalid payment method']);
         exit;
     }
-
-    // Check if invoice exists and get balance
     $invoiceModel = new Invoice();
     $invoices = $invoiceModel->getInvoicesWithDetails(['i.id' => $invoiceId], 1);
     
@@ -86,16 +70,12 @@ try {
     }
 
     $invoice = $invoices[0];
-
-    // Check if payment amount doesn't exceed balance
     if ($amount > $invoice['balance_amount']) {
         echo json_encode(['success' => false, 'error' => 'Payment amount cannot exceed balance amount']);
         exit;
     }
 
     $paymentModel = new Payment();
-    
-    // Prepare payment data
     $paymentData = [
         'invoice_id' => $invoiceId,
         'amount' => $amount,
@@ -104,18 +84,13 @@ try {
         'notes' => $notes,
         'created_by' => get_user_id()
     ];
-
-    // Add the payment
     $paymentId = $paymentModel->create($paymentData);
     
     if ($paymentId) {
-        // Update invoice paid amount and balance
         $newPaidAmount = $invoice['paid_amount'] + $amount;
         $newBalanceAmount = $invoice['total_amount'] - $newPaidAmount;
         
         $invoiceModel->updateInvoiceAmounts($invoiceId, $newPaidAmount, $newBalanceAmount);
-        
-        // Update payment status
         $invoiceModel->updatePaymentStatus($invoiceId);
         
         echo json_encode([
@@ -138,7 +113,6 @@ try {
     }
     
 } catch (Exception $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -146,7 +120,6 @@ try {
         'error' => 'Payment failed: ' . $e->getMessage()
     ]);
 } catch (Error $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -154,6 +127,4 @@ try {
         'error' => 'Payment failed: ' . $e->getMessage()
     ]);
 }
-
-// End output buffering
 ob_end_flush();

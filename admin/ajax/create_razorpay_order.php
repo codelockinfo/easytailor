@@ -10,7 +10,6 @@ header('Content-Type: application/json');
 require_once '../../config/config.php';
 require_once '../../config/database.php';
 
-// Check if user is logged in
 require_login();
 
 // Only allow POST requests

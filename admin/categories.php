@@ -166,7 +166,7 @@ $catStats = $categoryModel->getCategoryStats();
         <h5 class="card-title mb-0">
             <i class="fas fa-tags me-2"></i>Expense Categories (<?php echo number_format($totalCategories); ?>)
         </h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#categoryModal">
+        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#categoryModal">
             <i class="fas fa-plus me-1"></i>Add Category
         </button>
     </div>

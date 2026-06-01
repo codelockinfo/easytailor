@@ -64,12 +64,16 @@ $plans = $pricingData['plans'] ?? [];
 $currentPlan = $company['subscription_plan'];
 $currentPlanData = $plans[$currentPlan] ?? $plans['free'];
 
-// Calculate days remaining
+// Calculate days remaining and determine duration
 $daysRemaining = 0;
+$currentDuration = 'monthly';
 if ($company['subscription_expiry']) {
     $expiry = strtotime($company['subscription_expiry']);
     $today = strtotime(date('Y-m-d'));
     $daysRemaining = max(0, floor(($expiry - $today) / (60 * 60 * 24)));
+    if ($daysRemaining > 35) {
+        $currentDuration = 'annual';
+    }
 }
 ?>
 
@@ -183,16 +187,16 @@ if ($company['subscription_expiry']) {
                     <?php if ($planKey !== 'free'): ?>
                     <div class="pricing-toggle mb-3">
                         <div class="btn-group" role="group">
-                            <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="monthly-<?php echo $planKey; ?>" checked>
+                            <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="monthly-<?php echo $planKey; ?>" <?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? '' : 'checked'; ?>>
                             <label class="btn btn-outline-primary btn-sm" for="monthly-<?php echo $planKey; ?>">Monthly</label>
                             
-                            <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="annual-<?php echo $planKey; ?>">
+                            <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="annual-<?php echo $planKey; ?>" <?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? 'checked' : ''; ?>>
                             <label class="btn btn-outline-primary btn-sm" for="annual-<?php echo $planKey; ?>">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
                         </div>
                     </div>
                     <?php endif; ?>
                     
-                    <h2 class="mb-0 monthly-price">
+                    <h2 class="mb-0 monthly-price" style="<?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? 'display: none;' : ''; ?>">
                         <?php if ($plan['price'] > 0): ?>
                             ₹<?php echo number_format($plan['price'], 0); ?>
                         <?php else: ?>
@@ -200,7 +204,7 @@ if ($company['subscription_expiry']) {
                         <?php endif; ?>
                     </h2>
                     <?php if ($planKey !== 'free'): ?>
-                    <h2 class="mb-0 annual-price" style="display: none;">
+                    <h2 class="mb-0 annual-price" style="<?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? '' : 'display: none;'; ?>">
                         <?php if ($plan['price_annual'] > 0): ?>
                             ₹<?php echo number_format($plan['price_annual'], 0); ?>
                         <?php else: ?>
@@ -208,9 +212,9 @@ if ($company['subscription_expiry']) {
                         <?php endif; ?>
                     </h2>
                     <?php endif; ?>
-                    <small class="text-muted monthly-duration"><?php echo $plan['duration']; ?></small>
+                    <small class="text-muted monthly-duration" style="<?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? 'display: none;' : ''; ?>"><?php echo $plan['duration']; ?></small>
                     <?php if ($planKey !== 'free'): ?>
-                    <small class="text-muted annual-duration" style="display: none;">per year</small>
+                    <small class="text-muted annual-duration" style="<?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? '' : 'display: none;'; ?>">per year</small>
                     <?php endif; ?>
                 </div>
                 
@@ -224,15 +228,15 @@ if ($company['subscription_expiry']) {
                 </ul>
                 
                 <?php if ($planKey === $currentPlan): ?>
-                    <button class="btn btn-<?php echo $plan['color']; ?>" disabled>
+                    <button class="btn btn-<?php echo $plan['color']; ?> plan-btn" disabled>
                         <i class="fas fa-check-circle me-2"></i>Current Plan
                     </button>
                 <?php elseif ($planKey === 'free'): ?>
-                    <button class="btn btn-outline-<?php echo $plan['color']; ?>" disabled>
+                    <button class="btn btn-outline-<?php echo $plan['color']; ?> plan-btn" disabled>
                         Trial Plan
                     </button>
                 <?php else: ?>
-                    <button class="btn btn-<?php echo $plan['color']; ?>" 
+                    <button class="btn btn-<?php echo $plan['color']; ?> plan-btn" 
                             onclick="selectPlan('<?php echo $planKey; ?>', '<?php echo $plan['name']; ?>', <?php echo $plan['price']; ?>)">
                         <i class="fas fa-arrow-up me-2"></i>
                         <?php echo $planKey > $currentPlan ? 'Upgrade' : 'Switch'; ?> to <?php echo $plan['name']; ?>
@@ -274,9 +278,9 @@ if ($company['subscription_expiry']) {
                     <tr>
                         <td><strong>Price (Annual)</strong></td>
                         <td class="text-center">Free</td>
-                        <td class="text-center">₹89/yr <small class="text-success">(10% OFF)</small></td>
-                        <td class="text-center bg-light">₹179/yr <small class="text-success">(10% OFF)</small></td>
-                        <td class="text-center">₹899/yr <small class="text-success">(10% OFF)</small></td>
+                        <td class="text-center">₹1,069/yr <small class="text-success">(10% OFF)</small></td>
+                        <td class="text-center bg-light">₹2,149/yr <small class="text-success">(10% OFF)</small></td>
+                        <td class="text-center">₹10,789/yr <small class="text-success">(10% OFF)</small></td>
                     </tr>
                     <tr>
                         <td>Customers</td>
@@ -726,6 +730,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (annualPrice) annualPrice.style.display = 'block';
                 monthlyDuration.style.display = 'none';
                 if (annualDuration) annualDuration.style.display = 'inline';
+            }
+            
+            // Handle current plan switch to annual/monthly
+            const isCurrentPlan = (planKey === '<?php echo $currentPlan; ?>');
+            const currentDuration = '<?php echo $currentDuration; ?>';
+            const btn = card.querySelector('.plan-btn');
+            
+            if (isCurrentPlan && btn) {
+                if (this.id.includes('annual')) {
+                    if (currentDuration === 'annual') {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Current Plan';
+                        btn.onclick = null;
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-arrow-up me-2"></i>Upgrade to Annual';
+                        btn.onclick = function() { selectPlan(planKey, planData[planKey].name, planData[planKey].price_annual); document.getElementById('modal-annual').checked = true; updateModalPricing(); };
+                    }
+                } else {
+                    if (currentDuration === 'monthly') {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Current Plan';
+                        btn.onclick = null;
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-arrow-down me-2"></i>Switch to Monthly';
+                        btn.onclick = function() { selectPlan(planKey, planData[planKey].name, planData[planKey].price); document.getElementById('modal-monthly').checked = true; updateModalPricing(); };
+                    }
+                }
+            } else if (btn && !isCurrentPlan && planKey !== 'free') {
+                if (this.id.includes('annual')) {
+                    btn.onclick = function() { selectPlan(planKey, planData[planKey].name, planData[planKey].price_annual); document.getElementById('modal-annual').checked = true; updateModalPricing(); };
+                } else {
+                    btn.onclick = function() { selectPlan(planKey, planData[planKey].name, planData[planKey].price); document.getElementById('modal-monthly').checked = true; updateModalPricing(); };
+                }
             }
         });
     });

@@ -29,7 +29,7 @@
       "name": "Basic Plan",
       "display_name": "Basic",
       "price": 99,
-      "price_annual": 89,
+      "price_annual": 1069,
       "duration": "per month",
       "description": "Ideal for growing businesses",
       "features": [
@@ -57,7 +57,7 @@
       "name": "Premium Plan",
       "display_name": "Professional",
       "price": 199,
-      "price_annual": 179,
+      "price_annual": 2149,
       "duration": "per month",
       "description": "Ideal for growing businesses",
       "features": [
@@ -86,7 +86,7 @@
       "name": "Enterprise Plan",
       "display_name": "Enterprise",
       "price": 999,
-      "price_annual": 899,
+      "price_annual": 10789,
       "duration": "per month",
       "description": "For large tailoring units",
       "features": [

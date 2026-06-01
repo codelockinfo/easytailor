@@ -31,6 +31,19 @@ class AuthController {
         $user = $this->userModel->authenticate($username, $password);
         
         if ($user) {
+            // Check company subscription expiry
+            require_once __DIR__ . '/../admin/models/Company.php';
+            $companyModel = new Company();
+            $company = $companyModel->find($user['company_id']);
+            
+            if ($company && $company['subscription_expiry']) {
+                $expiry = strtotime($company['subscription_expiry']);
+                $today = strtotime(date('Y-m-d'));
+                if ($expiry < $today) {
+                    return ['success' => false, 'message' => 'Your subscription package has expired. Please contact support to renew.'];
+                }
+            }
+
             // Regenerate session ID for security
             session_regenerate_id(true);
             

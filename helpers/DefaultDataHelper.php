@@ -28,7 +28,7 @@ class DefaultDataHelper {
                 'name' => 'Shirt',
                 'description' => 'Men\'s formal and casual shirts',
                 'standard_rate' => 350.00,
-                'category' => 'Men\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/shirt_guide.jpg',
                 'status' => 'active'
             ],
@@ -36,7 +36,7 @@ class DefaultDataHelper {
                 'name' => 'Pants',
                 'description' => 'Men\'s formal and casual pants',
                 'standard_rate' => 450.00,
-                'category' => 'Men\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/pants_guide.jpg',
                 'status' => 'active'
             ],
@@ -44,7 +44,7 @@ class DefaultDataHelper {
                 'name' => 'Suit',
                 'description' => 'Men\'s formal two-piece suit or blazer',
                 'standard_rate' => 2500.00,
-                'category' => 'Men\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/suit_guide.png',
                 'status' => 'active'
             ],
@@ -52,7 +52,7 @@ class DefaultDataHelper {
                 'name' => 'Kurta',
                 'description' => 'Traditional men\'s kurta shirt',
                 'standard_rate' => 400.00,
-                'category' => 'Men\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/kurta_guide.png',
                 'status' => 'active'
             ],
@@ -60,7 +60,7 @@ class DefaultDataHelper {
                 'name' => 'Kurta Pajama',
                 'description' => 'Traditional men\'s kurta and pajama suit',
                 'standard_rate' => 600.00,
-                'category' => 'Men\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/kurta_pajama_guide.png',
                 'status' => 'active'
             ],
@@ -68,7 +68,7 @@ class DefaultDataHelper {
                 'name' => 'Sherwani',
                 'description' => 'Men\'s traditional festive sherwani',
                 'standard_rate' => 3500.00,
-                'category' => 'Men\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/sherwani_guide.png',
                 'status' => 'active'
             ],
@@ -76,7 +76,7 @@ class DefaultDataHelper {
                 'name' => 'Saree',
                 'description' => 'Saree fall finishing and pico work',
                 'standard_rate' => 150.00,
-                'category' => 'Women\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/saree_guide.png',
                 'status' => 'active'
             ],
@@ -84,7 +84,7 @@ class DefaultDataHelper {
                 'name' => 'Designer Blouse',
                 'description' => 'Custom stitched designer blouse',
                 'standard_rate' => 500.00,
-                'category' => 'Women\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/blouse_guide.png',
                 'status' => 'active'
             ],
@@ -92,7 +92,7 @@ class DefaultDataHelper {
                 'name' => 'Salwar Kameez',
                 'description' => 'Women\'s traditional salwar suit',
                 'standard_rate' => 750.00,
-                'category' => 'Women\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/salwar_guide.png',
                 'status' => 'active'
             ],
@@ -100,7 +100,7 @@ class DefaultDataHelper {
                 'name' => 'Lehenga Choli',
                 'description' => 'Festive and bridal lehenga choli',
                 'standard_rate' => 3000.00,
-                'category' => 'Women\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/lehenga_guide.png',
                 'status' => 'active'
             ],
@@ -108,7 +108,7 @@ class DefaultDataHelper {
                 'name' => 'Evening Gown / Dress',
                 'description' => 'Western evening gown or one-piece dress',
                 'standard_rate' => 1200.00,
-                'category' => 'Women\'s Wear',
+                'category' => '',
                 'measurement_chart_image' => 'uploads/measurement-charts/dress_guide.png',
                 'status' => 'active'
             ]

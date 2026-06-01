@@ -421,7 +421,7 @@ $seoOptions = [
         const formData = new FormData(form);
         
         // Submit form
-        fetch('ajax/submit_contact', {
+        fetch('ajax/submit_contact.php', {
             method: 'POST',
             body: formData
         })

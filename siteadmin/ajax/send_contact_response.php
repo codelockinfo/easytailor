@@ -124,6 +124,13 @@ try {
             ob_end_flush();
             exit;
         } else {
+            // Check if local environment
+            if ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1') {
+                ob_clean();
+                echo json_encode(['success' => true, 'message' => 'Localhost: Simulated email sent successfully']);
+                ob_end_flush();
+                exit;
+            }
             throw new Exception('Failed to send email using PHP mail()');
         }
     } else {

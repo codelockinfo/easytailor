@@ -28,8 +28,10 @@ error_log("AJAX search_customers.php - Has space: " . (strpos($search, ' ') !== 
 error_log("AJAX search_customers.php - Contains %20: " . (strpos($search, '%20') !== false ? 'yes' : 'no'));
 
 $limit = (int)($_GET['limit'] ?? 20);
+$start_date = $_GET['start_date'] ?? null;
+$end_date = $_GET['end_date'] ?? null;
 
-if (empty($search)) {
+if (empty($search) && empty($start_date) && empty($end_date)) {
     echo json_encode(['success' => true, 'customers' => [], 'count' => 0]);
     exit;
 }
@@ -37,8 +39,18 @@ if (empty($search)) {
 try {
     error_log("AJAX search_customers.php - Creating Customer model");
     $customerModel = new Customer();
-    error_log("AJAX search_customers.php - Calling searchCustomers with: '$search'");
-    $customers = $customerModel->searchCustomers($search, $limit);
+    error_log("AJAX search_customers.php - Calling searchCustomers with: '$search', start: '$start_date', end: '$end_date'");
+    
+    // If search is empty but dates are provided, we should use getCustomersWithOrderCount
+    // Otherwise use searchCustomers
+    if (empty($search)) {
+        // Since we are searching but without a term (only dates), we get all with order count
+        $allCustomers = $customerModel->getCustomersWithOrderCount(null, $start_date, $end_date);
+        $customers = array_slice($allCustomers, 0, $limit);
+    } else {
+        $customers = $customerModel->searchCustomers($search, $limit, $start_date, $end_date);
+    }
+    
     error_log("AJAX search_customers.php - searchCustomers returned " . count($customers) . " customers");
     
     // Get customer IDs to fetch order counts

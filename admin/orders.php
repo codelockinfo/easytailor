@@ -317,7 +317,7 @@ $orderStats = $orderModel->getOrderStats();
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-5">
+            <div class="col-md-3">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
@@ -350,9 +350,15 @@ $orderStats = $orderModel->getOrderStats();
                     <option value="">All Tailors</option>
                 </select>
             </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="startDateFilter" title="Start Date">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="endDateFilter" title="End Date">
+            </div>
             <div class="col-md-1">
                 <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-times"></i> Clear
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
@@ -1027,6 +1033,8 @@ const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
 const clothTypeFilter = document.getElementById('clothTypeFilter');
 const tailorFilter = document.getElementById('tailorFilter');
+const startDateFilter = document.getElementById('startDateFilter');
+const endDateFilter = document.getElementById('endDateFilter');
 const clearFilters = document.getElementById('clearFilters');
 const filterResults = document.getElementById('filterResults');
 const filterCount = document.getElementById('filterCount');
@@ -1089,7 +1097,8 @@ function populateFilterOptions(options) {
 }
 
 // Add event listeners for all filters
-[searchInput, statusFilter, clothTypeFilter, tailorFilter].forEach(element => {
+[searchInput, statusFilter, clothTypeFilter, tailorFilter, startDateFilter, endDateFilter].forEach(element => {
+    if (!element) return;
     element.addEventListener('change', performFilter);
     if (element === searchInput) {
         element.addEventListener('input', performFilter);
@@ -1122,6 +1131,8 @@ function executeFilter() {
     const status = statusFilter.value;
     const clothType = clothTypeFilter.value;
     const tailor = tailorFilter.value;
+    const startDate = startDateFilter ? startDateFilter.value : '';
+    const endDate = endDateFilter ? endDateFilter.value : '';
     
     // Show loading state
     filterResults.style.display = 'block';
@@ -1133,6 +1144,8 @@ function executeFilter() {
     if (status) params.append('status', status);
     if (clothType) params.append('cloth_type_id', clothType);
     if (tailor) params.append('assigned_tailor_id', tailor);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     

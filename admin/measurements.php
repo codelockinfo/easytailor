@@ -291,18 +291,26 @@ require_once 'includes/header.php';
             <div class="card">
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-7">
+                        <div class="col-md-4">
                             <label for="searchInput" class="form-label">Search</label>
                             <input type="text" class="form-control" id="searchInput" 
-                                   placeholder="Search by customer, cloth type, or notes"
+                                   placeholder="Search..."
                                    autocomplete="off">
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="clothTypeFilter" class="form-label">Cloth Type</label>
                             <select class="form-select" id="clothTypeFilter">
-                                <option value="">All Cloth Types</option>
+                                <option value="">All Types</option>
                             </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="startDateFilter" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDateFilter">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="endDateFilter" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="endDateFilter">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
@@ -1337,6 +1345,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let filterTimeout;
     const searchInput = document.getElementById('searchInput');
     const clothTypeFilter = document.getElementById('clothTypeFilter');
+    const startDateFilter = document.getElementById('startDateFilter');
+    const endDateFilter = document.getElementById('endDateFilter');
     const clearFilters = document.getElementById('clearFilters');
     const filterResults = document.getElementById('filterResults');
     const filterCount = document.getElementById('filterCount');
@@ -1398,7 +1408,8 @@ function populateFilterOptions(options) {
 }
 
 // Add event listeners for all filters
-[searchInput, clothTypeFilter].forEach(element => {
+[searchInput, clothTypeFilter, startDateFilter, endDateFilter].forEach(element => {
+    if (!element) return;
     element.addEventListener('change', performFilter);
     if (element === searchInput) {
         element.addEventListener('input', performFilter);
@@ -1408,6 +1419,8 @@ function populateFilterOptions(options) {
 clearFilters.addEventListener('click', function() {
     searchInput.value = '';
     clothTypeFilter.value = '';
+    if (startDateFilter) startDateFilter.value = '';
+    if (endDateFilter) endDateFilter.value = '';
     
     // Reload the page to show all measurements
     window.location.href = 'measurements.php';
@@ -1430,6 +1443,8 @@ function performFilter() {
 function executeFilter() {
     const search = searchInput.value.trim();
     const clothType = clothTypeFilter.value;
+    const startDate = startDateFilter ? startDateFilter.value : '';
+    const endDate = endDateFilter ? endDateFilter.value : '';
     
     // Show loading state
     filterResults.style.display = 'block';
@@ -1439,6 +1454,8 @@ function executeFilter() {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (clothType) params.append('cloth_type_id', clothType);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     

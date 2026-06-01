@@ -37,7 +37,7 @@ class Customer extends BaseModel {
         return $this->create($insertData);
     }
 
-    public function searchCustomers($search_term, $limit = 20) {
+    public function searchCustomers($search_term, $limit = 20, $start_date = null, $end_date = null) {
         $companyId = $this->getCompanyId();
         $search_term = trim(str_replace('%20', ' ', $search_term));
         $search_lower = strtolower($search_term);
@@ -54,14 +54,26 @@ class Customer extends BaseModel {
         $where_conditions[] = "c.phone_number LIKE :phone";
         $params[':phone'] = '%' . $search_term . '%';
         
+        $base_where = "(" . implode(' OR ', $where_conditions) . ")";
+        
         $query = "SELECT c.*, COUNT(o.id) as order_count 
                   FROM " . $this->table . " c
                   LEFT JOIN orders o ON c.id = o.measurement_id
-                  WHERE (" . implode(' OR ', $where_conditions) . ")";
+                  WHERE " . $base_where;
         
         if ($companyId) {
             $query .= " AND c.company_id = :company_id";
             $params[':company_id'] = $companyId;
+        }
+        
+        if (!empty($start_date)) {
+            $query .= " AND c.created_at >= :start_date";
+            $params[':start_date'] = $start_date . ' 00:00:00';
+        }
+        
+        if (!empty($end_date)) {
+            $query .= " AND c.created_at <= :end_date";
+            $params[':end_date'] = $end_date . ' 23:59:59';
         }
         
         $query .= " GROUP BY c.phone_number, c.name ORDER BY c.name LIMIT :limit";
@@ -81,7 +93,7 @@ class Customer extends BaseModel {
         return array_map([$this, 'formatCustomerRow'], $rows);
     }
 
-    public function getCustomersWithOrderCount($limit = null) {
+    public function getCustomersWithOrderCount($limit = null, $start_date = null, $end_date = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT c.*, COUNT(o.id) as order_count 
                   FROM " . $this->table . " c 
@@ -95,6 +107,16 @@ class Customer extends BaseModel {
             $params['customer_company_id'] = $companyId;
             $where_clauses[] = "(o.company_id = :order_company_id OR o.company_id IS NULL)";
             $params['order_company_id'] = $companyId;
+        }
+        
+        if (!empty($start_date)) {
+            $where_clauses[] = "c.created_at >= :start_date";
+            $params['start_date'] = $start_date . ' 00:00:00';
+        }
+        
+        if (!empty($end_date)) {
+            $where_clauses[] = "c.created_at <= :end_date";
+            $params['end_date'] = $end_date . ' 23:59:59';
         }
         
         $query .= " WHERE " . implode(" AND ", $where_clauses);

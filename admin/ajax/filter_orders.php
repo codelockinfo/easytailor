@@ -36,6 +36,8 @@ try {
     $customer_id = $_GET['customer_id'] ?? '';
     $cloth_type_id = $_GET['cloth_type_id'] ?? '';
     $assigned_tailor_id = $_GET['assigned_tailor_id'] ?? '';
+    $start_date = $_GET['start_date'] ?? '';
+    $end_date = $_GET['end_date'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
     
@@ -68,6 +70,12 @@ try {
     }
     if (!empty($assigned_tailor_id)) {
         $conditions['assigned_tailor_id'] = $assigned_tailor_id;
+    }
+    if (!empty($start_date)) {
+        $conditions['start_date'] = $start_date;
+    }
+    if (!empty($end_date)) {
+        $conditions['end_date'] = $end_date;
     }
     
     // Get orders

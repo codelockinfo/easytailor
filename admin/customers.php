@@ -180,8 +180,8 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 <!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
-        <div class="row g-3 align-items-start">
-            <div class="col-md-12">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
                 <label for="searchInput" class="form-label">Search Customers</label>
                 <div class="input-group">
                     <span class="input-group-text">
@@ -196,6 +196,18 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
+            </div>
+            <div class="col-md-3">
+                <label for="startDateFilter" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="startDateFilter">
+            </div>
+            <div class="col-md-3">
+                <label for="endDateFilter" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="endDateFilter">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <div id="searchResults" class="mt-3" style="display: none;">
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
@@ -203,7 +215,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                     </div>
                 </div>
             </div>
-            
         </div>
     </div>
 </div>
@@ -541,6 +552,8 @@ if (customerModal) {
 // AJAX Customer Search
 let searchTimeout;
 const searchInput = document.getElementById('searchInput');
+const startDateFilter = document.getElementById('startDateFilter');
+const endDateFilter = document.getElementById('endDateFilter');
 const searchResults = document.getElementById('searchResults');
 const searchCount = document.getElementById('searchCount');
 const clearSearch = document.getElementById('clearSearch');
@@ -552,50 +565,16 @@ if (customersTable) {
     originalTableContent = customersTable.innerHTML;
 }
 
-if (searchInput) {
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.trim();
-        
-        // Clear previous timeout
-        clearTimeout(searchTimeout);
-        
-        if (searchTerm.length < 1) {
-            // Show original table if it exists
-            if (customersTable && originalTableContent) {
-                customersTable.innerHTML = originalTableContent;
-            }
-            if (searchResults) {
-                searchResults.style.display = 'none';
-            }
-            if (clearSearch) {
-                clearSearch.style.display = 'none';
-            }
-            return;
-        }
-        
-        // Show loading state
-        if (searchResults) {
-            searchResults.style.display = 'block';
-        }
-        if (searchCount) {
-            searchCount.textContent = 'Searching...';
-        }
-        if (clearSearch) {
-            clearSearch.style.display = 'inline-block';
-        }
-        
-        // Debounce search
-        searchTimeout = setTimeout(() => {
-            performSearch(searchTerm);
-        }, 300);
-    });
-}
-
-if (clearSearch) {
-    clearSearch.addEventListener('click', function() {
-        if (searchInput) {
-            searchInput.value = '';
-        }
+function performSearch() {
+    const searchTerm = searchInput ? searchInput.value.trim() : '';
+    const startDate = startDateFilter ? startDateFilter.value : '';
+    const endDate = endDateFilter ? endDateFilter.value : '';
+    
+    // Clear previous timeout
+    clearTimeout(searchTimeout);
+    
+    if (searchTerm.length < 1 && !startDate && !endDate) {
+        // Show original table if it exists
         if (customersTable && originalTableContent) {
             customersTable.innerHTML = originalTableContent;
         }
@@ -605,31 +584,82 @@ if (clearSearch) {
         if (clearSearch) {
             clearSearch.style.display = 'none';
         }
-    });
-}
-
-function performSearch(searchTerm) {
-    fetch(`ajax/search_customers.php?search=${encodeURIComponent(searchTerm)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displaySearchResults(data.customers);
-                if (searchCount) {
-                    searchCount.textContent = data.count;
+        return;
+    }
+    
+    // Show loading state
+    if (searchResults) {
+        searchResults.style.display = 'block';
+    }
+    if (searchCount) {
+        searchCount.textContent = 'Searching...';
+    }
+    if (clearSearch) {
+        clearSearch.style.display = 'inline-block';
+    }
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (searchTerm) params.append('search', searchTerm);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    
+    // Set timeout to avoid too many requests
+    searchTimeout = setTimeout(() => {
+        const url = `ajax/search_customers.php?${params.toString()}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displaySearchResults(data.customers);
+                    if (searchCount) {
+                        searchCount.textContent = data.count;
+                    }
+                } else {
+                    console.error('Search error:', data.error);
+                    if (searchCount) {
+                        searchCount.textContent = 'Search failed';
+                    }
                 }
-            } else {
-                console.error('Search error:', data.error);
+            })
+            .catch(error => {
+                console.error('Search error:', error);
                 if (searchCount) {
                     searchCount.textContent = 'Search failed';
                 }
-            }
-        })
-        .catch(error => {
-            console.error('Search error:', error);
-            if (searchCount) {
-                searchCount.textContent = 'Search failed';
-            }
-        });
+            });
+    }, 300);
+}
+
+if (searchInput) {
+    searchInput.addEventListener('input', performSearch);
+}
+
+if (startDateFilter) {
+    startDateFilter.addEventListener('change', performSearch);
+}
+
+if (endDateFilter) {
+    endDateFilter.addEventListener('change', performSearch);
+}
+
+if (clearSearch) {
+    clearSearch.addEventListener('click', function() {
+        if (searchInput) searchInput.value = '';
+        if (startDateFilter) startDateFilter.value = '';
+        if (endDateFilter) endDateFilter.value = '';
+        
+        this.style.display = 'none';
+        if (customersTable && originalTableContent) {
+            customersTable.innerHTML = originalTableContent;
+        }
+        if (searchResults) {
+            searchResults.style.display = 'none';
+        }
+        
+        window.location.href = 'customers.php';
+    });
 }
 
 function displaySearchResults(customers) {

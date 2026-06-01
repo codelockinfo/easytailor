@@ -454,7 +454,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
@@ -466,7 +466,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                            autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-select" id="statusFilter">
                     <option value="">All Statuses</option>
                     <option value="paid">Paid</option>
@@ -474,9 +474,15 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     <option value="due">Due</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
+                <input type="date" class="form-control" id="startDateFilter" title="Start Date">
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control" id="endDateFilter" title="End Date">
+            </div>
+            <div class="col-md-1">
                 <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-times"></i> Clear
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
@@ -1352,6 +1358,8 @@ document.getElementById('paymentModal').addEventListener('hidden.bs.modal', func
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
+const startDateFilter = document.getElementById('startDateFilter');
+const endDateFilter = document.getElementById('endDateFilter');
 const clearFilters = document.getElementById('clearFilters');
 const filterResults = document.getElementById('filterResults');
 const filterCount = document.getElementById('filterCount');
@@ -1361,7 +1369,8 @@ const invoicesTable = document.querySelector('.table tbody');
 const originalTableContent = invoicesTable.innerHTML;
 
 // Add event listeners for all filters
-[searchInput, statusFilter].forEach(element => {
+[searchInput, statusFilter, startDateFilter, endDateFilter].forEach(element => {
+    if (!element) return;
     element.addEventListener('change', performFilter);
     if (element === searchInput) {
         element.addEventListener('input', performFilter);
@@ -1371,8 +1380,11 @@ const originalTableContent = invoicesTable.innerHTML;
 clearFilters.addEventListener('click', function() {
     searchInput.value = '';
     statusFilter.value = '';
-    invoicesTable.innerHTML = originalTableContent;
-    filterResults.style.display = 'none';
+    if (startDateFilter) startDateFilter.value = '';
+    if (endDateFilter) endDateFilter.value = '';
+    
+    // Reload the page to show all invoices
+    window.location.href = 'invoices.php';
 });
 
 function performFilter() {
@@ -1392,6 +1404,8 @@ function performFilter() {
 function executeFilter() {
     const search = searchInput.value.trim();
     const status = statusFilter.value;
+    const startDate = startDateFilter ? startDateFilter.value : '';
+    const endDate = endDateFilter ? endDateFilter.value : '';
     
     // Show loading state
     filterResults.style.display = 'block';
@@ -1401,6 +1415,8 @@ function executeFilter() {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status) params.append('status', status);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     

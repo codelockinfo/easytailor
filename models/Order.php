@@ -149,6 +149,18 @@ class Order extends BaseModel {
             $params['company_id'] = $companyId;
         }
         
+        // Add date range filters
+        if (!empty($conditions['start_date'])) {
+            $where_clauses[] = "o.order_date >= :start_date";
+            $params['start_date'] = $conditions['start_date'];
+            unset($conditions['start_date']);
+        }
+        if (!empty($conditions['end_date'])) {
+            $where_clauses[] = "o.order_date <= :end_date";
+            $params['end_date'] = $conditions['end_date'];
+            unset($conditions['end_date']);
+        }
+        
         if (!empty($conditions)) {
             foreach ($conditions as $column => $value) {
                 if (strpos($column, '.') !== false) {

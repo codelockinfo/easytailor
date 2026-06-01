@@ -317,7 +317,7 @@ $orderStats = $orderModel->getOrderStats();
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fas fa-search"></i>
@@ -339,11 +339,7 @@ $orderStats = $orderModel->getOrderStats();
                     <option value="cancelled">Cancelled</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <select class="form-select" id="customerFilter">
-                    <option value="">All Customers</option>
-                </select>
-            </div>
+
             <div class="col-md-2">
                 <select class="form-select" id="clothTypeFilter">
                     <option value="">All Cloth Types</option>
@@ -1029,7 +1025,6 @@ document.getElementById('orderModal').addEventListener('hidden.bs.modal', functi
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
-const customerFilter = document.getElementById('customerFilter');
 const clothTypeFilter = document.getElementById('clothTypeFilter');
 const tailorFilter = document.getElementById('tailorFilter');
 const clearFilters = document.getElementById('clearFilters');
@@ -1077,13 +1072,7 @@ function loadFilterOptions() {
 }
 
 function populateFilterOptions(options) {
-    // Populate customers
-    const customerSelect = document.getElementById('customerFilter');
-    customerSelect.innerHTML = '<option value="">All Customers</option>';
-    options.customers.forEach(customer => {
-        customerSelect.innerHTML += `<option value="${customer.id}">${customer.name}</option>`;
-    });
-    
+
     // Populate cloth types
     const clothTypeSelect = document.getElementById('clothTypeFilter');
     clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
@@ -1100,7 +1089,7 @@ function populateFilterOptions(options) {
 }
 
 // Add event listeners for all filters
-[searchInput, statusFilter, customerFilter, clothTypeFilter, tailorFilter].forEach(element => {
+[searchInput, statusFilter, clothTypeFilter, tailorFilter].forEach(element => {
     element.addEventListener('change', performFilter);
     if (element === searchInput) {
         element.addEventListener('input', performFilter);
@@ -1131,7 +1120,6 @@ function performFilter() {
 function executeFilter() {
     const search = searchInput.value.trim();
     const status = statusFilter.value;
-    const customer = customerFilter.value;
     const clothType = clothTypeFilter.value;
     const tailor = tailorFilter.value;
     
@@ -1143,7 +1131,6 @@ function executeFilter() {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status) params.append('status', status);
-    if (customer) params.append('customer_id', customer);
     if (clothType) params.append('cloth_type_id', clothType);
     if (tailor) params.append('assigned_tailor_id', tailor);
     params.append('page', '1');

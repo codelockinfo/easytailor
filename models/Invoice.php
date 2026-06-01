@@ -170,13 +170,17 @@ class Invoice extends BaseModel {
                                 OR c.first_name LIKE :search_fname 
                                 OR c.last_name LIKE :search_lname 
                                 OR CONCAT(c.first_name, ' ', c.last_name) LIKE :search_fullname
-                                OR c.phone LIKE :search_phone)";
+                                OR c.phone LIKE :search_phone
+                                OR ms.name LIKE :search_ms
+                                OR o.customer_name LIKE :search_ocn)";
             $params['search_inv'] = $searchPattern;
             $params['search_ord'] = $searchPattern;
             $params['search_fname'] = $searchPattern;
             $params['search_lname'] = $searchPattern;
             $params['search_fullname'] = $searchPattern;
             $params['search_phone'] = $searchPattern;
+            $params['search_ms'] = $searchPattern;
+            $params['search_ocn'] = $searchPattern;
         }
         
         if (!empty($where_clauses)) {

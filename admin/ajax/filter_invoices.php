@@ -84,7 +84,9 @@ try {
     // Format invoices for display - match original table structure exactly
     $formattedInvoices = [];
     foreach ($invoices as $invoice) {
-        $customerName = trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''));
+        $standardName = trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''));
+        $customerName = !empty($invoice['measurement_customer_name']) ? $invoice['measurement_customer_name'] : $standardName;
+        
         $formattedInvoices[] = [
             'id' => $invoice['id'],
             'invoice_number' => $invoice['invoice_number'],

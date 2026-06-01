@@ -474,11 +474,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     <option value="due">Due</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <select class="form-select" id="customerFilter">
-                    <option value="">All Customers</option>
-                </select>
-            </div>
             <div class="col-md-2">
                 <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
                     <i class="fas fa-times"></i> Clear
@@ -1357,7 +1352,6 @@ document.getElementById('paymentModal').addEventListener('hidden.bs.modal', func
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
-const customerFilter = document.getElementById('customerFilter');
 const clearFilters = document.getElementById('clearFilters');
 const filterResults = document.getElementById('filterResults');
 const filterCount = document.getElementById('filterCount');
@@ -1366,50 +1360,8 @@ const invoicesTable = document.querySelector('.table tbody');
 // Store original table content
 const originalTableContent = invoicesTable.innerHTML;
 
-// Load filter options on page load
-loadFilterOptions();
-
-function loadFilterOptions() {
-    fetch('ajax/filter_invoices.php?page=1&limit=0')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            if (text.trim().startsWith('<')) {
-                throw new Error('Server returned HTML instead of JSON');
-            }
-            
-            try {
-                const data = JSON.parse(text);
-                if (data.success) {
-                    populateFilterOptions(data.filter_options);
-                } else {
-                    console.error('Filter options error:', data.error);
-                }
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.error('Response text:', text);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading filter options:', error);
-        });
-}
-
-function populateFilterOptions(options) {
-    // Populate customers
-    const customerSelect = document.getElementById('customerFilter');
-    customerSelect.innerHTML = '<option value="">All Customers</option>';
-    options.customers.forEach(customer => {
-        customerSelect.innerHTML += `<option value="${customer.id}">${customer.name}</option>`;
-    });
-}
-
 // Add event listeners for all filters
-[searchInput, statusFilter, customerFilter].forEach(element => {
+[searchInput, statusFilter].forEach(element => {
     element.addEventListener('change', performFilter);
     if (element === searchInput) {
         element.addEventListener('input', performFilter);
@@ -1419,7 +1371,6 @@ function populateFilterOptions(options) {
 clearFilters.addEventListener('click', function() {
     searchInput.value = '';
     statusFilter.value = '';
-    customerFilter.value = '';
     invoicesTable.innerHTML = originalTableContent;
     filterResults.style.display = 'none';
 });
@@ -1441,7 +1392,6 @@ function performFilter() {
 function executeFilter() {
     const search = searchInput.value.trim();
     const status = statusFilter.value;
-    const customer = customerFilter.value;
     
     // Show loading state
     filterResults.style.display = 'block';
@@ -1451,7 +1401,6 @@ function executeFilter() {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status) params.append('status', status);
-    if (customer) params.append('customer_id', customer);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     

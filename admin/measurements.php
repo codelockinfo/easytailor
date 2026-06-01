@@ -291,18 +291,13 @@ require_once 'includes/header.php';
             <div class="card">
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-7">
                             <label for="searchInput" class="form-label">Search</label>
                             <input type="text" class="form-control" id="searchInput" 
                                    placeholder="Search by customer, cloth type, or notes"
                                    autocomplete="off">
                         </div>
-                        <div class="col-md-3">
-                            <label for="customerFilter" class="form-label">Customer</label>
-                            <select class="form-select" id="customerFilter">
-                                <option value="">All Customers</option>
-                            </select>
-                        </div>
+
                         <div class="col-md-3">
                             <label for="clothTypeFilter" class="form-label">Cloth Type</label>
                             <select class="form-select" id="clothTypeFilter">
@@ -1341,7 +1336,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
     let filterTimeout;
     const searchInput = document.getElementById('searchInput');
-    const customerFilter = document.getElementById('customerFilter');
     const clothTypeFilter = document.getElementById('clothTypeFilter');
     const clearFilters = document.getElementById('clearFilters');
     const filterResults = document.getElementById('filterResults');
@@ -1349,10 +1343,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const measurementsTable = document.querySelector('.table tbody');
 
     // Check if all required elements exist
-    if (!searchInput || !customerFilter || !clothTypeFilter) {
+    if (!searchInput || !clothTypeFilter) {
         console.error('Required DOM elements not found for measurement filtering');
         console.error('searchInput:', !!searchInput);
-        console.error('customerFilter:', !!customerFilter);
         console.error('clothTypeFilter:', !!clothTypeFilter);
         console.error('measurementsTable:', !!measurementsTable);
         return;
@@ -1395,13 +1388,7 @@ function loadFilterOptions() {
 }
 
 function populateFilterOptions(options) {
-    // Populate customers
-    const customerSelect = document.getElementById('customerFilter');
-    customerSelect.innerHTML = '<option value="">All Customers</option>';
-    options.customers.forEach(customer => {
-        customerSelect.innerHTML += `<option value="${customer.id}">${customer.name}</option>`;
-    });
-    
+
     // Populate cloth types
     const clothTypeSelect = document.getElementById('clothTypeFilter');
     clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
@@ -1411,7 +1398,7 @@ function populateFilterOptions(options) {
 }
 
 // Add event listeners for all filters
-[searchInput, customerFilter, clothTypeFilter].forEach(element => {
+[searchInput, clothTypeFilter].forEach(element => {
     element.addEventListener('change', performFilter);
     if (element === searchInput) {
         element.addEventListener('input', performFilter);
@@ -1420,7 +1407,6 @@ function populateFilterOptions(options) {
 
 clearFilters.addEventListener('click', function() {
     searchInput.value = '';
-    customerFilter.value = '';
     clothTypeFilter.value = '';
     
     // Reload the page to show all measurements
@@ -1443,7 +1429,6 @@ function performFilter() {
 
 function executeFilter() {
     const search = searchInput.value.trim();
-    const customer = customerFilter.value;
     const clothType = clothTypeFilter.value;
     
     // Show loading state
@@ -1453,7 +1438,6 @@ function executeFilter() {
     // Build query string
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    if (customer) params.append('customer_id', customer);
     if (clothType) params.append('cloth_type_id', clothType);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');

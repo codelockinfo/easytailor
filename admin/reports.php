@@ -245,7 +245,7 @@ for ($i = 11; $i >= 0; $i--) {
                                 <?php foreach ($recentOrders as $order): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($order['order_number']); ?></td>
-                                    <td><?php echo htmlspecialchars($order['first_name'] . ' ' . $order['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars(trim($order['first_name'] . ' ' . $order['last_name']) ?: ($order['measurement_customer_name'] ?? 'Unknown')); ?></td>
                                     <td><?php echo format_currency($order['total_amount']); ?></td>
                                     <td>
                                         <span class="badge bg-<?php 

@@ -330,7 +330,7 @@ try {
     foreach ($recentOrders as $order) {
         $formattedOrders[] = [
             'order_number' => $order['order_number'],
-            'customer_name' => $order['first_name'] . ' ' . $order['last_name'],
+            'customer_name' => trim($order['first_name'] . ' ' . $order['last_name']) ?: ($order['customer_name'] ?? 'Unknown'),
             'total_amount' => format_currency($order['total_amount']),
             'status' => ucfirst(str_replace('_', ' ', $order['status'])),
             'status_badge' => match($order['status']) {

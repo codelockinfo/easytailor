@@ -635,6 +635,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
             </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Invoice pagination">
                     <ul class="pagination justify-content-center">
@@ -658,6 +659,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
@@ -1444,6 +1446,15 @@ function executeFilter() {
                 if (data.success) {
                     displayFilterResults(data.invoices);
                     filterCount.textContent = data.pagination.total_invoices;
+                    
+                    const paginationContainer = document.getElementById('paginationContainer');
+                    if (paginationContainer) {
+                        if (data.pagination.total_pages <= 1) {
+                            paginationContainer.style.display = 'none';
+                        } else {
+                            paginationContainer.style.display = 'block';
+                        }
+                    }
                 } else {
                     console.error('Filter error:', data.error);
                     filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');

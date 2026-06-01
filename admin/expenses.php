@@ -374,6 +374,7 @@ if (empty($categories)) {
             </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Expense pagination">
                     <ul class="pagination justify-content-center">
@@ -397,6 +398,7 @@ if (empty($categories)) {
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
@@ -829,6 +831,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         displayFilterResults(expenses);
                         if (data.pagination && data.pagination.total_expenses !== undefined) {
                             filterCount.textContent = data.pagination.total_expenses;
+                            const paginationContainer = document.getElementById('paginationContainer');
+                            if (paginationContainer) {
+                                if (data.pagination.total_pages <= 1) {
+                                    paginationContainer.style.display = 'none';
+                                } else {
+                                    paginationContainer.style.display = 'block';
+                                }
+                            }
                         } else {
                             filterCount.textContent = expenses.length;
                         }

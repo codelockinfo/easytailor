@@ -499,6 +499,7 @@ $orderStats = $orderModel->getOrderStats();
             </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Order pagination">
                     <ul class="pagination justify-content-center">
@@ -522,6 +523,7 @@ $orderStats = $orderModel->getOrderStats();
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
@@ -1166,6 +1168,15 @@ function executeFilter() {
                 if (data.success) {
                     displayFilterResults(data.orders);
                     filterCount.textContent = data.pagination.total_orders;
+                    
+                    const paginationContainer = document.getElementById('paginationContainer');
+                    if (paginationContainer) {
+                        if (data.pagination.total_pages <= 1) {
+                            paginationContainer.style.display = 'none';
+                        } else {
+                            paginationContainer.style.display = 'block';
+                        }
+                    }
                 } else {
                     console.error('Filter error:', data.error);
                     filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');

@@ -358,6 +358,7 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
             </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Cloth type pagination">
                     <ul class="pagination justify-content-center">
@@ -381,6 +382,7 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-tshirt fa-3x text-muted mb-3"></i>
@@ -745,8 +747,10 @@ function executeFilter() {
                     displayFilterResults(clothTypes);
                     if (data.pagination && data.pagination.total_cloth_types !== undefined) {
                         filterCount.textContent = data.pagination.total_cloth_types;
+                        updatePagination(data.pagination, search, category);
                     } else {
                         filterCount.textContent = clothTypes.length;
+                        document.getElementById('paginationContainer').innerHTML = '';
                     }
                 } else {
                     console.error('Filter error:', data.error);
@@ -837,6 +841,59 @@ function displayFilterResults(clothTypes) {
     });
     
     clothTypesTable.innerHTML = tableHTML;
+}
+
+function updatePagination(pagination, search, category) {
+    const container = document.getElementById('paginationContainer');
+    
+    if (pagination.total_pages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+    const categoryParam = category ? `&category=${encodeURIComponent(category)}` : '';
+    const page = pagination.current_page;
+    const totalPages = pagination.total_pages;
+    
+    let html = `
+        <nav aria-label="Cloth type pagination">
+            <ul class="pagination justify-content-center">
+    `;
+    
+    if (page > 1) {
+        html += `
+            <li class="page-item">
+                <a class="page-link" href="?page=${page - 1}${categoryParam}${searchParam}">Previous</a>
+            </li>
+        `;
+    }
+    
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(totalPages, page + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <li class="page-item ${i === page ? 'active' : ''}">
+                <a class="page-link" href="?page=${i}${categoryParam}${searchParam}">${i}</a>
+            </li>
+        `;
+    }
+    
+    if (page < totalPages) {
+        html += `
+            <li class="page-item">
+                <a class="page-link" href="?page=${page + 1}${categoryParam}${searchParam}">Next</a>
+            </li>
+        `;
+    }
+    
+    html += `
+            </ul>
+        </nav>
+    `;
+    
+    container.innerHTML = html;
 }
 </script>
 

@@ -430,6 +430,7 @@ require_once 'includes/header.php';
                         </div>
 
                         <!-- Pagination -->
+                        <div id="paginationContainer">
                         <?php if ($totalPages > 1): ?>
                             <nav aria-label="Measurements pagination">
                                 <ul class="pagination justify-content-center">
@@ -453,6 +454,7 @@ require_once 'includes/header.php';
                                 </ul>
                             </nav>
                         <?php endif; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -1493,6 +1495,14 @@ function executeFilter() {
                     displayFilterResults(measurements);
                     if (data.pagination) {
                         filterCount.textContent = data.pagination.total_measurements || measurements.length;
+                        const paginationContainer = document.getElementById('paginationContainer');
+                        if (paginationContainer) {
+                            if (data.pagination.total_pages <= 1) {
+                                paginationContainer.style.display = 'none';
+                            } else {
+                                paginationContainer.style.display = 'block';
+                            }
+                        }
                     } else {
                         filterCount.textContent = measurements.length;
                     }

@@ -308,8 +308,9 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
             </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
-                <nav aria-label="Customer pagination">
+                <nav aria-label="Customer pagination" class="mt-4">
                     <ul class="pagination justify-content-center">
                         <?php if ($page > 1): ?>
                             <li class="page-item">
@@ -331,6 +332,7 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
@@ -620,6 +622,12 @@ function performSearch() {
                     displaySearchResults(data.customers);
                     if (searchCount) {
                         searchCount.textContent = data.count;
+                    }
+                    const paginationContainer = document.getElementById('paginationContainer');
+                    if (paginationContainer) {
+                        if (data.count <= 10) { // Assume 10 records per page for simplicity, or just hide on search
+                            paginationContainer.style.display = 'none';
+                        }
                     }
                 } else {
                     console.error('Search error:', data.error);

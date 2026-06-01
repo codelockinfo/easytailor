@@ -219,6 +219,7 @@ $catStats = $categoryModel->getCategoryStats();
             </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Category pagination">
                     <ul class="pagination justify-content-center">
@@ -242,6 +243,7 @@ $catStats = $categoryModel->getCategoryStats();
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
         <?php else: ?>
             <div class="text-center py-5">
                 <i class="fas fa-tags fa-3x text-muted mb-3"></i>
@@ -342,6 +344,7 @@ function deleteCategory(id, name) {
 document.getElementById('categorySearch').addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase().trim();
     const rows = document.querySelectorAll('.category-row');
+    let visibleCount = 0;
     
     rows.forEach(row => {
         const name = row.querySelector('.cat-name').textContent.toLowerCase();
@@ -349,10 +352,20 @@ document.getElementById('categorySearch').addEventListener('input', function() {
         
         if (name.includes(searchTerm) || desc.includes(searchTerm)) {
             row.style.display = '';
+            visibleCount++;
         } else {
             row.style.display = 'none';
         }
     });
+    
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (paginationContainer) {
+        if (searchTerm !== '' || visibleCount <= 10) { // Assume 10 records per page for simplicity, or hide when searching
+            paginationContainer.style.display = 'none';
+        } else {
+            paginationContainer.style.display = 'block';
+        }
+    }
 });
 
 document.getElementById('categoryModal').addEventListener('hidden.bs.modal', function() {

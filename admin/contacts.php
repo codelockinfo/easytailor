@@ -294,6 +294,7 @@ require_once 'includes/header.php';
         </div>
             
             <!-- Pagination -->
+            <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Contact pagination">
                     <ul class="pagination justify-content-center">
@@ -317,6 +318,7 @@ require_once 'includes/header.php';
                     </ul>
                 </nav>
             <?php endif; ?>
+            </div>
     </div>
 </div>
 
@@ -620,7 +622,7 @@ function filterContacts() {
             console.log('Filter response received:', data);
             if (data.success) {
                 updateContactsTable(data.contacts);
-                updateSearchResults(data.pagination.total_contacts, searchTerm);
+                updateSearchResults(data.pagination.total_contacts, searchTerm, data.pagination.total_pages);
             } else {
                 console.error('Filter error:', data.error);
                 if (tableBody) {
@@ -721,7 +723,7 @@ function updateContactsTable(contacts) {
     });
 }
 
-function updateSearchResults(totalContacts, searchTerm) {
+function updateSearchResults(totalContacts, searchTerm, totalPages = null) {
     const searchResults = document.getElementById('searchResults');
     const searchCount = document.getElementById('searchCount');
     
@@ -735,6 +737,15 @@ function updateSearchResults(totalContacts, searchTerm) {
         searchResults.style.display = 'block';
     } else {
         searchResults.style.display = 'none';
+    }
+    
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (paginationContainer) {
+        if (totalPages !== null && totalPages <= 1) {
+            paginationContainer.style.display = 'none';
+        } else if (totalPages !== null) {
+            paginationContainer.style.display = 'block';
+        }
     }
 }
 

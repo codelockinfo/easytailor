@@ -150,8 +150,8 @@ $seoOptions = [
             margin: 0.25rem 1rem;
         }
         
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
             padding: 0.75rem 1rem;
             border-radius: 10px;
             transition: all 0.3s ease;
@@ -160,9 +160,12 @@ $seoOptions = [
             align-items: center;
         }
         
-        .nav-link:hover, .nav-link.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
+        .sidebar .nav-link:hover, 
+        .sidebar .nav-link:focus, 
+        .sidebar .nav-link:active,
+        .sidebar .nav-link.active {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
             transform: translateX(5px);
         }
         

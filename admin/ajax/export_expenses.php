@@ -47,8 +47,8 @@ try {
     
     $excelContent .= '<Row>' . "\n";
     $headers = [
-        'Expense ID', 'Category', 'Description', 'Amount', 'Expense Date', 'Payment Method',
-        'Reference Number', 'Receipt Image', 'Created By', 'Created Date'
+        'Expense ID', 'Description', 'Amount', 'Expense Date', 'Payment Method',
+        'Receipt Image', 'Created By', 'Created Date'
     ];
     foreach ($headers as $header) {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($header) . '</Data></Cell>' . "\n";
@@ -60,12 +60,10 @@ try {
         
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">EXP-' . str_pad($expense['id'], 6, '0', STR_PAD_LEFT) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['category']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['description']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . $expense['amount'] . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['expense_date']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $expense['payment_method']))) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['reference_number'] ?: '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['receipt_image'] ? 'Yes' : 'No') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($createdByName) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($expense['created_at']))) . '</Data></Cell>' . "\n";

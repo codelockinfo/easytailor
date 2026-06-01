@@ -131,12 +131,14 @@ class Invoice extends BaseModel {
                          o.order_number, o.order_date, o.due_date as order_due_date,
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone, c.email as customer_email,
                          ct.name as cloth_type_name,
-                         creator.full_name as created_by_name
+                         creator.full_name as created_by_name,
+                         COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, '')) as measurement_customer_name
                   FROM " . $this->table . " i
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN customers c ON o.customer_id = c.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
-                  LEFT JOIN users creator ON i.created_by = creator.id";
+                  LEFT JOIN users creator ON i.created_by = creator.id
+                  LEFT JOIN measurements ms ON o.measurement_id = ms.id";
         
         $params = [];
         $where_clauses = [];

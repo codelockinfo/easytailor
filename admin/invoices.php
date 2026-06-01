@@ -706,19 +706,27 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                                     <?php foreach ($unpaidOrders as $order): ?>
                                         <option value="<?php echo $order['id']; ?>" 
                                                 data-amount="<?php echo $order['total_amount']; ?>"
-                                                data-status="<?php echo $order['status']; ?>">
-                                            <?php echo htmlspecialchars($order['order_number'] . ' - ' . $order['first_name'] . ' ' . $order['last_name'] . ' - ' . ucfirst($order['status']) . ' (' . format_currency($order['total_amount']) . ')'); ?>
+                                                data-status="<?php echo $order['status']; ?>"
+                                                data-customer-name="<?php echo htmlspecialchars(trim($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name']))); ?>"
+                                                data-customer-code="<?php echo htmlspecialchars($order['customer_code'] ?? ''); ?>"
+                                                data-customer-phone="<?php echo htmlspecialchars($order['customer_phone'] ?? ''); ?>">
+                                            <?php echo htmlspecialchars($order['order_number'] . ' - ' . ($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name'])) . ' - ' . ucfirst($order['status']) . ' (' . format_currency($order['total_amount']) . ')'); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </select>
                             <?php if (empty($unpaidOrders)): ?>
-                                <small class="text-muted">
+                                <small class="text-muted d-block mt-1">
                                     <i class="fas fa-info-circle me-1"></i>
                                     Create an order first, then you can generate an invoice for it.
                                     <a href="orders.php" class="text-decoration-none">Go to Orders</a>
                                 </small>
                             <?php endif; ?>
+                            <div id="customer_details_display" class="mt-2 p-2 bg-light rounded border" style="display: none; font-size: 0.9em;">
+                                <strong><i class="fas fa-user text-muted me-1"></i> <span id="display_customer_name"></span></strong><br>
+                                <span class="text-muted"><i class="fas fa-id-badge me-1"></i> <span id="display_customer_code"></span></span>
+                                <span class="text-muted ms-3"><i class="fas fa-phone me-1"></i> <span id="display_customer_phone"></span></span>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="invoice_date" class="form-label">Invoice Date *</label>
@@ -1236,6 +1244,26 @@ function exportInvoices() {
 document.getElementById('order_id').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
     const amount = selectedOption.getAttribute('data-amount');
+    
+    // Display customer details
+    const customerDisplay = document.getElementById('customer_details_display');
+    if (selectedOption.value) {
+        const customerName = selectedOption.getAttribute('data-customer-name');
+        const customerCode = selectedOption.getAttribute('data-customer-code');
+        const customerPhone = selectedOption.getAttribute('data-customer-phone');
+        
+        if (customerName || customerCode || customerPhone) {
+            document.getElementById('display_customer_name').textContent = customerName || 'N/A';
+            document.getElementById('display_customer_code').textContent = customerCode || 'N/A';
+            document.getElementById('display_customer_phone').textContent = customerPhone || 'N/A';
+            customerDisplay.style.display = 'block';
+        } else {
+            customerDisplay.style.display = 'none';
+        }
+    } else {
+        customerDisplay.style.display = 'none';
+    }
+
     if (amount) {
         document.getElementById('subtotal').value = amount;
         calculateTotal();
@@ -1278,6 +1306,9 @@ document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', func
             option.remove();
         }
     });
+    
+    // Hide customer details display
+    document.getElementById('customer_details_display').style.display = 'none';
 });
 if (invoiceModalElement) {
     invoiceModalElement.addEventListener('hidden.bs.modal', function() {

@@ -67,7 +67,7 @@ require_once 'includes/header.php';
                 <a href="invoices.php" class="text-decoration-none text-muted mb-2 d-inline-block">
                     <i class="fas fa-arrow-left me-2"></i>Back to Invoices
                 </a>
-                <h1 class="h3 mb-0">Invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?></h1>
+                <h1 class="h3 mb-0">Invoice <?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?></h1>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-outline-primary" onclick="printInvoice()">
@@ -132,12 +132,12 @@ require_once 'includes/header.php';
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <small class="text-muted d-block">Customer</small>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($invoice['first_name'] . ' ' . $invoice['last_name']); ?></h5>
-                        <small class="text-muted"><?php echo htmlspecialchars($invoice['customer_code']); ?></small>
+                        <h5 class="mb-0"><?php echo htmlspecialchars($invoice['measurement_customer_name'] ?? (trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? '')) ?: 'Walk-in Customer')); ?></h5>
+                     
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted d-block">Order Number</small>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($invoice['order_number']); ?></h5>
+                        <h5 class="mb-0"><?php echo htmlspecialchars($invoice['order_number'] ?? ''); ?></h5>
                         <small class="text-muted">Date: <?php echo format_date($invoice['order_date'], 'M j, Y'); ?></small>
                     </div>
                 </div>
@@ -283,7 +283,7 @@ require_once 'includes/header.php';
             <div class="card-body">
                 <div class="mb-3">
                     <small class="text-muted d-block">Invoice Number</small>
-                    <strong><?php echo htmlspecialchars($invoice['invoice_number']); ?></strong>
+                    <strong><?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?></strong>
                 </div>
                 <div class="mb-3">
                     <small class="text-muted d-block">Invoice Date</small>

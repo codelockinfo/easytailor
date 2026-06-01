@@ -30,6 +30,14 @@ if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
     exit;
 }
 
+require_once '../../helpers/SubscriptionHelper.php';
+$exportCheck = SubscriptionHelper::canExportData(get_company_id());
+if (!$exportCheck['allowed']) {
+    http_response_code(403);
+    echo json_encode(['error' => $exportCheck['message']]);
+    exit;
+}
+
 try {
     $expenseModel = new Expense();
     $userModel = new User();

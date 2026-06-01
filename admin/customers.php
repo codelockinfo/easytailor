@@ -223,9 +223,18 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
             Customers (<?php echo number_format($totalCustomers); ?>)
         </h5>
         <div class="d-flex gap-2">
+            <?php 
+            $exportCheck = SubscriptionHelper::canExportData($companyId);
+            if ($exportCheck['allowed']): 
+            ?>
             <button type="button" class="btn btn-sm btn-light" onclick="exportCustomers()">
                 <i class="fas fa-download me-1"></i>Export
             </button>
+            <?php else: ?>
+            <a href="subscriptions.php" class="btn btn-sm btn-light text-muted" title="Upgrade to Premium to Export">
+                <i class="fas fa-lock me-1 text-warning"></i>Export
+            </a>
+            <?php endif; ?>
         </div>
     </div>
     <div class="card-body">

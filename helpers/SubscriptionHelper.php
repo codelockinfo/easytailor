@@ -16,25 +16,33 @@ class SubscriptionHelper {
                 'customers' => 30,
                 'orders' => 50,
                 'users' => 3,
-                'invoice_generation' => false
+                'invoice_generation' => false,
+                'export_data' => false,
+                'sms_notifications' => false
             ],
             'basic' => [
                 'customers' => 100,
                 'orders' => 150,
                 'users' => 10,
-                'invoice_generation' => true
+                'invoice_generation' => true,
+                'export_data' => false,
+                'sms_notifications' => true
             ],
             'premium' => [
                 'customers' => 500,
                 'orders' => 1000,
                 'users' => 20,
-                'invoice_generation' => true
+                'invoice_generation' => true,
+                'export_data' => true,
+                'sms_notifications' => true
             ],
             'enterprise' => [
                 'customers' => -1, // Unlimited
                 'orders' => -1, // Unlimited
                 'users' => -1, // Unlimited
-                'invoice_generation' => true
+                'invoice_generation' => true,
+                'export_data' => true,
+                'sms_notifications' => true
             ]
         ];
         
@@ -189,18 +197,44 @@ class SubscriptionHelper {
     }
     
     /**
+     * Check if company can export data
+     */
+    public static function canExportData($companyId) {
+        $plan = self::getCurrentPlan($companyId);
+        $limits = self::getPlanLimits($plan);
+        
+        if (!$limits['export_data']) {
+            return [
+                'allowed' => false,
+                'message' => "Data export is only available in Premium and Enterprise plans. Please upgrade to use this feature.",
+                'plan' => $plan
+            ];
+        }
+        
+        return ['allowed' => true];
+    }
+    
+    /**
+     * Check if company can send SMS notifications
+     */
+    public static function canSendSms($companyId) {
+        $plan = self::getCurrentPlan($companyId);
+        $limits = self::getPlanLimits($plan);
+        
+        if (!$limits['sms_notifications']) {
+            return [
+                'allowed' => false,
+                'message' => "SMS notifications are not available in the Free plan. Please upgrade to use this feature.",
+                'plan' => $plan
+            ];
+        }
+        
+        return ['allowed' => true];
+    }
+    /**
      * Get upgrade message for limit reached
      */
     public static function getUpgradeMessage($feature, $plan) {
-        $planNames = [
-            'free' => 'Free Trial',
-            'basic' => 'Basic',
-            'premium' => 'Premium',
-            'enterprise' => 'Enterprise'
-        ];
-        
-        $planName = $planNames[$plan] ?? 'Free Trial';
-
         return "";
     }
 }

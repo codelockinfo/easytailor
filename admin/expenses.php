@@ -276,9 +276,18 @@ if (empty($categories)) {
             <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#expenseModal">
                 <i class="fas fa-plus me-1"></i>Record Expense
             </button>
+            <?php 
+            $exportCheck = SubscriptionHelper::canExportData($companyId ?? get_company_id());
+            if ($exportCheck['allowed']): 
+            ?>
             <button type="button" class="btn btn-sm btn-outline-light" onclick="exportExpenses()">
                 <i class="fas fa-download me-1"></i>Export
             </button>
+            <?php else: ?>
+            <a href="subscriptions.php" class="btn btn-sm btn-outline-light text-warning" title="Upgrade to Premium to Export" style="border-color: rgba(255,193,7,0.5);">
+                <i class="fas fa-lock me-1"></i>Export
+            </a>
+            <?php endif; ?>
         </div>
     </div>
     <div class="card-body">

@@ -19,11 +19,13 @@ require_once 'models/Order.php';
 require_once 'models/Invoice.php';
 require_once 'models/Expense.php';
 require_once '../models/Customer.php';
+require_once '../helpers/SubscriptionHelper.php';
 
 $orderModel = new Order();
 $invoiceModel = new Invoice();
 $expenseModel = new Expense();
 $customerModel = new Customer();
+$companyId = get_company_id();
 
 // Get date range
 $date_from = $_GET['date_from'] ?? date('Y-m-01');
@@ -282,6 +284,10 @@ for ($i = 11; $i >= 0; $i--) {
         </h5>
     </div>
     <div class="card-body">
+        <?php 
+        $exportCheck = SubscriptionHelper::canExportData($companyId);
+        if ($exportCheck['allowed']): 
+        ?>
         <div class="row">
             <div class="col-md-3 mb-2">
                 <button class="btn btn-outline-primary w-100" data-export-btn="orders" onclick="exportReport('orders')">
@@ -304,6 +310,15 @@ for ($i = 11; $i >= 0; $i--) {
                 </button>
             </div>
         </div>
+        <?php else: ?>
+        <div class="alert alert-warning mb-0 d-flex align-items-center justify-content-between">
+            <div>
+                <i class="fas fa-lock me-2"></i>
+                <strong>Data Export Locked:</strong> <?php echo $exportCheck['message']; ?>
+            </div>
+            <a href="subscriptions.php" class="btn btn-warning btn-sm">Upgrade Plan</a>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 

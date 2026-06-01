@@ -124,7 +124,7 @@ class Order extends BaseModel {
                          ct.name as cloth_type_name,
                          u.full_name as tailor_name,
                          creator.full_name as created_by_name,
-                         COALESCE(ms.name, o.customer_name) as measurement_customer_name
+                         COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, '')) as measurement_customer_name
                   FROM " . $this->table . " o
                   LEFT JOIN customers c ON o.customer_id = c.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id

@@ -24,11 +24,11 @@ try {
         exit;
     }
 
-    require_once $rootDir . '/../models/Order.php';
+    require_once $rootDir . '/models/Order.php';
     require_once $rootDir . '/../models/Customer.php';
     require_once $rootDir . '/../models/Measurement.php';
-    require_once $rootDir . '/../models/ClothType.php';
-    require_once $rootDir . '/../models/User.php';
+    require_once $rootDir . '/models/ClothType.php';
+    require_once $rootDir . '/models/User.php';
 
     // Get filter parameters
     $status = $_GET['status'] ?? '';
@@ -78,9 +78,12 @@ try {
     if (!empty($search)) {
         $searchLower = strtolower($search);
         $orders = array_filter($orders, function($order) use ($searchLower) {
-            $customerName = trim($order['first_name'] . ' ' . $order['last_name']);
+            $displayCustomerName = !empty($order['measurement_customer_name']) 
+                ? $order['measurement_customer_name'] 
+                : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+                
             return strpos(strtolower($order['order_number']), $searchLower) !== false ||
-                   strpos(strtolower($customerName), $searchLower) !== false ||
+                   strpos(strtolower($displayCustomerName), $searchLower) !== false ||
                    strpos(strtolower($order['customer_phone'] ?? ''), $searchLower) !== false;
         });
     }
@@ -109,6 +112,9 @@ try {
             'order_number' => $order['order_number'],
             'customer_id' => $order['customer_id'] ?? null,
             'customer_name' => $order['measurement_customer_name'] ?? '',
+            'display_customer_name' => !empty($order['measurement_customer_name']) 
+                                        ? $order['measurement_customer_name'] 
+                                        : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')),
             'cloth_type_id' => $order['cloth_type_id'] ?? null,
             'measurement_id' => $order['measurement_id'] ?? null,
             'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,

@@ -1239,7 +1239,7 @@ function displayFilterResults(orders) {
                 </td>
                 <td>
                     <div>
-                        <strong>${order.customer_name || (order.first_name + ' ' + order.last_name)}</strong>
+                        <strong>${order.display_customer_name || '<span class="text-muted">No Name</span>'}</strong>
                     </div>
                 </td>
                 <td>${order.cloth_type_name}</td>

@@ -80,32 +80,46 @@ try {
         $order = $orderModel->getOrderById($invoice['order_id']);
         
         // Get customer details
-        $customer = $customerModel->getCustomerById($order['customer_id']);
+        $customer = !empty($order['customer_id']) ? $customerModel->find($order['customer_id']) : false;
+        
+        $customerName = '';
+        $customerPhone = '';
+        $customerEmail = '';
+        
+        if ($customer) {
+            $customerName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
+            $customerPhone = $customer['phone'] ?? '';
+            $customerEmail = $customer['email'] ?? '';
+        } else {
+            // Fallback for orders without a linked customer profile
+            $customerName = $order['customer_name'] ?? '';
+        }
         
         // Get cloth type name
-        $clothType = $orderModel->getClothTypeById($order['cloth_type_id']);
+        $clothType = !empty($order['cloth_type_id']) ? $orderModel->getClothTypeById($order['cloth_type_id']) : false;
+        $clothTypeName = $clothType ? ($clothType['name'] ?? '') : '';
         
         $excelContent .= '<Row>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_number']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_date']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['due_date']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['phone']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['email'] ?: '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_number']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_date']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($clothType['name']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $order['status']))) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['subtotal'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['tax_rate'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['tax_amount'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['discount_amount'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['total_amount'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['paid_amount'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $invoice['balance_amount'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst($invoice['payment_status'])) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['notes'] ?: '') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($invoice['created_at']))) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_number'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_date'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['due_date'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerName) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerPhone) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customerEmail) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_number'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order['order_date'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($clothTypeName) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $order['status'] ?? ''))) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['subtotal'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['tax_rate'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['tax_amount'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['discount_amount'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['total_amount'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['paid_amount'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="Number">' . ($invoice['balance_amount'] ?? 0) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst($invoice['payment_status'] ?? '')) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['notes'] ?? '') . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($invoice['created_at'] ?? 'now'))) . '</Data></Cell>' . "\n";
         $excelContent .= '</Row>' . "\n";
     }
     

@@ -165,7 +165,7 @@ for ($i = 11; $i >= 0; $i--) {
                 </h5>
             </div>
             <div class="card-body">
-                <canvas id="revenueExpenseChart" height="100"></canvas>
+                <canvas id="revenueExpenseChart" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -179,7 +179,7 @@ for ($i = 11; $i >= 0; $i--) {
                 </h5>
             </div>
             <div class="card-body">
-                <canvas id="orderStatusChart"></canvas>
+                <canvas id="orderStatusChart" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -196,7 +196,7 @@ for ($i = 11; $i >= 0; $i--) {
                 </h5>
             </div>
             <div class="card-body">
-                <canvas id="expenseCategoryChart"></canvas>
+                <canvas id="expenseCategoryChart" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -210,7 +210,7 @@ for ($i = 11; $i >= 0; $i--) {
                 </h5>
             </div>  
             <div class="card-body">
-                <canvas id="paymentMethodChart"></canvas>
+                <canvas id="paymentMethodChart" height="300"></canvas>
             </div>
         </div>
     </div>
@@ -218,7 +218,7 @@ for ($i = 11; $i >= 0; $i--) {
 
 <!-- Summary Tables -->
 <div class="row">
-    <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="col-xl-12 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -267,43 +267,6 @@ for ($i = 11; $i >= 0; $i--) {
                     </div>
                 <?php else: ?>
                     <p class="text-muted text-center">No recent orders</p>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-6 col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-list me-2"></i>
-                    Top Expense Categories
-                </h5>
-            </div>
-            <div class="card-body" id="expenseCategoriesTable">
-                <?php if (!empty($expenseStats['by_category'])): ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Count</th>
-                                    <th>Total Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach (array_slice($expenseStats['by_category'], 0, 5) as $category): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($category['category']); ?></td>
-                                    <td><?php echo $category['count']; ?></td>
-                                    <td><?php echo format_currency($category['total']); ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <p class="text-muted text-center">No expense data</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -420,7 +383,7 @@ function initializeCharts() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom'
@@ -482,7 +445,7 @@ function initializeCharts() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom'
@@ -563,7 +526,7 @@ function updateCharts(data) {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'bottom'

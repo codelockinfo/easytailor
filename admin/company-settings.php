@@ -114,6 +114,7 @@ $companyStats = $companyModel->getCompanyStats($companyId);
 
 // Check if there's a pending email change request
 $hasPendingEmailRequest = $emailChangeRequestModel->hasPendingRequest($companyId);
+$recentRejectedRequest = $emailChangeRequestModel->hasRecentRejectedRequest($companyId, 7);
 $currentEmail = $company['business_email'] ?? '';
 $emailFieldDisabled = !empty($currentEmail);
 ?>
@@ -272,7 +273,7 @@ $emailFieldDisabled = !empty($currentEmail);
                                             data-bs-toggle="modal" 
                                             data-bs-target="#emailChangeModal"
                                             id="requestEmailChangeBtn"
-                                            <?php echo $hasPendingEmailRequest ? 'disabled' : ''; ?>>
+                                            <?php echo ($hasPendingEmailRequest || $recentRejectedRequest) ? 'disabled' : ''; ?>>
                                         <i class="fas fa-edit me-1"></i>Request Change
                                     </button>
                                 <?php endif; ?>
@@ -282,6 +283,10 @@ $emailFieldDisabled = !empty($currentEmail);
                                 <?php if ($hasPendingEmailRequest): ?>
                                     <div class="alert alert-info mt-2 mb-0 py-2">
                                         <i class="fas fa-info-circle me-2"></i>You have a pending email change request. Please wait for approval.
+                                    </div>
+                                <?php elseif ($recentRejectedRequest): ?>
+                                    <div class="alert alert-danger mt-2 mb-0 py-2">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Your email change request was rejected. You can submit a new request after 7 days from the rejection date.
                                     </div>
                                 <?php endif; ?>
                             <?php else: ?>

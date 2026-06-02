@@ -58,6 +58,29 @@ class EmailChangeRequest extends BaseModel {
     }
 
     /**
+     * Check if there is a recently rejected request within the last X days
+     */
+    public function hasRecentRejectedRequest($company_id, $days = 7) {
+        try {
+            $query = "SELECT id, reviewed_at FROM " . $this->table . " 
+                      WHERE company_id = :company_id AND status = 'rejected' 
+                      AND reviewed_at >= DATE_SUB(NOW(), INTERVAL :days DAY)
+                      ORDER BY reviewed_at DESC LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':company_id', $company_id, PDO::PARAM_INT);
+            $stmt->bindParam(':days', $days, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            if ($e->getCode() === '42S02') {
+                return false;
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * Approve email change request
      */
     public function approveRequest($id, $reviewed_by, $review_notes = null) {

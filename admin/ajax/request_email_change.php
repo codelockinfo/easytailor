@@ -133,6 +133,16 @@ if ($emailChangeRequestModel->hasPendingRequest($companyId)) {
     exit;
 }
 
+// Check if there's a recently rejected request (within 7 days)
+$recentRejection = $emailChangeRequestModel->hasRecentRejectedRequest($companyId, 7);
+if ($recentRejection) {
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Your previous email change request was recently rejected. Please wait 7 days before submitting a new request.'
+    ]);
+    exit;
+}
+
 // Create email change request
 $requestData = [
     'company_id' => $companyId,

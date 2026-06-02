@@ -21,18 +21,25 @@ require_once '../models/Customer.php';
 require_once 'models/Order.php';
 require_once 'models/Invoice.php';
 require_once 'models/User.php';
+require_once '../models/EmailChangeRequest.php';
 
 // Initialize models
 $customerModel = new Customer();
 $orderModel = new Order();
 $invoiceModel = new Invoice();
 $userModel = new User();
+$emailChangeRequestModel = new EmailChangeRequest();
 
 // Get statistics
 $customerStats = $customerModel->getCustomerStats();
 $orderStats = $orderModel->getOrderStats();
 $invoiceStats = $invoiceModel->getInvoiceStats();
 $userStats = $userModel->getUserStats();
+
+// Get email request status for alerts
+$companyId = get_company_id();
+$recentRejectedRequest = $emailChangeRequestModel->hasRecentRejectedRequest($companyId, 7);
+$hasPendingEmailRequest = $emailChangeRequestModel->hasPendingRequest($companyId);
 
 // Get recent orders
 $recentOrders = $orderModel->getOrdersWithDetails([], 5);
@@ -320,6 +327,24 @@ for ($i = 11; $i >= 0; $i--) {
                 </h5>
             </div>
             <div class="card-body">
+                <?php if ($recentRejectedRequest): ?>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Email Request Rejected</strong>
+                        <br>
+                        <small>Your recent email change request was rejected. You can submit a new request after 7 days from the rejection date.</small>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($hasPendingEmailRequest): ?>
+                    <div class="alert alert-info">
+                        <i class="fas fa-envelope-open-text me-2"></i>
+                        <strong>Email Change Pending</strong>
+                        <br>
+                        <small>Your email change request is waiting for Super Admin approval.</small>
+                    </div>
+                <?php endif; ?>
+
                 <?php if (!empty($overdueOrders)): ?>
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -347,7 +372,7 @@ for ($i = 11; $i >= 0; $i--) {
                     </div>
                 <?php endif; ?>
                 
-                <?php if (empty($overdueOrders) && empty($ordersDueToday) && $invoiceStats['due'] == 0): ?>
+                <?php if (empty($overdueOrders) && empty($ordersDueToday) && $invoiceStats['due'] == 0 && !$recentRejectedRequest && !$hasPendingEmailRequest): ?>
                     <div class="text-center py-3">
                         <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
                         <p class="text-muted mb-0">All caught up! No urgent alerts.</p>

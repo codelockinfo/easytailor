@@ -479,8 +479,8 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                 <input type="date" class="form-control" id="endDateFilter">
             </div>
             <div class="col-auto">
-                <button type="button" id="clearFilters" class="btn btn-outline-secondary" title="Clear Filters">
-                    <i class="fas fa-times"></i>
+                <button type="button" id="clearFilters" class="btn btn-outline-danger" title="Clear Filters" >
+                    <i class="fas fa-times me-1"></i> Clear
                 </button>
             </div>
         </div>

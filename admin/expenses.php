@@ -251,8 +251,8 @@ if (empty($categories)) {
                 <input type="date" class="form-control" id="dateToFilter" placeholder="To Date">
             </div>
             <div class="col-md-2">
-                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-times"></i> Clear
+                <button type="button" id="clearFilters" class="btn btn-outline-danger w-100">
+                    <i class="fas fa-times me-1"></i> Clear
                 </button>
             </div>
         </div>

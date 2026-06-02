@@ -160,7 +160,16 @@ $catStats = $categoryModel->getCategoryStats();
         </div>
     </div>
 </div>
-
+<div class="card mb-4">
+    <div class="card-body">
+    <div class="col-12">
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>">
+        </div>
+    </div>
+</div>
+</div>
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -172,14 +181,7 @@ $catStats = $categoryModel->getCategoryStats();
     </div>
     <div class="card-body">
         <!-- Search and Filter -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-            </div>
-        </div>
+
 
         <?php if (!empty($categories)): ?>
             <div class="table-responsive">

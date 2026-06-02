@@ -188,10 +188,10 @@ if ($company['subscription_expiry']) {
                     <div class="pricing-toggle mb-3">
                         <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="monthly-<?php echo $planKey; ?>" <?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? '' : 'checked'; ?>>
-                            <label class="btn btn-outline-primary btn-sm" for="monthly-<?php echo $planKey; ?>">Monthly</label>
+                            <label class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" for="monthly-<?php echo $planKey; ?>">Monthly</label>
                             
                             <input type="radio" class="btn-check" name="pricing-<?php echo $planKey; ?>" id="annual-<?php echo $planKey; ?>" <?php echo ($planKey === $currentPlan && $currentDuration === 'annual') ? 'checked' : ''; ?>>
-                            <label class="btn btn-outline-primary btn-sm" for="annual-<?php echo $planKey; ?>">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
+                            <label class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" for="annual-<?php echo $planKey; ?>">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -363,10 +363,10 @@ if ($company['subscription_expiry']) {
                         <div class="pricing-toggle mb-3">
                             <div class="btn-group" role="group">
                                 <input type="radio" class="btn-check" name="modal-pricing" id="modal-monthly" checked>
-                                <label class="btn btn-outline-primary btn-sm" for="modal-monthly">Monthly</label>
+                                <label class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" for="modal-monthly">Monthly</label>
                                 
                                 <input type="radio" class="btn-check" name="modal-pricing" id="modal-annual">
-                                <label class="btn btn-outline-primary btn-sm" for="modal-annual">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
+                                <label class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" for="modal-annual">Annual <span class="badge bg-success ms-1">10% OFF</span></label>
                             </div>
                         </div>
                         

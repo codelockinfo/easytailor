@@ -261,12 +261,97 @@ if (isset($_SESSION['message'])) {
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            width: calc(100% - 250px);
         }
         .content-scroll {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             padding-right: 0.5rem;
+        }
+        
+        /* Mobile and Tablet Responsiveness (Drawer) */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100vh;
+                z-index: 1045;
+                transition: left 0.3s ease-in-out;
+                padding: 1.5rem;
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .main-content {
+                width: 100%;
+                padding: 1.5rem 1rem;
+            }
+            .top-header > .d-flex {
+                align-items: flex-start !important;
+            }
+            .top-header .header-left {
+                margin-bottom: 0;
+            }
+        }
+        @media (max-width: 768px) {
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+            .nav-pills {
+                flex-direction: column;
+            }
+            .company-main-card {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .company-stats {
+                width: 100%;
+                justify-content: space-between;
+                gap: 0.5rem;
+            }
+            .top-header > .d-flex > .d-flex {
+                width: auto;
+                justify-content: flex-end;
+                margin-top: 0;
+            }
+            .header-left {
+                width: auto;
+                align-items: center !important;
+            }
+            #mobileMenuBtn {
+                margin-top: 0;
+                padding: 0.375rem 0.6rem;
+            }
+            #pageTitle {
+                font-size: 1.25rem;
+                margin-bottom: 0 !important;
+            }
+            #pageSubtitle {
+                display: none;
+            }
+            .top-header {
+                padding: 1rem;
+            }
         }
         .stat-card {
             background: white;
@@ -560,17 +645,13 @@ if (isset($_SESSION['message'])) {
         .company-info-list li span {
             word-break: break-word;
         }
+        .company-info-list li:last-child {
+            border-bottom: none;
+        }
         @media (max-width: 992px) {
             .company-row {
                 grid-template-columns: 1fr;
             }
-        }
-            gap: 0.75rem;
-            border-bottom: 1px dashed rgba(148,163,184,0.4);
-            color: #475569;
-        }
-        .company-info-list li:last-child {
-            border-bottom: none;
         }
     </style>
 </head>
@@ -610,10 +691,16 @@ if (isset($_SESSION['message'])) {
             </div>
         </aside>
 
+        <!-- Mobile Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <main class="main-content">
         <div class="top-header card mb-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div class="header-left">
+                <div class="header-left d-flex align-items-center">
+                    <button class="btn btn-outline-secondary d-lg-none me-3" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <div>
                         <h2 class="mb-1" id="pageTitle"><?php 
                             echo $current_section === 'company' ? 'Companies' : 
@@ -661,72 +748,110 @@ if (isset($_SESSION['message'])) {
 
         <section id="section-requests" class="content-section" style="display: <?php echo $current_section === 'requests' ? 'block' : 'none'; ?>;">
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card text-center">
-                    <div class="stat-number"><?php echo $stats['total']; ?></div>
-                    <div class="stat-label">Total Requests</div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Total Requests</div>
+                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['total']; ?></div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center" style="border-top: 3px solid #ffc107;">
-                    <div class="stat-number text-warning"><?php echo $stats['pending']; ?></div>
-                    <div class="stat-label">Pending</div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; border: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Pending</div>
+                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['pending']; ?></div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center" style="border-top: 3px solid #28a745;">
-                    <div class="stat-number text-success"><?php echo $stats['approved']; ?></div>
-                    <div class="stat-label">Approved</div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; border: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Approved</div>
+                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['approved']; ?></div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center" style="border-top: 3px solid #dc3545;">
-                    <div class="stat-number text-danger"><?php echo $stats['rejected']; ?></div>
-                    <div class="stat-label">Rejected</div>
-                </div>
-            </div>
-        </div>
-        <div class="card mb-4 sticky-controls">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="btn-group" role="group">
-                            <a href="?status=pending" class="btn btn-<?php echo $status_filter === 'pending' ? 'warning' : 'outline-warning'; ?>">
-                                <i class="fas fa-clock me-2"></i>Pending (<?php echo $stats['pending']; ?>)
-                            </a>
-                            <a href="?status=approved" class="btn btn-<?php echo $status_filter === 'approved' ? 'success' : 'outline-success'; ?>">
-                                <i class="fas fa-check me-2"></i>Approved (<?php echo $stats['approved']; ?>)
-                            </a>
-                            <a href="?status=rejected" class="btn btn-<?php echo $status_filter === 'rejected' ? 'danger' : 'outline-danger'; ?>">
-                                <i class="fas fa-times me-2"></i>Rejected (<?php echo $stats['rejected']; ?>)
-                            </a>
-                            <a href="?status=all" class="btn btn-<?php echo $status_filter === 'all' ? 'primary' : 'outline-primary'; ?>">
-                                <i class="fas fa-list me-2"></i>All (<?php echo $stats['total']; ?>)
-                            </a>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); color: white; border: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Rejected</div>
+                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['rejected']; ?></div>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            <i class="fas fa-times-circle"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>
-                    Email Change Requests 
+        <div class="card mb-4 border-0 shadow-sm rounded-4" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
+            <div class="card-body p-2">
+                <ul class="nav nav-pills flex-column flex-md-row nav-fill gap-2 p-1 bg-light rounded-4" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a href="?status=pending" class="nav-link rounded-pill <?php echo $status_filter === 'pending' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'pending' ? 'background: linear-gradient(135deg, #f59e0b, #ea580c); color: white;' : 'color: #495057;'; ?>">
+                            <i class="fas fa-clock me-2"></i>Pending <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['pending']; ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="?status=approved" class="nav-link rounded-pill <?php echo $status_filter === 'approved' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'approved' ? 'background: linear-gradient(135deg, #84fab0, #8fd3f4);' : 'color: #495057;'; ?>">
+                            <i class="fas fa-check me-2"></i>Approved <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['approved']; ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="?status=rejected" class="nav-link rounded-pill <?php echo $status_filter === 'rejected' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'rejected' ? 'background: linear-gradient(135deg, #ff0844, #ffb199);' : 'color: #495057;'; ?>">
+                            <i class="fas fa-times me-2"></i>Rejected <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['rejected']; ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="?status=all" class="nav-link rounded-pill <?php echo $status_filter === 'all' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'all' ? 'background: linear-gradient(135deg, #667eea, #764ba2);' : 'color: #495057;'; ?>">
+                            <i class="fas fa-list me-2"></i>All <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['total']; ?></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-white border-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold" style="color: #2b3452;">
+                    Email Change Requests
                     <?php if ($status_filter && $status_filter !== 'all'): ?>
-                        <span class="badge bg-secondary"><?php echo ucfirst($status_filter); ?></span>
+                        <span class="badge rounded-pill align-middle ms-2" style="font-size: 0.75rem; font-weight: 600; <?php 
+                            if ($status_filter === 'pending') echo 'background: #fff8eb; color: #e49122; border: 1px solid #ffeeba;';
+                            if ($status_filter === 'approved') echo 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;';
+                            if ($status_filter === 'rejected') echo 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;';
+                        ?>"><?php echo ucfirst($status_filter); ?></span>
                     <?php endif; ?>
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 <?php if (empty($requests)): ?>
                     <div class="text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No requests found</h5>
-                        <p class="text-muted">
+                        <div class="mb-4 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; background: #f8f9fa; border-radius: 50%; color: #cbd5e1;">
+                            <i class="fas fa-inbox fa-3x" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        </div>
+                        <h4 class="fw-bold" style="color: #475569;">No requests found</h4>
+                        <p class="text-muted mx-auto mb-5" style="max-width: 300px;">
                             <?php if ($status_filter && $status_filter !== 'all'): ?>
-                                No <?php echo $status_filter; ?> requests at the moment.
+                                You don't have any <?php echo $status_filter; ?> requests at the moment. Check back later.
                             <?php else: ?>
                                 No email change requests have been submitted yet.
                             <?php endif; ?>
@@ -734,65 +859,88 @@ if (isset($_SESSION['message'])) {
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr style="background: #667eea; color: white;">
-                                    <th>Company Name</th>
-                                    <th>Owner</th>
-                                    <th>Old Email</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
+                            <thead class="bg-light text-muted" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Company</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Owner</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Email Details</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Status</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($requests as $request): ?>
-                                    <tr>
-                                        <td>
-                                            <i class="fas fa-building me-2"></i>
-                                            <strong><?php echo htmlspecialchars($request['company_name'] ?? 'N/A'); ?></strong>
+                                    <tr style="transition: all 0.2s; border-bottom: 1px solid #f8f9fa;">
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="d-flex align-items-center justify-content-center rounded-circle me-3 text-white fw-bold shadow-sm" style="width: 42px; height: 42px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                                                    <?php echo strtoupper(substr($request['company_name'] ?? 'C', 0, 1)); ?>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold" style="color: #334155;"><?php echo htmlspecialchars($request['company_name'] ?? 'N/A'); ?></div>
+                                                    <div class="text-muted small">ID: #<?php echo $request['company_id'] ?? 'N/A'; ?></div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td><?php echo htmlspecialchars($request['owner_name'] ?? 'N/A'); ?></td>
-                                        <td>
-                                            <a href="mailto:<?php echo htmlspecialchars($request['current_email']); ?>">
-                                                <?php echo htmlspecialchars($request['current_email']); ?>
-                                            </a>
+                                        <td class="px-4 py-3">
+                                            <div style="color: #475569; font-weight: 500;"><?php echo htmlspecialchars($request['owner_name'] ?? 'N/A'); ?></div>
                                         </td>
-                                        <td>
-                                            <span class="badge bg-<?php 
-                                                $statusClass = 'secondary';
-                                                if ($request['status'] === 'pending') {
-                                                    $statusClass = 'warning';
-                                                } elseif ($request['status'] === 'approved') {
-                                                    $statusClass = 'success';
-                                                } elseif ($request['status'] === 'rejected') {
-                                                    $statusClass = 'danger';
-                                                }
-                                                echo $statusClass;
-                                            ?>">
-                                                <?php echo strtoupper($request['status']); ?>
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex flex-column gap-1">
+                                                <div class="d-flex align-items-center" style="font-size: 0.85rem;">
+                                                    <span class="text-muted me-2" style="width: 35px; font-weight: 500;">From:</span>
+                                                    <span class="text-secondary text-decoration-line-through"><?php echo htmlspecialchars($request['current_email']); ?></span>
+                                                </div>
+                                                <div class="d-flex align-items-center" style="font-size: 0.85rem;">
+                                                    <span class="text-muted me-2" style="width: 35px; font-weight: 500;">To:</span>
+                                                    <span class="fw-bold" style="color: #4f46e5;"><?php echo htmlspecialchars($request['new_email']); ?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge rounded-pill px-3 py-2 fw-semibold <?php 
+                                                if ($request['status'] === 'pending') echo 'bg-warning bg-opacity-10 border border-warning border-opacity-25';
+                                                elseif ($request['status'] === 'approved') echo 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
+                                                elseif ($request['status'] === 'rejected') echo 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
+                                                else echo 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25';
+                                            ?> " <?php if ($request['status'] === 'pending') echo 'style="color: #b45309;"'; ?>>
+                                                <i class="fas fa-circle me-1" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                                <?php echo ucfirst($request['status']); ?>
                                             </span>
                                         </td>
-                                        <td>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-info" 
-                                                    onclick="viewEmailRequestDetails(<?php echo $request['id']; ?>)"
-                                                    title="View Details">
-                                                <i class="fas fa-eye me-1"></i>View
-                                            </button>
-                                            <?php if ($request['status'] === 'pending'): ?>
+                                        <td class="px-4 py-3 text-end">
+                                            <div class="d-flex justify-content-end gap-2">
                                                 <button type="button" 
-                                                        class="btn btn-sm btn-success" 
-                                                        onclick="openApproveModal(<?php echo $request['id']; ?>)"
-                                                        title="Approve">
-                                                    <i class="fas fa-check me-1"></i>Approve
+                                                        class="btn btn-sm btn-light rounded-circle shadow-sm" 
+                                                        style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s;"
+                                                        onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='#eff6ff';"
+                                                        onmouseout="this.style.color='#64748b'; this.style.backgroundColor='#f8f9fa';"
+                                                        onclick="viewEmailRequestDetails(<?php echo $request['id']; ?>)"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-danger" 
-                                                        onclick="rejectRequest(<?php echo $request['id']; ?>)"
-                                                        title="Reject">
-                                                    <i class="fas fa-times me-1"></i>Reject
-                                                </button>
-                                            <?php endif; ?>
+                                                <?php if ($request['status'] === 'pending'): ?>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-light rounded-circle shadow-sm"
+                                                            style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; color: #10b981; transition: all 0.2s;"
+                                                            onmouseover="this.style.backgroundColor='#ecfdf5';"
+                                                            onmouseout="this.style.backgroundColor='#f8f9fa';"
+                                                            onclick="openApproveModal(<?php echo $request['id']; ?>)"
+                                                            title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-light rounded-circle shadow-sm"
+                                                            style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; color: #ef4444; transition: all 0.2s;"
+                                                            onmouseover="this.style.backgroundColor='#fef2f2';"
+                                                            onmouseout="this.style.backgroundColor='#f8f9fa';"
+                                                            onclick="rejectRequest(<?php echo $request['id']; ?>)"
+                                                            title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -1319,11 +1467,11 @@ if (isset($_SESSION['message'])) {
             const modalTitle = document.getElementById('viewEmailRequestModalLabel');
             const modalBody = document.getElementById('viewEmailRequestModalContent');
             const modalFooter = document.getElementById('viewEmailRequestModalFooter');
-            const viewModal = new bootstrap.Modal(document.getElementById('viewEmailRequestModal'));
+            const viewModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('viewEmailRequestModal'));
 
             modalTitle.innerHTML = `<i class="fas fa-envelope me-2"></i>Email Request Details`;
             modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Loading request details...</p></div>`;
-            modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>';
+            modalFooter.style.display = 'none';
             viewModal.show();
 
             fetch(`ajax/get_email_request_details.php?request_id=${requestId}`)
@@ -1331,46 +1479,30 @@ if (isset($_SESSION['message'])) {
                 .then(data => {
                     if (data.success) {
                         modalBody.innerHTML = renderEmailRequestDetails(data.request);
-                        // Update footer with action buttons if pending
-                        if (data.request.status === 'pending') {
-                            modalFooter.innerHTML = `
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-1"></i>Close
-                                </button>
-                                <button type="button" class="btn btn-success" onclick="approveFromViewModal(${data.request.id})">
-                                    <i class="fas fa-check me-1"></i>Approve
-                                </button>
-                                <button type="button" class="btn btn-danger" onclick="rejectFromViewModal(${data.request.id})">
-                                    <i class="fas fa-times me-1"></i>Reject
-                                </button>
-                            `;
-                        } else {
-                            modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>';
-                        }
                     } else {
                         modalBody.innerHTML = `<div class="alert alert-danger">${data.message || 'Failed to load request details'}</div>`;
-                        modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading request details. Please try again.</div>';
-                    modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>';
                 });
         }
 
         function approveFromViewModal(requestId) {
-            bootstrap.Modal.getInstance(document.getElementById('viewEmailRequestModal')).hide();
+            const viewModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('viewEmailRequestModal'));
+            viewModal.hide();
             setTimeout(() => {
                 openApproveModal(requestId);
-            }, 300);
+            }, 400);
         }
 
         function rejectFromViewModal(requestId) {
-            bootstrap.Modal.getInstance(document.getElementById('viewEmailRequestModal')).hide();
+            const viewModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('viewEmailRequestModal'));
+            viewModal.hide();
             setTimeout(() => {
                 rejectRequest(requestId);
-            }, 300);
+            }, 400);
         }
 
         function renderEmailRequestDetails(request) {
@@ -2564,6 +2696,35 @@ if (isset($_SESSION['message'])) {
             
             return `${day} ${month} ${year} at ${displayHours}:${displayMinutes} ${ampm}`;
         }
+
+        // Mobile Sidebar Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            function toggleSidebar() {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+            
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', toggleSidebar);
+            }
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Close sidebar when clicking a nav link on mobile
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 992) {
+                        sidebar.classList.remove('show');
+                        overlay.classList.remove('show');
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>

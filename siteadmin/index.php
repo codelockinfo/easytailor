@@ -804,7 +804,11 @@ if (isset($_SESSION['message'])) {
 
         <div class="card mb-4 border-0 shadow-sm rounded-4" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
             <div class="card-body p-2">
-                <ul class="nav nav-pills flex-column flex-md-row nav-fill gap-2 p-1 bg-light rounded-4" role="tablist">
+                <ul class="nav nav-pills flex-nowrap nav-fill gap-2 p-1 bg-light rounded-4 mobile-scrollable-tabs" role="tablist" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+                    <style>
+                        .mobile-scrollable-tabs::-webkit-scrollbar { display: none; }
+                        .mobile-scrollable-tabs .nav-link { white-space: nowrap; }
+                    </style>
                     <li class="nav-item" role="presentation">
                         <a href="?status=pending" class="nav-link rounded-pill <?php echo $status_filter === 'pending' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'pending' ? 'background: linear-gradient(135deg, #f59e0b, #ea580c); color: white;' : 'color: #495057;'; ?>">
                             <i class="fas fa-clock me-2"></i>Pending <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['pending']; ?></span>
@@ -1055,73 +1059,61 @@ if (isset($_SESSION['message'])) {
         <?php 
         $testimonial_status_filter = $_GET['status'] ?? 'pending';
         ?>
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card text-center">
-                    <div class="stat-number"><?php echo $testimonialStats['total']; ?></div>
-                    <div class="stat-label">Total Testimonials</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center" style="border-top: 3px solid #ffc107;">
-                    <div class="stat-number text-warning"><?php echo $testimonialStats['pending']; ?></div>
-                    <div class="stat-label">Pending</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center" style="border-top: 3px solid #28a745;">
-                    <div class="stat-number text-success"><?php echo $testimonialStats['approved']; ?></div>
-                    <div class="stat-label">Approved</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center" style="border-top: 3px solid #dc3545;">
-                    <div class="stat-number text-danger"><?php echo $testimonialStats['rejected']; ?></div>
-                    <div class="stat-label">Rejected</div>
-                </div>
-            </div>
-        </div>
-        <div class="card mb-4 sticky-controls">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="btn-group" role="group">
-                            <a href="?section=testimonials&status=pending" class="btn btn-<?php echo $testimonial_status_filter === 'pending' ? 'warning' : 'outline-warning'; ?>">
-                                <i class="fas fa-clock me-2"></i>Pending (<?php echo $testimonialStats['pending']; ?>)
-                            </a>
-                            <a href="?section=testimonials&status=approved" class="btn btn-<?php echo $testimonial_status_filter === 'approved' ? 'success' : 'outline-success'; ?>">
-                                <i class="fas fa-check me-2"></i>Approved (<?php echo $testimonialStats['approved']; ?>)
-                            </a>
-                            <a href="?section=testimonials&status=rejected" class="btn btn-<?php echo $testimonial_status_filter === 'rejected' ? 'danger' : 'outline-danger'; ?>">
-                                <i class="fas fa-times me-2"></i>Rejected (<?php echo $testimonialStats['rejected']; ?>)
-                            </a>
-                            <a href="?section=testimonials&status=all" class="btn btn-<?php echo $testimonial_status_filter === 'all' ? 'primary' : 'outline-primary'; ?>">
-                                <i class="fas fa-list me-2"></i>All (<?php echo $testimonialStats['total']; ?>)
-                            </a>
-                        </div>
-                    </div>
-                </div>
+        
+        <div class="card mb-4 border-0 shadow-sm rounded-4" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
+            <div class="card-body p-2">
+                <ul class="nav nav-pills flex-nowrap nav-fill gap-2 p-1 bg-light rounded-4 mobile-scrollable-tabs" role="tablist" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+                    <style>
+                        .mobile-scrollable-tabs::-webkit-scrollbar { display: none; }
+                        .mobile-scrollable-tabs .nav-link { white-space: nowrap; }
+                    </style>
+                    <li class="nav-item" role="presentation">
+                        <a href="?section=testimonials&status=pending" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'pending' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'pending' ? 'background: linear-gradient(135deg, #f59e0b, #ea580c); color: white;' : 'color: #495057;'; ?>">
+                            <i class="fas fa-clock me-2"></i>Pending <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['pending']; ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="?section=testimonials&status=approved" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'approved' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'approved' ? 'background: linear-gradient(135deg, #84fab0, #8fd3f4); color: #1e293b;' : 'color: #495057;'; ?>">
+                            <i class="fas fa-check me-2"></i>Approved <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['approved']; ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="?section=testimonials&status=rejected" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'rejected' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'rejected' ? 'background: linear-gradient(135deg, #ff0844, #ffb199); color: white;' : 'color: #495057;'; ?>">
+                            <i class="fas fa-times me-2"></i>Rejected <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['rejected']; ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="?section=testimonials&status=all" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'all' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'all' ? 'background: linear-gradient(135deg, #667eea, #764ba2); color: white;' : 'color: #495057;'; ?>">
+                            <i class="fas fa-list me-2"></i>All <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['total']; ?></span>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-star me-2"></i>
-                    Testimonials 
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-white border-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold" style="color: #2b3452;">
+                    Customer Testimonials
                     <?php if ($testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
-                        <span class="badge bg-secondary"><?php echo ucfirst($testimonial_status_filter); ?></span>
+                        <span class="badge rounded-pill align-middle ms-2" style="font-size: 0.75rem; font-weight: 600; <?php 
+                            if ($testimonial_status_filter === 'pending') echo 'background: #fff8eb; color: #e49122; border: 1px solid #ffeeba;';
+                            if ($testimonial_status_filter === 'approved') echo 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;';
+                            if ($testimonial_status_filter === 'rejected') echo 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;';
+                        ?>"><?php echo ucfirst($testimonial_status_filter); ?></span>
                     <?php endif; ?>
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 <?php if (empty($testimonials)): ?>
                     <div class="text-center py-5">
-                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No testimonials found</h5>
-                        <p class="text-muted">
+                        <div class="mb-4 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; background: #f8f9fa; border-radius: 50%; color: #cbd5e1;">
+                            <i class="fas fa-star fa-3x" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        </div>
+                        <h4 class="fw-bold" style="color: #475569;">No testimonials found</h4>
+                        <p class="text-muted mx-auto mb-5" style="max-width: 300px;">
                             <?php if ($testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
-                                No <?php echo $testimonial_status_filter; ?> testimonials at the moment.
+                                You don't have any <?php echo $testimonial_status_filter; ?> testimonials at the moment.
                             <?php else: ?>
                                 No testimonials have been submitted yet.
                             <?php endif; ?>
@@ -1129,75 +1121,67 @@ if (isset($_SESSION['message'])) {
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr style="background: #667eea; color: white;">
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Shop</th>
-                                    <th>Actions</th>
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
+                            <thead class="bg-light text-muted" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                                <tr>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase" style="width: 60px;">ID</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Name & Email</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Shop Details</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Status</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($testimonials as $testimonial): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($testimonial['id']); ?></td>
-                                        <td>
-                                            <strong><?php echo htmlspecialchars($testimonial['user_name'] ?? 'N/A'); ?></strong>
-                                        </td>
-                                        <td>
-                                            <a href="mailto:<?php echo htmlspecialchars($testimonial['email']); ?>">
+                                    <tr style="transition: all 0.2s; border-bottom: 1px solid #f8f9fa;">
+                                        <td class="px-4 py-3 text-muted">#<?php echo htmlspecialchars($testimonial['id']); ?></td>
+                                        <td class="px-4 py-3">
+                                            <div class="fw-bold" style="color: #334155;"><?php echo htmlspecialchars($testimonial['user_name'] ?? 'N/A'); ?></div>
+                                            <a href="mailto:<?php echo htmlspecialchars($testimonial['email']); ?>" class="text-decoration-none small" style="color: #3b82f6;">
                                                 <?php echo htmlspecialchars($testimonial['email']); ?>
                                             </a>
                                         </td>
-                                        <td>
-                                            <?php echo htmlspecialchars($testimonial['company_name'] ?? 'N/A'); ?>
+                                        <td class="px-4 py-3">
+                                            <div style="color: #475569; font-weight: 500;"><?php echo htmlspecialchars($testimonial['company_name'] ?? 'N/A'); ?></div>
                                             <?php if (!empty($testimonial['owner_name'])): ?>
-                                                <br><small class="text-muted"><?php echo htmlspecialchars($testimonial['owner_name']); ?></small>
+                                                <div class="small text-muted"><?php echo htmlspecialchars($testimonial['owner_name']); ?></div>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-info" 
-                                                    onclick="viewTestimonialDetails(<?php echo $testimonial['id']; ?>)"
-                                                    title="View Details">
-                                                <i class="fas fa-eye me-1"></i>View
-                                            </button>
+                                        <td class="px-4 py-3">
                                             <?php 
-                                            // Show status badge in actions column
-                                            // Show all statuses in "All" view, or specific status in filtered views
                                             $showStatusBadge = false;
                                             if ($testimonial_status_filter === 'all' || $testimonial_status_filter === '') {
-                                                // In "All" view, show all status badges
                                                 $showStatusBadge = true;
                                             } elseif ($testimonial_status_filter === $testimonial['status']) {
-                                                // In filtered views, show badge if it matches the filter
                                                 $showStatusBadge = true;
                                             }
                                             
                                             if ($showStatusBadge): 
-                                                $statusBadgeClass = '';
-                                                $statusIcon = '';
-                                                if ($testimonial['status'] === 'approved') {
-                                                    $statusBadgeClass = 'btn-success';
-                                                    $statusIcon = 'fa-check';
-                                                } elseif ($testimonial['status'] === 'rejected') {
-                                                    $statusBadgeClass = 'btn-danger';
-                                                    $statusIcon = 'fa-times';
-                                                } elseif ($testimonial['status'] === 'pending') {
-                                                    $statusBadgeClass = 'btn-warning';
-                                                    $statusIcon = 'fa-clock';
-                                                }
-                                                if ($statusBadgeClass):
                                             ?>
-                                                <span class="btn btn-sm <?php echo $statusBadgeClass; ?> ms-1" style="pointer-events: none; cursor: default;">
-                                                    <i class="fas <?php echo $statusIcon; ?> me-1"></i><?php echo strtoupper($testimonial['status']); ?>
-                                                </span>
-                                            <?php 
-                                                endif;
-                                            endif; 
-                                            ?>
+                                            <span class="badge rounded-pill px-3 py-2 fw-semibold <?php 
+                                                if ($testimonial['status'] === 'pending') echo 'bg-warning bg-opacity-10 border border-warning border-opacity-25';
+                                                elseif ($testimonial['status'] === 'approved') echo 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
+                                                elseif ($testimonial['status'] === 'rejected') echo 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
+                                                else echo 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25';
+                                            ?> " <?php if ($testimonial['status'] === 'pending') echo 'style="color: #b45309;"'; ?>>
+                                                <i class="fas <?php 
+                                                    echo $testimonial['status'] === 'approved' ? 'fa-check-circle' : 
+                                                        ($testimonial['status'] === 'rejected' ? 'fa-times-circle' : 'fa-clock'); 
+                                                ?> me-1" style="font-size: 0.8rem; vertical-align: middle;"></i>
+                                                <?php echo ucfirst($testimonial['status']); ?>
+                                            </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-4 py-3 text-end">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-light rounded-circle shadow-sm" 
+                                                    style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s;"
+                                                    onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='#eff6ff';"
+                                                    onmouseout="this.style.color='#64748b'; this.style.backgroundColor='#f8f9fa';"
+                                                    onclick="viewTestimonialDetails(<?php echo $testimonial['id']; ?>)"
+                                                    title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

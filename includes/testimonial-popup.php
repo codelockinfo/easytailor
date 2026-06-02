@@ -1058,17 +1058,10 @@ try {
                     const testimonialForm = document.getElementById('testimonialForm');
                     let starValue = 5; // default
                     
-                    // Get all star radio buttons and find which one is checked
-                    // Note: Stars are displayed in reverse order (row-reverse), so we need to reverse the value
-                    // Visual order: 5,4,3,2,1 (left to right) but DOM values are 1,2,3,4,5
-                    // So if star5 (value=5) is checked, user selected 1 star visually
-                    // If star1 (value=1) is checked, user selected 5 stars visually
                     const starInputs = testimonialForm.querySelectorAll('input[name="star"]');
                     for (let i = 0; i < starInputs.length; i++) {
                         if (starInputs[i].checked) {
-                            const checkedValue = parseInt(starInputs[i].value);
-                            // Reverse the value: 1->5, 2->4, 3->3, 4->2, 5->1
-                            starValue = 6 - checkedValue;
+                            starValue = parseInt(starInputs[i].value);
                             break;
                         }
                     }

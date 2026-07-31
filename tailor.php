@@ -63,8 +63,6 @@ $seoOptions = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
-    
-    <!-- Google Analytics 4 (GA4) -->
     <?php
     require_once 'helpers/GA4Helper.php';
     echo GA4Helper::generateBaseCode();
@@ -72,14 +70,10 @@ $seoOptions = [
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    <!-- Custom CSS -->
     <link href="assets/css/style12.css" rel="stylesheet">
     <style>
         body {
@@ -223,7 +217,7 @@ $seoOptions = [
         <div class="container">
             <div class="row align-items-center g-4">
                 <div class="col-md-4 text-center">
-                    <img src="<?php echo escape($company['logo'] ?: 'uploads/logos/default-shop.jpg'); ?>" alt="<?php echo escape($company['company_name']); ?>" class="img-fluid rounded shadow" style="max-height:370px; object-fit:cover;">
+                    <img src="<?php echo escape($company['logo'] ? ltrim(str_replace(['../', './'], '', $company['logo']), '/') : 'uploads/logos/default-shop.jpg'); ?>" alt="<?php echo escape($company['company_name']); ?>" class="img-fluid rounded shadow" style="max-height:370px; object-fit:cover;">
                 </div>
                 <div class="col-md-8">
                     <h1 class="display-5 mb-2"><?php echo escape($company['company_name']); ?></h1>
@@ -399,8 +393,6 @@ $seoOptions = [
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
     <?php require_once 'includes/footer.php'; ?>
 
     <script>
@@ -432,8 +424,6 @@ $seoOptions = [
                 messageEl.className = 'small text-danger';
             });
     });
-    
-    // Track page view (wait for gtag to be available)
     <?php
     require_once 'helpers/GA4Helper.php';
     $pageTitle = $companyName . ' - Tailor Profile';
@@ -442,7 +432,7 @@ $seoOptions = [
     ?>
     (function() {
         var attempts = 0;
-        var maxAttempts = 50; // 5 seconds max wait time
+        var maxAttempts = 50;
         
         function firePageView() {
             if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
@@ -460,16 +450,12 @@ $seoOptions = [
                 }
             }
         }
-        
-        // Start trying to fire the page view
         firePageView();
     })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
-    <!-- Go to Top Button -->
 <script src="assets/js/script2.js"></script>
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>

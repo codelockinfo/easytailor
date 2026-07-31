@@ -1,59 +1,33 @@
-<!-- Favicon - Primary ICO format for Google Search -->
+
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Dashboard Page
- * Tailoring Management System
- */
-
-// Set page title before including header
-$page_title = 'Dashboard'; // Will be translated in header
+$page_title = 'Dashboard'; 
 require_once 'includes/header.php';
-
-// Include models
 require_once '../models/Customer.php';
 require_once 'models/Order.php';
 require_once 'models/Invoice.php';
 require_once 'models/User.php';
 require_once '../models/EmailChangeRequest.php';
-
-// Initialize models
 $customerModel = new Customer();
 $orderModel = new Order();
 $invoiceModel = new Invoice();
 $userModel = new User();
 $emailChangeRequestModel = new EmailChangeRequest();
-
-// Get statistics
 $customerStats = $customerModel->getCustomerStats();
 $orderStats = $orderModel->getOrderStats();
 $invoiceStats = $invoiceModel->getInvoiceStats();
 $userStats = $userModel->getUserStats();
-
-// Get email request status for alerts
 $companyId = get_company_id();
 $recentRejectedRequest = $emailChangeRequestModel->hasRecentRejectedRequest($companyId, 7);
 $hasPendingEmailRequest = $emailChangeRequestModel->hasPendingRequest($companyId);
-
-// Get recent orders
 $recentOrders = $orderModel->getOrdersWithDetails([], 5);
-
-// Check if any orders exist for chart
 $totalOrderCount = ($orderStats['pending'] ?? 0) + ($orderStats['in_progress'] ?? 0) + ($orderStats['completed'] ?? 0) + ($orderStats['delivered'] ?? 0) + ($orderStats['cancelled'] ?? 0);
-
-// Get overdue orders
 $overdueOrders = $orderModel->getOverdueOrders();
-
-// Get orders due today
 $ordersDueToday = $orderModel->getOrdersDueToday();
-
-// Get monthly revenue for chart
 $monthlyRevenue = [];
 for ($i = 11; $i >= 0; $i--) {
     $date = date('Y-m', strtotime("-$i months"));
@@ -65,10 +39,75 @@ for ($i = 11; $i >= 0; $i--) {
         'revenue' => $revenue
     ];
 }
+require_once 'models/Company.php';
+$companyModelForProgress = new Company();
+$companyForProgress = $companyModelForProgress->find($companyId);
+
+$completionProgress = 0;
+if ($companyForProgress) {
+    if (!empty($companyForProgress['owner_name'])) $completionProgress += 10;
+    if (!empty($companyForProgress['business_email'])) $completionProgress += 10;
+    if (!empty($companyForProgress['business_phone'])) $completionProgress += 10;
+    if (!empty($companyForProgress['company_name'])) $completionProgress += 15;
+    if (!empty($companyForProgress['business_address'])) $completionProgress += 15;
+    if (!empty($companyForProgress['city'])) $completionProgress += 15;
+    if (!empty($companyForProgress['state'])) $completionProgress += 10;
+    if (!empty($companyForProgress['postal_code'])) $completionProgress += 10;
+    if (!empty($companyForProgress['logo'])) $completionProgress += 10;
+}
 ?>
-
-
-<!-- Statistics Cards -->
+<?php if ($completionProgress < 100): ?>
+<style>
+.hover-translate {
+    transition: all 0.3s ease;
+}
+.hover-translate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+</style>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg text-white" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border-radius: 16px; overflow: hidden; position: relative;">
+            <div style="position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none;"></div>
+            <div style="position: absolute; bottom: -30px; left: 10%; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.05); pointer-events: none;"></div>
+            
+            <div class="card-body p-4 position-relative">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 col-md-7 mb-3 mb-md-0">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-white text-primary me-2 px-3 py-2" style="border-radius: 20px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">ACTION REQUIRED</span>
+                            <h5 class="mb-0 fw-bold" style="font-size: 1.2rem; letter-spacing: 0.3px;">Complete Your Shop Profile</h5>
+                        </div>
+                        <p class="mb-3 opacity-90" style="font-size: 0.9rem; max-width: 650px; line-height: 1.5;">
+                            Please complete your shop details (**Tailor Shop Name, Address, City, State, PIN code, and Business Logo**) to access all features.
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 me-3">
+                                <div class="progress" style="height: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.2);">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" 
+                                         style="width: <?php echo $completionProgress; ?>%; border-radius: 10px; background: linear-gradient(90deg, #10b981 0%, #34d399 100%); box-shadow: 0 0 10px rgba(16,185,129,0.5);" 
+                                         aria-valuenow="<?php echo $completionProgress; ?>" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="fw-bold fs-5 text-white"><?php echo $completionProgress; ?>%</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-5 text-md-end">
+                        <a href="company-settings.php" class="btn btn-light btn-lg px-4 py-3 fw-bold text-primary shadow-sm hover-translate" style="border-radius: 12px; font-size: 0.9rem;">
+                            <i class="fas fa-edit me-2"></i>Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 <div class="row">
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
@@ -130,9 +169,7 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
 </div>
-
 <div class="row">
-    <!-- Revenue Chart -->
     <div class="col-xl-8 col-lg-7 mb-4">
         <div class="card">
             <div class="card-header">
@@ -146,8 +183,6 @@ for ($i = 11; $i >= 0; $i--) {
             </div>
         </div>
     </div>
-    
-    <!-- Quick Actions -->
     <div class="col-xl-4 col-lg-5 mb-4">
         <div class="card h-100">
             <div class="card-header">
@@ -181,7 +216,6 @@ for ($i = 11; $i >= 0; $i--) {
 </div>
 
 <div class="row">
-    <!-- Recent Orders -->
     <div class="col-xl-8 col-lg-7 mb-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -268,10 +302,7 @@ for ($i = 11; $i >= 0; $i--) {
             </div>
         </div>
     </div>
-    
-    <!-- Quick Actions & Alerts -->
     <div class="col-xl-4 col-lg-5 mb-4">
-        <!-- Order Status Breakdown -->
         <?php
             $statusItems = [
                 ['label'=>'Pending',     'key'=>'pending',     'color'=>'#f59e0b', 'count'=>(int)($orderStats['pending'] ?? 0)],
@@ -317,8 +348,6 @@ for ($i = 11; $i >= 0; $i--) {
                 <?php endif; ?>
             </div>
         </div>
-        
-        <!-- Alerts -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -384,7 +413,6 @@ for ($i = 11; $i >= 0; $i--) {
 </div>
 
 <script>
-// Revenue Chart
 const revenueCtx = document.getElementById('revenueChart').getContext('2d');
 const revenueChart = new Chart(revenueCtx, {
     type: 'line',
@@ -429,8 +457,6 @@ const revenueChart = new Chart(revenueCtx, {
         }
     }
 });
-
-// Animate Order Status bars on load
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.osc-bar-fill').forEach(function(bar) {
         var target = bar.getAttribute('data-width');
@@ -440,9 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
 <?php require_once 'includes/footer.php'; ?>
-
 <style>
     .btn-outline-primary:hover {
         color: white;
@@ -453,10 +477,6 @@ document.addEventListener('DOMContentLoaded', function() {
         color: #667eea;
         border: 1px solid #667eea !important;
     }
-
-    /* ════════════════════════════════════════
-       RECENT ORDERS — Empty State
-    ════════════════════════════════════════ */
     .no-orders-empty {
         border-radius: 0 0 12px 12px;
         overflow: hidden;
@@ -623,8 +643,6 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: color 0.2s;
     }
     .sbe-cta:hover { color: #764ba2; }
-
-    /* legacy cleanup */
     .sbe-bar-wrap {
         flex: 1;
         height: 7px;

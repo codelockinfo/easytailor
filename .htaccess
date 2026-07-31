@@ -26,7 +26,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_URI} !^/.*ajax/ [NC]
 RewriteCond %{REQUEST_URI} !^/.*admin/ajax/ [NC]
-RewriteCond %{REQUEST_URI} !\.(jpg|jpeg|png|gif|css|js|ico|svg|woff|woff2|ttf|eot|pdf|zip|sql|log|php|html)$ [NC]
+RewriteCond %{REQUEST_URI} !\.(jpg|jpeg|png|gif|webp|css|js|ico|svg|woff|woff2|ttf|eot|pdf|zip|sql|log|php|html)$ [NC]
 # Check if .php file exists - use REQUEST_FILENAME which preserves full path
 RewriteCond %{REQUEST_FILENAME}.php -f
 # Internal rewrite - add .php extension using REQUEST_URI to preserve full path

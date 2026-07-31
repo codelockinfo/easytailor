@@ -1,24 +1,12 @@
-<!-- Favicon - Primary ICO format for Google Search -->
+
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Company Settings Page
- * Manage business/tailor shop information
- */
-
-// Include config first (before any output)
 require_once '../config/config.php';
-
-// Check if user is logged in
 require_login();
-
-// Only admins can edit company settings
 require_role('admin');
 
 require_once 'models/Company.php';
@@ -28,38 +16,29 @@ $companyModel = new Company();
 $emailChangeRequestModel = new EmailChangeRequest();
 $message = '';
 $messageType = '';
-
-// Get company ID from session
 $companyId = get_company_id();
 
 if (!$companyId) {
     die('No company associated with your account. Please contact support.');
 }
-
-// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
-        
-        // Get existing company data to preserve email (email cannot be changed directly)
         $existingCompany = $companyModel->find($companyId);
-        
         $data = [
-            'company_name' => sanitize_input($_POST['company_name']),
-            'owner_name' => sanitize_input($_POST['owner_name']),
+            'company_name' => sanitize_input($_POST['company_name'] ?? ($existingCompany['company_name'] ?? '')),
+            'owner_name' => sanitize_input($_POST['owner_name'] ?? ($existingCompany['owner_name'] ?? '')),
             'business_email' => $existingCompany['business_email'], // Keep existing email - cannot be changed directly
-            'business_phone' => sanitize_input($_POST['business_phone']),
-            'business_address' => sanitize_input($_POST['business_address']),
-            'city' => sanitize_input($_POST['city']),
-            'state' => sanitize_input($_POST['state']),
+            'business_phone' => sanitize_input($_POST['business_phone'] ?? ($existingCompany['business_phone'] ?? '')),
+            'business_address' => sanitize_input($_POST['business_address'] ?? ($existingCompany['business_address'] ?? '')),
+            'city' => sanitize_input($_POST['city'] ?? ($existingCompany['city'] ?? '')),
+            'state' => sanitize_input($_POST['state'] ?? ($existingCompany['state'] ?? '')),
             'country' => 'India',
-            'postal_code' => sanitize_input($_POST['postal_code']),
-            'tax_number' => sanitize_input($_POST['tax_number']),
-            'website' => sanitize_input($_POST['website']),
+            'postal_code' => sanitize_input($_POST['postal_code'] ?? ($existingCompany['postal_code'] ?? '')),
+            'tax_number' => sanitize_input($_POST['tax_number'] ?? ($existingCompany['tax_number'] ?? '')),
+            'website' => sanitize_input($_POST['website'] ?? ($existingCompany['website'] ?? '')),
             'currency' => 'INR',
             'timezone' => 'Asia/Kolkata'
         ];
-        
-        // Handle logo upload
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = '../uploads/logos/';
             $fileName = time() . '_' . basename($_FILES['logo']['name']);
@@ -69,7 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['logo'] = $targetPath;
             }
         }
-        
         if ($companyModel->update($companyId, $data)) {
             $_SESSION['message'] = 'Company settings updated successfully';
             $_SESSION['messageType'] = 'success';
@@ -88,31 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
-// Get messages from session
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     $messageType = $_SESSION['messageType'] ?? 'info';
     unset($_SESSION['message']);
     unset($_SESSION['messageType']);
 }
-
-// NOW include header (after all redirects are done)
 $page_title = 'Company Settings';
 require_once 'includes/header.php';
-
-// Get company details
 $company = $companyModel->find($companyId);
 
 if (!$company) {
     echo '<div class="alert alert-danger">Company not found</div>';
     exit;
 }
-
-// Get company statistics
 $companyStats = $companyModel->getCompanyStats($companyId);
-
-// Check if there's a pending email change request
 $hasPendingEmailRequest = $emailChangeRequestModel->hasPendingRequest($companyId);
 $recentRejectedRequest = $emailChangeRequestModel->hasRecentRejectedRequest($companyId, 7);
 $currentEmail = $company['business_email'] ?? '';
@@ -127,8 +95,6 @@ $emailFieldDisabled = !empty($currentEmail);
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<!-- Company Statistics -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="card bg-primary text-white">
@@ -166,7 +132,6 @@ $emailFieldDisabled = !empty($currentEmail);
 
 <div class="row">
     <div class="col-lg-4 mb-4">
-        <!-- Company Logo -->
         <div class="card">
             <div class="card-header bg-light">
                 <h5 class="card-title mb-0">
@@ -197,8 +162,6 @@ $emailFieldDisabled = !empty($currentEmail);
                 </form>
             </div>
         </div>
-        
-        <!-- Subscription Info -->
         <div class="card mt-4">
             <div class="card-header bg-light">
                 <h5 class="card-title mb-0">
@@ -224,7 +187,6 @@ $emailFieldDisabled = !empty($currentEmail);
     </div>
     
     <div class="col-lg-8">
-        <!-- Company Information Form -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -303,7 +265,7 @@ $emailFieldDisabled = !empty($currentEmail);
                                        name="business_phone" 
                                        value="<?php 
                                            $phone = $company['business_phone'] ?? '';
-                                           // Remove +91 prefix if present for display
+                                           
                                            if (strpos($phone, '+91') === 0) {
                                                $phone = substr($phone, 3);
                                            }
@@ -399,8 +361,6 @@ $emailFieldDisabled = !empty($currentEmail);
         </div>
     </div>
 </div>
-
-<!-- Email Change Request Modal -->
 <div class="modal fade" id="emailChangeModal" tabindex="-1" aria-labelledby="emailChangeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -466,12 +426,10 @@ $emailFieldDisabled = !empty($currentEmail);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Setup phone validation
     setupPhoneValidation('business_phone', '+91');
-    
-    // Update phone value with prefix before form submission
-    const companyForm = document.querySelector('form[method="POST"]');
-    if (companyForm && document.getElementById('business_phone')) {
+    const phoneInputEl = document.getElementById('business_phone');
+    const companyForm = phoneInputEl ? phoneInputEl.closest('form') : null;
+    if (companyForm && phoneInputEl) {
         companyForm.addEventListener('submit', function(e) {
             const phoneInput = document.getElementById('business_phone');
             const phoneValue = getPhoneWithPrefix('business_phone', '+91');
@@ -482,8 +440,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter a valid 10-digit phone number.');
                 return false;
             }
-            
-            // Set the phone value with prefix for submission
             phoneInput.value = phoneValue;
         });
     }
@@ -507,11 +463,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Track request email change event if provided in response (wait for gtag)
                     if (data.ga4_event) {
                         (function() {
                             var attempts = 0;
-                            var maxAttempts = 50; // 5 seconds max wait time
+                            var maxAttempts = 50;
                             var eventCode = data.ga4_event;
                             
                             function fireEmailChangeEvent() {
@@ -535,8 +490,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             fireEmailChangeEvent();
                         })();
                     }
-                    
-                    // Show success message
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert alert-success alert-dismissible fade show';
                     alertDiv.innerHTML = `
@@ -544,20 +497,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     `;
                     document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('.card-body').firstChild);
-                    
-                    // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('emailChangeModal'));
                     modal.hide();
-                    
-                    // Reset form
                     emailChangeForm.reset();
-                    
-                    // Reload page after 2 seconds to show pending request status
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    // Show error message
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert alert-danger alert-dismissible fade show';
                     alertDiv.innerHTML = `
@@ -582,4 +528,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
-

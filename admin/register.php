@@ -1,36 +1,22 @@
 <?php
-/**
- * Registration Page - Multi-Tenant
- * Tailoring Management System
- * Allows tailor shop owners to register their business
- */
-
 require_once '../config/config.php';
 require_once '../helpers/MailService.php';
-
-// Redirect if already logged in
 if (is_logged_in()) {
     smart_redirect('dashboard.php');
 }
 
 $error_message = '';
 $success_message = '';
-
-// Handle registration form submission BEFORE any output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
-        
-        // Validate input
-        $companyName = sanitize_input($_POST['company_name'] ?? '');
         $ownerName = sanitize_input($_POST['owner_name'] ?? '');
         $businessEmail = sanitize_input($_POST['business_email'] ?? '');
         $businessPhone = sanitize_input($_POST['business_phone'] ?? '');
-        $username = sanitize_input($_POST['username'] ?? '');
+        $companyName = $ownerName . "'s Tailor Shop";
+        $username = $businessEmail;
         $password = $_POST['password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
-        
-        // Basic validation
-        if (empty($companyName) || empty($ownerName) || empty($businessEmail) || empty($businessPhone) || empty($username) || empty($password)) {
+        if (empty($ownerName) || empty($businessEmail) || empty($businessPhone) || empty($password)) {
             $_SESSION['reg_error'] = 'All required fields must be filled';
             header('Location: register.php');
             exit;
@@ -53,50 +39,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $companyModel = new Company();
         $userModel = new User();
-        
-        // Validate business email
         if (!filter_var($businessEmail, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['reg_error'] = 'Please enter a valid business email address';
+            $_SESSION['reg_error'] = 'Please enter a valid email address';
             $_SESSION['reg_form_data'] = $_POST;
             header('Location: register.php');
             exit;
         }
-        
-        // Check if business email already exists
         if ($companyModel->emailExists($businessEmail)) {
-            $_SESSION['reg_error'] = 'This business email is already registered. Please use a different email or <a href="login.php">login here</a>.';
+            $_SESSION['reg_error'] = 'This email is already registered. Please use a different email or <a href="login.php">login here</a>.';
             $_SESSION['reg_form_data'] = $_POST;
             header('Location: register.php');
             exit;
         }
-        
-        // Check if username already exists
         if ($userModel->usernameExists($username)) {
-            $_SESSION['reg_error'] = 'This username is already taken. Please choose a different username';
+            $_SESSION['reg_error'] = 'This email is already registered as a user. Please use a different email or <a href="login.php">login here</a>.';
             $_SESSION['reg_form_data'] = $_POST;
             header('Location: register.php');
             exit;
         }
         
         try {
-            // Start transaction
             $database = new Database();
             $db = $database->getConnection();
             $db->beginTransaction();
-            
-            // Check if user came from promotional offer
             $cameFromOffer = false;
             $subscriptionPlan = 'free';
             $subscriptionExpiry = date('Y-m-d', strtotime('+30 days'));
             
             if (isset($_COOKIE['promo_offer_source']) && $_COOKIE['promo_offer_source'] === 'promo_popup') {
                 $cameFromOffer = true;
-                // Apply Professional plan (premium) for 1 year free
                 $subscriptionPlan = 'premium';
                 $subscriptionExpiry = date('Y-m-d', strtotime('+1 year'));
             }
-            
-            // Create company
             $companyData = [
                 'company_name' => $companyName,
                 'owner_name' => $ownerName,
@@ -114,8 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'subscription_plan' => $subscriptionPlan,
                 'subscription_expiry' => $subscriptionExpiry
             ];
-            
-            // Handle logo upload
             if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = '../uploads/logos/';
                 $fileName = time() . '_' . basename($_FILES['logo']['name']);
@@ -360,42 +332,60 @@ $seoOptions = [
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0;
         }
         .register-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
         }
         .register-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 20px 20px 0 0;
-            padding: 2rem;
+            border-radius: 16px 16px 0 0;
+            padding: 1rem 1.5rem;
             text-align: center;
         }
+        .register-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 2px !important;
+        }
+        .register-header p {
+            font-size: 0.85rem;
+        }
         .form-control, .form-select {
-            border-radius: 10px;
+            border-radius: 8px;
             border: 2px solid #e9ecef;
-            padding: 12px 15px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
             transition: all 0.3s ease;
         }
         .form-control:focus, .form-select:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
+        .form-label {
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
         .btn-register {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 8px;
+            padding: 10px;
             font-weight: 600;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
         }
         .btn-register:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         .section-title {
@@ -404,19 +394,21 @@ $seoOptions = [
             padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
         }
+        .alert-info-compact {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
         @media (max-width: 768px) {
             .register-header h2 {
-                font-size: 22px;
+                font-size: 1.25rem;
             }
             .register-header p {
-                font-size: 14px;
-            }
-            .section-title {
-                font-size: 18px;
+                font-size: 0.8rem;
             }
             .btn-register {
-                font-size: 16px;
-                padding: 10px;
+                font-size: 0.9rem;
+                padding: 8px;
             }
         }
     </style>
@@ -433,15 +425,15 @@ $seoOptions = [
                         $brandLogo = get_logo_path('footer-logo.png');
                         if ($brandLogo):
                         ?>
-                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 80px; max-width: 200px;">
+                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 48px; max-width: 150px;">
                         <?php else: ?>
-                            <i class="fas fa-cut fa-3x mb-3"></i>
+                            <i class="fas fa-cut fa-2x mb-2"></i>
                         <?php endif; ?>
                         </a>
-                        <h2 class="mb-2">Register Your Tailor Shop</h2>
+                        <h2 class="mb-1">Register Your Tailor Shop</h2>
                         <p class="mb-0 opacity-75">Start managing your tailoring business today!</p>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body p-3 py-3">
                         <?php if ($error_message): ?>
                             <div class="alert alert-danger alert-dismissible fade show">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
@@ -461,25 +453,9 @@ $seoOptions = [
                         <form method="POST" enctype="multipart/form-data" id="registerForm">
                             <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                             
-                            <!-- Business Information -->
-                            <h5 class="section-title">
-                                <i class="fas fa-store me-2"></i>Business Information
-                            </h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="company_name" class="form-label">
-                                        Tailor Shop Name *
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="company_name" 
-                                           name="company_name" 
-                                           placeholder="e.g., Royal Tailors"
-                                           value="<?php echo htmlspecialchars($formData['company_name'] ?? ''); ?>"
-                                           required>
-                                </div>
-                                <div class="col-md-6 mb-3">
+                            <!-- Register Form Fields -->
+                            <div class="row g-2">
+                                <div class="col-md-6 mb-2">
                                     <label for="owner_name" class="form-label">
                                         Owner Name *
                                     </label>
@@ -491,12 +467,10 @@ $seoOptions = [
                                            value="<?php echo htmlspecialchars($formData['owner_name'] ?? ''); ?>"
                                            required>
                                 </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
+                                
+                                <div class="col-md-6 mb-2">
                                     <label for="business_email" class="form-label">
-                                        Business Email *
+                                        Email *
                                     </label>
                                     <input type="email" 
                                            class="form-control" 
@@ -506,139 +480,36 @@ $seoOptions = [
                                            value="<?php echo htmlspecialchars($formData['business_email'] ?? ''); ?>"
                                            required>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="business_phone" class="form-label">
-                                        Business Phone *
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">+91</span>
-                                        <input type="tel" 
-                                               class="form-control" 
-                                               id="business_phone" 
-                                               name="business_phone" 
-                                               placeholder="10-digit mobile number"
-                                               pattern="[0-9]{10}"
-                                               maxlength="10"
-                                               value="<?php 
-                                                   $phone = $formData['business_phone'] ?? '';
-                                                   // Remove +91 prefix if present for display
-                                                   if (strpos($phone, '+91') === 0) {
-                                                       $phone = substr($phone, 3);
-                                                   }
-                                                   echo htmlspecialchars($phone); 
-                                               ?>"
-                                               required>
-                                    </div>
-                                    <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
-                                    <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
-                                </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="business_address" class="form-label">
-                                    Business Address
+                            <div class="mb-2">
+                                <label for="business_phone" class="form-label">
+                                    Phone Number *
                                 </label>
-                                <textarea class="form-control" 
-                                          id="business_address" 
-                                          name="business_address" 
-                                          rows="2"
-                                          placeholder="123 Main Street, Suite 100"></textarea>
+                                <div class="input-group">
+                                    <span class="input-group-text">+91</span>
+                                    <input type="tel" 
+                                           class="form-control" 
+                                           id="business_phone" 
+                                           name="business_phone" 
+                                           placeholder="10-digit mobile number"
+                                           pattern="[0-9]{10}"
+                                           maxlength="10"
+                                           value="<?php 
+                                               $phone = $formData['business_phone'] ?? '';
+                                               // Remove +91 prefix if present for display
+                                               if (strpos($phone, '+91') === 0) {
+                                                   $phone = substr($phone, 3);
+                                               }
+                                               echo htmlspecialchars($phone); 
+                                           ?>"
+                                           required>
+                                </div>
+                                <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="city" class="form-label">City</label>
-                                    <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Mumbai, Delhi, Bangalore">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="state" class="form-label">State</label>
-                                    <select class="form-select" id="state" name="state">
-                                        <option value="">Select State</option>
-                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
-                                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                                        <option value="Assam">Assam</option>
-                                        <option value="Bihar">Bihar</option>
-                                        <option value="Chhattisgarh">Chhattisgarh</option>
-                                        <option value="Goa">Goa</option>
-                                        <option value="Gujarat">Gujarat</option>
-                                        <option value="Haryana">Haryana</option>
-                                        <option value="Himachal Pradesh">Himachal Pradesh</option>
-                                        <option value="Jharkhand">Jharkhand</option>
-                                        <option value="Karnataka">Karnataka</option>
-                                        <option value="Kerala">Kerala</option>
-                                        <option value="Madhya Pradesh">Madhya Pradesh</option>
-                                        <option value="Maharashtra">Maharashtra</option>
-                                        <option value="Manipur">Manipur</option>
-                                        <option value="Meghalaya">Meghalaya</option>
-                                        <option value="Mizoram">Mizoram</option>
-                                        <option value="Nagaland">Nagaland</option>
-                                        <option value="Odisha">Odisha</option>
-                                        <option value="Punjab">Punjab</option>
-                                        <option value="Rajasthan">Rajasthan</option>
-                                        <option value="Sikkim">Sikkim</option>
-                                        <option value="Tamil Nadu">Tamil Nadu</option>
-                                        <option value="Telangana">Telangana</option>
-                                        <option value="Tripura">Tripura</option>
-                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                        <option value="Uttarakhand">Uttarakhand</option>
-                                        <option value="West Bengal">West Bengal</option>
-                                        <option value="Delhi">Delhi</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="postal_code" class="form-label">PIN Code</label>
-                                    <input type="text" class="form-control" id="postal_code" name="postal_code" placeholder="e.g., 400001" maxlength="6" pattern="[0-9]{6}">
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="website" class="form-label">Website (Optional)</label>
-                                <input type="url" class="form-control" id="website" name="website" placeholder="https://yourtailor.com">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="logo" class="form-label">
-                                    <i class="fas fa-image me-2"></i>Business Logo (Optional)
-                                </label>
-                                <input type="file" 
-                                       class="form-control" 
-                                       id="logo" 
-                                       name="logo" 
-                                       accept="image/*"
-                                       onchange="previewLogo(this)">
-                                <small class="text-muted">PNG, JPG, or GIF - Max 2MB</small>
-                                <div id="logoPreview" class="mt-2" style="display:none;">
-                                    <img id="logoPreviewImg" src="" alt="Logo Preview" class="img-thumbnail" style="max-height: 100px;">
-                                </div>
-                            </div>
-                            
-                            <hr class="my-4">
-                            
-                            <!-- Account Information -->
-                            <h5 class="section-title">
-                                <i class="fas fa-user-lock me-2"></i>Account Information
-                            </h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="username" class="form-label">
-                                        Username *
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-user"></i>
-                                        </span>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="username" 
-                                               name="username" 
-                                               placeholder="Choose a username"
-                                               value="<?php echo htmlspecialchars($formData['username'] ?? ''); ?>"
-                                               required>
-                                    </div>
-                                    <small class="text-muted">This will be your login username</small>
-                                </div>
-                                <div class="col-md-6 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-6 mb-2">
                                     <label for="password" class="form-label">
                                         Password *
                                     </label>
@@ -660,35 +531,34 @@ $seoOptions = [
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="confirm_password" class="form-label">
-                                    Confirm Password *
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    <input type="password" 
-                                           class="form-control" 
-                                           id="confirm_password" 
-                                           name="confirm_password" 
-                                           minlength="6"
-                                           placeholder="Re-enter password"
-                                           required>
-                                    <button class="btn btn-outline-secondary" 
-                                            type="button" 
-                                            onclick="togglePasswordField('confirm_password')">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
+                                <div class="col-md-6 mb-2">
+                                    <label for="confirm_password" class="form-label">
+                                        Confirm Password *
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" 
+                                               class="form-control" 
+                                               id="confirm_password" 
+                                               name="confirm_password" 
+                                               minlength="6"
+                                               placeholder="Re-enter password"
+                                               required>
+                                        <button class="btn btn-outline-secondary" 
+                                                type="button" 
+                                                onclick="togglePasswordField('confirm_password')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info">
+                            <div class="alert alert-info alert-info-compact mb-2">
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>What you get:</strong>
-                                <ul class="mb-0 mt-2">
+                                <ul class="mb-0 mt-1">
                                     <li>Free plan available</li>
                                     <li>Manage unlimited customers</li>
                                     <li>Track orders and measurements</li>
@@ -697,23 +567,23 @@ $seoOptions = [
                                 </ul>
                             </div>
                             
-                            <div class="form-check mb-4">
+                            <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="agree_terms" required>
-                                <label class="form-check-label" for="agree_terms">
+                                <label class="form-check-label" for="agree_terms" style="font-size: 0.85rem;">
                                     I agree to the <a href="../terms-of-service" target="_blank">Terms of Service</a> and <a href="../privacy-policy" target="_blank">Privacy Policy</a>
                                 </label>
                             </div>
                             
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-register btn-lg">
+                                <button type="submit" class="btn btn-primary btn-register btn-lg py-2">
                                     <i class="fas fa-user-plus me-2"></i>
                                     Register My Tailor Shop
                                 </button>
                             </div>
                         </form>
                         
-                        <div class="text-center mt-4">
-                            <p class="text-muted">
+                        <div class="text-center mt-3">
+                            <p class="text-muted mb-0" style="font-size: 0.85rem;">
                                 Already have an account? 
                                 <a href="login.php" class="text-decoration-none fw-semibold">
                                     Sign In

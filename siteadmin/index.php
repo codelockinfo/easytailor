@@ -6,6 +6,12 @@
 
 require_once '../config/config.php';
 
+if (!function_exists('escape')) {
+    function escape($value) {
+        return htmlspecialchars(htmlspecialchars_decode($value ?? '', ENT_QUOTES), ENT_QUOTES, 'UTF-8');
+    }
+}
+
 // Check if site admin is logged in (via session)
 if (!isset($_SESSION['site_admin_logged_in']) || $_SESSION['site_admin_logged_in'] !== true) {
     header('Location: ../admin/login.php');
@@ -882,13 +888,13 @@ if (isset($_SESSION['message'])) {
                                                     <?php echo strtoupper(substr($request['company_name'] ?? 'C', 0, 1)); ?>
                                                 </div>
                                                 <div>
-                                                    <div class="fw-bold" style="color: #334155;"><?php echo htmlspecialchars($request['company_name'] ?? 'N/A'); ?></div>
+                                                    <div class="fw-bold" style="color: #334155;"><?php echo escape($request['company_name'] ?? 'N/A'); ?></div>
                                                     <div class="text-muted small">ID: #<?php echo $request['company_id'] ?? 'N/A'; ?></div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <div style="color: #475569; font-weight: 500;"><?php echo htmlspecialchars($request['owner_name'] ?? 'N/A'); ?></div>
+                                            <div style="color: #475569; font-weight: 500;"><?php echo escape($request['owner_name'] ?? 'N/A'); ?></div>
                                         </td>
                                         <td class="px-4 py-3">
                                             <div class="d-flex flex-column gap-1">
@@ -1136,15 +1142,15 @@ if (isset($_SESSION['message'])) {
                                     <tr style="transition: all 0.2s; border-bottom: 1px solid #f8f9fa;">
                                         <td class="px-4 py-3 text-muted">#<?php echo htmlspecialchars($testimonial['id']); ?></td>
                                         <td class="px-4 py-3">
-                                            <div class="fw-bold" style="color: #334155;"><?php echo htmlspecialchars($testimonial['user_name'] ?? 'N/A'); ?></div>
+                                            <div class="fw-bold" style="color: #334155;"><?php echo escape($testimonial['user_name'] ?? 'N/A'); ?></div>
                                             <a href="mailto:<?php echo htmlspecialchars($testimonial['email']); ?>" class="text-decoration-none small" style="color: #3b82f6;">
                                                 <?php echo htmlspecialchars($testimonial['email']); ?>
                                             </a>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <div style="color: #475569; font-weight: 500;"><?php echo htmlspecialchars($testimonial['company_name'] ?? 'N/A'); ?></div>
+                                            <div style="color: #475569; font-weight: 500;"><?php echo escape($testimonial['company_name'] ?? 'N/A'); ?></div>
                                             <?php if (!empty($testimonial['owner_name'])): ?>
-                                                <div class="small text-muted"><?php echo htmlspecialchars($testimonial['owner_name']); ?></div>
+                                                <div class="small text-muted"><?php echo escape($testimonial['owner_name']); ?></div>
                                             <?php endif; ?>
                                         </td>
                                         <td class="px-4 py-3">
@@ -2660,9 +2666,17 @@ if (isset($_SESSION['message'])) {
             });
         }
         
+        function decodeHtml(html) {
+            const txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
+
         function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const decoded = decodeHtml(text);
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = decoded;
             return div.innerHTML;
         }
         

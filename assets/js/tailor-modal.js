@@ -142,8 +142,16 @@
             });
     }
 
+    function decodeHtml(html) {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
     function escapeHtml(value) {
-        return String(value === undefined || value === null ? '' : value)
+        const str = String(value === undefined || value === null ? '' : value);
+        const decoded = decodeHtml(str);
+        return decoded
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')

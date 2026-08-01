@@ -1,33 +1,26 @@
 <?php
-/**
- * Company Details Page
- * Shows detailed information about a company with tabs for different data types
- */
-
-require_once '../config/config.php';
-
-// Check if site admin is logged in
+require_once '../config/config.php'; 
+if (!function_exists('escape')) {
+    function escape($value) {
+        return htmlspecialchars(htmlspecialchars_decode($value ?? '', ENT_QUOTES), ENT_QUOTES, 'UTF-8');
+    }
+}
 if (!isset($_SESSION['site_admin_logged_in']) || $_SESSION['site_admin_logged_in'] !== true) {
     header('Location: ../admin/login.php');
     exit;
 }
-
 require_once '../models/Company.php';
-
 $companyModel = new Company();
 $companyId = $_GET['id'] ?? null;
-
 if (!$companyId) {
     header('Location: index.php?section=company');
     exit;
 }
-
 $company = $companyModel->find($companyId);
 if (!$company) {
     header('Location: index.php?section=company');
     exit;
 }
-
 $planStyles = [
     'free' => ['label' => 'Free Trial', 'color' => '#6c757d', 'badge' => 'secondary'],
     'basic' => ['label' => 'Basic Plan', 'color' => '#3b82f6', 'badge' => 'primary'],
@@ -37,17 +30,11 @@ $planStyles = [
 $planKey = strtolower($company['subscription_plan'] ?? 'free');
 $planMeta = $planStyles[$planKey] ?? $planStyles['free'];
 $stats = $companyModel->getCompanyStats($companyId);
-
-// Check if company came from promotional offer
-// We can infer this from: premium plan + 1 year expiry + created recently (within offer period)
 $cameFromOffer = false;
 if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
     $expiryDate = strtotime($company['subscription_expiry']);
     $createdDate = strtotime($company['created_at'] ?? 'now');
     $oneYearFromCreation = strtotime('+1 year', $createdDate);
-    
-    // If expiry is approximately 1 year from creation, likely from offer
-    // Also check if created recently (within last 30 days) to be more accurate
     $daysSinceCreation = ($createdDate - strtotime('now')) / (60 * 60 * 24);
     if (abs($expiryDate - $oneYearFromCreation) < (30 * 24 * 60 * 60) && $daysSinceCreation > -30) {
         $cameFromOffer = true;
@@ -59,13 +46,12 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($company['company_name']); ?> - Company Details</title>
-    <!-- Favicon - Primary ICO format for Google Search -->
+    <title><?php echo escape($company['company_name']); ?> - Company Details</title>
+    
     <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
+
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -207,8 +193,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
         .company-header.plan-enterprise .company-header-stat-label {
             color: white;
         }
-        
-        /* Company header links and text colors */
         .company-header-link {
             color: inherit;
         }
@@ -236,7 +220,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
         .company-header.plan-enterprise .company-info-icon {
             color: white !important;
         }
-        
         .company-header .badge {
             background: rgba(30, 41, 59, 0.1) !important;
             color: #ffffff !important;
@@ -431,7 +414,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </a>
             </div>
         </aside>
-
         <main class="main-content">
             <div class="top-header card">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -440,15 +422,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         <p class="text-muted mb-0">View detailed information and data</p>
                     </div>
                     <div class="d-flex gap-2">
-                        <!-- <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-globe me-1"></i>EN
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#">English</a></li>
-                                <li><a class="dropdown-item" href="#">Hindi</a></li>
-                            </ul>
-                        </div> -->
+                       
                         <div class="dropdown">
                             <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user-circle me-1"></i>Admin
@@ -464,7 +438,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
 
             <div class="content-scroll">
-                <!-- Back Button and Subscription Update -->
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="margin-bottom: 10px;">
                     <div class="back-btn">
                         <a href="index.php?section=company">
@@ -479,16 +452,14 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         </button>
                     </div>
                 </div>
-
-                <!-- Company Header -->
                 <div class="company-header plan-<?php echo $planKey; ?>">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3" style="position: relative; z-index: 1;">
                         <div class="flex-grow-1">
                             <span class="badge badge-custom bg-<?php echo $planMeta['badge']; ?> mb-2">
                                 <i class="fas fa-crown me-1"></i><?php echo $planMeta['label']; ?>
                             </span>
-                            <h3 class="mb-2 company-header-title"><?php echo htmlspecialchars($company['company_name']); ?></h3>
-                            <p class="mb-2 company-header-text"><strong>Owner:</strong> <?php echo htmlspecialchars($company['owner_name'] ?? 'N/A'); ?></p>
+                            <h3 class="mb-2 company-header-title"><?php echo escape($company['company_name']); ?></h3>
+                            <p class="mb-2 company-header-text"><strong>Owner:</strong> <?php echo escape($company['owner_name'] ?? 'N/A'); ?></p>
                             <div class="d-flex gap-3 flex-wrap company-header-contact">
                                 <?php if (!empty($company['business_email'])): ?>
                                     <span><i class="fas fa-envelope me-2"></i><a href="mailto:<?php echo htmlspecialchars($company['business_email']); ?>" class="company-header-link" style="text-decoration: none;"><?php echo htmlspecialchars($company['business_email']); ?></a></span>
@@ -553,7 +524,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                     <?php endif; ?>
                                     <?php if ($cameFromOffer): ?>
                                     <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4; grid-column: span 2;">
-                                        <!-- <i class="fas fa-gift company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem; color: #c026d3;"></i> -->
                                         <span class="company-info-text">
                                             <span class="badge bg-success" style="background: linear-gradient(135deg, #c026d3 0%, #3b82f6 100%) !important; color: white; padding: 0.5rem 1rem;">
                                                 <i class="fas fa-gift me-1"></i>Registered via Promotional Offer (1 Year Free Professional Plan)
@@ -570,8 +540,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         </div>
                     </div>
                 </div>
-
-                <!-- Tab Navigation -->
                 <div class="tab-nav">
                     <button class="tab-button active" data-tab="customers">
                         <i class="fas fa-users me-2"></i>Customers
@@ -595,8 +563,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         <i class="fas fa-address-book me-2"></i>Contact
                     </button>
                 </div>
-
-                <!-- Tab Content -->
                 <div class="data-table-container">
                     <div id="tab-content">
                         <div class="text-center py-5">
@@ -610,13 +576,10 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </main>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const companyId = <?php echo $companyId; ?>;
         let currentTab = 'customers';
-
-        // Tab switching
         document.querySelectorAll('.tab-button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -625,8 +588,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 loadTabData(currentTab);
             });
         });
-
-        // Load tab data
         function loadTabData(tab) {
             const contentDiv = document.getElementById('tab-content');
             contentDiv.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Loading data...</p></div>';
@@ -655,13 +616,10 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     contentDiv.innerHTML = '<div class="text-center py-5 text-danger">Error loading data. Please check console for details.</div>';
                 });
         }
-
-        // Render table based on tab type
         function renderTable(type, data) {
             if (!data || data.length === 0) {
                 return '<div class="text-center py-5 text-muted">No data available</div>';
             }
-
             const headers = {
                 customers: ['ID', 'Name', 'Code', 'Email', 'Actions'],
                 orders: ['ID', 'Order Number', 'Customer', 'Status', 'Total', 'Date', 'Actions'],
@@ -671,7 +629,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 reports: ['ID', 'Report Type', 'Period', 'Generated At', 'Actions'],
                 contact: ['Name', 'Company', 'Contact Info', 'Category', 'Status', 'Actions']
             };
-
             const fields = {
                 customers: ['id', 'name', 'customer_code', 'email', 'actions'],
                 orders: ['id', 'order_number', 'customer_name', 'status', 'total', 'created_at', 'actions'],
@@ -681,13 +638,10 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 reports: ['id', 'report_type', 'period', 'generated_at', 'actions'],
                 contact: ['name', 'company', 'contact_info', 'category', 'status', 'actions']
             };
-
             const headerRow = headers[type].map(h => `<th>${h}</th>`).join('');
             const rows = data.map(row => {
                 const cells = fields[type].map(field => {
                     let value = row[field] || '-';
-                    
-                    // Special handling for reports tab
                     if (type === 'reports') {
                         if (field === 'generated_at') {
                             if (value && value !== '-') {
@@ -700,7 +654,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                      </button>`;
                         }
                     }
-                    // Special handling for orders tab
                     else if (type === 'orders') {
                         if (field === 'order_number') {
                             value = `<span class="badge bg-primary">${row.order_number}</span>`;
@@ -724,7 +677,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                      </button>`;
                         }
                     }
-                    // Special handling for reports tab
                     else if (type === 'reports') {
                         if (field === 'actions') {
                             value = `<button class="btn btn-sm btn-primary" onclick="viewCompanyReports(${companyId})" title="View Reports">
@@ -737,7 +689,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             }
                         }
                     }
-                    // Special handling for customers tab
                     else if (type === 'customers') {
                         if (field === 'actions') {
                             const customerId = row.id || row.customer_id || 0;
@@ -752,7 +703,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             value = row.email ? `<a href="mailto:${row.email}">${row.email}</a>` : '-';
                         }
                     }
-                    // Special handling for invoices tab
                     else if (type === 'invoices') {
                         if (field === 'invoice_number') {
                             value = `<span class="badge bg-primary">${row.invoice_number}</span>`;
@@ -790,7 +740,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             `;
                         }
                     }
-                    // Special handling for expenses tab
                     else if (type === 'expenses') {
                         if (field === 'category') {
                             value = `<span class="badge bg-info">${row.category || 'Other'}</span>`;
@@ -812,7 +761,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             `;
                         }
                     }
-                    // Special handling for contact tab
                     else if (type === 'contact') {
                         if (field === 'name') {
                             value = `<strong>${row.name || '-'}</strong>`;
@@ -835,7 +783,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             `;
                         }
                     }
-                    // Special handling for users tab
                     else if (type === 'users') {
                         if (field === 'name') {
                             value = `<strong>${row.name || '-'}</strong>`;
@@ -862,7 +809,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             `;
                         }
                     } else {
-                        // Default handling for other tabs
                         if (field === 'status') {
                             const statusClass = value === 'active' || value === 'completed' || value === 'paid' ? 'success' : 
                                               value === 'pending' ? 'warning' : 'danger';
@@ -882,7 +828,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 }).join('');
                 return `<tr>${cells}</tr>`;
             }).join('');
-
             return `
                 <div class="table-responsive">
                     <table class="table table-hover">
@@ -896,17 +841,13 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </div>
             `;
         }
-
-        // Expense actions
         function viewExpenseDetails(expenseId) {
             const modalTitle = document.getElementById('expenseDetailsModalLabel');
             const modalBody = document.getElementById('expenseDetailsModalContent');
             const expenseModal = new bootstrap.Modal(document.getElementById('expenseDetailsModal'));
-
             modalTitle.innerHTML = `<i class="fas fa-money-bill-wave me-2"></i>Expense Details`;
             modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Loading expense details...</p></div>`;
             expenseModal.show();
-
             fetch(`ajax/get_expense_details.php?expense_id=${expenseId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1016,8 +957,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </div>
             `;
         }
-
-        // Contact actions
         function viewContactDetails(contactId) {
             const modalTitle = document.getElementById('contactDetailsModalLabel');
             const modalBody = document.getElementById('contactDetailsModalContent');
@@ -1026,7 +965,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             modalTitle.innerHTML = `<i class="fas fa-user me-2"></i>Contact Details`;
             modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Loading contact details...</p></div>`;
             contactModal.show();
-
             fetch(`ajax/get_contact_details.php?contact_id=${contactId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1041,7 +979,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading contact details. Please try again.</div>';
                 });
         }
-
         function renderContactDetails(contact) {
             return `
                 <div class="row">
@@ -1102,8 +1039,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </div>
             `;
         }
-
-        // User actions
         function viewUserDetails(userId) {
             const modalTitle = document.getElementById('userDetailsModalLabel');
             const modalBody = document.getElementById('userDetailsModalContent');
@@ -1127,7 +1062,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading user details. Please try again.</div>';
                 });
         }
-
         function renderUserDetails(user) {
             const roleClass = user.role === 'admin' ? 'danger' : 
                             user.role === 'cashier' ? 'info' : 
@@ -1225,8 +1159,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </div>
             `;
         }
-
-        // Customer actions
         function viewCustomerDetails(customerId) {
             const modalTitle = document.getElementById('customerDetailsModalLabel');
             const modalBody = document.getElementById('customerDetailsModalContent');
@@ -1250,7 +1182,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading customer details. Please try again.</div>';
                 });
         }
-
         function renderCustomerDetails(customer) {
             const statusClass = customer.status === 'active' ? 'success' : 'secondary';
             
@@ -1359,8 +1290,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </div>
             `;
         }
-
-        // Invoice actions
         function viewInvoiceDetails(invoiceId) {
             const modalTitle = document.getElementById('invoiceDetailsModalLabel');
             const modalBody = document.getElementById('invoiceDetailsModalContent');
@@ -1369,7 +1298,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             modalTitle.innerHTML = `<i class="fas fa-file-invoice me-2"></i>Invoice Details`;
             modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Loading invoice details...</p></div>`;
             invoiceModal.show();
-
             fetch(`ajax/get_invoice_details.php?invoice_id=${invoiceId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1384,20 +1312,16 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading invoice details. Please try again.</div>';
                 });
         }
-
         function renderInvoiceDetails(invoice) {
             const statusClass = invoice.payment_status === 'paid' ? 'success' : 
                               invoice.payment_status === 'partial' ? 'warning' : 'danger';
             const isOverdue = invoice.due_date && new Date(invoice.due_date) < new Date() && invoice.payment_status !== 'paid';
-            
-            // Build customer address
             const addressParts = [];
             if (invoice.customer_address && invoice.customer_address !== '-') addressParts.push(invoice.customer_address);
             if (invoice.customer_city && invoice.customer_city !== '-') addressParts.push(invoice.customer_city);
             if (invoice.customer_state && invoice.customer_state !== '-') addressParts.push(invoice.customer_state);
             if (invoice.customer_postal_code && invoice.customer_postal_code !== '-') addressParts.push(invoice.customer_postal_code);
             const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : 'No address provided';
-            
             return `
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -1574,8 +1498,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 </div>
             `;
         }
-
-        // View order details
         function viewOrderDetails(orderId) {
             const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
             const modalBody = document.getElementById('orderDetailsContent');
@@ -1685,8 +1607,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading order details. Please try again.</div>';
                 });
         }
-
-        // View company reports
         function viewCompanyReports(companyId) {
             const modal = new bootstrap.Modal(document.getElementById('companyReportsModal'));
             const modalBody = document.getElementById('companyReportsContent');
@@ -1896,12 +1816,8 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     modalBody.innerHTML = '<div class="alert alert-danger">Error loading reports. Please try again.</div>';
                 });
         }
-
-        // Load initial tab
         loadTabData(currentTab);
     </script>
-
-    <!-- Order Details Modal -->
     <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -1910,7 +1826,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="orderDetailsContent">
-                    <!-- Content will be loaded here -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -1918,8 +1833,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Company Reports Modal -->
     <div class="modal fade" id="companyReportsModal" tabindex="-1" aria-labelledby="companyReportsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
@@ -1928,7 +1841,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="companyReportsContent">
-                    <!-- Content will be loaded here -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -1936,8 +1848,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Contact Details Modal -->
     <div class="modal fade" id="contactDetailsModal" tabindex="-1" aria-labelledby="contactDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -1959,8 +1869,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Expense Details Modal -->
     <div class="modal fade" id="expenseDetailsModal" tabindex="-1" aria-labelledby="expenseDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -1982,8 +1890,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- User Details Modal -->
     <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -2005,8 +1911,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Invoice Details Modal -->
     <div class="modal fade" id="invoiceDetailsModal" tabindex="-1" aria-labelledby="invoiceDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
@@ -2028,8 +1932,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Customer Details Modal -->
     <div class="modal fade" id="customerDetailsModal" tabindex="-1" aria-labelledby="customerDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -2051,8 +1953,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Subscription Update Modal -->
     <div class="modal fade" id="subscriptionModal" tabindex="-1" aria-labelledby="subscriptionModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -2117,8 +2017,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             </div>
                         </div>
                         <input type="hidden" id="selectedPlan" value="">
-                        
-                        <!-- Duration Selection (only show for paid plans) -->
                         <div class="mt-3" id="durationSelection" style="display: none;">
                             <label class="form-label fw-bold">Select Duration:</label>
                             <div class="row g-2">
@@ -2162,8 +2060,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Confirmation Modal for Subscription Update -->
     <div class="modal fade" id="confirmSubscriptionModal" tabindex="-1" aria-labelledby="confirmSubscriptionModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -2205,8 +2101,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
-    <!-- Success/Error Message Modal -->
     <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -2227,95 +2121,71 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
         </div>
     </div>
-
     <style>
-        /* Free Trial - White background with light grey border */
-        .subscription-free {
+            .subscription-free {
             background: white !important;
             border: 2px solid #dee2e6 !important;
         }
-        /* Basic Plan - Bright blue background */
         .subscription-basic {
             background: #3b82f6 !important;
             border: 2px solid #3b82f6 !important;
         }
-        
-        /* Premium Plan - Purple-blue gradient */
         .subscription-premium {
             background: linear-gradient(135deg, #c026d3 0%, #3b82f6 100%) !important;
             border: 2px solid transparent !important;
         }
-        
-        /* Enterprise Plan - Yellow background */
         .subscription-enterprise {
             background: #ffc107 !important;
             border: 2px solid #ffc107 !important;
         }
-        
         .subscription-option {
             transition: all 0.3s ease;
         }
-        
         .subscription-option:hover {
             transform: translateY(-5px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        
         .subscription-option.selected {
             border-color: #4f46e5 !important;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.5) !important;
             transform: translateY(-3px);
         }
-        
         .subscription-free.selected {
             background: #f0f4ff !important;
             border-color: #4f46e5 !important;
         }
-        
         .subscription-basic.selected {
             background: #2563eb !important;
             border-color: #1e40af !important;
         }
-        
         .subscription-premium.selected {
             background: linear-gradient(135deg, #a21caf 0%, #2563eb 100%) !important;
             border-color: #7c3aed !important;
         }
-        
         .subscription-enterprise.selected {
             background: #f59e0b !important;
             border-color: #d97706 !important;
         }
-        
-        /* Current plan styling */
         .subscription-option.current-plan {
             opacity: 0.9;
         }
-        
         .text-purple {
             color: #c026d3 !important;
         }
-        
-        /* Duration option styling */
         .duration-option:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        
         .duration-option.selected {
             border-color: #4f46e5 !important;
             background: #f0f4ff !important;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
     </style>
-
     <script>
-        // Subscription modal functions
         function openSubscriptionModal() {
             const modal = new bootstrap.Modal(document.getElementById('subscriptionModal'));
             modal.show();
-            
-            // Reset selection
             document.querySelectorAll('.subscription-option').forEach(option => {
                 option.classList.remove('selected');
             });
@@ -2327,22 +2197,15 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             document.getElementById('durationSelection').style.display = 'none';
             document.getElementById('updateSubscriptionBtn').disabled = true;
         }
-
-        // Handle subscription option selection
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.subscription-option').forEach(option => {
                 option.addEventListener('click', function() {
-                    // Remove previous selection
                     document.querySelectorAll('.subscription-option').forEach(opt => {
                         opt.classList.remove('selected');
                     });
-                    
-                    // Add selection to clicked option
                     this.classList.add('selected');
                     const plan = this.getAttribute('data-plan');
                     document.getElementById('selectedPlan').value = plan;
-                    
-                    // Show/hide duration selection based on plan
                     const durationSelection = document.getElementById('durationSelection');
                     if (plan === 'free') {
                         durationSelection.style.display = 'none';
@@ -2350,7 +2213,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         document.getElementById('updateSubscriptionBtn').disabled = false;
                     } else {
                         durationSelection.style.display = 'block';
-                        // Reset duration selection
                         document.querySelectorAll('.duration-option').forEach(opt => {
                             opt.classList.remove('selected');
                         });
@@ -2359,16 +2221,11 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     }
                 });
             });
-            
-            // Handle duration option selection
             document.querySelectorAll('.duration-option').forEach(option => {
                 option.addEventListener('click', function() {
-                    // Remove previous selection
                     document.querySelectorAll('.duration-option').forEach(opt => {
                         opt.classList.remove('selected');
                     });
-                    
-                    // Add selection to clicked option
                     this.classList.add('selected');
                     const duration = this.getAttribute('data-duration');
                     document.getElementById('selectedDuration').value = duration;
@@ -2376,16 +2233,12 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 });
             });
         });
-
-        // Show message modal
         function showMessageModal(type, message, onClose = null) {
             const modal = new bootstrap.Modal(document.getElementById('messageModal'));
             const header = document.getElementById('messageModalHeader');
             const label = document.getElementById('messageModalLabel');
             const text = document.getElementById('messageModalText');
             const okBtn = document.getElementById('messageModalOkBtn');
-            
-            // Set modal style based on type
             if (type === 'success') {
                 header.className = 'modal-header bg-success text-white';
                 label.innerHTML = '<i class="fas fa-check-circle me-2"></i>Success';
@@ -2403,18 +2256,14 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 label.innerHTML = '<i class="fas fa-info-circle me-2"></i>Information';
                 okBtn.className = 'btn btn-info';
             }
-            
             text.textContent = message;
             modal.show();
-            
-            // Handle close event
             const messageModal = document.getElementById('messageModal');
             messageModal.addEventListener('hidden.bs.modal', function handler() {
                 messageModal.removeEventListener('hidden.bs.modal', handler);
                 if (onClose) onClose();
             }, { once: true });
         }
-
         function updateSubscription() {
             const selectedPlan = document.getElementById('selectedPlan').value;
             const selectedDuration = document.getElementById('selectedDuration').value;
@@ -2424,19 +2273,14 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 showMessageModal('warning', 'Please select a subscription plan');
                 return;
             }
-            
             if (selectedPlan === currentPlan) {
                 showMessageModal('info', 'This is already the current subscription plan');
                 return;
             }
-            
-            // For paid plans, duration is required
             if (selectedPlan !== 'free' && !selectedDuration) {
                 showMessageModal('warning', 'Please select a duration (Monthly or Yearly)');
                 return;
             }
-            
-            // Show confirmation modal
             const planLabels = {
                 'free': 'Free Trial',
                 'basic': 'Basic Plan',
@@ -2446,8 +2290,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             
             document.getElementById('confirmCurrentPlan').textContent = planLabels[currentPlan] || currentPlan.toUpperCase();
             document.getElementById('confirmNewPlan').textContent = planLabels[selectedPlan] || selectedPlan.toUpperCase();
-            
-            // Show duration if it's a paid plan
             const durationRow = document.getElementById('confirmDurationRow');
             if (selectedPlan !== 'free') {
                 durationRow.style.display = 'flex';
@@ -2456,20 +2298,14 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             } else {
                 durationRow.style.display = 'none';
             }
-            
-            // Store selected plan and duration for confirmation
             window.pendingSubscriptionUpdate = {
                 plan: selectedPlan,
                 duration: selectedDuration || 'monthly'
             };
-            
-            // Close subscription modal first
             const subscriptionModal = bootstrap.Modal.getInstance(document.getElementById('subscriptionModal'));
             if (subscriptionModal) {
                 subscriptionModal.hide();
             }
-            
-            // Wait for subscription modal to close, then show confirmation modal
             const subscriptionModalEl = document.getElementById('subscriptionModal');
             subscriptionModalEl.addEventListener('hidden.bs.modal', function handler() {
                 subscriptionModalEl.removeEventListener('hidden.bs.modal', handler);
@@ -2477,36 +2313,25 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 confirmModal.show();
             }, { once: true });
         }
-
         function cancelConfirmation() {
-            // Close confirmation modal
             const confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmSubscriptionModal'));
             if (confirmModal) {
                 confirmModal.hide();
             }
-            
-            // Wait for confirmation modal to close, then reopen subscription modal
             const confirmModalEl = document.getElementById('confirmSubscriptionModal');
             confirmModalEl.addEventListener('hidden.bs.modal', function handler() {
                 confirmModalEl.removeEventListener('hidden.bs.modal', handler);
-                // Restore the selected plan if it was set
                 const pendingUpdate = window.pendingSubscriptionUpdate;
                 if (pendingUpdate) {
                     const selectedPlan = typeof pendingUpdate === 'object' ? pendingUpdate.plan : pendingUpdate;
                     const selectedDuration = typeof pendingUpdate === 'object' ? pendingUpdate.duration : '';
-                    
-                    // Reopen subscription modal
                     const subscriptionModal = new bootstrap.Modal(document.getElementById('subscriptionModal'));
                     subscriptionModal.show();
-                    
-                    // Restore the selection
                     setTimeout(() => {
                         document.querySelectorAll('.subscription-option').forEach(option => {
                             if (option.getAttribute('data-plan') === selectedPlan) {
                                 option.classList.add('selected');
                                 document.getElementById('selectedPlan').value = selectedPlan;
-                                
-                                // Show/hide duration selection
                                 const durationSelection = document.getElementById('durationSelection');
                                 if (selectedPlan === 'free') {
                                     durationSelection.style.display = 'none';
@@ -2529,26 +2354,19 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 }
             }, { once: true });
         }
-
         function proceedWithUpdate() {
             const pendingUpdate = window.pendingSubscriptionUpdate;
             if (!pendingUpdate) return;
-            
             const selectedPlan = typeof pendingUpdate === 'object' ? pendingUpdate.plan : pendingUpdate;
             const selectedDuration = typeof pendingUpdate === 'object' ? pendingUpdate.duration : 'monthly';
-            
-            // Close confirmation modal
             const confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmSubscriptionModal'));
             if (confirmModal) {
                 confirmModal.hide();
             }
-            
-            // Close subscription selection modal
             const subscriptionModal = bootstrap.Modal.getInstance(document.getElementById('subscriptionModal'));
             if (subscriptionModal) {
                 subscriptionModal.hide();
             }
-            
             const updateBtn = document.getElementById('updateSubscriptionBtn');
             const originalText = updateBtn.innerHTML;
             updateBtn.disabled = true;

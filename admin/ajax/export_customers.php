@@ -1,12 +1,6 @@
 <?php
-/**
- * Export Customers AJAX Endpoint
- * Tailoring Management System
- */
-
 require_once '../../config/config.php';
 require_once '../models/Customer.php';
-
 if (!is_logged_in()) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
@@ -22,13 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['error' => 'Method not allowed']);
     exit;
 }
-
 if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
-
 require_once '../../helpers/SubscriptionHelper.php';
 $exportCheck = SubscriptionHelper::canExportData(get_company_id());
 if (!$exportCheck['allowed']) {
@@ -36,7 +28,6 @@ if (!$exportCheck['allowed']) {
     echo json_encode(['error' => $exportCheck['message']]);
     exit;
 }
-
 try {
     $customerModel = new Customer();
     $customers = $customerModel->getAllCustomers();
@@ -50,14 +41,12 @@ try {
     $excelContent .= '</DocumentProperties>' . "\n";
     $excelContent .= '<Worksheet ss:Name="Customers">' . "\n";
     $excelContent .= '<Table>' . "\n";
-    
     $excelContent .= '<Row>' . "\n";
     $headers = ['Customer Code', 'First Name', 'Last Name', 'Email', 'Phone', 'Address', 'Date of Birth', 'Notes', 'Status', 'Created Date'];
     foreach ($headers as $header) {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($header) . '</Data></Cell>' . "\n";
     }
     $excelContent .= '</Row>' . "\n";
-    
     foreach ($customers as $customer) {
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($customer['customer_code']) . '</Data></Cell>' . "\n";
@@ -72,7 +61,6 @@ try {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($customer['created_at']))) . '</Data></Cell>' . "\n";
         $excelContent .= '</Row>' . "\n";
     }
-    
     $excelContent .= '</Table>' . "\n";
     $excelContent .= '</Worksheet>' . "\n";
     $excelContent .= '</Workbook>';
@@ -81,9 +69,7 @@ try {
     header('Cache-Control: max-age=0');
     header('Pragma: public');
     header('Content-Length: ' . strlen($excelContent));
-    
     echo $excelContent;
-    
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Export failed: ' . $e->getMessage()]);

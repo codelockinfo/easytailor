@@ -1,14 +1,7 @@
 <?php
-/**
- * Export Expenses AJAX Endpoint
- * Tailoring Management System
- */
-
 require_once '../../config/config.php';
 require_once '../models/Expense.php';
 require_once '../models/User.php';
-
-// Check if user is logged in
 if (!is_logged_in()) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
@@ -29,7 +22,6 @@ if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
-
 require_once '../../helpers/SubscriptionHelper.php';
 $exportCheck = SubscriptionHelper::canExportData(get_company_id());
 if (!$exportCheck['allowed']) {
@@ -37,7 +29,6 @@ if (!$exportCheck['allowed']) {
     echo json_encode(['error' => $exportCheck['message']]);
     exit;
 }
-
 try {
     $expenseModel = new Expense();
     $userModel = new User();
@@ -52,7 +43,6 @@ try {
     $excelContent .= '</DocumentProperties>' . "\n";
     $excelContent .= '<Worksheet ss:Name="Expenses">' . "\n";
     $excelContent .= '<Table>' . "\n";
-    
     $excelContent .= '<Row>' . "\n";
     $headers = [
         'Expense ID', 'Description', 'Amount', 'Expense Date', 'Payment Method',
@@ -65,7 +55,6 @@ try {
     foreach ($expenses as $expense) {
         $createdBy = $userModel->getUserById($expense['created_by']);
         $createdByName = $createdBy ? $createdBy['full_name'] : 'Unknown';
-        
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">EXP-' . str_pad($expense['id'], 6, '0', STR_PAD_LEFT) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['description']) . '</Data></Cell>' . "\n";
@@ -77,7 +66,6 @@ try {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($expense['created_at']))) . '</Data></Cell>' . "\n";
         $excelContent .= '</Row>' . "\n";
     }
-    
     $excelContent .= '</Table>' . "\n";
     $excelContent .= '</Worksheet>' . "\n";
     $excelContent .= '</Workbook>';

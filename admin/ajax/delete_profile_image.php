@@ -1,13 +1,6 @@
 <?php
-/**
- * AJAX Delete Profile Image
- * Tailoring Management System
- */
-
 header('Content-Type: application/json');
-
 require_once __DIR__ . '/../../config/config.php';
-
 if (!is_logged_in()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -21,14 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
         exit;
     }
-
     $userId = get_user_id();
     $query = "SELECT profile_image FROM users WHERE id = :id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
     if ($user && !empty($user['profile_image'])) {
         $filePath = __DIR__ . '/../../' . $user['profile_image'];
         if (file_exists($filePath)) {
@@ -38,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $query = "UPDATE users SET profile_image = NULL WHERE id = :id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
-    
     if ($stmt->execute()) {
         $query = "SELECT full_name FROM users WHERE id = :id";
         $stmt = $db->prepare($query);

@@ -1,34 +1,20 @@
 <?php
-/**
- * AJAX Measurement Filter Endpoint
- * Tailoring Management System
- */
-
-// Set content type to JSON
 header('Content-Type: application/json');
-
-// Start output buffering to catch any errors
 ob_start();
 
 try {
-    // Get the directory of this script
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
     
     require_once $rootDir . '/../config/config.php';
-
-    // Check if user is logged in
     if (!is_logged_in()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Unauthorized']);
         exit;
     }
-
     require_once $rootDir . '/../models/Measurement.php';
     require_once $rootDir . '/../models/Customer.php';
     require_once $rootDir . '/../models/ClothType.php';
-
-    // Get filter parameters
     $search = $_GET['search'] ?? '';
     $customer_id = $_GET['customer_id'] ?? '';
     $cloth_type_id = $_GET['cloth_type_id'] ?? '';
@@ -36,22 +22,15 @@ try {
     $end_date = $_GET['end_date'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
-    
-    // Validate and fix limit parameter
     if ($limit <= 0) {
-        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+        $limit = RECORDS_PER_PAGE;
     }
-    
-    // Validate page parameter
     if ($page <= 0) {
-        $page = 1; // Default to page 1 if page is 0 or negative
+        $page = 1;
     }
-
     $measurementModel = new Measurement();
     $customerModel = new Customer();
     $clothTypeModel = new ClothType();
-    
-    // Build conditions
     $conditions = [];
     if (!empty($customer_id)) {
         $conditions['customer_id'] = (int)$customer_id;
@@ -65,39 +44,26 @@ try {
     if (!empty($end_date)) {
         $conditions['end_date'] = $end_date;
     }
-    
-    // Debug: Log filter parameters
     error_log('Filter parameters - search: ' . $search . ', customer_id: ' . $customer_id . ', cloth_type_id: ' . $cloth_type_id);
-    
-    // Get measurements
     $offset = ($page - 1) * $limit;
-    
-    // If limit is 0, we only need filter options, not measurement data
     if ($limit == 0) {
         $measurements = [];
         $totalMeasurements = 0;
         $totalPages = 1;
     } else {
-        // Get all measurements first (with filters if any)
-        // Use empty array if no conditions to get all measurements
         try {
             $allMeasurements = $measurementModel->getMeasurementsWithDetails($conditions, 10000, 0);
         } catch (Exception $e) {
             error_log('Error getting measurements: ' . $e->getMessage());
             $allMeasurements = [];
         }
-        
-        // Debug: Log the count of measurements retrieved
         error_log('Filter measurements - Conditions: ' . json_encode($conditions));
         error_log('Filter measurements - All measurements count: ' . (is_array($allMeasurements) ? count($allMeasurements) : 'not an array - type: ' . gettype($allMeasurements)));
         
-        // Ensure $allMeasurements is an array
         if (!is_array($allMeasurements)) {
             error_log('Warning: getMeasurementsWithDetails did not return an array. Type: ' . gettype($allMeasurements));
             $allMeasurements = [];
         }
-        
-        // Apply search filter if provided
         if (!empty($search)) {
             $searchLower = strtolower(trim($search));
             $allMeasurements = array_filter($allMeasurements, function($m) use ($searchLower) {
@@ -105,13 +71,10 @@ try {
                 $clothType = strtolower($m['cloth_type_name'] ?? '');
                 $notes = strtolower($m['notes'] ?? '');
                 $customerCode = strtolower($m['customer_code'] ?? '');
-                
-                // Specific measurement customer fields
                 $mName = strtolower($m['name'] ?? '');
                 $mEmail = strtolower($m['email'] ?? '');
                 $mPhone = strtolower($m['phone_number'] ?? '');
                 $mAddress = strtolower($m['address'] ?? '');
-                
                 return strpos($customerName, $searchLower) !== false ||
                        strpos($clothType, $searchLower) !== false ||
                        strpos($notes, $searchLower) !== false ||
@@ -121,12 +84,9 @@ try {
                        strpos($mPhone, $searchLower) !== false ||
                        strpos($mAddress, $searchLower) !== false;
             });
-            // Re-index array after filtering
             $allMeasurements = array_values($allMeasurements);
             error_log('Filter measurements - After search filter count: ' . count($allMeasurements));
         }
-        
-        // Apply pagination
         $totalMeasurements = count($allMeasurements);
         $measurements = array_slice($allMeasurements, $offset, $limit);
         $totalPages = $limit > 0 ? ceil($totalMeasurements / $limit) : 1;
@@ -134,23 +94,15 @@ try {
         error_log('Filter measurements - Final measurements count: ' . count($measurements));
         error_log('Filter measurements - Total measurements: ' . $totalMeasurements);
     }
-    
-    // Ensure measurements is always an array
     if (!is_array($measurements)) {
         $measurements = [];
     }
-    
-    // Get filter options
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
-    
-    // Format measurements for display - match original table structure exactly
     $formattedMeasurements = [];
     foreach ($measurements as $measurement) {
-        // Combine first_name and last_name to create customer_name
         $customerName = !empty($measurement['name']) ? $measurement['name'] : trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
         $customerPhone = !empty($measurement['phone_number']) ? $measurement['phone_number'] : ($measurement['customer_phone'] ?? ($measurement['customer_code'] ?? ''));
-        
         $formattedMeasurements[] = [
             'id' => $measurement['id'],
             'customer_id' => $measurement['customer_id'] ?? null,
@@ -164,8 +116,6 @@ try {
             'created_at' => $measurement['created_at']
         ];
     }
-    
-    // Format filter options
     $filterOptions = [
         'customers' => array_map(function($customer) {
             return [
@@ -182,8 +132,6 @@ try {
             ];
         }, $clothTypes)
     ];
-    
-    // Ensure measurements is always an array in the response
     if (!isset($formattedMeasurements) || !is_array($formattedMeasurements)) {
         $formattedMeasurements = [];
     }
@@ -200,17 +148,13 @@ try {
             'has_next' => $page < $totalPages
         ]
     ];
-    
     error_log('Filter measurements - Response: ' . json_encode([
         'success' => $response['success'],
         'measurements_count' => count($response['measurements']),
         'total_measurements' => $response['pagination']['total_measurements']
     ]));
-    
-    echo json_encode($response);
-    
+    echo json_encode($response); 
 } catch (Exception $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -218,7 +162,6 @@ try {
         'error' => 'Filter failed: ' . $e->getMessage()
     ]);
 } catch (Error $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -226,6 +169,4 @@ try {
         'error' => 'Filter failed: ' . $e->getMessage()
     ]);
 }
-
-// End output buffering
 ob_end_flush();

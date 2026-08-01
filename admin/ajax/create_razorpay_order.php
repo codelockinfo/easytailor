@@ -1,33 +1,22 @@
 <?php
-/**
- * Create Razorpay Order
- * Tailoring Management System
- */
 
-// Set content type to JSON
 header('Content-Type: application/json');
 
 require_once '../../config/config.php';
 require_once '../../config/database.php';
 
 require_login();
-
-// Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
-
-// Get JSON input
 $input = json_decode(file_get_contents('php://input'), true);
 
 if (!$input) {
     echo json_encode(['success' => false, 'message' => 'Invalid request data']);
     exit;
 }
-
-// Validate required fields
 $required = ['plan_key', 'plan_name', 'amount', 'duration', 'customer_name', 'customer_email', 'customer_phone'];
 foreach ($required as $field) {
     if (!isset($input[$field]) || empty($input[$field])) {
@@ -35,7 +24,6 @@ foreach ($required as $field) {
         exit;
     }
 }
-
 $planKey = $input['plan_key'];
 $planName = $input['plan_name'];
 $amount = floatval($input['amount']);
@@ -43,17 +31,11 @@ $duration = $input['duration'];
 $customerName = sanitize_input($input['customer_name']);
 $customerEmail = sanitize_input($input['customer_email']);
 $customerPhone = sanitize_input($input['customer_phone']);
-
-// Validate amount
 if ($amount <= 0) {
     echo json_encode(['success' => false, 'message' => 'Invalid amount']);
     exit;
 }
-
-// Convert amount to paise (Razorpay uses smallest currency unit)
 $amountInPaise = intval($amount * 100);
-
-// Get company ID
 $companyId = get_company_id();
 $userId = get_user_id();
 
@@ -63,11 +45,8 @@ if (!$companyId || !$userId) {
 }
 
 try {
-    // Initialize Razorpay (using cURL since we don't have Razorpay SDK)
     $razorpayKeyId = RAZORPAY_KEY_ID;
     $razorpayKeySecret = RAZORPAY_KEY_SECRET;
-    
-    // Validate Razorpay keys
     if (empty($razorpayKeyId) || $razorpayKeyId === 'rzp_test_YOUR_KEY_ID_HERE' || strpos($razorpayKeyId, 'YOUR_KEY') !== false) {
         echo json_encode(['success' => false, 'message' => 'Razorpay Key ID is not configured. Please set RAZORPAY_KEY_ID in config.php']);
         exit;
@@ -77,8 +56,6 @@ try {
         echo json_encode(['success' => false, 'message' => 'Razorpay Key Secret is not configured. Please set RAZORPAY_KEY_SECRET in config.php']);
         exit;
     }
-    
-    // Create order via Razorpay API
     $orderData = [
         'amount' => $amountInPaise,
         'currency' => 'INR',
@@ -94,8 +71,6 @@ try {
             'customer_phone' => $customerPhone
         ]
     ];
-    
-    // Make API call to Razorpay
     $ch = curl_init('https://api.razorpay.com/v1/orders');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -104,14 +79,11 @@ try {
         'Content-Type: application/json',
         'Authorization: Basic ' . base64_encode($razorpayKeyId . ':' . $razorpayKeySecret)
     ]);
-    // For localhost, you might need to disable SSL verification (development only)
-    // In production, always keep SSL verification enabled
     $isLocalhost = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1', '::1']) || 
                    strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false ||
                    strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false;
     
     if ($isLocalhost && RAZORPAY_MODE === 'test') {
-        // Disable SSL verification for localhost test mode only
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     } else {
@@ -124,8 +96,6 @@ try {
     $curlError = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
-    // Check for cURL errors
     if ($response === false || !empty($curlError)) {
         error_log("Razorpay cURL Error: " . $curlError);
         echo json_encode([
@@ -134,8 +104,6 @@ try {
         ]);
         exit;
     }
-    
-    // Check HTTP status code
     if ($httpCode !== 200) {
         $errorData = json_decode($response, true);
         $errorMsg = 'Failed to create order';
@@ -151,8 +119,6 @@ try {
         } elseif (isset($errorData['message'])) {
             $errorMsg = $errorData['message'];
         }
-        
-        // Log full error for debugging
         error_log("Razorpay API Error (HTTP $httpCode): " . $response);
         
         echo json_encode([
@@ -174,14 +140,10 @@ try {
         ]);
         exit;
     }
-    
-    // Store order details in database (optional but recommended)
     try {
         require_once '../../config/database.php';
         $database = new Database();
         $db = $database->getConnection();
-        
-        // Create table if it doesn't exist
         $db->exec("
             CREATE TABLE IF NOT EXISTS razorpay_orders (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -221,11 +183,8 @@ try {
             $customerPhone
         ]);
     } catch (Exception $e) {
-        // Log error but don't fail the request
         error_log("Failed to store Razorpay order in database: " . $e->getMessage());
     }
-    
-    // Return success response
     echo json_encode([
         'success' => true,
         'order_id' => $orderResponse['id'],
@@ -239,4 +198,3 @@ try {
     echo json_encode(['success' => false, 'message' => 'Failed to create payment order. Please try again.']);
 }
 ?>
-

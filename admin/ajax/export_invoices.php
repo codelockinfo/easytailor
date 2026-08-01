@@ -1,21 +1,14 @@
 <?php
-/**
- * Export Invoices AJAX Endpoint
- * Tailoring Management System
- */
-
 require_once '../../config/config.php';
 require_once '../models/Invoice.php';
 require_once '../models/Order.php';
 require_once '../models/Customer.php';
 require_once '../models/Payment.php';
-
 if (!is_logged_in()) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
-
 if (!has_role('admin')) {
     http_response_code(403);
     echo json_encode(['error' => 'Access denied']);
@@ -31,7 +24,6 @@ if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
-
 require_once '../../helpers/SubscriptionHelper.php';
 $exportCheck = SubscriptionHelper::canExportData(get_company_id());
 if (!$exportCheck['allowed']) {
@@ -39,17 +31,13 @@ if (!$exportCheck['allowed']) {
     echo json_encode(['error' => $exportCheck['message']]);
     exit;
 }
-
 try {
     $invoiceModel = new Invoice();
     $orderModel = new Order();
     $customerModel = new Customer();
     $paymentModel = new Payment();
-    
     $invoices = $invoiceModel->getInvoicesWithDetails();
-    
     $filename = 'invoices_export_' . date('Y-m-d_H-i-s') . '.xls';
-    
     $excelContent = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     $excelContent .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
     $excelContent .= '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">' . "\n";
@@ -59,7 +47,6 @@ try {
     $excelContent .= '</DocumentProperties>' . "\n";
     $excelContent .= '<Worksheet ss:Name="Invoices">' . "\n";
     $excelContent .= '<Table>' . "\n";
-    
     $excelContent .= '<Row>' . "\n";
     $headers = [
         'Invoice Number', 'Invoice Date', 'Due Date', 'Customer',
@@ -72,7 +59,6 @@ try {
     $excelContent .= '</Row>' . "\n";
     foreach ($invoices as $invoice) {
         $customerName = trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? '')) ?: ($invoice['measurement_customer_name'] ?? ($invoice['order_customer_name'] ?? 'Unknown'));
-        
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_number'] ?? '') . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($invoice['invoice_date'] ?? '') . '</Data></Cell>' . "\n";
@@ -94,7 +80,6 @@ try {
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($invoice['created_at'] ?? 'now'))) . '</Data></Cell>' . "\n";
         $excelContent .= '</Row>' . "\n";
     }
-    
     $excelContent .= '</Table>' . "\n";
     $excelContent .= '</Worksheet>' . "\n";
     $excelContent .= '</Workbook>';
@@ -104,7 +89,6 @@ try {
     header('Pragma: public');
     header('Content-Length: ' . strlen($excelContent));
     echo $excelContent;
-    
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Export failed: ' . $e->getMessage()]);

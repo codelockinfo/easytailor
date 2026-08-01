@@ -1,13 +1,6 @@
 <?php
-/**
- * AJAX Contact Filter Endpoint
- * Tailoring Management System
- */
-
-// Set content type to JSON
 header('Content-Type: application/json');
 ob_start();
-
 try {
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
@@ -18,21 +11,18 @@ try {
         echo json_encode(['success' => false, 'error' => 'Unauthorized']);
         exit;
     }
-
     require_once $rootDir . '/../models/Contact.php';
     
     $category = $_GET['category'] ?? '';
     $search = $_GET['search'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
-    
     if ($limit <= 0) {
         $limit = RECORDS_PER_PAGE;
     }
     if ($page <= 0) {
         $page = 1; 
     }
-
     $contactModel = new Contact();
     $conditions = [];
     if (!empty($category)) {
@@ -49,7 +39,6 @@ try {
                    strpos(strtolower($contact['phone'] ?? ''), $searchLower) !== false;
         });
     }
-    
     $totalContacts = count($contacts);
     $totalPages = $limit > 0 ? ceil($totalContacts / $limit) : 1;
     $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
@@ -76,7 +65,6 @@ try {
             ];
         }, $categories)
     ];
-    
     echo json_encode([
         'success' => true,
         'contacts' => $formattedContacts,
@@ -89,7 +77,6 @@ try {
             'has_next' => $page < $totalPages
         ]
     ]);
-    
 } catch (Exception $e) {
     ob_clean();
     http_response_code(500);

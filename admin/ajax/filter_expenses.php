@@ -1,82 +1,51 @@
 <?php
-/**
- * AJAX Expense Filter Endpoint
- * Tailoring Management System
- */
-
-// Set content type to JSON
 header('Content-Type: application/json');
-
-// Start output buffering to catch any errors
 ob_start();
-
 try {
-    // Get the directory of this script
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
-    
     require_once $rootDir . '/../config/config.php';
-
-    // Check if user is logged in
     if (!is_logged_in()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Unauthorized']);
         exit;
     }
-
     require_once $rootDir . '/models/Expense.php';
     require_once $rootDir . '/models/Category.php';
-
-    // Get filter parameters
     $category = $_GET['category'] ?? '';
     $search = $_GET['search'] ?? '';
     $date_from = $_GET['date_from'] ?? '';
     $date_to = $_GET['date_to'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
-    
-    // Validate and fix limit parameter
     if ($limit <= 0) {
-        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+        $limit = RECORDS_PER_PAGE; 
     }
-    
-    // Validate page parameter
     if ($page <= 0) {
-        $page = 1; // Default to page 1 if page is 0 or negative
+        $page = 1; 
     }
-
     $expenseModel = new Expense();
-    
-    // Build conditions (only for category, date filters handled separately)
     $conditions = [];
     if (!empty($category)) {
         $conditions['category'] = $category;
     }
-    
-    // Get expenses
     $offset = ($page - 1) * $limit;
     
     try {
-        // Get all expenses first (with category filter if any)
         $allExpenses = $expenseModel->getExpensesWithDetails($conditions, 10000, 0);
     } catch (Exception $e) {
         error_log('Error getting expenses: ' . $e->getMessage());
         $allExpenses = [];
     }
-    
-    // Ensure $allExpenses is an array
     if (!is_array($allExpenses)) {
         $allExpenses = [];
     }
-    
-    // Apply date filters if provided
     if (!empty($date_from) || !empty($date_to)) {
         $allExpenses = array_filter($allExpenses, function($expense) use ($date_from, $date_to) {
             $expenseDate = $expense['expense_date'] ?? '';
             if (empty($expenseDate)) {
                 return false;
             }
-            
             $expenseTimestamp = strtotime($expenseDate);
             
             if (!empty($date_from)) {
@@ -85,21 +54,16 @@ try {
                     return false;
                 }
             }
-            
             if (!empty($date_to)) {
                 $toTimestamp = strtotime($date_to);
                 if ($expenseTimestamp > $toTimestamp) {
                     return false;
                 }
             }
-            
             return true;
         });
-        // Re-index array after filtering
         $allExpenses = array_values($allExpenses);
     }
-    
-    // Apply search filter if provided
     if (!empty($search)) {
         $searchLower = strtolower(trim($search));
         $allExpenses = array_filter($allExpenses, function($expense) use ($searchLower) {
@@ -107,20 +71,16 @@ try {
             $description = strtolower($expense['description'] ?? '');
             $paymentMethod = strtolower($expense['payment_method'] ?? '');
             $referenceNumber = strtolower($expense['reference_number'] ?? '');
-            
             return strpos($category, $searchLower) !== false ||
                    strpos($description, $searchLower) !== false ||
                    strpos($paymentMethod, $searchLower) !== false ||
                    strpos($referenceNumber, $searchLower) !== false;
         });
-        // Re-index array after filtering
         $allExpenses = array_values($allExpenses);
     }
     $totalExpenses = count($allExpenses);
     $expenses = array_slice($allExpenses, $offset, $limit);
     $totalPages = $limit > 0 ? ceil($totalExpenses / $limit) : 1;
-    
-    // Calculate dynamic stats based on filtered expenses
     $totalCashIn = 0;
     $totalCashOut = 0;
     foreach ($allExpenses as $expense) {
@@ -133,7 +93,6 @@ try {
         }
     }
     $profit = $totalCashIn - $totalCashOut;
-    
     $formattedExpenses = [];
     foreach ($expenses as $expense) {
         $formattedExpenses[] = [
@@ -152,7 +111,6 @@ try {
     if (!is_array($formattedExpenses)) {
         $formattedExpenses = [];
     }
-    
     echo json_encode([
         'success' => true,
         'expenses' => $formattedExpenses,
@@ -172,7 +130,6 @@ try {
     ]);
     
 } catch (Exception $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -180,7 +137,6 @@ try {
         'error' => 'Filter failed: ' . $e->getMessage()
     ]);
 } catch (Error $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -188,6 +144,4 @@ try {
         'error' => 'Filter failed: ' . $e->getMessage()
     ]);
 }
-
-// End output buffering
 ob_end_flush();

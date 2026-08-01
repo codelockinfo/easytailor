@@ -1,17 +1,9 @@
 <?php
-/**
- * AJAX Add Payment Endpoint
- * Tailoring Management System
- */
-
-// Set content type to JSON
 header('Content-Type: application/json');
 ob_start();
-
 try {
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
-    
     require_once $rootDir . '/../config/config.php';
     if (!is_logged_in()) {
         http_response_code(401);
@@ -28,7 +20,6 @@ try {
         echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
         exit;
     }
-
     require_once $rootDir . '/../models/Payment.php';
     require_once $rootDir . '/../models/Invoice.php';
     $invoiceId = (int)($_POST['invoice_id'] ?? 0);
@@ -40,22 +31,18 @@ try {
         echo json_encode(['success' => false, 'error' => 'Invalid invoice ID']);
         exit;
     }
-
     if ($amount <= 0) {
         echo json_encode(['success' => false, 'error' => 'Payment amount must be greater than 0']);
         exit;
     }
-
     if (empty($paymentMethod)) {
         echo json_encode(['success' => false, 'error' => 'Payment method is required']);
         exit;
     }
-
     if (empty($paymentDate)) {
         echo json_encode(['success' => false, 'error' => 'Payment date is required']);
         exit;
     }
-
     $validMethods = ['cash', 'card', 'bank_transfer', 'check', 'upi', 'other'];
     if (!in_array($paymentMethod, $validMethods)) {
         echo json_encode(['success' => false, 'error' => 'Invalid payment method']);
@@ -63,18 +50,15 @@ try {
     }
     $invoiceModel = new Invoice();
     $invoices = $invoiceModel->getInvoicesWithDetails(['i.id' => $invoiceId], 1);
-    
     if (empty($invoices)) {
         echo json_encode(['success' => false, 'error' => 'Invoice not found']);
         exit;
     }
-
     $invoice = $invoices[0];
     if ($amount > $invoice['balance_amount']) {
         echo json_encode(['success' => false, 'error' => 'Payment amount cannot exceed balance amount']);
         exit;
     }
-
     $paymentModel = new Payment();
     $paymentData = [
         'invoice_id' => $invoiceId,

@@ -1,36 +1,22 @@
 <?php
-/**
- * AJAX Order Filter Endpoint
- * Tailoring Management System
- */
-
-// Set content type to JSON
 header('Content-Type: application/json');
-
-// Start output buffering to catch any errors
 ob_start();
 
 try {
-    // Get the directory of this script
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
     
     require_once $rootDir . '/../config/config.php';
-
-    // Check if user is logged in
     if (!is_logged_in()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Unauthorized']);
         exit;
     }
-
     require_once $rootDir . '/models/Order.php';
     require_once $rootDir . '/../models/Customer.php';
     require_once $rootDir . '/../models/Measurement.php';
     require_once $rootDir . '/models/ClothType.php';
     require_once $rootDir . '/models/User.php';
-
-    // Get filter parameters
     $status = $_GET['status'] ?? '';
     $search = $_GET['search'] ?? '';
     $customer_id = $_GET['customer_id'] ?? '';
@@ -40,15 +26,11 @@ try {
     $end_date = $_GET['end_date'] ?? '';
     $page = (int)($_GET['page'] ?? 1);
     $limit = (int)($_GET['limit'] ?? RECORDS_PER_PAGE);
-    
-    // Validate and fix limit parameter
     if ($limit <= 0) {
-        $limit = RECORDS_PER_PAGE; // Default to records per page if limit is 0 or negative
+        $limit = RECORDS_PER_PAGE; 
     }
-    
-    // Validate page parameter
     if ($page <= 0) {
-        $page = 1; // Default to page 1 if page is 0 or negative
+        $page = 1;
     }
 
     $orderModel = new Order();
@@ -56,8 +38,6 @@ try {
     $measurementModel = new Measurement();
     $clothTypeModel = new ClothType();
     $userModel = new User();
-    
-    // Build conditions
     $conditions = [];
     if (!empty($status)) {
         $conditions['status'] = $status;
@@ -77,12 +57,8 @@ try {
     if (!empty($end_date)) {
         $conditions['end_date'] = $end_date;
     }
-    
-    // Get orders
     $offset = ($page - 1) * $limit;
     $orders = $orderModel->getOrdersWithDetails($conditions, $limit, $offset);
-    
-    // If search is provided, filter results manually
     if (!empty($search)) {
         $searchLower = strtolower($search);
         $orders = array_filter($orders, function($order) use ($searchLower) {
@@ -95,24 +71,16 @@ try {
                    strpos(strtolower($order['customer_phone'] ?? ''), $searchLower) !== false;
         });
     }
-    
     $totalOrders = count($orders);
     $totalPages = $limit > 0 ? ceil($totalOrders / $limit) : 1;
-    
-    // Get filter options
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
     $measurementCustomers = $measurementModel->getDistinctCustomerNames();
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
-    
-    // Get tailors - try different approaches
     try {
         $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
     } catch (Exception $e) {
-        // Fallback: get all active users
         $tailors = $userModel->findAll(['status' => 'active'], 'full_name');
     }
-    
-    // Format orders for display - match original table structure exactly
     $formattedOrders = [];
     foreach ($orders as $order) {
         $formattedOrders[] = [
@@ -144,8 +112,6 @@ try {
             'created_at' => $order['created_at']
         ];
     }
-    
-    // Format filter options - use measurement customer names
     $filterOptions = [
         'customers' => array_map(function($mc) {
             return [
@@ -168,7 +134,6 @@ try {
             ];
         }, $tailors ?: [])
     ];
-    
     echo json_encode([
         'success' => true,
         'orders' => $formattedOrders,
@@ -181,9 +146,7 @@ try {
             'has_next' => $page < $totalPages
         ]
     ]);
-    
 } catch (Exception $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -191,7 +154,6 @@ try {
         'error' => 'Filter failed: ' . $e->getMessage()
     ]);
 } catch (Error $e) {
-    // Clear any output
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -199,6 +161,4 @@ try {
         'error' => 'Filter failed: ' . $e->getMessage()
     ]);
 }
-
-// End output buffering
 ob_end_flush();

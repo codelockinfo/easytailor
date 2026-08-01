@@ -1,26 +1,15 @@
 <?php
-/**
- * AJAX Cloth Type Filter Endpoint
- * Tailoring Management System
- */
-
-// Set content type to JSON
 header('Content-Type: application/json');
-
-// Start output buffering to catch any errors
 ob_start();
-
 try {
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
-    
     require_once $rootDir . '/../config/config.php';
     if (!is_logged_in()) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Unauthorized']);
         exit;
     }
-
     require_once $rootDir . '/models/ClothType.php';
     require_once $rootDir . '/models/Category.php';
     $categoryModel = new Category();
@@ -34,25 +23,21 @@ try {
     if ($page <= 0) {
         $page = 1;
     }
-
     $clothTypeModel = new ClothType();
     $conditions = [];
     if (!empty($category)) {
         $conditions['category'] = $category;
     }
     $offset = ($page - 1) * $limit;
-    
     try {
         $clothTypes = $clothTypeModel->getClothTypesWithOrderCount();
     } catch (Exception $e) {
         error_log('Error getting cloth types: ' . $e->getMessage());
         $clothTypes = [];
     }
-    
     if (!is_array($clothTypes)) {
         $clothTypes = [];
     }
-    
     if (!empty($category)) {
         $clothTypes = array_filter($clothTypes, function($clothType) use ($category) {
             return isset($clothType['category']) && $clothType['category'] === $category;
@@ -80,7 +65,6 @@ try {
     $categories = array_unique(array_column($dbCategories, 'name'));
     $categories = array_filter($categories); 
     $categories = array_values($categories); 
-    
     $formattedClothTypes = [];
     foreach ($clothTypes as $clothType) {
         $formattedClothTypes[] = [
@@ -101,7 +85,6 @@ try {
     $filterOptions = [
         'categories' => array_values($categories)
     ];
-    
     echo json_encode([
         'success' => true,
         'cloth_types' => $formattedClothTypes,

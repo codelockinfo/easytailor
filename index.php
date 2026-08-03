@@ -295,8 +295,9 @@
     </script>
 </head>
 <body>
-    <!-- Announcement Bar -->
-    <?php require_once 'includes/announcement-bar.php'; ?>
+    <div class="desktop-only-view">
+        <!-- Announcement Bar -->
+        <?php require_once 'includes/announcement-bar.php'; ?>
     
     <!-- Scroll Progress Indicator -->
     <div class="scroll-indicator" id="scrollIndicator">

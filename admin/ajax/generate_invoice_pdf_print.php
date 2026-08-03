@@ -1,69 +1,46 @@
 <?php
-/**
- * Generate Invoice PDF (Print Version)
- * Tailoring Management System
- */
-
-// Set content type to HTML for print-friendly output
 header('Content-Type: text/html; charset=UTF-8');
 
 try {
-    // Get the directory of this script
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
-    
     require_once $rootDir . '/../config/config.php';
-
-    // Check if user is logged in
     if (!is_logged_in()) {
         die('Unauthorized access');
     }
-
-    // Get invoice ID
     $invoiceId = (int)($_GET['id'] ?? 0);
     
     if (!$invoiceId) {
         die('Invoice ID is required');
     }
-
     require_once $rootDir . '/../models/Invoice.php';
     require_once $rootDir . '/../models/Order.php';
     require_once $rootDir . '/../models/Payment.php';
     require_once $rootDir . '/../models/Company.php';
     require_once $rootDir . '/../models/Customer.php';
-
     $invoiceModel = new Invoice();
     $orderModel = new Order();
     $paymentModel = new Payment();
     $companyModel = new Company();
     $customerModel = new Customer();
-
-    // Get invoice with details
     $invoices = $invoiceModel->getInvoicesWithDetails(['i.id' => $invoiceId], 1);
-    
     if (empty($invoices)) {
         die('Invoice not found');
     }
-
     $invoice = $invoices[0];
     $order = $orderModel->find($invoice['order_id']);
     $customer = $customerModel->find($order['customer_id']);
     $payments = $paymentModel->getInvoicePayments($invoiceId);
     $companyId = get_company_id();
     $company = $companyId ? $companyModel->find($companyId) : null;
-
-    // Generate the invoice HTML
     generateInvoicePrintHTML($invoice, $order, $customer, $payments, $company);
     
 } catch (Exception $e) {
     die('Error: ' . $e->getMessage());
 }
-
 function generateInvoicePrintHTML($invoice, $order, $customer, $payments, $company) {
     $invoiceDate = date('d/m/Y', strtotime($invoice['created_at']));
     $dueDate = date('d/m/Y', strtotime($invoice['due_date']));
-    
-    // Status determination
     $statusClass = 'status-pending';
     $statusText = 'Pending';
     if ($invoice['balance_amount'] <= 0) {
@@ -86,14 +63,12 @@ function generateInvoicePrintHTML($invoice, $order, $customer, $payments, $compa
             padding: 0;
             box-sizing: border-box;
         }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             background: white;
         }
-        
         .invoice-container {
             max-width: 800px;
             margin: 0 auto;

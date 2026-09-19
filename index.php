@@ -65,7 +65,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
-    <link href="assets/css/style13.css" rel="stylesheet">
+    <link href="assets/css/style14.css" rel="stylesheet">
     
     <script type="application/ld+json">
     {

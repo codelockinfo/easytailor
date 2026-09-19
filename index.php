@@ -1346,7 +1346,7 @@
                 </div>
                 <?php endif; ?>
             </div>
-            <?php endif; 
+            <?php endif; ?>
 
             <div class="passYourThoughts-section text-center p">
                 <div class="container">

@@ -1,10 +1,5 @@
 <?php
-/**
- * Article Detail Page
- * Tailoring Management System - Standalone Page
- */
 
-// Get article slug from URL
 $slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 
 if (empty($slug)) {
@@ -12,7 +7,6 @@ if (empty($slug)) {
     exit;
 }
 
-// Load articles from JSON
 $articlesData = null;
 $article = null;
 $dataDir = __DIR__ . '/data';
@@ -27,7 +21,7 @@ if (file_exists($articlesFile)) {
     $articlesData = json_decode($jsonContent, true);
     
     if ($articlesData && isset($articlesData['articles']) && is_array($articlesData['articles'])) {
-        // Find article by slug
+     
         foreach ($articlesData['articles'] as $art) {
             if (isset($art['slug']) && $art['slug'] === $slug) {
                 $article = $art;
@@ -36,28 +30,20 @@ if (file_exists($articlesFile)) {
         }
     }
 }
-
-// If article not found, redirect to blog
 if (!$article) {
     header('Location: blog.php');
     exit;
 }
-
-// Determine back link based on referrer or URL parameter
-$backLink = 'blog.php'; // Default to blog page
+$backLink = 'blog.php'; 
 $backText = 'Back to Blog';
-
-// Check for URL parameter first (more reliable)
 if (isset($_GET['from']) && $_GET['from'] === 'index') {
     $backLink = './#blog';
     $backText = 'Back to Home';
 } else {
-    // Fallback to HTTP_REFERER
     $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
     
     if (!empty($referrer)) {
         $referrerPath = parse_url($referrer, PHP_URL_PATH);
-        // Check if referrer contains index.php or is the root/homepage
         if (strpos($referrerPath, 'index.php') !== false || 
             $referrerPath === '/' || 
             empty(parse_url($referrer, PHP_URL_PATH)) ||
@@ -67,11 +53,7 @@ if (isset($_GET['from']) && $_GET['from'] === 'index') {
         }
     }
 }
-
-// Set page title
 $page_title = $article['title'];
-
-// Load SEO Helper if available
 if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
     require_once 'helpers/SEOHelper.php';
 }
@@ -101,8 +83,6 @@ $seoOptions = [
         echo '<meta name="description" content="' . htmlspecialchars($seoOptions['description']) . '">';
     }
     ?>
-    
-    <!-- Google Analytics 4 (GA4) -->
     <?php
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
         require_once 'helpers/GA4Helper.php';
@@ -111,32 +91,29 @@ $seoOptions = [
         }
     }
     ?>
-    
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
+    
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
+   
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <link href="assets/css/style13.css" rel="stylesheet">
-    
     <style>
         .article-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 60px 0;
+            padding: 100px 0 50px;
+        }
+        @media (max-width: 768px) {
+            .article-header {
+                padding: 85px 16px 35px;
+            }
         }
         .articale-section{
             background-color:#f9f9f9;
@@ -145,7 +122,6 @@ $seoOptions = [
             max-width: 800px;
             margin: 0 auto;
         }
-        
         .article-category-badge {
             display: inline-block;
             background: rgba(255, 255, 255, 0.2);
@@ -156,14 +132,12 @@ $seoOptions = [
             font-weight: 500;
             margin-bottom: 1rem;
         }
-        
         .article-title {
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
             line-height: 1.2;
         }
-        
         .article-meta {
             display: flex;
             align-items: center;
@@ -172,33 +146,28 @@ $seoOptions = [
             opacity: 0.9;
             flex-wrap: wrap;
         }
-        
         .article-meta span {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        
         .article-image-wrapper {
             margin: 1rem 0;
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-        
         .article-image {
             width: 100%;
             height: 400px;
             object-fit: cover;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
         .article-content {
             max-width: 1100px;
             margin: 0 auto;
             padding: 1rem 0;
         }
-        
         .article-content p {
             font-size: 1.125rem;
             line-height: 1.8;
@@ -274,10 +243,7 @@ $seoOptions = [
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
-
-    <!-- Article Header -->
     <section class="article-header">
         <div class="container">
             <div class="article-header-content">
@@ -291,8 +257,6 @@ $seoOptions = [
             </div>
         </div>
     </section>
-
-    <!-- Article Content -->
     <section class="py-4 articale-section">
         <div class="container">
             <a href="<?php echo htmlspecialchars($backLink); ?>" class="back-to-blog">
@@ -324,20 +288,11 @@ $seoOptions = [
             </div>
         </div>
     </section>
-
-    <!-- Footer -->
     <?php require_once 'includes/footer.php'; ?>
-
-    <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Go to Top Button -->
 <script src="assets/js/script2.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
-    
-    <!-- GA4 Page View Tracking -->
     <?php
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
         require_once 'helpers/GA4Helper.php';

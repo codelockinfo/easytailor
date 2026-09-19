@@ -1,13 +1,5 @@
 <?php
-/**
- * Blog Page
- * Tailoring Management System - Standalone Page
- */
-
-// Set page title
 $page_title = 'Blog';
-
-// Load SEO Helper if available
 if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
     require_once 'helpers/SEOHelper.php';
 }
@@ -22,8 +14,6 @@ $seoOptions = [
     'canonical' => $canonicalUrl,
     'og_type' => 'website'
 ];
-
-// Load articles from JSON
 $articlesData = null;
 $articles = [];
 $dataDir = __DIR__ . '/data';
@@ -57,8 +47,6 @@ if (file_exists($articlesFile)) {
         echo '<meta name="description" content="' . htmlspecialchars($seoOptions['description']) . '">';
     }
     ?>
-    
-    <!-- Google Analytics 4 (GA4) -->
     <?php
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
         require_once 'helpers/GA4Helper.php';
@@ -67,64 +55,58 @@ if (file_exists($articlesFile)) {
         }
     }
     ?>
-    
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
+    
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
+   
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <link href="assets/css/style13.css" rel="stylesheet">
-    
     <style>
         .blog-hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 50px 0;
+            padding: 100px 0 50px;
             text-align: center;
         }
         
         .blog-hero h1 {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 800;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             letter-spacing: -1px;
+            font-family: 'Inter', sans-serif;
         }
-        
         .blog-hero p {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             opacity: 0.9;
             max-width: 600px;
             margin: 0 auto;
+            font-family: 'Inter', sans-serif;
         }
 
         @media (max-width: 768px) {
             .blog-hero {
-                padding: 40px 0;
+                padding: 85px 16px 35px;
             }
             .blog-hero h1 {
-                font-size: 2.5rem;
+                font-size: 2rem;
+            }
+            .blog-hero p {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
-
-    <!-- Blog Hero Section -->
     <section class="blog-hero">
         <div class="container">
             <div class="row">
@@ -135,8 +117,6 @@ if (file_exists($articlesFile)) {
             </div>
         </div>
     </section>
-
-    <!-- Blog Articles Section -->
     <section class="py-3 py-md-5 blog-section">
         <div class="container">
             <?php if (empty($articles)): ?>
@@ -180,20 +160,13 @@ if (file_exists($articlesFile)) {
             <?php endif; ?>
         </div>
     </section>
-
-    <!-- Footer -->
     <?php require_once 'includes/footer.php'; ?>
 
-    <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
-    <!-- Go to Top Button -->
 <script src="assets/js/script2.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- GA4 Page View Tracking -->
     <?php
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
         require_once 'helpers/GA4Helper.php';

@@ -1,9 +1,3 @@
-/* ========================================
-   Tailoring Management System Landing Page
-   Modern, Responsive, SEO-Optimized
-======================================== */
-
-/* Go to Top Button */
 
 .footer-toggle-icon {
     display: none !important;
@@ -16,7 +10,6 @@
 .go-to-top-btn {
     position: fixed;
     bottom: 20px;
-        /* Default for other pages */
         right: 30px;
         width: 50px;
         height: 50px;
@@ -36,26 +29,19 @@
         align-items: center;
         justify-content: center;
 }
-
-/* Home page specific positioning */
 .go-to-top-btn.home-page {
     bottom: 100px;
-        /* Desktop for home page */
 }
-
 @media (max-width: 768px) {
     .go-to-top-btn.home-page {
         bottom: 60px;
-            /* Mobile for home page */
         }
 }
-
 .go-to-top-btn.show {
     opacity: 1;
         visibility: visible;
         transform: translateY(0);
 }
-
 .go-to-top-btn:hover {
     background: var(--secondary-color);
         transform: translateY(-2px);
@@ -66,20 +52,15 @@
     transform: translateY(0);
         box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
 }
-
-/* Responsive adjustments for mobile */
 @media (max-width: 768px) {
     .go-to-top-btn {
         bottom: 10px;
-            /* Default mobile for other pages */
-            right: 20px;
+            right: 88px;
             width: 45px;
             height: 45px;
             font-size: 16px;
         }
 }
-
-/* CSS Variables */
 :root {
     --primary-color: #667eea;
         --secondary-color: #764ba2;
@@ -94,8 +75,6 @@
         --border-radius: 12px;
         --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-/* Announcement Bar Styles */
 .announcement-bar {
     position: fixed;
         top: 0;
@@ -121,13 +100,10 @@
         padding: 0 !important;
 }
 
-/* Adjust navbar position when announcement bar is visible */
-/* Ensure navbar stays below announcement bar */
 body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top {
     top: auto;
 }
 
-/* Fallback for browsers that don't support :has() */
 .announcement-bar:not(.hidden)~.scroll-indicator~.navbar.fixed-top {
     top: auto;
     margin-top: 0;
@@ -146,15 +122,12 @@ body:has(.announcement-bar:not(.hidden)) .navbar.fixed-top,
 }
 
 body.announcement-visible .navbar.fixed-top {
-    /* JS sets top dynamically */
         margin-top: 0;
 }
 
 .hero-logo-section {
     display: none;
 }
-
-/* Scroll Progress Indicator */
 .scroll-indicator {
     position: sticky;
         top: 0;
@@ -165,7 +138,6 @@ body.announcement-visible .navbar.fixed-top {
         backdrop-filter: blur(10px);
         margin: 0;
         padding: 0;
-        /* will-change: transform; */
 }
 
 .scroll-progress-bar {
@@ -176,17 +148,12 @@ body.announcement-visible .navbar.fixed-top {
         box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
         border-radius: 0 2px 2px 0;
         min-width: 0%;
-        /* will-change: width; */
 }
-
-/* Make sure it's visible */
 .scroll-indicator {
     display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
 }
-
-/* Base Styles */
 * {
     margin: 0;
         padding: 0;
@@ -204,41 +171,30 @@ body {
         transform: none !important;
         perspective: none !important;
 }
-
-/* Prevent background scrolling when modal is open */
 body.modal-open {
     overflow: hidden !important;
         height: 100vh !important;
 }
-
-
-/* Ensure sticky buttons work - body should not interfere */
 body>.sticky-cta,
 body>.sticky-cta-left {
     position: fixed !important;
 }
 
 html {
-    overflow-x: hidden;
+    overflow-x: clip;
         scroll-behavior: smooth;
         margin: 0 !important;
         padding: 0 !important;
 }
-
-/* Remove any extra bottom spacing */
 body>*:last-child {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
 }
-
-/* Ensure no gap at bottom of page */
 html,
 body {
     height: auto !important;
     min-height: auto !important;
 }
-
-/* Remove any spacing from sticky elements - they are fixed so don't create layout space */
 .sticky-cta,
 .sticky-cta-left {
     margin: 0 !important;
@@ -248,13 +204,9 @@ body {
         visibility: visible !important;
         opacity: 1 !important;
 }
-
-/* Ensure body doesn't extend beyond content */
 body {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
-
-/* Remove any bottom spacing that might be created */
 body::after,
 html::after {
     display: none !important;
@@ -263,14 +215,7 @@ html::after {
         margin: 0 !important;
         padding: 0 !important;
 }
-
-/* Typography */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2,h3,h4,h5,h6 {
     font-family: 'Playfair Display', serif;
     font-weight: 600;
     line-height: 1.2;
@@ -287,26 +232,14 @@ h6 {
 .section-description {
     font-size: 1.125rem;
         color: var(--text-light);
-        /* margin-bottom: 2rem; */
 }
-
-/* Navigation */
 .navbar {
     transition: var(--transition);
         padding: 0rem 0;
 }
-
-/* Adjust navbar when announcement bar is visible */
-body.announcement-visible .navbar.fixed-top {
-    /* Handled by JS */
-}
-
-/* Ensure proper spacing when announcement bar is visible */
 body.announcement-visible {
     padding-top: 0;
 }
-
-/* Fixed navbar positioning - below scroll indicator */
 .navbar.fixed-top {
     z-index: 1020;
 }
@@ -322,14 +255,8 @@ body.announcement-visible {
 .navbar-logo {
     width: 120px;
         height: 70px;
-        /* filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%); */
         transition: var(--transition);
 }
-
-/* .navbar-logo:hover {
-    filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%) drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
-} */
-
 .navbar-nav {
     align-items: center;
 }
@@ -383,8 +310,6 @@ body.announcement-visible {
     color: var(--primary-color) !important;
     border: 2px solid var(--primary-color) !important;
 }
-
-/* Hero Section */
 .hero-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
@@ -396,8 +321,6 @@ body.announcement-visible {
     padding-top: 130px;
     padding-bottom: 2rem;
 }
-
-/* Fix top cutoff on short screens */
 @media (max-height: 800px) {
     .hero-section {
         align-items: flex-start;
@@ -619,9 +542,6 @@ body.announcement-visible {
 .hero-shape .shape-fill {
     fill: var(--bg-white);
 }
-
-/* About Section */
-/* Blog Section Styles */
 .blog-section {
     padding: 60px 0;
     background-color: #f8fafc;
@@ -670,7 +590,7 @@ body.announcement-visible {
 
 .article-category {
     display: inline-block;
-    align-self: flex-start; /* CRITICAL FIX: Prevent stretching in flex column */
+    align-self: flex-start;
     background: rgba(102, 126, 234, 0.1);
     color: #667eea;
     padding: 0.4rem 1rem;
@@ -790,13 +710,9 @@ body.announcement-visible {
         z-index: 2;
         background-color: var(--bg-white);
 }
-
-/* Features Section */
 .features-section {
     padding: 30px 0px;
 }
-
-/* Features Slider Styles */
 .features-slider {
     margin: 0 -15px;
 }
@@ -813,8 +729,6 @@ body.announcement-visible {
 .link-list {
     padding: 0px !important;
 }
-
-/* Desktop: Show as grid, Mobile: Show as slider */
 @media (min-width: 1024px) {
     .features-slider {
             display: grid !important;
@@ -847,8 +761,6 @@ body.announcement-visible {
         .features-slider .slick-dots {
             display: none !important;
         }
-    
-        /* Ensure proper grid layout */
     	.features-slider>div {
     	    display: contents !important;
     	}
@@ -908,7 +820,6 @@ body.announcement-visible {
         line-height: 1.6;
 }
 
-/* Slick Slider Custom Styles */
 .features-slider .slick-prev,
 .features-slider .slick-next {
     width: 50px;
@@ -964,13 +875,9 @@ body.announcement-visible {
 .tailors-near-you .btn-primary:hover {
     background: #667eea;
 }
-
-/* Benefits Section */
 .benefits-section {
     padding: 30px 0px;
 }
-
-/* Benefits Slider Styles */
 .benefits-slider {
     margin: 0 -15px;
     padding: 30px 0 !important;
@@ -1033,8 +940,6 @@ body.announcement-visible {
         line-height: 1.6;
         margin-bottom: 0;
 }
-
-/* Desktop: Show as grid, Mobile: Show as slider */
 @media (min-width: 1024px) {
     .benefits-slider {
             display: grid !important;
@@ -1067,13 +972,9 @@ body.announcement-visible {
         .benefits-slider .slick-dots {
             display: none !important;
         }
-    
-        /* Ensure proper grid layout */
     	.benefits-slider>div {
     	    display: contents !important;
     	}
-    
-    	/* Steps Slider Desktop Grid */
     	.steps-slider {
     	    display: grid !important;
     	    grid-template-columns: repeat(4, 1fr);
@@ -1108,8 +1009,6 @@ body.announcement-visible {
     	.steps-slider>div {
     	    display: contents !important;
     	}
-    
-    	/* Screenshots Slider Desktop Grid */
     	.screenshots-slider {
     	    display: grid !important;
     	    grid-template-columns: repeat(3, 1fr);
@@ -1144,9 +1043,6 @@ body.announcement-visible {
     	.screenshots-slider>div {
     	    display: contents !important;
     	}
-    
-    	/* Testimonials Slider Desktop Grid */
-    	/* Custom testimonials slider - override slick styles */
     	.testimonials-slider-wrapper {
     	    position: relative;
     	}
@@ -1162,13 +1058,9 @@ body.announcement-visible {
     	.testimonial-slide {
     	    flex-shrink: 0;
     	}
-    
-    	/* Hide slick slider if it exists */
     	.testimonials-slider.slick-initialized {
     	    display: none !important;
     	}
-    
-    	/* Pricing Slider Desktop Grid */
     	.pricing-slider {
     	    display: grid !important;
     	    grid-template-columns: repeat(3, 1fr);
@@ -1204,8 +1096,6 @@ body.announcement-visible {
     	    display: contents !important;
     	}
 }
-
-/* Slick Slider Custom Styles for Benefits */
 .benefits-slider .slick-prev,
 .benefits-slider .slick-next {
     width: 50px;
@@ -1257,8 +1147,6 @@ body.announcement-visible {
     opacity: 1;
         color: var(--primary-color);
 }
-
-/* Slick Slider Custom Styles for Steps */
 .steps-slider .slick-prev,
 .steps-slider .slick-next {
     width: 50px;
@@ -1310,8 +1198,6 @@ body.announcement-visible {
     opacity: 1;
         color: var(--primary-color);
 }
-
-/* Slick Slider Custom Styles for Screenshots */
 .screenshots-slider .slick-prev,
 .screenshots-slider .slick-next {
     width: 50px;
@@ -1319,7 +1205,6 @@ body.announcement-visible {
         z-index: 100;
         background: white;
         border-radius: 50%;
-        /* box-shadow: var(--shadow-medium); */
         transition: var(--transition);
 }
 
@@ -1363,8 +1248,6 @@ body.announcement-visible {
     opacity: 1;
         color: var(--primary-color);
 }
-
-/* Slick Slider Custom Styles for Testimonials */
 .testimonials-slider .slick-prev,
 .testimonials-slider .slick-next {
     width: 50px;
@@ -1416,8 +1299,6 @@ body.announcement-visible {
     opacity: 1;
         color: var(--primary-color);
 }
-
-/* Slick Slider Custom Styles for Pricing */
 .pricing-slider .slick-prev,
 .pricing-slider .slick-next {
     width: 50px;
@@ -1469,8 +1350,6 @@ body.announcement-visible {
     opacity: 1;
         color: var(--primary-color);
 }
-
-/* Equal height for slider slides */
 .features-slider .slick-slide,
 .benefits-slider .slick-slide,
 .steps-slider .slick-slide,
@@ -1488,8 +1367,6 @@ body.announcement-visible {
 .pricing-slider .slick-slide>div {
     height: 100%;
 }
-
-/* Ensure all slides have same height */
 .features-slider .slick-track {
     display: flex;
         align-items: stretch;
@@ -1519,8 +1396,6 @@ body.announcement-visible {
     display: flex;
         align-items: stretch;
 }
-
-/* Steps Slider Styles */
 .steps-slider {
     margin: 0 -15px;
     padding: 30px 0 !important;
@@ -1534,8 +1409,6 @@ body.announcement-visible {
 .step-slide .step-card {
     height: 100%;
 }
-
-/* Screenshots Slider Styles */
 .screenshots-slider {
     margin: 0 -15px;
     padding: 30px 0 !important;
@@ -1549,8 +1422,6 @@ body.announcement-visible {
 .screenshot-slide .screenshot-card {
     height: 100%;
 }
-
-/* Testimonials Slider Styles */
 .testimonials-slider {
     margin: 0 -15px;
     padding: 30px 0 !important;
@@ -1564,8 +1435,6 @@ body.announcement-visible {
 .testimonial-slide .testimonial-card {
     height: 100%;
 }
-
-/* Pricing Slider Styles */
 .pricing-slider {
     margin: 20px -15px 0;
     padding: 30px 0 !important;
@@ -1579,8 +1448,6 @@ body.announcement-visible {
 .pricing-slide .pricing-card {
     height: 100%;
 }
-
-/* How It Works Section */
 .how-it-works-section {
     padding: 30px 0;
 }
@@ -1652,8 +1519,6 @@ body.announcement-visible {
     color: var(--text-light);
         line-height: 1.6;
 }
-
-/* Screenshots Section */
 .screenshots-section {
     padding: 30px 0;
 }
@@ -1706,8 +1571,6 @@ body.announcement-visible {
     margin-bottom: 0;
         opacity: 0.9;
 }
-
-/* Testimonials Section */
 .testimonials-section {
     padding: 30px 0;
 }
@@ -1765,8 +1628,6 @@ body.announcement-visible {
         font-size: 0.9rem;
         margin-bottom: 0;
 }
-
-/* Pricing Section */
 .pricing-section {
     padding: 5rem 0;
 }
@@ -1780,24 +1641,18 @@ body.announcement-visible {
     display: flex;
     flex-direction: column;
 }
-
-/* Ensure 3 cards display evenly on desktop */
 @media (min-width: 992px) {
     .pricing-container .row>.col-lg-4 {
             flex: 0 0 33.333333%;
             max-width: 33.333333%;
         }
 }
-
-/* Tablet: 2 cards per row */
 @media (min-width: 768px) and (max-width: 991px) {
     .pricing-container .row>.col-md-6 {
             flex: 0 0 50%;
             max-width: 50%;
         }
 }
-
-/* Mobile: 1 card per row, centered */
 @media (max-width: 767px) {
     .pricing-container .row {
             justify-content: center;
@@ -1937,14 +1792,11 @@ body.announcement-visible {
 .pricing-footer {
     padding: 0 2rem 2.5rem;
 }
-
-/* Pricing Section Buttons - All Same Style with Theme Colors */
 .pricing-footer .btn,
 .pricing-footer .btn-primary,
 .pricing-footer .btn-outline-primary {
     background: white !important;
         color: #667eea !important;
-        /* border: 2px solid #667eea !important; */
         border-radius: 8px !important;
         font-weight: 600 !important;
         padding: 0.75rem 1.5rem !important;
@@ -1976,8 +1828,6 @@ body.announcement-visible {
         box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4) !important;
         outline: none !important;
 }
-
-/* Final CTA Section */
 .final-cta-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         color: white;
@@ -2012,8 +1862,6 @@ body.announcement-visible {
         color: #0a58ca;
         border-color: white;
 }
-
-/* Footer */
 .footer-section {
     padding-top: 2rem !important;
         padding-bottom: 2rem !important;
@@ -2022,8 +1870,6 @@ body.announcement-visible {
         margin-bottom: 0 !important;
         margin-top: 0 !important;
 }
-
-/* Remove spacing between last section and footer */
 .final-cta-section+.footer-section,
 section:last-of-type+.footer-section {
     margin-top: 0 !important;
@@ -2178,8 +2024,6 @@ section:last-of-type+.footer-section {
     border-color: rgba(0, 0, 0, 0.1) !important;
         margin: 1.5rem 0 1rem 0;
 }
-
-/* Sticky CTA - Fixed position for true sticky behavior without layout space */
 .sticky-cta {
     position: fixed !important;
         bottom: 2rem !important;
@@ -2199,25 +2043,53 @@ section:last-of-type+.footer-section {
         opacity: 1 !important;
         pointer-events: auto !important;
 }
-
+.sticky-whatsapp-btn,
 .sticky-cta-left {
     position: fixed !important;
-        bottom: 2rem !important;
-        left: 2rem !important;
-        z-index: 9999 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: auto !important;
-        height: auto !important;
-        top: auto !important;
-        right: auto !important;
-        transition: none !important;
-        animation: none !important;
-        transform: none !important;
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: 1070 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.whatsapp-float-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 30px !important;
+    box-shadow: 0 4px 18px rgba(37, 211, 102, 0.45) !important;
+    text-decoration: none !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
+    cursor: pointer;
+}
+
+.whatsapp-float-btn:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 22px rgba(37, 211, 102, 0.6) !important;
+    color: #ffffff !important;
+}
+
+.whatsapp-float-btn:active {
+    transform: scale(0.95) !important;
+}
+
+.whatsapp-float-btn i {
+    color: #ffffff !important;
+    line-height: 1 !important;
 }
 
 .btn-floating {
@@ -2309,9 +2181,6 @@ section:last-of-type+.footer-section {
             height: 71px;
         }
 }
-
-/* Responsive Design */
-/* Fix pricing card cropping on tablets and small desktops */
 @media (max-width: 993px) {
     .pricing-card.featured {
             transform: none;
@@ -2345,10 +2214,7 @@ section:last-of-type+.footer-section {
     	.tailors-section .btn-primary {
     	    margin-top: 0px;
     	}
-    	/* .navbar.fixed-top {
-        top: 5px !important;
-        z-index: 1020;
-    */ .about-section {
+        .about-section {
         padding: 1rem 0 !important;
         }
         
@@ -2519,8 +2385,6 @@ section:last-of-type+.footer-section {
     	.legal-link {
     	    font-size: 0.875rem;
     	}
-    
-    	/* Footer Toggle Styles for Mobile */
     	.footer-toggle-title {
     	    cursor: pointer;
     	    user-select: none;
@@ -2532,7 +2396,7 @@ section:last-of-type+.footer-section {
     
     	.footer-toggle-icon {
         display: none;
-            /* Hidden by default - will show only on mobile */
+          
             visibility: hidden;
             width: 22px;
             height: 22px;
@@ -2557,7 +2421,6 @@ section:last-of-type+.footer-section {
             padding-bottom: 0.5rem;
         }
         
-        /* Mobile: Show toggle icon and hide content by default */
         @media (max-width: 767px) {
             .footer-toggle-icon {
                 display: inline-block !important;
@@ -2578,7 +2441,6 @@ section:last-of-type+.footer-section {
                 opacity: 1 !important;
             }
         
-            /* Add separator lines between footer sections on mobile only */
         		.footer-section .row.g-4>div {
         		    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         		    padding-bottom: 0.5rem;
@@ -2591,7 +2453,6 @@ section:last-of-type+.footer-section {
         		}
         		}
         
-        		/* Desktop: Always show content, hide toggle icon */
         		@media (min-width: 768px) {
         		    .footer-toggle-icon {
         		        display: none !important;
@@ -2627,12 +2488,20 @@ section:last-of-type+.footer-section {
         		    top: auto !important;
         		}
         
+        		.sticky-whatsapp-btn,
         		.sticky-cta-left {
         		    position: fixed !important;
-        		    bottom: 1rem !important;
-        		    left: 10px !important;
-        		    right: auto !important;
+        		    bottom: 74px !important;
+        		    right: 16px !important;
+        		    left: auto !important;
         		    top: auto !important;
+        		    z-index: 1070 !important;
+        		}
+
+        		.whatsapp-float-btn {
+        		    width: 48px !important;
+        		    height: 48px !important;
+        		    font-size: 26px !important;
         		}
         
         		.navbar-logo {
@@ -2667,8 +2536,6 @@ section:last-of-type+.footer-section {
         		    width: 40px;
         		    height: 40px;
         		}
-        
-        		/* Benefits slider mobile adjustments */
         		.benefits-slider .slick-prev {
         		    left: -25px;
         		}
@@ -2747,11 +2614,6 @@ section:last-of-type+.footer-section {
     	    font-size: 16px;
     	}
     
-    	.step-card,
-    	.testimonial-card,
-    	.pricing-card {
-    	    /* margin-bottom: 2rem; */
-    	}
     
     	.pricing-card.featured {
     	    transform: none;
@@ -2777,7 +2639,6 @@ section:last-of-type+.footer-section {
         }
 }
 
-/* Animations */
 @keyframes fadeInUp {
     from {
             opacity: 0;
@@ -2793,10 +2654,6 @@ section:last-of-type+.footer-section {
 .animate-fade-in-up {
     animation: fadeInUp 0.6s ease-out;
 }
-
-/* Smooth scrolling - defined in html rule above */
-
-/* Loading animation */
 .loading {
     opacity: 0;
         transform: translateY(20px);
@@ -2814,10 +2671,6 @@ section:last-of-type+.footer-section {
         }
 }
 
-/* ============================================ */
-/* Tailors Section Styles */
-/* ============================================ */
-
 .tailors-section {
     position: relative;
         overflow: hidden;
@@ -2829,7 +2682,6 @@ section:last-of-type+.footer-section {
         padding: 20px 0;
 }
 
-/* Tailor Slider Card */
 .tailor-slider-card {
     background: white;
         border-radius: 15px;
@@ -2914,9 +2766,7 @@ section:last-of-type+.footer-section {
 
 .tailor-slider-rating {
     display: flex;
-        /* align-items: center; */
         gap: 8px;
-        /* margin-botto m: 10px; */
 }
 
 .tailor-slider-rating .stars {
@@ -2978,8 +2828,6 @@ section:last-of-type+.footer-section {
 .btn-icon i {
     font-size: 1.1rem;
 }
-
-/* Loading Skeleton */
 .loading-skeleton {
     animation: pulse 1.5s ease-in-out infinite;
 }
@@ -3029,8 +2877,6 @@ section:last-of-type+.footer-section {
     	    opacity: 0.7;
     	}
 }
-
-/* Slick Slider Customization for Tailors */
 .tailors-slider {
     padding-bottom: 30px !important;
 }
@@ -3078,8 +2924,6 @@ section:last-of-type+.footer-section {
 .tailors-slider .slick-dots li.slick-active button:before {
     color: var(--primary-color);
 }
-
-/* Grid layout for desktop (when slider is not active) */
 @media (min-width: 1200px) {
     .tailors-slider {
             display: grid !important;
@@ -3091,14 +2935,11 @@ section:last-of-type+.footer-section {
         .tailors-slider .tailor-slide {
             width: 100% !important;
         }
-    
-        /* Hide items after the first 4 (second row and beyond) */
         .tailors-slider .tailor-slide:nth-child(n+5) {
             display: none !important;
         }
 }
 
-/* Add gap between tailor cards on medium screens (768px - 1199px) */
 @media (min-width: 768px) and (max-width: 1199px) {
     .tailors-slider .tailor-slide {
             padding: 0 15px !important;
@@ -3112,8 +2953,6 @@ section:last-of-type+.footer-section {
             padding: 0 15px !important;
         }
 }
-
-/* Responsive Styles for Tailors Section */
 @media (max-width: 768px) {
     .tailor-slider-image {
             height: 150px;
@@ -3157,11 +2996,6 @@ section:last-of-type+.footer-section {
     color: #0a58ca !important;
     border-color: transparent !important;
 }
-
-/* .pricing-container{
-    max-width: 100%!important;
-    padding: 0 100px!important;
-} */
 @media (max-width: 768px) {
     .pricing-container {
             padding: 0 5px !important;
@@ -3188,7 +3022,6 @@ section:last-of-type+.footer-section {
 }
 }
 
-/* Promotional Popup Styles */
 .promo-popup-overlay {
     position: fixed;
         top: 0;
@@ -3394,8 +3227,6 @@ section:last-of-type+.footer-section {
         color: #999;
         font-size: 0.85rem;
 }
-
-/* Mobile Responsive */
 @media (max-width: 767px) {
     .promo-popup-overlay {
             padding: 20px;
@@ -3567,7 +3398,6 @@ section:last-of-type+.footer-section {
 .passYourThoughts {
     margin: 20px 0;
 }
-/* Mobile Menu Enhancements */
 @media (max-width: 991px) {
     .navbar-collapse {
         background: white;
@@ -3599,8 +3429,6 @@ section:last-of-type+.footer-section {
         border-radius: 0;
         transition: all 0.25s ease;
     }
-
-    /* Login/Register Section in Mobile Menu */
     .navbar-nav .ms-3,
     .navbar-nav .ms-2 {
         border-bottom: none !important;
@@ -3636,78 +3464,116 @@ section:last-of-type+.footer-section {
         background: #f8faff !important;
     }
 }
-
-/* Adjust navbar toggler size */
 .navbar-toggler {
     padding: 0.2rem 0.55rem !important;
     font-size: 1.1rem !important;
     border-radius: 6px !important;
 }
-/* Remove toggler focus outline */
 .navbar-toggler:focus,
 .navbar-toggler:active,
 .navbar-toggler:focus-visible {
     outline: none !important;
     box-shadow: none !important;
 }
-
-/* ============================================================
-   MOBILE APP-STYLE DESIGN (max-width: 767px)
-   App-like Tailor Finder UI
-   ============================================================ */
-
-@media (max-width: 767px) {
-
-    /* Hide desktop elements on mobile */
-    .scroll-indicator,
-    .announcement-bar,
-    .navbar.fixed-top,
-    .hero-section,
-    .about-section,
-    .features-section,
-    .tailors-section,
-    .benefits-section,
-    .how-it-works-section,
-    .screenshots-section,
-    #testimonials,
-    .blog-section,
-    .pricing-section,
-    .final-cta-section,
-    .footer-section,
-    .sticky-cta,
-    .sticky-cta-left,
-    .go-to-top-btn {
+@media (min-width: 768px) {
+    .mob-header,
+    .mob-bottom-nav,
+    .mob-drawer,
+    .mob-drawer-overlay,
+    .mobile-app-layout {
         display: none !important;
     }
+}
 
-    /* Show mobile layout */
+@media (max-width: 767px) {
+    body {
+        padding-bottom: 75px !important;
+    }
+
+    .mob-header {
+        display: flex !important;
+    }
+
+    .mob-bottom-nav {
+        display: flex !important;
+    }
+
+    .sticky-whatsapp-btn,
+    .sticky-cta-left {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        bottom: 74px !important;
+        right: 16px !important;
+        left: auto !important;
+        z-index: 1070 !important;
+    }
+    body.home-page .scroll-indicator,
+    body.home-page .announcement-bar,
+    body.home-page .navbar.fixed-top,
+    body.home-page .hero-section,
+    body.home-page .about-section,
+    body.home-page .features-section,
+    body.home-page .tailors-section,
+    body.home-page .benefits-section,
+    body.home-page .how-it-works-section,
+    body.home-page .screenshots-section,
+    body.home-page #testimonials,
+    body.home-page .blog-section,
+    body.home-page .pricing-section,
+    body.home-page .final-cta-section,
+    body.home-page .footer-section,
+    body.home-page .sticky-cta,
+    body.home-page .go-to-top-btn,
+    body:has(.mobile-app-layout) .scroll-indicator,
+    body:has(.mobile-app-layout) .announcement-bar,
+    body:has(.mobile-app-layout) .navbar.fixed-top,
+    body:has(.mobile-app-layout) .hero-section,
+    body:has(.mobile-app-layout) .about-section,
+    body:has(.mobile-app-layout) .features-section,
+    body:has(.mobile-app-layout) .tailors-section,
+    body:has(.mobile-app-layout) .benefits-section,
+    body:has(.mobile-app-layout) .how-it-works-section,
+    body:has(.mobile-app-layout) .screenshots-section,
+    body:has(.mobile-app-layout) #testimonials,
+    body:has(.mobile-app-layout) .blog-section,
+    body:has(.mobile-app-layout) .pricing-section,
+    body:has(.mobile-app-layout) .final-cta-section,
+    body:has(.mobile-app-layout) .footer-section,
+    body:has(.mobile-app-layout) .sticky-cta,
+    body:has(.mobile-app-layout) .go-to-top-btn {
+        display: none !important;
+    }
     .mobile-app-layout {
         display: block !important;
     }
-
-    /* Full page body */
-    body {
+    body.home-page,
+    body:has(.mobile-app-layout) {
         background: #f5f5f5 !important;
         padding-bottom: 75px !important;
     }
 }
 
-/* Mobile App Layout (hidden on desktop) */
 .mobile-app-layout {
     display: none;
+    position: relative;
+    width: 100%;
 }
-
-/* ---- MOBILE HEADER ---- */
 .mob-header {
-    background: #fff;
+    background: #ffffff;
     padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
-    z-index: 999;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1050;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 .mob-header-left {
     display: flex;
@@ -3775,8 +3641,6 @@ section:last-of-type+.footer-section {
     height: 100%;
     object-fit: cover;
 }
-
-/* ---- HERO BANNER ---- */
 .mob-hero {
     background: linear-gradient(135deg, #3a1fa8 0%, #5b3aee 50%, #7c4dff 100%);
     padding: 20px 16px 28px;
@@ -3929,8 +3793,6 @@ section:last-of-type+.footer-section {
     height: 24px;
     background: rgba(255,255,255,0.2);
 }
-
-/* ---- QUICK ACTIONS ---- */
 .mob-quick-actions {
     background: #fff;
     padding: 16px 0 12px;
@@ -3984,7 +3846,6 @@ section:last-of-type+.footer-section {
     text-transform: uppercase;
 }
 
-/* ---- SECTION HEADER ---- */
 .mob-section-header {
     display: flex;
     justify-content: space-between;
@@ -4004,8 +3865,6 @@ section:last-of-type+.footer-section {
     font-weight: 600;
     text-decoration: none;
 }
-
-/* ---- TOP CATEGORIES ---- */
 .mob-categories-section {
     background: #fff;
     margin-bottom: 8px;
@@ -4046,8 +3905,6 @@ section:last-of-type+.footer-section {
     text-align: center;
     white-space: nowrap;
 }
-
-/* ---- TAILORS NEAR YOU ---- */
 .mob-tailors-section {
     background: #f5f5f5;
     margin-bottom: 8px;
@@ -4178,7 +4035,6 @@ section:last-of-type+.footer-section {
 .mob-tailor-action-btn.whatsapp { color: #25D366; border-color: #dcfce7; background: #f0fdf4; }
 .mob-tailor-action-btn.dir { color: #5b3aee; border-color: #ede9fe; background: #f5f3ff; }
 
-/* ---- POPULAR SERVICES ---- */
 .mob-services-section {
     background: #fff;
     margin-bottom: 8px;
@@ -4210,7 +4066,6 @@ section:last-of-type+.footer-section {
 }
 .mob-service-chip i { font-size: 13px; }
 
-/* ---- CTA BANNER ---- */
 .mob-cta-banner {
     margin: 8px 16px;
     background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
@@ -4260,8 +4115,6 @@ section:last-of-type+.footer-section {
     object-fit: contain;
     flex-shrink: 0;
 }
-
-/* ---- WHY CHOOSE ---- */
 .mob-why-section {
     background: #fff;
     margin-bottom: 8px;
@@ -4311,7 +4164,6 @@ section:last-of-type+.footer-section {
     margin: 0;
 }
 
-/* ---- LIVE FROM SHOPS ---- */
 .mob-live-section {
     background: #f5f5f5;
     margin-bottom: 8px;
@@ -4370,99 +4222,196 @@ section:last-of-type+.footer-section {
     cursor: pointer;
     flex-shrink: 0;
 }
-
-/* ---- TESTIMONIALS ---- */
 .mob-testimonials-section {
-    background: #fff;
-    margin-bottom: 8px;
-    padding-bottom: 16px;
+    background: #ffffff;
+    margin-bottom: 10px;
+    padding: 16px 0 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
+
+.mob-testimonials-section .mob-section-header {
+    padding: 0 16px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mob-review-rating-pill {
+    background: #fefce8;
+    border: 1px solid #fef08a;
+    color: #854d0e;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.mob-testimonials-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    padding: 0 16px;
+    margin: 0 0 12px 0;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.4;
+}
+
 .mob-testimonials-grid {
     display: flex;
     gap: 12px;
-    padding: 0 16px;
+    padding: 4px 16px 14px;
     overflow-x: auto;
+    scroll-snap-type: x mandatory;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
-.mob-testimonials-grid::-webkit-scrollbar { display: none; }
+
+.mob-testimonials-grid::-webkit-scrollbar {
+    display: none;
+}
+
 .mob-review-card {
-    background: #faf9ff;
-    border: 1px solid #ede9fe;
+    flex: 0 0 280px;
+    min-width: 280px;
+    max-width: 280px;
+    scroll-snap-align: start;
+    background: #ffffff;
+    border: 1px solid #eef2f6;
     border-radius: 16px;
-    padding: 14px;
-    min-width: calc(50vw - 22px);
-    flex-shrink: 0;
+    padding: 16px 15px 14px;
+    box-shadow: 0 3px 12px rgba(91,58,238,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
+
+.mob-review-card:active {
+    transform: scale(0.98);
+    border-color: #c7d2fe;
+}
+
+.mob-review-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
 .mob-review-stars {
     color: #fbbf24;
     font-size: 12px;
-    margin-bottom: 8px;
     display: flex;
-    gap: 2px;
+    gap: 3px;
 }
+
+.mob-quote-icon {
+    color: #c7d2fe;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
 .mob-review-text {
     font-size: 12px;
-    color: #555;
-    line-height: 1.5;
-    margin-bottom: 10px;
+    color: #334155;
+    line-height: 1.55;
+    margin: 0 0 14px 0;
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    min-height: 48px;
     display: -webkit-box;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
 .mob-review-author {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    border-top: 1px dashed #f1f5f9;
+    padding-top: 10px;
 }
+
 .mob-review-avatar {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     overflow: hidden;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.25);
 }
+
 .mob-review-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
+.mob-review-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .mob-review-name {
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: #0f172a;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     margin-bottom: 1px;
 }
-.mob-review-shop {
-    font-size: 10px;
-    color: #888;
+
+.mob-verified-badge {
+    color: #10b981;
+    font-size: 11px;
 }
+
+.mob-review-shop {
+    font-size: 10.5px;
+    color: #64748b;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .mob-review-dots {
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin-top: 14px;
+    gap: 5px;
+    margin: 2px 16px 0;
 }
+
 .mob-review-dot {
     width: 6px;
     height: 6px;
-    border-radius: 50%;
-    background: #d1d5db;
-}
-.mob-review-dot.active {
-    background: #5b3aee;
-    width: 16px;
     border-radius: 3px;
+    background: #e2e8f0;
+    transition: all 0.25s ease;
 }
 
-/* ---- MOBILE DRAWER (Hamburger menu) ---- */
+.mob-review-dot.active {
+    width: 20px;
+    background: #5b3aee;
+    border-radius: 4px;
+}
 .mob-drawer-overlay {
     display: none;
     position: fixed;
@@ -4548,7 +4497,6 @@ section:last-of-type+.footer-section {
     color: #5b3aee;
 }
 
-/* ---- BOTTOM NAVIGATION ---- */
 .mob-bottom-nav {
     position: fixed;
     bottom: 0;
@@ -4560,7 +4508,7 @@ section:last-of-type+.footer-section {
     justify-content: space-around;
     padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
     box-shadow: 0 -2px 20px rgba(0,0,0,0.10);
-    z-index: 1000;
+    z-index: 1060;
     border-top: 1px solid #f0f0f0;
 }
 .mob-nav-item {
@@ -4606,13 +4554,8 @@ section:last-of-type+.footer-section {
     color: white;
     font-size: 22px;
 }
-
-/* ---- QUICK ICON ORANGE COLOR ---- */
 .mob-quick-icon.orange { background: #fff7ed; color: #ea7c0a; }
 
-/* ============================================================
-   MOBILE HOW IT WORKS SECTION
-   ============================================================ */
 .mob-how-it-works-section {
     background: #fff;
     margin: 0 12px 16px;
@@ -4640,8 +4583,6 @@ section:last-of-type+.footer-section {
     gap: 12px;
     position: relative;
 }
-
-/* Vertical connector line between steps */
 .mob-hiw-step:not(:last-child)::after {
     content: '';
     position: absolute;
@@ -4739,10 +4680,6 @@ section:last-of-type+.footer-section {
     margin-left: 6px;
 }
 
-/* ============================================================
-   MOBILE COMPREHENSIVE FEATURES SECTION — SLIDER STYLE
-   ============================================================ */
-
 .mob-features-section {
     background: #ffffff;
     margin: 0 0 10px;
@@ -4784,8 +4721,6 @@ section:last-of-type+.footer-section {
     font-family: 'Inter', sans-serif;
     line-height: 1.4;
 }
-
-/* Navigation Arrow Buttons */
 .mob-feat-arrows {
     display: flex;
     align-items: center;
@@ -4817,8 +4752,6 @@ section:last-of-type+.footer-section {
     border-color: #5b3aee;
     transform: scale(0.92);
 }
-
-/* Horizontal Slider Track */
 .mob-feat-slider-track {
     display: flex;
     overflow-x: auto;
@@ -4834,7 +4767,6 @@ section:last-of-type+.footer-section {
     display: none;
 }
 
-/* Individual Slide Card */
 .mob-feat-slide-card {
     flex: 0 0 255px;
     min-width: 255px;
@@ -4903,8 +4835,6 @@ section:last-of-type+.footer-section {
     margin: 0 0 12px;
     flex: 1;
 }
-
-/* Card Bottom Tag */
 .mob-feat-footer {
     display: flex;
     align-items: center;
@@ -4922,12 +4852,9 @@ section:last-of-type+.footer-section {
     align-items: center;
     gap: 4px;
 }
-
 .mob-feat-tag i {
     font-size: 10px;
 }
-
-/* Pagination Dots */
 .mob-feat-dots {
     display: flex;
     align-items: center;
@@ -4935,7 +4862,6 @@ section:last-of-type+.footer-section {
     gap: 5px;
     margin: 0 16px 14px;
 }
-
 .mob-feat-dot {
     width: 6px;
     height: 6px;
@@ -4944,14 +4870,11 @@ section:last-of-type+.footer-section {
     transition: all 0.25s ease;
     cursor: pointer;
 }
-
 .mob-feat-dot.active {
     width: 22px;
     background: #5b3aee;
     border-radius: 4px;
 }
-
-/* Bottom CTA */
 .mob-feat-cta {
     display: flex;
     align-items: center;
@@ -4968,14 +4891,10 @@ section:last-of-type+.footer-section {
     box-shadow: 0 3px 12px rgba(91,58,238,0.22);
     transition: opacity 0.2s ease;
 }
-
 .mob-feat-cta:active {
     opacity: 0.9;
     transform: scale(0.99);
 }
-
 .mob-feat-cta i {
     font-size: 12px;
 }
-
-

@@ -1,17 +1,34 @@
 <?php
-/**
- * Footer Component
- * Reusable footer for all user-facing pages
- */
 
-// Determine base path for links based on current directory
 $isAdmin = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false);
 $basePath = $isAdmin ? '../' : '';
+$currentPage = basename($_SERVER['PHP_SELF']);
 
-// Get current year
 $currentYear = date('Y');
 ?>
-<!-- Footer -->
+<nav class="mob-bottom-nav">
+    <a href="<?php echo $basePath; ?>./" class="mob-nav-item <?php echo ($currentPage === 'index.php' || empty($currentPage)) ? 'active' : ''; ?>">
+        <span class="mob-nav-icon"><i class="fas fa-home"></i></span>
+        <span class="mob-nav-label">Home</span>
+    </a>
+    <a href="<?php echo $basePath; ?>tailors.php" class="mob-nav-item <?php echo ($currentPage === 'tailors.php' || $currentPage === 'tailor.php') ? 'active' : ''; ?>">
+        <span class="mob-nav-icon"><i class="fas fa-th-large"></i></span>
+        <span class="mob-nav-label">Categories</span>
+    </a>
+    <a href="<?php echo $basePath; ?>admin/register.php" class="mob-nav-register" aria-label="Register">
+        <i class="fas fa-plus"></i>
+    </a>
+    <a href="<?php echo $basePath; ?>blog.php" class="mob-nav-item <?php echo ($currentPage === 'blog.php' || $currentPage === 'article.php') ? 'active' : ''; ?>">
+        <span class="mob-nav-icon"><i class="fas fa-newspaper"></i></span>
+        <span class="mob-nav-label">Blog</span>
+    </a>
+    <a href="<?php echo $basePath; ?>admin/login.php" class="mob-nav-item <?php echo ($currentPage === 'login.php' || $currentPage === 'register.php' || $currentPage === 'profile.php' || $currentPage === 'dashboard.php') ? 'active' : ''; ?>">
+        <span class="mob-nav-icon"><i class="fas fa-user"></i></span>
+        <span class="mob-nav-label">Profile</span>
+    </a>
+</nav>
+
+
 <footer id="contact" class="footer-section py-3">
     <div class="container">
         <div class="row g-4">
@@ -26,10 +43,7 @@ $currentYear = date('Y');
                         Digitalize your workflow and grow your business.
                     </p>
                     <div class="social-links">
-                        <!-- <a href="#" class="social-link" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a> -->
-                        <!-- <a href="#" class="social-link" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a> -->
-                        <!-- <a href="#" class="social-link" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a> -->
+                       
                     </div>
                 </div>
             </div>
@@ -104,56 +118,37 @@ $currentYear = date('Y');
         </div>
     </div>
 </footer>
-
-<!-- Google AdSense -->
 <meta name="google-adsense-account" content="ca-pub-2821959013351742">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
 
 <script>
-// Footer Mobile Toggle Functionality
 (function() {
     'use strict';
-    
-    // Function to check if mobile view
     function isMobileView() {
         return window.innerWidth <= 767;
     }
-    
-    // Function to initialize footer toggle
     function initFooterToggle() {
         const footer = document.querySelector('.footer-section');
         if (!footer) {
             return false;
         }
-        
-        // Check if already initialized
         if (footer.dataset.toggleInitialized === 'true') {
             return true;
         }
-        
-        // Mark as initialized
         footer.dataset.toggleInitialized = 'true';
-        
-        // Add click event listener to footer (event delegation)
         footer.addEventListener('click', function(e) {
-            // Only work on mobile
             if (!isMobileView()) {
                 return;
             }
             
-            // Check if clicked element or its parent is a toggle title or icon
             const clickedElement = e.target;
             let toggleTitle = null;
-            
-            // Check if clicked on the title itself
             if (clickedElement.classList.contains('footer-toggle-title')) {
                 toggleTitle = clickedElement;
             } 
-            // Check if clicked on the icon
             else if (clickedElement.classList.contains('footer-toggle-icon')) {
                 toggleTitle = clickedElement.closest('.footer-toggle-title');
             }
-            // Check if clicked inside the title
             else {
                 toggleTitle = clickedElement.closest('.footer-toggle-title');
             }
@@ -161,21 +156,14 @@ $currentYear = date('Y');
             if (!toggleTitle) {
                 return;
             }
-            
-            // Prevent default behavior
             e.preventDefault();
             e.stopPropagation();
-            
-            // Find the content element
             const content = toggleTitle.nextElementSibling;
             if (!content || !content.classList.contains('footer-toggle-content')) {
                 return;
             }
-            
-            // Check if already active
             const isActive = toggleTitle.classList.contains('active');
             
-            // Close all other sections first
             const allTitles = footer.querySelectorAll('.footer-toggle-title');
             const allContents = footer.querySelectorAll('.footer-toggle-content');
             
@@ -192,8 +180,6 @@ $currentYear = date('Y');
                     cont.classList.remove('active');
                 }
             });
-            
-            // Toggle current section
             if (isActive) {
                 toggleTitle.classList.remove('active');
                 content.classList.remove('active');
@@ -210,10 +196,8 @@ $currentYear = date('Y');
         return true;
     }
     
-    // Initialize when DOM is ready
     function tryInit() {
         if (!initFooterToggle()) {
-            // Retry after a short delay
             setTimeout(tryInit, 100);
         }
     }
@@ -224,12 +208,10 @@ $currentYear = date('Y');
         tryInit();
     }
     
-    // Also try on window load as fallback
     window.addEventListener('load', function() {
         setTimeout(initFooterToggle, 50);
         });
 
-        // Handle window resize
     let resizeTimer;
         window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
@@ -239,7 +221,6 @@ $currentYear = date('Y');
             const toggleContents = document.querySelectorAll('.footer-toggle-content');
             
             if (!isMobile) {
-                // Desktop: Remove active classes and show all content
                 toggleTitles.forEach(function(title) {
                     title.classList.remove('active');
                 });
@@ -250,4 +231,22 @@ $currentYear = date('Y');
         }, 250);
     });
 })();
-    </script>
+function openMobDrawer() {
+    var drawer = document.getElementById('mobDrawer');
+    var overlay = document.getElementById('mobDrawerOverlay');
+    if (drawer) drawer.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMobDrawer() {
+    var drawer = document.getElementById('mobDrawer');
+    var overlay = document.getElementById('mobDrawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+}
+</script>
+
+<?php require_once __DIR__ . '/whatsapp-button.php'; ?>
+

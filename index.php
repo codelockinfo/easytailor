@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- SEO Meta Tags -->
     <title>Tailoring Management System | Smart Solution for Tailor Shops & Businesses</title>
     <meta name="description" content="All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments. Digitalize your tailor shop with smart tools. Register today!">
     <meta name="keywords" content="tailoring management system, tailor shop software, tailor business software, tailor invoicing system, order management for tailors, tailor ERP, tailor business management app, tailor shop management, tailoring software, tailor CRM, tailor inventory management, digital tailor shop, tailor booking system, tailor order tracking, tailor payment system">
@@ -19,15 +17,9 @@
     <meta name="geo.placename" content="Surat">
     <meta name="geo.position" content="21.1702;72.8311">
     <meta name="ICBM" content="21.1702, 72.8311">
-    
-    <!-- Canonical URL -->
     <link rel="canonical" href="https://tailorpro.in/">
-    
-    <!-- Alternate Languages -->
     <link rel="alternate" hreflang="en" href="https://tailorpro.in/">
     <link rel="alternate" hreflang="x-default" href="https://tailorpro.in/">
-    
-    <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Tailoring Management System | Smart Solution for Tailor Shops">
     <meta property="og:description" content="Digitalize your tailoring business with our comprehensive management system. Manage customers, orders, invoices, and payments in one platform.">
     <meta property="og:type" content="website">
@@ -39,8 +31,6 @@
     <meta property="og:site_name" content="TailorPro - Tailoring Management System">
     <meta property="og:locale" content="en_US">
     <meta property="og:locale:alternate" content="en_IN">
-    
-    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tailoring Management System | Smart Solution for Tailor Shops">
     <meta name="twitter:description" content="Digitalize your tailoring business with our comprehensive management system.">
@@ -50,50 +40,33 @@
     <meta name="twitter:creator" content="@TailorPro">
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
-    
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
+  
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    
-    <!-- Theme Color -->
+   
     <meta name="theme-color" content="#0d6efd">
     <meta name="msapplication-TileColor" content="#0d6efd">
     
-    <!-- Performance Hints -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://code.jquery.com">
     
-    <!-- Google Analytics 4 (GA4) -->
     <?php
     require_once 'helpers/GA4Helper.php';
     echo GA4Helper::generateBaseCode();
     ?>
-    
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Slick Carousel CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     
-    <!-- Custom CSS -->
     <link href="assets/css/style13.css" rel="stylesheet">
     
-    
-    <!-- Structured Data -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -294,17 +267,11 @@
     }
     </script>
 </head>
-<body>
+<body class="home-page">
 
-    <!-- ================================================================
-         MOBILE APP-STYLE LAYOUT (shown only on mobile ≤ 767px)
-         ================================================================ -->
     <div class="mobile-app-layout">
-
-        <!-- Mobile Drawer Overlay -->
         <div class="mob-drawer-overlay" id="mobDrawerOverlay" onclick="closeMobDrawer()"></div>
 
-        <!-- Mobile Drawer -->
         <div class="mob-drawer" id="mobDrawer">
             <div class="mob-drawer-header">
                 <div class="mob-drawer-avatar"><i class="fas fa-user"></i></div>
@@ -327,8 +294,6 @@
                 <a href="blog.php" class="mob-drawer-link"><i class="fas fa-blog"></i> Blog</a>
             </div>
         </div>
-
-        <!-- 1. Mobile Header -->
         <header class="mob-header">
             <div class="mob-header-left">
                 <button class="mob-hamburger" onclick="openMobDrawer()" aria-label="Menu">
@@ -350,8 +315,6 @@
                 </a>
             </div>
         </header>
-
-        <!-- 2. Hero Banner -->
         <div class="mob-hero">
             <div class="mob-hero-badge">
                 <i class="fas fa-shield-alt"></i> #1 Tailoring Platform
@@ -359,7 +322,6 @@
             <h1 class="mob-hero-title">Manage & Grow<br>Your Tailoring Business</h1>
             <p class="mob-hero-sub">Smart billing, measurement storage, order tracking & online tailor discovery.</p>
 
-            <!-- Hero Action Buttons -->
             <div class="mob-hero-buttons">
                 <a href="tailors.php" class="mob-hero-btn-find">
                     <i class="fas fa-map-marker-alt"></i>
@@ -369,13 +331,8 @@
                     <i class="fas fa-user-plus"></i>
                     <span>Register Business</span>
                 </a>
-            </div>
-
-            <!-- Trust & Stats Strip -->
-           
+            </div> 
         </div>
-
-        <!-- 3. Quick Actions -->
         <div class="mob-quick-actions">
             <div class="mob-quick-actions-row">
                 <a href="tailors.php" class="mob-quick-item">
@@ -396,8 +353,6 @@
                 </a>
             </div>
         </div>
-
-        <!-- 4. Top Categories -->
         <div class="mob-categories-section">
             <div class="mob-section-header">
                 <h2 class="mob-section-title">Top Categories</h2>
@@ -430,15 +385,13 @@
                 </a>
             </div>
         </div>
-
-        <!-- 5. Tailors Near You -->
         <div class="mob-tailors-section">
             <div class="mob-section-header">
                 <h2 class="mob-section-title">Tailors Near You</h2>
                 <a href="tailors.php" class="mob-view-all">View All</a>
             </div>
             <div class="mob-tailors-scroll" id="mobTailorsScroll">
-                <!-- Skeleton loaders -->
+                
                 <div class="mob-tailor-card" style="opacity:0.5;">
                     <div class="mob-tailor-img" style="background:linear-gradient(135deg,#e0e0e0,#bdbdbd);"></div>
                     <div class="mob-tailor-body">
@@ -465,7 +418,6 @@
                 </div>
             </div>
         </div>
-        <!-- 7. CTA Banner -->
         <div class="mob-cta-banner">
             <div class="mob-cta-text">
                 <div class="mob-cta-title">Take Your Tailoring Business<br>to the Next Level</div>
@@ -477,8 +429,6 @@
             <img src="assets/images/Dashboard image.gif" class="mob-cta-img" alt="Dashboard preview"
                  onerror="this.style.display='none'">
         </div>
-
-        <!-- 8. Comprehensive Features (Mobile Slider) -->
         <div class="mob-features-section" id="mob-features">
             <div class="mob-feat-header-wrap">
                 <div>
@@ -490,16 +440,13 @@
                     </div>
                     <p class="mob-feat-subtitle">Swipe horizontally to explore all powerful features</p>
                 </div>
-                <!-- Navigation Arrows -->
                 <div class="mob-feat-arrows">
                     <button class="mob-feat-arrow-btn" onclick="slideMobFeat('prev')" aria-label="Previous Feature"><i class="fas fa-chevron-left"></i></button>
                     <button class="mob-feat-arrow-btn" onclick="slideMobFeat('next')" aria-label="Next Feature"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
-
-            <!-- Horizontal Slider Track -->
             <div class="mob-feat-slider-track" id="mobFeatSlider">
-                <!-- 1 -->
+              
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#ede9fe; color:#6366f1;">
@@ -513,8 +460,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Profiles & History</span>
                     </div>
                 </div>
-
-                <!-- 2 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#e0f2fe; color:#0284c7;">
@@ -528,8 +473,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Invoices & Payments</span>
                     </div>
                 </div>
-
-                <!-- 3 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#dcfce7; color:#16a34a;">
@@ -543,8 +486,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Task & Wage Tracking</span>
                     </div>
                 </div>
-
-                <!-- 4 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#fef3c7; color:#d97706;">
@@ -558,8 +499,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Trial & Delivery Dates</span>
                     </div>
                 </div>
-
-                <!-- 5 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#fee2e2; color:#dc2626;">
@@ -573,8 +512,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Cashflow & Profit</span>
                     </div>
                 </div>
-
-                <!-- 6 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#fce7f3; color:#db2777;">
@@ -588,8 +525,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Standard & Custom Fits</span>
                     </div>
                 </div>
-
-                <!-- 7 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#f3e8ff; color:#9333ea;">
@@ -603,8 +538,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Loyalty & Discounts</span>
                     </div>
                 </div>
-
-                <!-- 8 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#ccfbf1; color:#0d9488;">
@@ -618,8 +551,6 @@
                         <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN • HI • GU</span>
                     </div>
                 </div>
-
-                <!-- 9 -->
                 <div class="mob-feat-slide-card">
                     <div class="mob-feat-top">
                         <div class="mob-feat-icon-box" style="background:#e0e7ff; color:#4f46e5;">
@@ -634,8 +565,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Slider Pagination Dots -->
             <div class="mob-feat-dots" id="mobFeatDots">
                 <span class="mob-feat-dot active" onclick="goMobFeatSlide(0)"></span>
                 <span class="mob-feat-dot" onclick="goMobFeatSlide(1)"></span>
@@ -653,8 +582,6 @@
                 <i class="fas fa-arrow-right"></i>
             </a>
         </div>
-
-        <!-- 8. Why Choose -->
         <div class="mob-why-section">
             <div class="mob-section-header">
                 <h2 class="mob-section-title">Why Choose Tailor?</h2>
@@ -693,8 +620,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 9. How It Works -->
         <div class="mob-how-it-works-section" id="mob-how-it-works">
             <div class="mob-section-header">
                 <h2 class="mob-section-title">How It Works</h2>
@@ -746,16 +671,19 @@
                 Get Started Free <i class="fas fa-arrow-right"></i>
             </a>
         </div>
-
-        <!-- 10. What Our Customers Say -->
-        <div class="mob-testimonials-section">
+        <div class="mob-testimonials-section" id="mob-testimonials">
             <div class="mob-section-header">
-                <h2 class="mob-section-title">What Our Customers Say</h2>
-                <a href="#" class="mob-view-all">View All</a>
+                <div>
+                    <h2 class="mob-section-title">
+                        <i class="fas fa-comment-dots" style="color:#5b3aee; font-size:15px; margin-right:4px;"></i> What Our Customers Say
+                    </h2>
+                </div>
+                <span class="mob-review-rating-pill"><i class="fas fa-star" style="color:#fbbf24;"></i> 4.9 Rating</span>
             </div>
+            <p class="mob-testimonials-subtitle">Real experiences from tailor shop owners across India</p>
+
             <div class="mob-testimonials-grid" id="mobTestimonialsGrid">
                 <?php
-                // Reuse testimonials already fetched or fetch fresh
                 $mobTestimonials = [];
                 try {
                     if (empty($testimonials)) {
@@ -778,93 +706,100 @@
                     foreach ($mobTestimonials as $mobT):
                         $mobStars = isset($mobT['star']) ? (int)$mobT['star'] : 5;
                         $mobAuthor = !empty($mobT['owner_name']) ? $mobT['owner_name'] : ($mobT['user_name'] ?? 'Customer');
-                        $mobShop   = !empty($mobT['company_name']) ? $mobT['company_name'] : '';
+                        $mobShop   = !empty($mobT['company_name']) ? $mobT['company_name'] : 'Tailor Shop';
                         $mobInitial = strtoupper(substr($mobAuthor, 0, 1));
                 ?>
                 <div class="mob-review-card">
-                    <div class="mob-review-stars">
-                        <?php for ($i=1;$i<=5;$i++): ?>
-                            <i class="fas fa-star<?php echo $i > $mobStars ? '' : ''; ?>"
-                               style="color:<?php echo $i <= $mobStars ? '#fbbf24' : '#e5e7eb'; ?>"></i>
-                        <?php endfor; ?>
+                    <div class="mob-review-top">
+                        <div class="mob-review-stars">
+                            <?php for ($i=1;$i<=5;$i++): ?>
+                                <i class="fas fa-star" style="color:<?php echo $i <= $mobStars ? '#fbbf24' : '#e2e8f0'; ?>;"></i>
+                            <?php endfor; ?>
+                        </div>
+                        <i class="fas fa-quote-right mob-quote-icon"></i>
                     </div>
-                    <p class="mob-review-text">"<?php echo htmlspecialchars(substr($mobT['comment'] ?? '', 0, 150)); ?>"</p>
+                    <p class="mob-review-text">"<?php echo htmlspecialchars($mobT['comment'] ?? ''); ?>"</p>
                     <div class="mob-review-author">
                         <div class="mob-review-avatar"><?php echo $mobInitial; ?></div>
-                        <div>
-                            <div class="mob-review-name"><?php echo htmlspecialchars($mobAuthor); ?></div>
-                            <?php if ($mobShop): ?>
+                        <div class="mob-review-info">
+                            <div class="mob-review-name"><?php echo htmlspecialchars($mobAuthor); ?> <i class="fas fa-check-circle mob-verified-badge" title="Verified Tailor"></i></div>
                             <div class="mob-review-shop"><?php echo htmlspecialchars($mobShop); ?></div>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
                 <?php
                     endforeach;
                 else:
-                    // Fallback demo cards if no testimonials in DB
+                    // Fallback demo cards
                 ?>
                 <div class="mob-review-card">
-                    <div class="mob-review-stars">
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
+                    <div class="mob-review-top">
+                        <div class="mob-review-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <i class="fas fa-quote-right mob-quote-icon"></i>
                     </div>
-                    <p class="mob-review-text">"Very easy to manage orders and customers. Tailor system has improved our business efficiency."</p>
+                    <p class="mob-review-text">"Very easy to manage orders and customer measurements. This software has completely transformed our shop efficiency!"</p>
                     <div class="mob-review-author">
                         <div class="mob-review-avatar">R</div>
-                        <div>
-                            <div class="mob-review-name">Rahul Mehta</div>
+                        <div class="mob-review-info">
+                            <div class="mob-review-name">Rahul Mehta <i class="fas fa-check-circle mob-verified-badge"></i></div>
                             <div class="mob-review-shop">Raj Tailors, Surat</div>
                         </div>
                     </div>
                 </div>
                 <div class="mob-review-card">
-                    <div class="mob-review-stars">
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
+                    <div class="mob-review-top">
+                        <div class="mob-review-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <i class="fas fa-quote-right mob-quote-icon"></i>
                     </div>
-                    <p class="mob-review-text">"Great platform for tailor businesses. Highly recommended!"</p>
+                    <p class="mob-review-text">"Smart invoicing and order tracking save us hours every day. Customers love the instant SMS updates."</p>
                     <div class="mob-review-author">
-                        <div class="mob-review-avatar">D</div>
-                        <div>
-                            <div class="mob-review-name">Deepak Joshi</div>
-                            <div class="mob-review-shop">Perfect Stitch</div>
+                        <div class="mob-review-avatar" style="background:linear-gradient(135deg,#059669,#10b981);">D</div>
+                        <div class="mob-review-info">
+                            <div class="mob-review-name">Deepak Joshi <i class="fas fa-check-circle mob-verified-badge"></i></div>
+                            <div class="mob-review-shop">Perfect Stitch, Ahmedabad</div>
                         </div>
                     </div>
                 </div>
                 <div class="mob-review-card">
-                    <div class="mob-review-stars">
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#fbbf24"></i>
-                        <i class="fas fa-star" style="color:#e5e7eb"></i>
+                    <div class="mob-review-top">
+                        <div class="mob-review-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <i class="fas fa-quote-right mob-quote-icon"></i>
                     </div>
-                    <p class="mob-review-text">"The order management feature saves a lot of time every day."</p>
+                    <p class="mob-review-text">"Measurement charts and cloth tracking are very accurate. Best digital solution for tailoring shops in India."</p>
                     <div class="mob-review-author">
-                        <div class="mob-review-avatar">S</div>
-                        <div>
-                            <div class="mob-review-name">Sneha Patel</div>
-                            <div class="mob-review-shop">Style Craft</div>
+                        <div class="mob-review-avatar" style="background:linear-gradient(135deg,#ec4899,#f43f5e);">S</div>
+                        <div class="mob-review-info">
+                            <div class="mob-review-name">Sneha Patel <i class="fas fa-check-circle mob-verified-badge"></i></div>
+                            <div class="mob-review-shop">Style Craft Boutique, Vadodara</div>
                         </div>
                     </div>
                 </div>
                 <?php endif; ?>
             </div>
-            <div class="mob-review-dots">
-                <div class="mob-review-dot active"></div>
-                <div class="mob-review-dot"></div>
-                <div class="mob-review-dot"></div>
+            <div class="mob-review-dots" id="mobReviewDots">
+                <span class="mob-review-dot active"></span>
+                <span class="mob-review-dot"></span>
+                <span class="mob-review-dot"></span>
             </div>
         </div>
-
-        <!-- 11. Bottom Navigation Bar -->
         <nav class="mob-bottom-nav">
             <a href="./" class="mob-nav-item active">
                 <span class="mob-nav-icon"><i class="fas fa-home"></i></span>
@@ -877,35 +812,23 @@
             <a href="admin/register.php" class="mob-nav-register" aria-label="Register">
                 <i class="fas fa-plus"></i>
             </a>
-            <a href="admin/login.php" class="mob-nav-item">
-                <span class="mob-nav-icon"><i class="fas fa-bookmark"></i></span>
-                <span class="mob-nav-label">Saved</span>
+            <a href="blog.php" class="mob-nav-item">
+                <span class="mob-nav-icon"><i class="fas fa-newspaper"></i></span>
+                <span class="mob-nav-label">Blog</span>
             </a>
             <a href="admin/login.php" class="mob-nav-item">
                 <span class="mob-nav-icon"><i class="fas fa-user"></i></span>
                 <span class="mob-nav-label">Profile</span>
             </a>
         </nav>
-
-    </div><!-- END .mobile-app-layout -->
-
-    <!-- ================================================================
-         DESKTOP LAYOUT (hidden on mobile, shown on tablet+ ≥ 768px)
-         ================================================================ -->
+        <?php include 'includes/whatsapp-button.php'; ?>
+    </div>
     <div class="d-none d-md-block">
-
-    <!-- Announcement Bar -->
     <?php require_once 'includes/announcement-bar.php'; ?>
-    
-    <!-- Scroll Progress Indicator -->
     <div class="scroll-indicator" id="scrollIndicator">
         <div class="scroll-progress-bar" id="scrollProgressBar"></div>
     </div>
-
-    <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
-
-    <!-- Hero Section -->
     <section id="home" class="hero-section">
 
         <div class="container">
@@ -946,11 +869,6 @@
                 </div>
                 <div class="col-lg-6">
                         <div class="hero-image">
-                            <!-- <div class="hero-logo-section">
-                                <img src="uploads/logos/brand-logo.png" alt="TailorPro" class="hero-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                <i class="fas fa-cut fa-4x mb-3" style="display: none; color: white;"></i>
-                                <h4 class="hero-logo-text">Powered by TailorPro</h4>
-                            </div> -->
                             <div class="dashboard-preview">
                                 <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  ">
                             </div>
@@ -966,8 +884,6 @@
             </svg>
         </div>
     </section>
-
-    <!-- About Section -->
     <section id="about" class="about-section">
         <div class="container">
             <div class="row">
@@ -982,8 +898,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Features Section -->
     <section id="features" class="features-section bg-light ">
         <div class="container">
             <div class="row">
@@ -1097,8 +1011,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Tailors Near You Section -->
     <section id="tailors-near-you" class="tailors-section">
         <div class="container">
             <div class="row">
@@ -1110,10 +1022,7 @@
                     <p class="section-description text-muted" id="tailorsCityNotice" style="display:none;"></p>
                 </div>
             </div>
-
-            <!-- Tailors Slider -->
             <div class="tailors-slider" id="tailorsSlider">
-                <!-- Loading skeleton -->
                 <div class="tailor-slide">
                     <div class="tailor-slider-card loading-skeleton">
                         <div class="skeleton-image"></div>
@@ -1124,8 +1033,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Show All Button -->
             <div class="text-center mt-0  mt-md-4 ">
                 <a href="tailors.php" class="btn btn-primary btn-lg">
                     <i class="fas fa-th-large me-2"></i>Show All Tailors
@@ -1133,8 +1040,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Benefits Section -->
     <section id="benefits" class="benefits-section  bg-light">
         <div class="container">
             <div class="row">
@@ -1227,8 +1132,6 @@
             </div>
         </div>
     </section>
-
-    <!-- How It Works Section -->
     <section id="how-it-works" class="how-it-works-section">
         <div class="container">
             <div class="row">
@@ -1291,8 +1194,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Screenshots Section -->
     <section id="screenshots" class="screenshots-section bg-light">
         <div class="container">
             <div class="row">
@@ -1334,10 +1235,7 @@
             </div>
         </div>
     </section>
-
-    <!-- Testimonials Section -->
     <?php
-    // Fetch approved testimonials from database
     require_once 'config/database.php';
     $testimonials = [];
     
@@ -1346,7 +1244,6 @@
         $db = $database->getConnection();
         
         if ($db) {
-            // Fetch approved testimonials with company and user info
             $query = "SELECT 
                         t.id,
                         t.user_name,
@@ -1370,23 +1267,16 @@
             $stmt = $db->prepare($query);
             $stmt->execute();
             $testimonials = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Debug: Check if testimonials are fetched (remove after testing)
-            // error_log("Testimonials fetched: " . count($testimonials));
         } else {
             error_log("Database connection failed in testimonials section");
         }
     } catch (PDOException $e) {
-        // Log error but don't break the page
         error_log("Testimonials fetch PDO error: " . $e->getMessage());
         $testimonials = [];
     } catch (Exception $e) {
-        // Log error but don't break the page
         error_log("Testimonials fetch error: " . $e->getMessage());
         $testimonials = [];
     }
-    
-    // Always show testimonials section (title and button), but hide slider if no testimonials
     ?>
     <section id="testimonials" class="testimonials-section">
         <div class="container">
@@ -1404,8 +1294,7 @@
                     <div class="testimonials-slider-track" id="testimonialsTrack">
                         <?php foreach ($testimonials as $testimonial): 
                             $stars = isset($testimonial['star']) ? (int)$testimonial['star'] : 5;
-                            
-                            // Determine author title/role
+                    
                             $authorTitle = '';
                             if (!empty($testimonial['owner_name']) && !empty($testimonial['company_name'])) {
                                 $authorTitle = $testimonial['owner_name'] . ', ' . $testimonial['company_name'];
@@ -1457,7 +1346,7 @@
                 </div>
                 <?php endif; ?>
             </div>
-            <?php endif; // End of slider conditional ?>
+            <?php endif; 
 
             <div class="passYourThoughts-section text-center p">
                 <div class="container">
@@ -1474,7 +1363,6 @@
     </section>
 
     <style>
-    /* Testimonials Slider Styles */
     .testimonials-slider-wrapper {
         position: relative;
         margin: 1rem 0;
@@ -1571,8 +1459,6 @@
     .testimonials-slider-wrapper:hover .slider-nav-btn {
         opacity: 1;
     }
-
-    /* Responsive Design */
     @media (max-width: 1200px) {
         .testimonial-slide {
             flex: 0 0 calc(100% / 2);
@@ -1638,10 +1524,8 @@
         
         if (!slider || !track || slides.length === 0) return;
 
-        // Only initialize slider if we have 3 or more testimonials
         const totalSlides = slides.length;
         if (totalSlides < 3) {
-            // If less than 3 testimonials, display them statically without slider
             track.style.display = 'flex';
             track.style.flexWrap = 'wrap';
             track.style.justifyContent = 'center';
@@ -1649,15 +1533,13 @@
             track.style.transform = 'none';
             track.style.overflow = 'visible';
             slider.style.overflow = 'visible';
-            
-            // Make each slide take appropriate width
-            slides.forEach(slide => {
+                slides.forEach(slide => {
                 slide.style.flex = '0 0 auto';
                 slide.style.width = '100%';
                 slide.style.maxWidth = '400px';
             });
             
-            return; // Exit early, no slider functionality needed
+            return;
         }
 
         let currentIndex = 0;
@@ -1669,17 +1551,12 @@
         let isPaused = false;
         let slidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
         
-        // Clone slides for infinite loop (clone first and last)
         function cloneSlides() {
             if (totalSlides === 0) return;
-            
-            // Clone first few slides and append to end
             for (let i = 0; i < slidesToShow && i < totalSlides; i++) {
                 const clone = slides[i].cloneNode(true);
                 track.appendChild(clone);
             }
-            
-            // Clone last few slides and prepend to start
             for (let i = totalSlides - slidesToShow; i < totalSlides; i++) {
                 if (i >= 0) {
                     const clone = slides[i].cloneNode(true);
@@ -1692,8 +1569,6 @@
         
         const allSlides = track.querySelectorAll('.testimonial-slide');
         const slideWidth = 100 / slidesToShow;
-        
-        // Set initial position to first real slide
         currentIndex = slidesToShow;
         track.style.transform = `translateX(-${currentIndex * slideWidth}%)`;
         track.style.willChange = 'transform';
@@ -1706,8 +1581,6 @@
         function nextSlide() {
             currentIndex++;
             updateSlider();
-            
-            // If we've reached the cloned slides at the end, reset to beginning
             if (currentIndex >= allSlides.length - slidesToShow) {
                 setTimeout(() => {
                     track.style.transition = 'none';
@@ -1723,8 +1596,6 @@
         function prevSlide() {
             currentIndex--;
             updateSlider();
-            
-            // If we've reached the cloned slides at the beginning, reset to end
             if (currentIndex < slidesToShow) {
                 setTimeout(() => {
                     track.style.transition = 'none';
@@ -1736,16 +1607,13 @@
                 }, 600);
             }
         }
-        
-        // Continuous smooth scrolling
-        let scrollSpeed = 1; // pixels per frame (adjust for speed)
+        let scrollSpeed = 1; 
         let animationFrameId = null;
         
         function continuousScroll() {
             if (!isPaused && !isDragging) {
                 currentIndex += scrollSpeed / (slider.offsetWidth / slidesToShow);
                 
-                // If we've reached the end, reset to beginning seamlessly
                 if (currentIndex >= allSlides.length - slidesToShow) {
                     track.style.transition = 'none';
                     currentIndex = slidesToShow;
@@ -1772,8 +1640,6 @@
                 animationFrameId = null;
             }
         }
-        
-        // Mouse events - pause on hover
         slider.addEventListener('mouseenter', () => {
             isPaused = true;
         });
@@ -1781,8 +1647,6 @@
         slider.addEventListener('mouseleave', () => {
             isPaused = false;
         });
-        
-        // Touch/Drag events
         let mouseDownHandler = (e) => {
             isDragging = true;
             startX = e.clientX;
@@ -1862,8 +1726,6 @@
         
         document.addEventListener('mouseup', mouseUpHandler);
         track.addEventListener('touchend', touchEndHandler);
-        
-        // Navigation buttons - temporarily pause and jump
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
                 isPaused = true;
@@ -1899,8 +1761,6 @@
                 }, 0);
             });
         }
-        
-        // Handle window resize
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -1908,21 +1768,18 @@
                 const newSlidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
                 if (newSlidesToShow !== slidesToShow) {
                     slidesToShow = newSlidesToShow;
-                    // Recalculate and reset
+                 
                     currentIndex = slidesToShow;
                     updateSlider();
                 }
             }, 250);
         });
-        
-        // Initialize
         startAutoSlide();
     });
     </script>
 
     <!-- Blog Section -->
     <?php
-    // Load articles from JSON
     $blogArticles = [];
     $dataDir = __DIR__ . '/data';
     $articlesFile = $dataDir . '/articles.json';
@@ -1932,11 +1789,9 @@
         $articlesData = json_decode($jsonContent, true);
         
         if ($articlesData && isset($articlesData['articles']) && is_array($articlesData['articles'])) {
-            // Sort articles by published_date (newest first)
             usort($articlesData['articles'], function($a, $b) {
                 return strtotime($b['published_date']) - strtotime($a['published_date']);
             });
-            // Get first 3 latest articles
             $blogArticles = array_slice($articlesData['articles'], 0, 3);
         }
     }
@@ -2014,13 +1869,11 @@
                 </div>
             </div>
             <?php
-            // Load pricing plans from JSON file
             $pricingData = json_decode(file_get_contents('data/pricing.json'), true);
             $plans = $pricingData['plans'] ?? [];
             
-            // Define the order of plans to display - show only first 3 plans
             $planOrder = ['free', 'basic', 'premium', 'enterprise'];
-            $planOrder = array_slice($planOrder, 0, 3); // Show only first 3 plans
+            $planOrder = array_slice($planOrder, 0, 3); 
             ?>
             <div class="row g-4 mt-3">
                 <?php foreach ($planOrder as $planKey): 
@@ -2118,7 +1971,6 @@
 
     <!-- Tailors Slider Script -->
     <script>
-        // Load featured tailors on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadFeaturedTailors();
         });
@@ -2331,8 +2183,6 @@
             });
 
             slider.html(html);
-
-            // Initialize Slick Slider (like other sections)
             initTailorsSlider();
         }
 
@@ -2420,8 +2270,6 @@
             
             return stars;
         }
-        
-        // Track page view (wait for gtag to be available)
         <?php
         require_once 'helpers/GA4Helper.php';
         $pageTitle = 'Tailoring Management System | Smart Solution for Tailor Shops & Businesses';
@@ -2430,7 +2278,7 @@
         ?>
         (function() {
             var attempts = 0;
-            var maxAttempts = 50; // 5 seconds max wait time
+            var maxAttempts = 50; 
             
             function firePageView() {
                 if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
@@ -2448,8 +2296,6 @@
                     }
                 }
             }
-            
-            // Start trying to fire the page view
             firePageView();
         })();
     </script>
@@ -2461,7 +2307,6 @@
 
     <!-- Mobile App JavaScript -->
     <script>
-    // ---- Mobile Drawer ----
     function openMobDrawer() {
         document.getElementById('mobDrawer').classList.add('open');
         document.getElementById('mobDrawerOverlay').style.display = 'block';
@@ -2473,7 +2318,7 @@
         document.body.style.overflow = '';
     }
 
-    // ---- Mobile Features Slider Controls ----
+
     function slideMobFeat(direction) {
         var slider = document.getElementById('mobFeatSlider');
         if (!slider) return;
@@ -2495,7 +2340,7 @@
         }
     }
 
-    // Sync dots on scroll
+    
     document.addEventListener('DOMContentLoaded', function() {
         var slider = document.getElementById('mobFeatSlider');
         var dots = document.querySelectorAll('#mobFeatDots .mob-feat-dot');
@@ -2517,11 +2362,29 @@
                 dot.classList.toggle('active', idx === activeIdx);
             });
         }, { passive: true });
+        var tSlider = document.getElementById('mobTestimonialsGrid');
+        var tDots = document.querySelectorAll('#mobReviewDots .mob-review-dot');
+        if (tSlider && tDots.length) {
+            tSlider.addEventListener('scroll', function() {
+                var cards = tSlider.querySelectorAll('.mob-review-card');
+                var scrollLeft = tSlider.scrollLeft;
+                var activeIdx = 0;
+                var minDiff = 99999;
+                cards.forEach(function(card, idx) {
+                    var diff = Math.abs(card.offsetLeft - tSlider.offsetLeft - 16 - scrollLeft);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        activeIdx = idx;
+                    }
+                });
+                tDots.forEach(function(dot, idx) {
+                    dot.classList.toggle('active', idx === activeIdx);
+                });
+            }, { passive: true });
+        }
     });
-
-    // ---- Load mobile tailor cards via AJAX ----
     function loadMobileTailors() {
-        if (window.innerWidth > 767) return; // Only run on mobile
+        if (window.innerWidth > 767) return; 
 
         fetch('ajax/filter_tailors.php?limit=6&sort=newest')
             .then(r => r.json())
@@ -2559,12 +2422,11 @@
                     </div>
                 `).join('');
             })
-            .catch(() => {}); // Keep skeleton on error
+            .catch(() => {}); 
     }
-
     document.addEventListener('DOMContentLoaded', loadMobileTailors);
     </script>
+    <?php require_once 'includes/whatsapp-button.php'; ?>
 
 </body>
 </html>
-

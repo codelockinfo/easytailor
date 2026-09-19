@@ -1,8 +1,4 @@
 <?php
-/**
- * Tailor Listing Page
- * Displays all registered tailors with search and filter options
- */
 
 require_once 'config/database.php';
 require_once 'models/Company.php';
@@ -10,8 +6,6 @@ require_once 'models/Company.php';
 $database = new Database();
 $db = $database->getConnection();
 $company = new Company();
-
-// Check if companies table exists
 $tableExists = false;
 try {
     $tableCheck = $db->query("SHOW TABLES LIKE 'companies'");
@@ -31,8 +25,6 @@ if (!$tableExists) {
     </body></html>';
     exit;
 }
-
-// Get initial data
 $cities = array_values(array_filter($company->getUniqueCities() ?? [], function($value) {
     return !empty(trim((string)$value));
 }));
@@ -69,30 +61,23 @@ $seoOptions = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     
-    <!-- Google Analytics 4 (GA4) -->
     <?php
     require_once 'helpers/GA4Helper.php';
     echo GA4Helper::generateBaseCode();
     ?>
-    
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
+    
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
+  
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <link href="assets/css/style13.css" rel="stylesheet">
     
     <style>
@@ -107,19 +92,21 @@ $seoOptions = [
             background-color: #f8f9fa;
             color: #333;
         }
-
-        /* Prevent background scrolling when modal is open */
         body.modal-open {
             overflow: hidden !important;
             height: 100vh !important;
         }
-
-        /* Header */
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 0 30px;
+            padding: 90px 0 30px;
             margin-bottom: 30px;
+        }
+
+        @media (max-width: 767px) {
+            .page-header {
+                padding: 15px 0 25px;
+            }
         }
 
         .page-header h1 {
@@ -132,7 +119,6 @@ $seoOptions = [
             font-size: 1.1rem;
             opacity: 0.9;
         }
-
         .stats-bar {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
@@ -154,8 +140,6 @@ $seoOptions = [
             font-size: 0.9rem;
             opacity: 0.9;
         }
-
-        /* Filter Section */
         .filter-section {
             background: white;
             border-radius: 15px;
@@ -209,8 +193,6 @@ $seoOptions = [
         .alert-info {
             margin-top: 16px;
         }
-
-        /* Tailor Cards */
         .tailor-card {
             background: white;
             border-radius: 15px;
@@ -380,8 +362,6 @@ $seoOptions = [
             font-size: 1.1rem;
             padding: 0;
         }
-
-        /* Loading & Empty States */
         .loading-spinner {
             text-align: center;
             padding: 50px;
@@ -412,15 +392,11 @@ $seoOptions = [
         .empty-state p {
             color: #999;
         }
-
-        /* Pagination */
         .pagination-wrapper {
             display: flex;
             justify-content: center;
             margin-top: 40px;
         }
-
-        /* Back Button */
         .back-to-home {
             margin-bottom: 15px;
         }
@@ -437,8 +413,6 @@ $seoOptions = [
         .back-to-home a:hover {
             opacity: 0.8;
         }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .page-header h1 {
                 font-size: 24px;
@@ -495,8 +469,6 @@ $seoOptions = [
         #tailorDetailModal .modal-body {
             padding: 18px 25px;
         }
-
-        /* Pagination Styling */
         .pagination .page-link {
             color: var(--primary-color);
             border: 1px solid #dee2e6;
@@ -536,6 +508,8 @@ $seoOptions = [
     </style>
 </head>
 <body>
+    <?php require_once 'includes/nav.php'; ?>
+    
     <div>
     <!-- Page Header -->
     <div class="page-header">
@@ -579,10 +553,7 @@ $seoOptions = [
             </div>
         </div>
     </div>
-
-    <!-- Main Content -->
     <div class="container">
-        <!-- Filter Section -->
         <div class="filter-section">
             <div class="filter-header">
                 <h5><i class="fas fa-filter me-2"></i>Filter Tailor Shops</h5>
@@ -635,14 +606,11 @@ $seoOptions = [
                     </select>
                 </div>
             </div>
-            
                     <div class="alert alert-info mb-0 py-2 px-3">
                         <i class="fas fa-info-circle me-2"></i>
                         <small>Filters apply automatically as you change selections</small>
                     </div>
         </div>
-
-        <!-- Results Section -->
         <div id="resultsSection">
             <div class="loading-spinner">
                 <div class="spinner-border text-primary" role="status">
@@ -650,12 +618,8 @@ $seoOptions = [
                 </div>
             </div>
         </div>
-
-        <!-- Pagination -->
         <div class="pagination-wrapper 000" id="paginationWrapper"></div>
     </div>
-
-    <!-- Tailor Detail Modal -->
     <div class="modal fade" id="tailorDetailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -742,17 +706,13 @@ $seoOptions = [
         </div>
     </div>
     </div>
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/tailor-modal.js"></script>
     
     <script>
         let currentPage = 1;
         const perPage = 12;
-
-        // Load tailors on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Read URL search params (e.g. ?keyword=..., ?cat=..., ?city=...)
             const urlParams = new URLSearchParams(window.location.search);
             const initialKeyword = urlParams.get('keyword') || urlParams.get('search') || urlParams.get('q') || urlParams.get('cat') || '';
             const initialCity = urlParams.get('city') || '';
@@ -777,19 +737,13 @@ $seoOptions = [
             }
 
             loadTailors();
-            
-            // Add event listeners for instant filtering
-            
-            // Search input - trigger on typing (with debounce)
             let searchTimeout;
             document.getElementById('keyword').addEventListener('input', function(e) {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     applyFilters();
-                }, 500); // Wait 500ms after user stops typing
+                }, 500);
             });
-            
-            // Enter key support for search
             document.getElementById('keyword').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     clearTimeout(searchTimeout);
@@ -797,22 +751,16 @@ $seoOptions = [
                 }
             });
             
-            // City dropdown - instant filter
             document.getElementById('city').addEventListener('change', function() {
                 applyFilters();
             });
             
-            // State dropdown - instant filter
             document.getElementById('state').addEventListener('change', function() {
                 applyFilters();
             });
-            
-            // Min rating dropdown - instant filter
             document.getElementById('min_rating').addEventListener('change', function() {
                 applyFilters();
             });
-            
-            // Sort dropdown - instant sort
             document.getElementById('sort').addEventListener('change', function() {
                 applyFilters();
             });
@@ -846,8 +794,6 @@ $seoOptions = [
                 limit: perPage,
                 offset: offset
             });
-
-            // Show loading with animation
             document.getElementById('resultsSection').innerHTML = `
                 <div class="loading-spinner">
                     <div class="spinner-border text-primary" role="status">
@@ -856,8 +802,6 @@ $seoOptions = [
                     <p class="mt-3 text-muted">Loading shops...</p>
                 </div>
             `;
-
-            // Add slight delay for smooth UX
             fetch('ajax/filter_tailors.php?' + params)
                 .then(response => {
                     if (!response.ok) {
@@ -870,7 +814,6 @@ $seoOptions = [
                         displayTailors(data.data);
                         displayPagination(data.pagination);
                     } else {
-                        // Show detailed error message
                         let errorMsg = data.message || 'Failed to load shops';
                         if (data.error_details) {
                             errorMsg += '<br><small>' + data.error_details + '</small>';
@@ -1000,7 +943,6 @@ $seoOptions = [
 
             let html = '<nav><ul class="pagination">';
             
-            // Previous button
             html += `
                 <li class="page-item ${pagination.current_page === 1 ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="loadTailors(${pagination.current_page - 1}); return false;">
@@ -1008,8 +950,6 @@ $seoOptions = [
                     </a>
                 </li>
             `;
-            
-            // Page numbers
             const maxPages = 5;
             let startPage = Math.max(1, pagination.current_page - Math.floor(maxPages / 2));
             let endPage = Math.min(pagination.total_pages, startPage + maxPages - 1);
@@ -1025,8 +965,6 @@ $seoOptions = [
                     </li>
                 `;
             }
-            
-            // Next button
             html += `
                 <li class="page-item ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="loadTailors(${pagination.current_page + 1}); return false;">
@@ -1037,8 +975,6 @@ $seoOptions = [
             
             html += '</ul></nav>';
             wrapper.innerHTML = html;
-            
-            // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1061,8 +997,6 @@ $seoOptions = [
                 </div>
             `;
         }
-        
-        // Track page view (wait for gtag to be available)
         <?php
         require_once 'helpers/GA4Helper.php';
         $pageTitle = 'Find Tailor Shops Near You | Browse Professional Tailors';
@@ -1071,7 +1005,7 @@ $seoOptions = [
         ?>
         (function() {
             var attempts = 0;
-            var maxAttempts = 50; // 5 seconds max wait time
+            var maxAttempts = 50;
             
             function firePageView() {
                 if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
@@ -1089,19 +1023,11 @@ $seoOptions = [
                     }
                 }
             }
-            
-            // Start trying to fire the page view
             firePageView();
         })();
     </script>
-
-    <!-- Footer -->
     <?php require_once 'includes/footer.php'; ?>
-
-    <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
-
-    <!-- Go to Top Button -->
 <script src="assets/js/script2.js"></script>
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>

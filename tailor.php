@@ -112,7 +112,12 @@ $seoOptions = [
         .profile-hero {
             background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
             color: #fff;
-            padding: 30px 0;
+            padding: 90px 0 30px;
+        }
+        @media (max-width: 767px) {
+            .profile-hero {
+                padding: 24px 0 20px;
+            }
         }
         .profile-rating {
             display: inline-flex;
@@ -200,19 +205,7 @@ $seoOptions = [
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="./">
-                <img src="uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-            </a>
-            <div class="ms-auto">
-                <a href="tailors.php" class="btn  btn-sm header-browse-tailors-btn">Browse Tailors</a>
-                <a href="admin/login.php" class="btn  btn-sm login-header-btn">Login</a>
-            </div>
-        </div>
-    </nav>
-
+    <?php require_once 'includes/nav.php'; ?>
     <div class="profile-hero">
         <div class="container">
             <div class="row align-items-center g-4">

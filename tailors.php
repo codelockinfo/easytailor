@@ -752,6 +752,30 @@ $seoOptions = [
 
         // Load tailors on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Read URL search params (e.g. ?keyword=..., ?cat=..., ?city=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialKeyword = urlParams.get('keyword') || urlParams.get('search') || urlParams.get('q') || urlParams.get('cat') || '';
+            const initialCity = urlParams.get('city') || '';
+            const initialState = urlParams.get('state') || '';
+            const initialSort = urlParams.get('sort') || 'newest';
+            const initialRating = urlParams.get('min_rating') || '';
+
+            if (initialKeyword && document.getElementById('keyword')) {
+                document.getElementById('keyword').value = initialKeyword;
+            }
+            if (initialCity && document.getElementById('city')) {
+                document.getElementById('city').value = initialCity;
+            }
+            if (initialState && document.getElementById('state')) {
+                document.getElementById('state').value = initialState;
+            }
+            if (initialSort && document.getElementById('sort')) {
+                document.getElementById('sort').value = initialSort;
+            }
+            if (initialRating && document.getElementById('min_rating')) {
+                document.getElementById('min_rating').value = initialRating;
+            }
+
             loadTailors();
             
             // Add event listeners for instant filtering

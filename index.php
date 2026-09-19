@@ -341,13 +341,10 @@
                 </a>
             </div>
             <div class="mob-header-right">
-                <button class="mob-location-chip">
+                <a href="tailors.php?city=Surat" class="mob-location-chip" style="text-decoration:none;">
                     <i class="fas fa-map-marker-alt"></i> Surat, Gujarat <i class="fas fa-chevron-down"></i>
-                </button>
-                <button class="mob-bell-btn" aria-label="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="mob-bell-badge">1</span>
-                </button>
+                </a>
+               
                 <a href="admin/login.php" class="mob-avatar" aria-label="Profile">
                     <i class="fas fa-user"></i>
                 </a>
@@ -356,20 +353,26 @@
 
         <!-- 2. Hero Banner -->
         <div class="mob-hero">
-            <p class="mob-hero-welcome">Hi, Welcome 👋</p>
-            <h1 class="mob-hero-title">Find the Best<br>Tailors Near You</h1>
-            <p class="mob-hero-sub">Smart tailoring management<br>for your business</p>
+            <div class="mob-hero-badge">
+                <i class="fas fa-shield-alt"></i> #1 Tailoring Platform
+            </div>
+            <h1 class="mob-hero-title">Manage & Grow<br>Your Tailoring Business</h1>
+            <p class="mob-hero-sub">Smart billing, measurement storage, order tracking & online tailor discovery.</p>
 
-            <div class="mob-search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search for tailors, services..."
-                       onclick="window.location='tailors.php'" readonly>
-                <button class="mob-filter-btn" aria-label="Filter"><i class="fas fa-sliders-h"></i></button>
+            <!-- Hero Action Buttons -->
+            <div class="mob-hero-buttons">
+                <a href="tailors.php" class="mob-hero-btn-find">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Find Tailors</span>
+                </a>
+                <a href="admin/register.php" class="mob-hero-btn-reg">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register Business</span>
+                </a>
             </div>
 
-            <div class="mob-location-pill">
-                <i class="fas fa-map-marker-alt"></i> Surat, Gujarat
-            </div>
+            <!-- Trust & Stats Strip -->
+           
         </div>
 
         <!-- 3. Quick Actions -->
@@ -379,20 +382,17 @@
                     <div class="mob-quick-icon purple"><i class="fas fa-map-marker-alt"></i></div>
                     <span class="mob-quick-label">Near You</span>
                 </a>
-                <a href="tailors.php" class="mob-quick-item">
+                <a href="#mob-features" class="mob-quick-item">
                     <div class="mob-quick-icon blue"><i class="fas fa-th-large"></i></div>
-                    <span class="mob-quick-label">Categories</span>
-                </a>
-                <a href="tailors.php" class="mob-quick-item">
-                    <div class="mob-quick-icon teal" style="position:relative;">
-                        <i class="fas fa-robot"></i>
-                        <span class="mob-new-badge">New</span>
-                    </div>
-                    <span class="mob-quick-label">AI Search</span>
+                    <span class="mob-quick-label">Features</span>
                 </a>
                 <a href="#mob-how-it-works" class="mob-quick-item">
                     <div class="mob-quick-icon green"><i class="fas fa-question-circle"></i></div>
                     <span class="mob-quick-label">How It Works</span>
+                </a>
+                <a href="admin/register.php" class="mob-quick-item">
+                    <div class="mob-quick-icon orange"><i class="fas fa-user-plus"></i></div>
+                    <span class="mob-quick-label">Register</span>
                 </a>
             </div>
         </div>
@@ -465,35 +465,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 6. Popular Services -->
-        <div class="mob-services-section">
-            <div class="mob-section-header">
-                <h2 class="mob-section-title">Popular Services</h2>
-                <a href="tailors.php" class="mob-view-all">View All</a>
-            </div>
-            <div class="mob-services-scroll">
-                <a href="tailors.php?service=suit" class="mob-service-chip">
-                    <i class="fas fa-user-tie"></i> Suit Stitching
-                </a>
-                <a href="tailors.php?service=alteration" class="mob-service-chip">
-                    <i class="fas fa-cut"></i> Alteration
-                </a>
-                <a href="tailors.php?service=blouse" class="mob-service-chip">
-                    <i class="fas fa-tshirt"></i> Blouse Stitching
-                </a>
-                <a href="tailors.php?service=curtain" class="mob-service-chip">
-                    <i class="fas fa-border-all"></i> Curtain Stitching
-                </a>
-                <a href="tailors.php?service=uniform" class="mob-service-chip">
-                    <i class="fas fa-school"></i> Uniform Orders
-                </a>
-                <a href="tailors.php?service=custom" class="mob-service-chip">
-                    <i class="fas fa-drafting-compass"></i> Custom Design
-                </a>
-            </div>
-        </div>
-
         <!-- 7. CTA Banner -->
         <div class="mob-cta-banner">
             <div class="mob-cta-text">
@@ -505,6 +476,182 @@
             </div>
             <img src="assets/images/Dashboard image.gif" class="mob-cta-img" alt="Dashboard preview"
                  onerror="this.style.display='none'">
+        </div>
+
+        <!-- 8. Comprehensive Features (Mobile Slider) -->
+        <div class="mob-features-section" id="mob-features">
+            <div class="mob-feat-header-wrap">
+                <div>
+                    <div class="mob-section-header" style="margin-bottom: 2px;">
+                        <h2 class="mob-section-title">
+                            <i class="fas fa-th-large" style="color:#5b3aee; font-size:15px; margin-right:4px;"></i> Comprehensive Features
+                        </h2>
+                        <span class="mob-feat-badge-pill">9 Features</span>
+                    </div>
+                    <p class="mob-feat-subtitle">Swipe horizontally to explore all powerful features</p>
+                </div>
+                <!-- Navigation Arrows -->
+                <div class="mob-feat-arrows">
+                    <button class="mob-feat-arrow-btn" onclick="slideMobFeat('prev')" aria-label="Previous Feature"><i class="fas fa-chevron-left"></i></button>
+                    <button class="mob-feat-arrow-btn" onclick="slideMobFeat('next')" aria-label="Next Feature"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Horizontal Slider Track -->
+            <div class="mob-feat-slider-track" id="mobFeatSlider">
+                <!-- 1 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#ede9fe; color:#6366f1;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="mob-feat-num">01 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Customer Management</div>
+                    <p class="mob-feat-desc">Store customer profiles, measurement history, fabric preferences & contact records in one tap.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Profiles & History</span>
+                    </div>
+                </div>
+
+                <!-- 2 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#e0f2fe; color:#0284c7;">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <span class="mob-feat-num">02 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Smart Invoicing</div>
+                    <p class="mob-feat-desc">Generate professional bills, print receipts, apply taxes & track advance payments effortlessly.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Invoices & Payments</span>
+                    </div>
+                </div>
+
+                <!-- 3 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#dcfce7; color:#16a34a;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <span class="mob-feat-num">03 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Staff Management</div>
+                    <p class="mob-feat-desc">Assign cutting and stitching tasks, track work progress & manage artisan salary and wages.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Task & Wage Tracking</span>
+                    </div>
+                </div>
+
+                <!-- 4 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#fef3c7; color:#d97706;">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
+                        <span class="mob-feat-num">04 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Order Tracking</div>
+                    <p class="mob-feat-desc">Real-time status tracking from measurement taking to cutting, fitting, trial & final handover.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Trial & Delivery Dates</span>
+                    </div>
+                </div>
+
+                <!-- 5 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#fee2e2; color:#dc2626;">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="mob-feat-num">05 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Expense & Income</div>
+                    <p class="mob-feat-desc">Monitor daily shop expenses, raw material costs, overheads and analyze your net monthly profit.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Cashflow & Profit</span>
+                    </div>
+                </div>
+
+                <!-- 6 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#fce7f3; color:#db2777;">
+                            <i class="fas fa-ruler-combined"></i>
+                        </div>
+                        <span class="mob-feat-num">06 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Digital Measurements</div>
+                    <p class="mob-feat-desc">Pre-defined size charts for Shirts, Suits, Kurtas, Blouses & Lehengas with custom fit notes.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Standard & Custom Fits</span>
+                    </div>
+                </div>
+
+                <!-- 7 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#f3e8ff; color:#9333ea;">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <span class="mob-feat-num">07 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Coupons & Offers</div>
+                    <p class="mob-feat-desc">Create festive discount coupon codes, seasonal sale campaigns & VIP customer reward plans.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Loyalty & Discounts</span>
+                    </div>
+                </div>
+
+                <!-- 8 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#ccfbf1; color:#0d9488;">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <span class="mob-feat-num">08 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Multi-Language</div>
+                    <p class="mob-feat-desc">Use the software comfortably in your native language — English, Hindi or Gujarati.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN • HI • GU</span>
+                    </div>
+                </div>
+
+                <!-- 9 -->
+                <div class="mob-feat-slide-card">
+                    <div class="mob-feat-top">
+                        <div class="mob-feat-icon-box" style="background:#e0e7ff; color:#4f46e5;">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <span class="mob-feat-num">09 / 09</span>
+                    </div>
+                    <div class="mob-feat-name">Reports & Insights</div>
+                    <p class="mob-feat-desc">Visual revenue trends, top cloth categories, customer retention data & business growth charts.</p>
+                    <div class="mob-feat-footer">
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> Analytics & Charts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slider Pagination Dots -->
+            <div class="mob-feat-dots" id="mobFeatDots">
+                <span class="mob-feat-dot active" onclick="goMobFeatSlide(0)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(1)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(2)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(3)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(4)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(5)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(6)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(7)"></span>
+                <span class="mob-feat-dot" onclick="goMobFeatSlide(8)"></span>
+            </div>
+
+            <a href="admin/register.php" class="mob-feat-cta">
+                <span>Start Using All Features Free</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
 
         <!-- 8. Why Choose -->
@@ -545,6 +692,59 @@
                     <p class="mob-why-desc">Simple interface designed for tailors like you.</p>
                 </div>
             </div>
+        </div>
+
+        <!-- 9. How It Works -->
+        <div class="mob-how-it-works-section" id="mob-how-it-works">
+            <div class="mob-section-header">
+                <h2 class="mob-section-title">How It Works</h2>
+            </div>
+            <p class="mob-hiw-subtitle">Get started in just a few simple steps.</p>
+            <div class="mob-hiw-steps">
+                <div class="mob-hiw-step">
+                    <div class="mob-hiw-step-number">1</div>
+                    <div class="mob-hiw-step-body">
+                        <div class="mob-hiw-step-icon"><i class="fas fa-user-plus"></i></div>
+                        <div class="mob-hiw-step-info">
+                            <div class="mob-hiw-step-title">Register Your Business</div>
+                            <p class="mob-hiw-step-desc">Create your account and set up your tailoring business profile in minutes.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mob-hiw-step">
+                    <div class="mob-hiw-step-number">2</div>
+                    <div class="mob-hiw-step-body">
+                        <div class="mob-hiw-step-icon"><i class="fas fa-users-cog"></i></div>
+                        <div class="mob-hiw-step-info">
+                            <div class="mob-hiw-step-title">Add Your Team</div>
+                            <p class="mob-hiw-step-desc">Add customers, employees, and configure cloth types for your business.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mob-hiw-step">
+                    <div class="mob-hiw-step-number">3</div>
+                    <div class="mob-hiw-step-body">
+                        <div class="mob-hiw-step-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="mob-hiw-step-info">
+                            <div class="mob-hiw-step-title">Manage Operations</div>
+                            <p class="mob-hiw-step-desc">Handle orders, generate invoices, and track payments seamlessly.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mob-hiw-step">
+                    <div class="mob-hiw-step-number">4</div>
+                    <div class="mob-hiw-step-body">
+                        <div class="mob-hiw-step-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="mob-hiw-step-info">
+                            <div class="mob-hiw-step-title">Track Growth</div>
+                            <p class="mob-hiw-step-desc">Monitor income, expenses, and business growth with detailed reports.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="admin/register.php" class="mob-hiw-cta-btn">
+                Get Started Free <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
 
         <!-- 10. What Our Customers Say -->
@@ -2272,6 +2472,52 @@
         document.getElementById('mobDrawerOverlay').style.display = 'none';
         document.body.style.overflow = '';
     }
+
+    // ---- Mobile Features Slider Controls ----
+    function slideMobFeat(direction) {
+        var slider = document.getElementById('mobFeatSlider');
+        if (!slider) return;
+        var card = slider.querySelector('.mob-feat-slide-card');
+        var step = card ? (card.offsetWidth + 12) : 260;
+        if (direction === 'next') {
+            slider.scrollBy({ left: step, behavior: 'smooth' });
+        } else {
+            slider.scrollBy({ left: -step, behavior: 'smooth' });
+        }
+    }
+
+    function goMobFeatSlide(index) {
+        var slider = document.getElementById('mobFeatSlider');
+        if (!slider) return;
+        var cards = slider.querySelectorAll('.mob-feat-slide-card');
+        if (cards[index]) {
+            slider.scrollTo({ left: cards[index].offsetLeft - slider.offsetLeft - 16, behavior: 'smooth' });
+        }
+    }
+
+    // Sync dots on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        var slider = document.getElementById('mobFeatSlider');
+        var dots = document.querySelectorAll('#mobFeatDots .mob-feat-dot');
+        if (!slider || !dots.length) return;
+
+        slider.addEventListener('scroll', function() {
+            var cards = slider.querySelectorAll('.mob-feat-slide-card');
+            var scrollLeft = slider.scrollLeft;
+            var activeIdx = 0;
+            var minDiff = 99999;
+            cards.forEach(function(card, idx) {
+                var diff = Math.abs(card.offsetLeft - slider.offsetLeft - 16 - scrollLeft);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    activeIdx = idx;
+                }
+            });
+            dots.forEach(function(dot, idx) {
+                dot.classList.toggle('active', idx === activeIdx);
+            });
+        }, { passive: true });
+    });
 
     // ---- Load mobile tailor cards via AJAX ----
     function loadMobileTailors() {

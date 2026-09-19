@@ -318,7 +318,7 @@
                 <a href="./" class="mob-drawer-link"><i class="fas fa-home"></i> Home</a>
                 <a href="tailors.php" class="mob-drawer-link"><i class="fas fa-map-marker-alt"></i> Tailors Near You</a>
                 <a href="tailors.php?cat=men" class="mob-drawer-link"><i class="fas fa-tshirt"></i> Categories</a>
-                <a href="#" class="mob-drawer-link"><i class="fas fa-robot"></i> AI Search</a>
+                
                 <a href="#how-it-works" class="mob-drawer-link"><i class="fas fa-question-circle"></i> How It Works</a>
                 <a href="admin/login.php" class="mob-drawer-link"><i class="fas fa-sign-in-alt"></i> Login</a>
                 <a href="admin/register.php" class="mob-drawer-link"><i class="fas fa-user-plus"></i> Register Business</a>
@@ -543,34 +543,6 @@
                     <div class="mob-why-icon c6"><i class="fas fa-mobile-alt"></i></div>
                     <div class="mob-why-title">Easy to Use</div>
                     <p class="mob-why-desc">Simple interface designed for tailors like you.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 9. Live from Tailor Shops -->
-        <div class="mob-live-section">
-            <div class="mob-section-header">
-                <h2 class="mob-section-title">Live from Tailor Shops</h2>
-                <a href="tailors.php" class="mob-view-all">View All</a>
-            </div>
-            <div class="mob-live-scroll">
-                <div class="mob-live-card" onclick="window.location='tailors.php'">
-                    <img src="assets/images/Dashboard image.gif" alt="Tailor Shop 1"
-                         onerror="this.style.display='none'">
-                    <div class="mob-play-btn"><i class="fas fa-play"></i></div>
-                </div>
-                <div class="mob-live-card" onclick="window.location='tailors.php'">
-                    <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Tailor Shop 2"
-                         onerror="this.style.display='none'">
-                    <div class="mob-play-btn"><i class="fas fa-play"></i></div>
-                </div>
-                <div class="mob-live-card" onclick="window.location='tailors.php'">
-                    <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Tailor Shop 3"
-                         onerror="this.style.display='none'">
-                    <div class="mob-play-btn"><i class="fas fa-play"></i></div>
-                </div>
-                <div class="mob-live-next-btn" onclick="window.location='tailors.php'">
-                    <i class="fas fa-chevron-right"></i>
                 </div>
             </div>
         </div>

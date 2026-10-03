@@ -41,19 +41,15 @@
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-  
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-   
     <meta name="theme-color" content="#0d6efd">
     <meta name="msapplication-TileColor" content="#0d6efd">
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://code.jquery.com">
-    
+    <link rel="dns-prefetch" href="https://code.jquery.com"> 
     <?php
     require_once 'helpers/GA4Helper.php';
     echo GA4Helper::generateBaseCode();
@@ -61,12 +57,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-    
     <link href="assets/css/style14.css" rel="stylesheet">
-    
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -102,7 +95,6 @@
         }
     }
     </script>
-    
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -730,7 +722,6 @@
                 <?php
                     endforeach;
                 else:
-                    // Fallback demo cards
                 ?>
                 <div class="mob-review-card">
                     <div class="mob-review-top">
@@ -1777,8 +1768,6 @@
         startAutoSlide();
     });
     </script>
-
-    <!-- Blog Section -->
     <?php
     $blogArticles = [];
     $dataDir = __DIR__ . '/data';
@@ -2156,7 +2145,7 @@
                                     <span class="rating-text">${tailor.rating} (${tailor.total_reviews})</span>
                                 </div>
                                 <p class="tailor-slider-location">
-                                    <i class="fas fa-map-marker-alt me-1"></i>${tailor.city}, ${tailor.state}
+                                    <i class="fas fa-map-marker-alt me-1"></i>${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}
                                 </p>
                                 ${specialties.length > 0 ? `
                                 <div class="tailor-slider-specialties">
@@ -2410,7 +2399,7 @@
                             <div class="mob-tailor-name">${t.shop_name || 'Tailor Shop'}</div>
                             <div class="mob-tailor-specialty">${(t.specialties || ['Tailoring'])[0]}</div>
                             <div class="mob-tailor-meta">
-                                <span class="mob-tailor-dist"><i class="fas fa-map-marker-alt"></i> ${t.city || 'Nearby'}</span>
+                                <span class="mob-tailor-dist"><i class="fas fa-map-marker-alt"></i> ${(t.address ? t.address + ', ' : '') + (t.city || 'Nearby')}</span>
                                 <span class="mob-tailor-open">Open</span>
                             </div>
                             <div class="mob-tailor-actions">
@@ -2427,6 +2416,5 @@
     document.addEventListener('DOMContentLoaded', loadMobileTailors);
     </script>
     <?php require_once 'includes/whatsapp-button.php'; ?>
-
 </body>
 </html>

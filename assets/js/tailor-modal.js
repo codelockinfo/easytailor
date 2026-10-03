@@ -181,7 +181,7 @@
             ? `${company.years_experience}+ years experience`
             : '';
 
-        const locationText = [company.city, company.state, company.postal_code]
+        const locationText = [company.address, company.city, company.state, company.postal_code]
             .filter(Boolean)
             .map(escapeHtml)
             .join(', ') || 'Location unavailable';

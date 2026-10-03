@@ -43,17 +43,17 @@ require_once 'models/Company.php';
 $companyModelForProgress = new Company();
 $companyForProgress = $companyModelForProgress->find($companyId);
 
-$completionProgress = 0;
-if ($companyForProgress) {
-    if (!empty($companyForProgress['owner_name'])) $completionProgress += 10;
-    if (!empty($companyForProgress['business_email'])) $completionProgress += 10;
-    if (!empty($companyForProgress['business_phone'])) $completionProgress += 10;
-    if (!empty($companyForProgress['company_name'])) $completionProgress += 15;
-    if (!empty($companyForProgress['business_address'])) $completionProgress += 15;
-    if (!empty($companyForProgress['city'])) $completionProgress += 15;
-    if (!empty($companyForProgress['state'])) $completionProgress += 10;
-    if (!empty($companyForProgress['postal_code'])) $completionProgress += 10;
-    if (!empty($companyForProgress['logo'])) $completionProgress += 10;
+$completionProgress = Company::calculateProfileCompletion($companyForProgress);
+$missingProfileFields = Company::getMissingProfileFields($companyForProgress);
+$missingFieldsText = '';
+if (!empty($missingProfileFields)) {
+    $fieldNames = array_values($missingProfileFields);
+    if (count($fieldNames) > 1) {
+        $lastField = array_pop($fieldNames);
+        $missingFieldsText = implode(', ', $fieldNames) . ' and ' . $lastField;
+    } else {
+        $missingFieldsText = $fieldNames[0];
+    }
 }
 ?>
 <?php if ($completionProgress < 100): ?>
@@ -80,7 +80,7 @@ if ($companyForProgress) {
                             <h5 class="mb-0 fw-bold" style="font-size: 1.2rem; letter-spacing: 0.3px;">Complete Your Shop Profile</h5>
                         </div>
                         <p class="mb-3 opacity-90" style="font-size: 0.9rem; max-width: 650px; line-height: 1.5;">
-                            Please complete your shop details (**Tailor Shop Name, Address, City, State, PIN code, and Business Logo**) to access all features.
+                            Please complete your shop details (<strong><?php echo htmlspecialchars($missingFieldsText); ?></strong>) to access all features.
                         </p>
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1 me-3">

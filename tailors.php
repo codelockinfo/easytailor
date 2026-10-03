@@ -1,8 +1,6 @@
 <?php
-
 require_once 'config/database.php';
 require_once 'models/Company.php';
-
 $database = new Database();
 $db = $database->getConnection();
 $company = new Company();
@@ -13,7 +11,6 @@ try {
 } catch (Exception $e) {
     $tableExists = false;
 }
-
 if (!$tableExists) {
     echo '<!DOCTYPE html>
     <html><head><title>Setup Required</title></head>
@@ -66,20 +63,13 @@ $seoOptions = [
     echo GA4Helper::generateBaseCode();
     ?>
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-  
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <link href="assets/css/style14.css" rel="stylesheet">
-    
     <style>
         * {
             margin: 0;
@@ -867,7 +857,7 @@ $seoOptions = [
                                 
                                 <div class="tailor-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    ${tailor.city}, ${tailor.state}
+                                    ${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}${tailor.postal_code ? ' - ' + tailor.postal_code : ''}
                                 </div>
                                 
                                 <p class="tailor-description">${tailor.description || ''}</p>
@@ -1032,4 +1022,3 @@ $seoOptions = [
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>
 </html>
-

@@ -72,10 +72,77 @@ class Company extends BaseModel {
     }
 
     /**
+     * Calculate profile completion percentage (0-100)
+     */
+    public static function calculateProfileCompletion($company) {
+        if (!$company || !is_array($company)) {
+            return 0;
+        }
+
+        $progress = 0;
+        if (!empty(trim((string)($company['owner_name'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['business_email'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['business_phone'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['company_name'] ?? '')))) $progress += 15;
+        if (!empty(trim((string)($company['business_address'] ?? '')))) $progress += 15;
+        if (!empty(trim((string)($company['city'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['state'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['postal_code'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['logo'] ?? '')))) $progress += 10;
+
+        return min(100, $progress);
+    }
+
+    /**
+     * Check if company profile is 100% complete
+     */
+    public static function isProfileComplete($company) {
+        return self::calculateProfileCompletion($company) >= 100;
+    }
+
+    /**
+     * Get list of missing/incomplete profile fields
+     */
+    public static function getMissingProfileFields($company) {
+        if (!$company || !is_array($company)) {
+            return [
+                'company_name' => 'Tailor Shop Name',
+                'owner_name' => 'Owner Name',
+                'business_email' => 'Business Email',
+                'business_phone' => 'Business Phone',
+                'business_address' => 'Address',
+                'city' => 'City',
+                'state' => 'State',
+                'postal_code' => 'PIN Code',
+                'logo' => 'Business Logo'
+            ];
+        }
+
+        $missing = [];
+        if (empty(trim((string)($company['company_name'] ?? '')))) $missing['company_name'] = 'Tailor Shop Name';
+        if (empty(trim((string)($company['owner_name'] ?? '')))) $missing['owner_name'] = 'Owner Name';
+        if (empty(trim((string)($company['business_email'] ?? '')))) $missing['business_email'] = 'Business Email';
+        if (empty(trim((string)($company['business_phone'] ?? '')))) $missing['business_phone'] = 'Business Phone';
+        if (empty(trim((string)($company['business_address'] ?? '')))) $missing['business_address'] = 'Address';
+        if (empty(trim((string)($company['city'] ?? '')))) $missing['city'] = 'City';
+        if (empty(trim((string)($company['state'] ?? '')))) $missing['state'] = 'State';
+        if (empty(trim((string)($company['postal_code'] ?? '')))) $missing['postal_code'] = 'PIN Code';
+        if (empty(trim((string)($company['logo'] ?? '')))) $missing['logo'] = 'Business Logo';
+
+        return $missing;
+    }
+
+    /**
      * Update company logo
      */
     public function updateLogo($company_id, $logo_path) {
-        return $this->update($company_id, ['logo' => $logo_path]);
+        $result = $this->update($company_id, ['logo' => $logo_path]);
+        $updatedCompany = $this->find($company_id);
+        if ($updatedCompany) {
+            $isComplete = self::isProfileComplete($updatedCompany);
+            $this->update($company_id, ['show_on_listing' => $isComplete ? 1 : 0]);
+        }
+        return $result;
     }
 }
 ?>

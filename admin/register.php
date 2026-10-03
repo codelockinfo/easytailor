@@ -86,7 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'timezone' => 'Asia/Kolkata',
                 'status' => 'active',
                 'subscription_plan' => $subscriptionPlan,
-                'subscription_expiry' => $subscriptionExpiry
+                'subscription_expiry' => $subscriptionExpiry,
+                'show_on_listing' => 0
             ];
             if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = '../uploads/logos/';
@@ -97,6 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $companyData['logo'] = $targetPath;
                 }
             }
+            $companyData['show_on_listing'] = Company::isProfileComplete($companyData) ? 1 : 0;
             
             $companyId = $companyModel->createCompany($companyData);
             

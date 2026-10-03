@@ -3,7 +3,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
 require_once '../config/config.php';
 require_login();
@@ -48,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['logo'] = $targetPath;
             }
         }
+        $mergedCompany = array_merge($existingCompany ?: [], $data);
+        $data['show_on_listing'] = Company::isProfileComplete($mergedCompany) ? 1 : 0;
+
         if ($companyModel->update($companyId, $data)) {
             $_SESSION['message'] = 'Company settings updated successfully';
             $_SESSION['messageType'] = 'success';
@@ -85,6 +87,18 @@ $hasPendingEmailRequest = $emailChangeRequestModel->hasPendingRequest($companyId
 $recentRejectedRequest = $emailChangeRequestModel->hasRecentRejectedRequest($companyId, 7);
 $currentEmail = $company['business_email'] ?? '';
 $emailFieldDisabled = !empty($currentEmail);
+$completionProgress = Company::calculateProfileCompletion($company);
+$missingProfileFields = Company::getMissingProfileFields($company);
+$missingFieldsText = '';
+if (!empty($missingProfileFields)) {
+    $fieldNames = array_values($missingProfileFields);
+    if (count($fieldNames) > 1) {
+        $lastField = array_pop($fieldNames);
+        $missingFieldsText = implode(', ', $fieldNames) . ' and ' . $lastField;
+    } else {
+        $missingFieldsText = $fieldNames[0];
+    }
+}
 ?>
 
 
@@ -95,6 +109,46 @@ $emailFieldDisabled = !empty($currentEmail);
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
+
+<?php if ($completionProgress < 100): ?>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg text-white" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border-radius: 16px; overflow: hidden; position: relative;">
+            <div style="position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none;"></div>
+            <div style="position: absolute; bottom: -30px; left: 10%; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.05); pointer-events: none;"></div>
+            
+            <div class="card-body p-4 position-relative">
+                <div class="row align-items-center">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-white text-primary me-2 px-3 py-2" style="border-radius: 20px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">ACTION REQUIRED</span>
+                            <h5 class="mb-0 fw-bold" style="font-size: 1.2rem; letter-spacing: 0.3px;">Complete Your Shop Profile</h5>
+                        </div>
+                        <p class="mb-3 opacity-90" style="font-size: 0.9rem; max-width: 750px; line-height: 1.5;">
+                            Please complete your shop details (<strong><?php echo htmlspecialchars($missingFieldsText); ?></strong>) below to activate your public shop listing.
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 me-3">
+                                <div class="progress" style="height: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.2);">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" 
+                                         style="width: <?php echo $completionProgress; ?>%; border-radius: 10px; background: linear-gradient(90deg, #10b981 0%, #34d399 100%); box-shadow: 0 0 10px rgba(16,185,129,0.5);" 
+                                         aria-valuenow="<?php echo $completionProgress; ?>" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="fw-bold fs-5 text-white"><?php echo $completionProgress; ?>%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="card bg-primary text-white">
@@ -526,5 +580,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
 <?php require_once 'includes/footer.php'; ?>

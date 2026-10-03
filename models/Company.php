@@ -68,6 +68,83 @@ class Company extends BaseModel {
     }
 
     /**
+     * Calculate profile completion percentage (0-100)
+     */
+    public static function calculateProfileCompletion($company) {
+        if (!$company || !is_array($company)) {
+            return 0;
+        }
+
+        $progress = 0;
+        if (!empty(trim((string)($company['owner_name'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['business_email'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['business_phone'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['company_name'] ?? '')))) $progress += 15;
+        if (!empty(trim((string)($company['business_address'] ?? '')))) $progress += 15;
+        if (!empty(trim((string)($company['city'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['state'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['postal_code'] ?? '')))) $progress += 10;
+        if (!empty(trim((string)($company['logo'] ?? '')))) $progress += 10;
+
+        return min(100, $progress);
+    }
+
+    /**
+     * Check if company profile is 100% complete
+     */
+    public static function isProfileComplete($company) {
+        return self::calculateProfileCompletion($company) >= 100;
+    }
+
+    /**
+     * Get list of missing/incomplete profile fields
+     */
+    public static function getMissingProfileFields($company) {
+        if (!$company || !is_array($company)) {
+            return [
+                'company_name' => 'Tailor Shop Name',
+                'owner_name' => 'Owner Name',
+                'business_email' => 'Business Email',
+                'business_phone' => 'Business Phone',
+                'business_address' => 'Address',
+                'city' => 'City',
+                'state' => 'State',
+                'postal_code' => 'PIN Code',
+                'logo' => 'Business Logo'
+            ];
+        }
+
+        $missing = [];
+        if (empty(trim((string)($company['company_name'] ?? '')))) $missing['company_name'] = 'Tailor Shop Name';
+        if (empty(trim((string)($company['owner_name'] ?? '')))) $missing['owner_name'] = 'Owner Name';
+        if (empty(trim((string)($company['business_email'] ?? '')))) $missing['business_email'] = 'Business Email';
+        if (empty(trim((string)($company['business_phone'] ?? '')))) $missing['business_phone'] = 'Business Phone';
+        if (empty(trim((string)($company['business_address'] ?? '')))) $missing['business_address'] = 'Address';
+        if (empty(trim((string)($company['city'] ?? '')))) $missing['city'] = 'City';
+        if (empty(trim((string)($company['state'] ?? '')))) $missing['state'] = 'State';
+        if (empty(trim((string)($company['postal_code'] ?? '')))) $missing['postal_code'] = 'PIN Code';
+        if (empty(trim((string)($company['logo'] ?? '')))) $missing['logo'] = 'Business Logo';
+
+        return $missing;
+    }
+
+    /**
+     * SQL condition to ensure only companies with 100% completed profiles are visible on front side
+     */
+    public static function getProfileCompleteCondition($tableAlias = '') {
+        $p = $tableAlias ? $tableAlias . '.' : '';
+        return " AND ({$p}owner_name IS NOT NULL AND TRIM({$p}owner_name) != '')
+                 AND ({$p}business_email IS NOT NULL AND TRIM({$p}business_email) != '')
+                 AND ({$p}business_phone IS NOT NULL AND TRIM({$p}business_phone) != '')
+                 AND ({$p}company_name IS NOT NULL AND TRIM({$p}company_name) != '')
+                 AND ({$p}business_address IS NOT NULL AND TRIM({$p}business_address) != '')
+                 AND ({$p}city IS NOT NULL AND TRIM({$p}city) != '')
+                 AND ({$p}state IS NOT NULL AND TRIM({$p}state) != '')
+                 AND ({$p}postal_code IS NOT NULL AND TRIM({$p}postal_code) != '')
+                 AND ({$p}logo IS NOT NULL AND TRIM({$p}logo) != '')";
+    }
+
+    /**
      * Get active companies
      */
     public function getActiveCompanies() {
@@ -78,7 +155,13 @@ class Company extends BaseModel {
      * Update company logo
      */
     public function updateLogo($company_id, $logo_path) {
-        return $this->update($company_id, ['logo' => $logo_path]);
+        $result = $this->update($company_id, ['logo' => $logo_path]);
+        $updatedCompany = $this->find($company_id);
+        if ($updatedCompany) {
+            $isComplete = self::isProfileComplete($updatedCompany);
+            $this->update($company_id, ['show_on_listing' => $isComplete ? 1 : 0]);
+        }
+        return $result;
     }
 
     /**
@@ -86,7 +169,7 @@ class Company extends BaseModel {
      */
     public function getPublicCompanies($limit = null, $offset = 0) {
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE status = 'active' AND show_on_listing = 1 
+                  WHERE status = 'active' AND show_on_listing = 1" . self::getProfileCompleteCondition() . " 
                   ORDER BY is_featured DESC, created_at DESC";
         
         if ($limit) {
@@ -109,7 +192,7 @@ class Company extends BaseModel {
      */
     public function getFeaturedCompanies($limit = 8) {
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE status = 'active' AND is_featured = 1 AND show_on_listing = 1 
+                  WHERE status = 'active' AND is_featured = 1 AND show_on_listing = 1" . self::getProfileCompleteCondition() . " 
                   ORDER BY created_at DESC 
                   LIMIT :limit";
         
@@ -124,7 +207,7 @@ class Company extends BaseModel {
      * Search companies with filters
      */
     public function searchCompanies($filters = []) {
-        $query = "SELECT * FROM " . $this->table . " WHERE status = 'active' AND show_on_listing = 1";
+        $query = "SELECT * FROM " . $this->table . " WHERE status = 'active' AND show_on_listing = 1" . self::getProfileCompleteCondition();
         $params = [];
 
         // Search by keyword
@@ -219,7 +302,7 @@ class Company extends BaseModel {
      * Count companies with filters
      */
     public function countCompanies($filters = []) {
-        $query = "SELECT COUNT(*) as total FROM " . $this->table . " WHERE status = 'active' AND show_on_listing = 1";
+        $query = "SELECT COUNT(*) as total FROM " . $this->table . " WHERE status = 'active' AND show_on_listing = 1" . self::getProfileCompleteCondition();
         $params = [];
 
         if (!empty($filters['keyword'])) {
@@ -267,7 +350,7 @@ class Company extends BaseModel {
      */
     public function getUniqueCities() {
         $query = "SELECT DISTINCT city FROM " . $this->table . " 
-                  WHERE status = 'active' AND show_on_listing = 1 AND city IS NOT NULL 
+                  WHERE status = 'active' AND show_on_listing = 1 AND city IS NOT NULL AND TRIM(city) != ''" . self::getProfileCompleteCondition() . " 
                   ORDER BY city ASC";
         
         $stmt = $this->conn->prepare($query);
@@ -281,7 +364,7 @@ class Company extends BaseModel {
      */
     public function getUniqueStates() {
         $query = "SELECT DISTINCT state FROM " . $this->table . " 
-                  WHERE status = 'active' AND show_on_listing = 1 AND state IS NOT NULL 
+                  WHERE status = 'active' AND show_on_listing = 1 AND state IS NOT NULL AND TRIM(state) != ''" . self::getProfileCompleteCondition() . " 
                   ORDER BY state ASC";
         
         $stmt = $this->conn->prepare($query);
@@ -301,7 +384,7 @@ class Company extends BaseModel {
                     SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) as verified,
                     AVG(rating) as avg_rating
                   FROM " . $this->table . "
-                  WHERE show_on_listing = 1";
+                  WHERE show_on_listing = 1" . self::getProfileCompleteCondition();
         
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -314,7 +397,7 @@ class Company extends BaseModel {
      */
     public function getPublicCompanyById($companyId) {
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE id = :id AND status = 'active' AND show_on_listing = 1 
+                  WHERE id = :id AND status = 'active' AND show_on_listing = 1" . self::getProfileCompleteCondition() . " 
                   LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':id', $companyId, PDO::PARAM_INT);

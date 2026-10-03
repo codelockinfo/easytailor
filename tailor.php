@@ -1,19 +1,15 @@
 <?php
 require_once 'models/Company.php';
 require_once 'models/CompanyReview.php';
-
 $companyId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $companyModel = new Company();
 $reviewModel = new CompanyReview();
-
 $company = $companyModel->getPublicCompanyById($companyId);
-
 if (!$company) {
     http_response_code(404);
     echo '<!DOCTYPE html><html><head><title>Tailor Not Found</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"></head><body class="bg-light"><div class="container py-5 text-center"><h1 class="display-5">Tailor Not Found</h1><p class="lead text-muted">The tailor profile you are looking for is no longer available.</p><a class="btn btn-primary" href="tailors.php">Browse Tailors</a></div></body></html>';
     exit;
 }
-
 $reviews = $reviewModel->getApprovedReviews($companyId, 50);
 $stats = $reviewModel->getRatingStats($companyId);
 $breakdown = $reviewModel->getRatingBreakdown($companyId);
@@ -25,7 +21,6 @@ if (!empty($company['specialties'])) {
         $specialties = $decoded;
     }
 }
-
 $workingHours = [];
 if (!empty($company['working_hours'])) {
     $decoded = json_decode($company['working_hours'], true);
@@ -33,20 +28,17 @@ if (!empty($company['working_hours'])) {
         $workingHours = $decoded;
     }
 }
-
 function escape($value) {
     return htmlspecialchars(htmlspecialchars_decode($value ?? '', ENT_QUOTES), ENT_QUOTES, 'UTF-8');
 }
 ?>
 <?php
 require_once 'helpers/SEOHelper.php';
-
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 $companyName = escape($company['company_name']);
 $companyDesc = !empty($company['description']) ? escape($company['description']) : ($companyName . ' - Professional tailor shop offering quality tailoring services. ' . (!empty($company['city']) ? 'Located in ' . escape($company['city']) : ''));
 $companyImage = !empty($company['logo']) ? $baseUrl . '/' . ltrim($company['logo'], '/') : $baseUrl . '/assets/images/og-image.jpg';
 $canonicalUrl = $baseUrl . '/tailor.php?id=' . $company['id'];
-
 $seoOptions = [
     'title' => $companyName . ' - Tailor Profile | ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
     'description' => $companyDesc,
@@ -67,7 +59,6 @@ $seoOptions = [
     require_once 'helpers/GA4Helper.php';
     echo GA4Helper::generateBaseCode();
     ?>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
@@ -228,6 +219,13 @@ $seoOptions = [
                             <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
                         <?php endif; ?>
                     </div>
+                    <?php 
+                    $fullAddressParts = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
+                    if (!empty($fullAddressParts)): ?>
+                        <div class="mt-2 text-white-50" style="font-size: 0.95rem;">
+                            <i class="fas fa-map-marker-alt me-1 text-warning"></i><?php echo escape(implode(', ', $fullAddressParts)); ?>
+                        </div>
+                    <?php endif; ?>
                     <div class="mt-3 d-flex flex-wrap gap-2 contact-buttons">
                         <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $company['business_phone']); ?>" class="btn btn-outline-light">
                             <i class="fas fa-phone me-2"></i>Call
@@ -247,15 +245,16 @@ $seoOptions = [
             </div>
         </div>
     </div>
-
     <div class="container py-5">
         <div class="row g-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h4 class="card-title mb-3">About</h4>
-                        <?php if (!empty($company['business_address'])): ?>
-                            <p><i class="fas fa-map-marker-alt text-primary me-2"></i><?php echo escape($company['business_address']); ?><?php echo $company['city'] ? ', ' . escape($company['city']) : ''; ?><?php echo $company['state'] ? ', ' . escape($company['state']) : ''; ?></p>
+                        <?php 
+                        $fullAboutAddress = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
+                        if (!empty($fullAboutAddress)): ?>
+                            <p><i class="fas fa-map-marker-alt text-primary me-2"></i><?php echo escape(implode(', ', $fullAboutAddress)); ?></p>
                         <?php endif; ?>
                         <?php if ($specialties): ?>
                             <h6>Specialties</h6>
@@ -453,4 +452,3 @@ $seoOptions = [
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>
 </html>
-

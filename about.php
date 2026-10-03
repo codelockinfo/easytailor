@@ -1,14 +1,8 @@
 <?php
-/**
- * About Us Page
- * Tailoring Management System - Standalone Page
- */
 
-// Set page title
 $page_title = 'About Us';
 ?>
 <?php
-// Load SEO Helper if available
 if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
     require_once 'helpers/SEOHelper.php';
 }
@@ -47,7 +41,7 @@ $seoOptions = [
         try {
             echo SEOHelper::generateMetaTags($seoOptions); 
         } catch (Exception $e) {
-            // Fallback if SEOHelper fails
+         
             error_log('SEOHelper error: ' . $e->getMessage());
             echo '<title>' . htmlspecialchars($seoOptions['title']) . '</title>';
             echo '<meta name="description" content="' . htmlspecialchars($seoOptions['description']) . '">';
@@ -55,15 +49,12 @@ $seoOptions = [
             echo '<link rel="canonical" href="' . htmlspecialchars($seoOptions['canonical']) . '">';
         }
     } else {
-        // Fallback meta tags
         echo '<title>' . htmlspecialchars($seoOptions['title']) . '</title>';
         echo '<meta name="description" content="' . htmlspecialchars($seoOptions['description']) . '">';
         echo '<meta name="keywords" content="' . htmlspecialchars($seoOptions['keywords']) . '">';
         echo '<link rel="canonical" href="' . htmlspecialchars($seoOptions['canonical']) . '">';
     }
     ?>
-    
-    <!-- Google Analytics 4 (GA4) -->
     <?php
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
         require_once 'helpers/GA4Helper.php';
@@ -78,22 +69,18 @@ $seoOptions = [
     ?>
     
     <link href="assets/css/style14.css" rel="stylesheet">
-    <!-- Bootstrap CSS -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
+   
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -264,16 +251,11 @@ $seoOptions = [
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
 <?php
-// Load content from JSON file
 $jsonFile = __DIR__ . '/data/about-content.json';
 $aboutData = null;
-
-// Check if data directory exists, if not create it
 $dataDir = __DIR__ . '/data';
 if (!is_dir($dataDir)) {
     @mkdir($dataDir, 0755, true);
@@ -285,13 +267,12 @@ if (file_exists($jsonFile)) {
         $aboutData = json_decode($jsonContent, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            // Log error but don't break the page
+            
             error_log('JSON decode error in about: ' . json_last_error_msg());
             $aboutData = null;
         }
     }
 } else {
-    // Log warning if file doesn't exist
     error_log('About content JSON file not found: ' . $jsonFile);
 }
 ?>

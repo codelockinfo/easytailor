@@ -69,7 +69,7 @@ $seoOptions = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="assets/css/style14.css" rel="stylesheet">
+    <link href="assets/css/style15.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -193,6 +193,10 @@ $seoOptions = [
             display: flex;
             flex-direction: column;
             cursor: pointer;
+            min-width: 0;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .tailor-card:hover {
@@ -244,6 +248,10 @@ $seoOptions = [
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         .tailor-name {
@@ -251,12 +259,20 @@ $seoOptions = [
             font-weight: 700;
             margin-bottom: 5px;
             color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
         }
 
         .tailor-owner {
             color: #666;
             font-size: 0.9rem;
             margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
         }
 
         .rating {
@@ -264,20 +280,27 @@ $seoOptions = [
             align-items: center;
             gap: 5px;
             margin-bottom: 15px;
+            min-width: 0;
         }
 
         .rating-stars {
             color: #ffc107;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .rating-number {
             font-weight: 600;
             color: #333;
+            white-space: nowrap;
         }
 
         .rating-count {
             color: #666;
             font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .tailor-location {
@@ -285,8 +308,11 @@ $seoOptions = [
             font-size: 0.9rem;
             margin-bottom: 10px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 5px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
         }
 
         .tailor-description {

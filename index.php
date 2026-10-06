@@ -59,7 +59,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-    <link href="assets/css/style14.css" rel="stylesheet">
+    <link href="assets/css/style15.css" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -2138,13 +2138,13 @@
                                 ${tailor.is_verified ? '<span class="verified-badge-slider"><i class="fas fa-check-circle"></i></span>' : ''}
                             </div>
                             <div class="tailor-slider-body">
-                                <h4 class="tailor-slider-name">${tailor.shop_name}</h4>
-                                <p class="tailor-slider-owner">${tailor.owner_name}</p>
+                                <h4 class="tailor-slider-name" title="${tailor.shop_name || ''}">${tailor.shop_name}</h4>
+                                <p class="tailor-slider-owner" title="${tailor.owner_name || ''}">${tailor.owner_name}</p>
                                 <div class="tailor-slider-rating">
                                     <span class="stars">${stars}</span>
                                     <span class="rating-text">${tailor.rating} (${tailor.total_reviews})</span>
                                 </div>
-                                <p class="tailor-slider-location">
+                                <p class="tailor-slider-location" title="${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}">
                                     <i class="fas fa-map-marker-alt me-1"></i>${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}
                                 </p>
                                 ${specialties.length > 0 ? `

@@ -32,8 +32,6 @@ try {
     $tailors = [];
 }
 ?>
-
-<!-- Testimonial Popup Modal -->
 <div id="testimonialPopup" class="testimonial-popup-overlay" style="display: none;">
     <div class="testimonial-popup-container">
         <button class="testimonial-popup-close" id="closeTestimonialPopup" aria-label="Close">

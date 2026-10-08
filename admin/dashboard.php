@@ -471,7 +471,6 @@ if (!empty($missingProfileFields)) {
 </div>
 
 <div class="dash-kpi-grid">
-    <!-- Card 1: Monthly Revenue (Purple) -->
     <div class="kpi-card kpi-purple">
         <div class="kpi-top">
             <div class="kpi-left-group">
@@ -490,7 +489,6 @@ if (!empty($missingProfileFields)) {
         <div class="kpi-label">Monthly Revenue</div>
     </div>
 
-    <!-- Card 2: Total Orders (Green) -->
     <div class="kpi-card kpi-green">
         <div class="kpi-top">
             <div class="kpi-left-group">
@@ -509,7 +507,6 @@ if (!empty($missingProfileFields)) {
         <div class="kpi-label">Total Orders</div>
     </div>
 
-    <!-- Card 3: Total Invoices (Orange) -->
     <div class="kpi-card kpi-orange">
         <div class="kpi-top">
             <div class="kpi-left-group">
@@ -528,7 +525,6 @@ if (!empty($missingProfileFields)) {
         <div class="kpi-label">Total Invoices</div>
     </div>
 
-    <!-- Card 4: Pending Orders (Red/Pink) -->
     <div class="kpi-card kpi-red">
         <div class="kpi-top">
             <div class="kpi-left-group">

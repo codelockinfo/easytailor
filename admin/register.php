@@ -323,12 +323,9 @@ $seoOptions = [
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
     <style>
         body {
@@ -455,7 +452,6 @@ $seoOptions = [
                         <form method="POST" enctype="multipart/form-data" id="registerForm">
                             <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                             
-                            <!-- Register Form Fields -->
                             <div class="row g-2">
                                 <div class="col-md-6 mb-2">
                                     <label for="owner_name" class="form-label">

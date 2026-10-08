@@ -27,7 +27,6 @@ class GA4Helper {
         // Define gtag function FIRST before async script loads
         // This ensures gtag is always available even if async script hasn't loaded yet
         $code = "
-    <!-- Google tag (gtag.js) -->
     <script>
         // Initialize dataLayer immediately (must be global)
         window.dataLayer = window.dataLayer || [];

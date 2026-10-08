@@ -52,7 +52,6 @@ $currentYear = date('Y');
 $currentMonth = date('n');
 $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $currentYear . '-12-31';
 ?>
-<!-- Promotional Popup Modal -->
 <div id="promoPopup" class="promo-popup-overlay" style="display: none;">
     <div class="promo-popup-container">
         <button class="promo-popup-close" id="closePromoPopup" aria-label="Close">

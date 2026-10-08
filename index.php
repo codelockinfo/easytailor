@@ -1845,8 +1845,6 @@
             <?php endif; ?>
         </div>
     </section>
-
-    <!-- Pricing Section -->
     <section id="pricing" class="pricing-section py-5 bg-light" style="display: none;">
         <div class="container pricing-container">
             <div class="row">
@@ -1908,7 +1906,6 @@
         </div>
     </section>
 
-    <!-- Final CTA Section -->
     <section id="final-cta" class="final-cta-section py-4">
         <div class="container">
             <div class="row">
@@ -1931,34 +1928,15 @@
         </div>
     </section>
 
-    <!-- Testimonials Popup -->
     <?php require_once 'includes/testimonial-popup.php'; ?>
-
-    <!-- Footer -->
     <?php require_once 'includes/footer.php'; ?>
-
-    <!-- Sticky CTA Button -->
     <?php require_once 'includes/sticky-cta-button.php'; ?>
-
-    <!-- WhatsApp Button -->
     <?php require_once 'includes/whatsapp-button.php'; ?>
-
-    <!-- Promotional Popup -->
     <?php require_once 'includes/promo-popup.php'; ?>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- jQuery (required for Slick) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Slick Carousel JS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
-    
-    <!-- Go to Top Button -->
-    <?php require_once 'includes/go-to-top-button.php'; ?>
-
-    <!-- Tailors Slider Script -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+        <?php require_once 'includes/go-to-top-button.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             loadFeaturedTailors();
@@ -2289,12 +2267,9 @@
         })();
     </script>
 
-    <!-- Custom JS -->
     <script src="assets/js/script2.js"></script>
 
-    </div><!-- END .d-none.d-md-block (desktop layout) -->
-
-    <!-- Mobile App JavaScript -->
+    </div>
     <script>
     function openMobDrawer() {
         document.getElementById('mobDrawer').classList.add('open');

@@ -1347,7 +1347,6 @@ if (isset($_SESSION['message'])) {
         </div>
     </div>
 
-    <!-- Contact Message Detail Modal -->
     <div class="modal fade" id="contactMessageModal" tabindex="-1" aria-labelledby="contactMessageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -1357,7 +1356,6 @@ if (isset($_SESSION['message'])) {
                 </div>
                 <div class="modal-body">
                     <div id="contactMessageDetails">
-                        <!-- Details will be populated by JavaScript -->
                     </div>
                     
                     <div class="response-section pt-3 mt-3 border-top">
@@ -1391,8 +1389,6 @@ if (isset($_SESSION['message'])) {
             </div>
         </div>
     </div>
-
-    <!-- View Email Request Details Modal -->
     <div class="modal fade" id="viewEmailRequestModal" tabindex="-1" aria-labelledby="viewEmailRequestModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">

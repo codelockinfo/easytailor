@@ -100,7 +100,6 @@ try {
                     </div>
                     <div class="card-body">
                         
-                        <!-- Test Login Form -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
                                 <h5 class="mb-0">Test Login Credentials</h5>
@@ -126,8 +125,6 @@ try {
                                 </form>
                             </div>
                         </div>
-                        
-                        <!-- Test Results -->
                         <?php if (isset($testResults['test_attempted'])): ?>
                         <div class="card mb-4">
                             <div class="card-header <?php echo isset($testResults['can_login']) && $testResults['can_login'] ? 'bg-success' : 'bg-danger'; ?> text-white">
@@ -211,7 +208,6 @@ try {
                         </div>
                         <?php endif; ?>
                         
-                        <!-- All Users in Database -->
                         <?php if (!empty($testResults['all_users'])): ?>
                         <div class="card mb-4">
                             <div class="card-header bg-light">

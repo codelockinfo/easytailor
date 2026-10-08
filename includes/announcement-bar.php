@@ -25,8 +25,6 @@ if (isset($announcement['enabled']) && $announcement['enabled'] === false) {
     return;
 }
 ?>
-
-<!-- Announcement Bar -->
 <div class="announcement-bar" id="announcementBar" style="margin: 0; padding: 0;">
     <div class="container-fluid" style="margin: 0; padding: 0;">
         <div class="row align-items-center" style="margin: 0;">

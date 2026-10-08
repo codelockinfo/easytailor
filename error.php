@@ -29,7 +29,7 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
         <div class="col-lg-6 col-md-8 col-sm-10">
             <div class="card shadow-lg border-0">
                 <div class="card-body text-center p-5">
-                    <!-- Error Icon -->
+                   
                     <div class="mb-4">
                         <?php if ($error_code === '404'): ?>
                             <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
@@ -41,12 +41,9 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
                             <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
                         <?php endif; ?>
                     </div>
-                    
-                    <!-- Error Code and Title -->
                     <h1 class="display-4 fw-bold text-primary mb-3"><?php echo htmlspecialchars($error_code); ?></h1>
                     <h2 class="h4 mb-3"><?php echo htmlspecialchars($error_title); ?></h2>
                     
-                    <!-- Error Message -->
                     <div class="mb-4">
                         <?php if ($error_code === '404'): ?>
                             <p class="text-muted">Sorry, the page you are looking for doesn't exist or has been moved.</p>
@@ -58,8 +55,6 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
                             <p class="text-muted">An error occurred while processing your request.</p>
                         <?php endif; ?>
                     </div>
-                    
-                    <!-- Requested URL (if available and not 404) -->
                     <?php if ($requested_url !== 'Unknown' && $error_code !== '404'): ?>
                     <div class="alert alert-info mb-4">
                         <small class="text-muted">
@@ -67,8 +62,6 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
                         </small>
                     </div>
                     <?php endif; ?>
-                    
-                    <!-- Quick Actions -->
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <a href="dashboard.php" class="btn btn-primary w-100">
@@ -82,7 +75,6 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
                         </div>
                     </div>
                     
-                    <!-- Contact Support (for server errors) -->
                     <?php if (in_array($error_code, ['500', '502', '503'])): ?>
                     <div class="alert alert-warning mb-4">
                         <i class="fas fa-info-circle me-2"></i>
@@ -90,7 +82,6 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
                     </div>
                     <?php endif; ?>
                     
-                    <!-- Quick Links -->
                     <div class="border-top pt-4">
                         <h6 class="mb-3">Quick Links:</h6>
                         <div class="row g-2">
@@ -131,8 +122,6 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
         </div>
     </div>
 </div>
-
-<!-- Custom Styles -->
 <style>
 .min-vh-100 {
     min-height: 100vh;

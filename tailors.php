@@ -527,7 +527,6 @@ $seoOptions = [
     <?php require_once 'includes/nav.php'; ?>
     
     <div>
-    <!-- Page Header -->
     <div class="page-header">
         <div class="container">
             <div class="back-to-home">

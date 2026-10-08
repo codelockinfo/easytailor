@@ -90,12 +90,9 @@ try {
     <title>Setup Measurement Charts</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
     <style>
         .status-icon {
@@ -126,7 +123,6 @@ try {
                             </div>
                         <?php endif; ?>
                         
-                        <!-- Step 1 -->
                         <div class="mb-4 p-4 border rounded">
                             <div class="text-center">
                                 <i class="fas fa-database status-icon <?php echo $response['step1']['status']; ?>"></i>
@@ -137,7 +133,6 @@ try {
                             </div>
                         </div>
                         
-                        <!-- Step 2 -->
                         <div class="mb-4 p-4 border rounded">
                             <div class="text-center">
                                 <i class="fas fa-link status-icon <?php echo $response['step2']['status']; ?>"></i>
@@ -147,8 +142,6 @@ try {
                                 <?php echo $response['step2']['message']; ?>
                             </div>
                         </div>
-                        
-                        <!-- Step 3 -->
                         <div class="mb-4 p-4 border rounded">
                             <div class="text-center">
                                 <i class="fas fa-check-circle status-icon <?php echo $response['step3']['status']; ?>"></i>

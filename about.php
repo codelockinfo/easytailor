@@ -343,7 +343,6 @@ if (file_exists($jsonFile)) {
                                 </div>
                             <?php endif; ?>
                         <?php else: ?>
-                            <!-- Fallback content if JSON file is not available -->
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle me-2"></i>Content is currently being loaded. Please refresh the page.
                             </div>
@@ -354,11 +353,8 @@ if (file_exists($jsonFile)) {
         </div>
     </div>
 </div>
-
-<!-- Footer -->
 <?php require_once 'includes/footer.php'; ?>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -405,9 +401,8 @@ if (file_exists($jsonFile)) {
     })();
 </script>
 
-<!-- WhatsApp Button -->
 <?php require_once 'includes/whatsapp-button.php'; ?>
-<!-- Go to Top Button -->
+
 <script src="assets/js/script2.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>

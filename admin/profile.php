@@ -1,21 +1,11 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * User Profile Page
- * Tailoring Management System
- */
-
-// Include config first (before any output)
 require_once '../config/config.php';
 
-// Check if user is logged in
 require_login();
 
 require_once 'models/User.php';
@@ -24,7 +14,6 @@ $userModel = new User();
 $message = '';
 $messageType = '';
 
-// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
@@ -102,7 +91,6 @@ if (count($nameParts) >= 2) {
 
 <div class="row">
     <div class="col-lg-4 mb-4">
-        <!-- Profile Card -->
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">
@@ -151,7 +139,6 @@ if (count($nameParts) >= 2) {
     </div>
     
     <div class="col-lg-8">
-        <!-- Edit Profile Form -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -262,7 +249,6 @@ if (count($nameParts) >= 2) {
             </div>
         </div>
         
-        <!-- Change Password Card -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -279,7 +265,6 @@ if (count($nameParts) >= 2) {
     </div>
 </div>
 
-<!-- Profile Photo Modal -->
 <div class="modal fade" id="profilePhotoModal" tabindex="-1" aria-labelledby="profilePhotoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">

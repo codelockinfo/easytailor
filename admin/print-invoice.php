@@ -1,16 +1,10 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Print Invoice Page
- * Tailoring Management System
- */
+
 
 require_once '../config/config.php';
 require_login();
@@ -137,7 +131,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
 </head>
 <body>
     <div class="invoice-container">
-        <!-- Print Button -->
         <div class="no-print text-end mb-3">
             <button onclick="window.print()" class="btn btn-primary">
                 <i class="fas fa-print me-2"></i>Print Invoice
@@ -147,7 +140,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
             </button>
         </div>
         
-        <!-- Invoice Header -->
         <div class="invoice-header">
             <div class="row align-items-center">
                 <div class="col-md-6">
@@ -185,8 +177,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
                 </div>
             </div>
         </div>
-        
-        <!-- Bill To & Order Info -->
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="info-box">
@@ -220,7 +210,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
             </div>
         </div>
         
-        <!-- Invoice Items -->
         <table class="table table-bordered table-invoice">
             <thead>
                 <tr>
@@ -244,7 +233,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
             </tbody>
         </table>
         
-        <!-- Totals -->
         <div class="row">
             <div class="col-md-6">
                 <?php if (!empty($invoice['notes'])): ?>
@@ -296,7 +284,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
             </div>
         </div>
         
-        <!-- Payment History -->
         <?php if (!empty($payments)): ?>
         <div class="mt-4">
             <h5 class="mb-3">Payment History</h5>
@@ -325,7 +312,6 @@ $company = $companyId ? $companyModel->find($companyId) : null;
         </div>
         <?php endif; ?>
         
-        <!-- Footer -->
         <div class="mt-5 pt-4" style="border-top: 1px solid #dee2e6;">
             <div class="row">
                 <div class="col-md-6">

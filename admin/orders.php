@@ -1,23 +1,11 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Orders Page
- * Tailoring Management System
- */
-
-// Include config first (before any output)
 require_once '../config/config.php';
-
-// Check if user is logged in
 require_login();
-
 require_once 'models/Order.php';
 require_once '../models/Customer.php';
 require_once '../models/Measurement.php';
@@ -253,8 +241,6 @@ $orderStats = $orderModel->getOrderStats();
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<!-- Order Statistics -->
 <div class="row">
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
@@ -312,8 +298,6 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
 </div>
-
-<!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-2 align-items-end">
@@ -369,8 +353,6 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
 </div>
-
-<!-- Orders Table -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -497,8 +479,6 @@ $orderStats = $orderModel->getOrderStats();
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Order pagination">
@@ -544,8 +524,6 @@ $orderStats = $orderModel->getOrderStats();
         <?php endif; ?>
     </div>
 </div>
-
-<!-- Order Modal -->
 <div class="modal fade" id="orderModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -575,7 +553,6 @@ $orderStats = $orderModel->getOrderStats();
                             <label for="measurement_id" class="form-label">Measurement</label>
                             <select class="form-select" id="measurement_id" name="measurement_id">
                                 <option value="">No Measurement</option>
-                                <!-- Measurements will be loaded via AJAX -->
                             </select>
                         </div>
                     </div>
@@ -651,8 +628,6 @@ $orderStats = $orderModel->getOrderStats();
         </div>
     </div>
 </div>
-
-<!-- Status Update Modal -->
 <div class="modal fade" id="statusModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

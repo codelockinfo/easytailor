@@ -167,7 +167,6 @@ if (empty($categories)) {
     </div>
 <?php endif; ?>
 
-<!-- Expense Statistics -->
 <div class="row mb-2">
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
@@ -228,7 +227,6 @@ if (empty($categories)) {
     </div>
 </div>
 
-<!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
@@ -265,7 +263,6 @@ if (empty($categories)) {
     </div>
 </div>
 
-<!-- Expenses Table -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -372,8 +369,6 @@ if (empty($categories)) {
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Expense pagination">
@@ -419,8 +414,6 @@ if (empty($categories)) {
         <?php endif; ?>
     </div>
 </div>
-
-<!-- Expense Modal -->
 <div class="modal fade" id="expenseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -473,11 +466,10 @@ if (empty($categories)) {
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <!-- Modal Header -->
+          
             <div class="modal-header bg-danger text-white border-0">
                 <div class="d-flex align-items-center">
                     <div class="me-3">
@@ -493,7 +485,6 @@ if (empty($categories)) {
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <!-- Modal Body -->
             <div class="modal-body p-4">
                 <div class="text-center mb-4">
                     <div class="mb-3">
@@ -522,8 +513,6 @@ if (empty($categories)) {
                     </div>
                 </div>
             </div>
-            
-            <!-- Modal Footer -->
             <div class="modal-footer border-0 p-4 bg-light">
                 <div class="w-100 d-flex justify-content-end gap-2">
                     <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
@@ -542,8 +531,6 @@ if (empty($categories)) {
         </div>
     </div>
 </div>
-
-<!-- Receipt Modal -->
 <div class="modal fade" id="receiptModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -558,7 +545,6 @@ if (empty($categories)) {
     </div>
 </div>
 
-<!-- Quick Category Modal -->
 <div class="modal fade" id="quickCategoryModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

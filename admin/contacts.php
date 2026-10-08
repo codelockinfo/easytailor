@@ -141,7 +141,6 @@ require_once 'includes/header.php';
     </div>
 <?php endif; ?>
 
-<!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
@@ -179,8 +178,6 @@ require_once 'includes/header.php';
         </div>
     </div>
 </div>
-
-<!-- Contacts Table -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -292,8 +289,6 @@ require_once 'includes/header.php';
                 </tbody>
             </table>
         </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Contact pagination">
@@ -321,8 +316,6 @@ require_once 'includes/header.php';
             </div>
     </div>
 </div>
-
-<!-- Contact Modal -->
 <div class="modal fade" id="contactModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -404,11 +397,10 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <!-- Modal Header -->
+          
             <div class="modal-header bg-danger text-white border-0">
                 <div class="d-flex align-items-center w-100">
                     <div class="me-3">
@@ -423,8 +415,6 @@ require_once 'includes/header.php';
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
-            
-            <!-- Modal Body -->
             <div class="modal-body text-center py-4">
                 <div class="mb-4">
                     <i class="fas fa-user-times fa-4x text-danger mb-3"></i>
@@ -438,8 +428,6 @@ require_once 'includes/header.php';
                     All associated data will be permanently removed from the system.
                 </p>
             </div>
-            
-            <!-- Modal Footer -->
             <div class="modal-footer border-0 justify-content-center pb-4">
                 <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancel

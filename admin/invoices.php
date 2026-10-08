@@ -1,21 +1,11 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Invoices Page
- * Tailoring Management System
- */
-
-// Include config first (before any output)
 require_once '../config/config.php';
 
-// Check if user is logged in
 require_login();
 
 require_once 'models/Invoice.php';
@@ -361,7 +351,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
     </div>
 <?php endif; ?>
 
-<!-- Invoice Statistics -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
@@ -419,8 +408,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
         </div>
     </div>
 </div>
-
-<!-- Revenue Summary -->
 <div class="row mb-4">
     <div class="col-xl-4 col-md-6 mb-3">
         <div class="card">
@@ -449,8 +436,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
         </div>
     </div>
 </div>
-
-<!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-2 align-items-end">
@@ -492,8 +477,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
         </div>
     </div>
 </div>
-
-<!-- Invoices Table -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -633,8 +616,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Invoice pagination">
@@ -683,8 +664,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
         <?php endif; ?>
     </div>
 </div>
-
-<!-- Invoice Modal -->
 <div class="modal fade" id="invoiceModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -813,8 +792,6 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
         </div>
     </div>
 </div>
-
-<!-- Payment Modal -->
 <div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

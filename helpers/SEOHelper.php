@@ -48,6 +48,7 @@ class SEOHelper {
             $options['robots'] = 'noindex, nofollow';
         }
         
+        $html = "\n    <!-- SEO Meta Tags -->\n";
         $html .= "    <title>" . htmlspecialchars($options['title'], ENT_QUOTES, 'UTF-8') . "</title>\n";
         $html .= "    <meta name=\"description\" content=\"" . htmlspecialchars($options['description'], ENT_QUOTES, 'UTF-8') . "\">\n";
         $html .= "    <meta name=\"keywords\" content=\"" . htmlspecialchars($options['keywords'], ENT_QUOTES, 'UTF-8') . "\">\n";
@@ -60,11 +61,11 @@ class SEOHelper {
         $html .= "    <meta name=\"rating\" content=\"general\">\n";
         
         // Canonical URL
-        
+        $html .= "\n    <!-- Canonical URL -->\n";
         $html .= "    <link rel=\"canonical\" href=\"" . htmlspecialchars($options['canonical'], ENT_QUOTES, 'UTF-8') . "\">\n";
         
         // Open Graph Meta Tags
-       
+        $html .= "\n    <!-- Open Graph Meta Tags -->\n";
         $html .= "    <meta property=\"og:title\" content=\"" . htmlspecialchars($options['title'], ENT_QUOTES, 'UTF-8') . "\">\n";
         $html .= "    <meta property=\"og:description\" content=\"" . htmlspecialchars($options['description'], ENT_QUOTES, 'UTF-8') . "\">\n";
         $html .= "    <meta property=\"og:type\" content=\"" . htmlspecialchars($options['og_type'], ENT_QUOTES, 'UTF-8') . "\">\n";
@@ -78,7 +79,7 @@ class SEOHelper {
         $html .= "    <meta property=\"og:locale:alternate\" content=\"en_IN\">\n";
         
         // Twitter Card Meta Tags
-       
+        $html .= "\n    <!-- Twitter Card Meta Tags -->\n";
         $html .= "    <meta name=\"twitter:card\" content=\"summary_large_image\">\n";
         $html .= "    <meta name=\"twitter:title\" content=\"" . htmlspecialchars($options['title'], ENT_QUOTES, 'UTF-8') . "\">\n";
         $html .= "    <meta name=\"twitter:description\" content=\"" . htmlspecialchars($options['description'], ENT_QUOTES, 'UTF-8') . "\">\n";
@@ -87,6 +88,7 @@ class SEOHelper {
         
         // Structured Data
         if ($options['structured_data']) {
+            $html .= "\n    <!-- Structured Data -->\n";
             $html .= "    <script type=\"application/ld+json\">\n";
             $html .= "    " . json_encode($options['structured_data'], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
             $html .= "    </script>\n";

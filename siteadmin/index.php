@@ -158,12 +158,9 @@ if (isset($_SESSION['message'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Change Requests - Site Admin</title>
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -697,7 +694,6 @@ if (isset($_SESSION['message'])) {
             </div>
         </aside>
 
-        <!-- Mobile Overlay -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         
         <main class="main-content">
@@ -721,15 +717,7 @@ if (isset($_SESSION['message'])) {
                     </div>
                 </div>
                 <div class="d-flex gap-2">
-                    <!-- <div class="dropdown">
-                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-globe me-1"></i>EN
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">English</a></li>
-                            <li><a class="dropdown-item" href="#">Hindi</a></li>
-                        </ul>
-                    </div> -->
+                    
                     <div class="dropdown">
                         <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user-circle me-1"></i>Admin
@@ -1202,7 +1190,6 @@ if (isset($_SESSION['message'])) {
         </main>
     </div>
 
-    <!-- Approve Modal -->
     <div class="modal fade" id="approveModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1233,7 +1220,6 @@ if (isset($_SESSION['message'])) {
         </div>
     </div>
 
-    <!-- Approve Testimonial Modal -->
     <div class="modal fade" id="approveTestimonialModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1263,7 +1249,6 @@ if (isset($_SESSION['message'])) {
         </div>
     </div>
 
-    <!-- Reject Testimonial Modal -->
     <div class="modal fade" id="rejectTestimonialModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1297,7 +1282,6 @@ if (isset($_SESSION['message'])) {
         </div>
     </div>
 
-    <!-- View Testimonial Modal -->
     <div class="modal fade" id="viewTestimonialModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -1319,7 +1303,6 @@ if (isset($_SESSION['message'])) {
         </div>
     </div>
 
-    <!-- Reject Modal -->
     <div class="modal fade" id="rejectModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">

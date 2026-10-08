@@ -1,21 +1,12 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Invoice Details Page
- * Tailoring Management System
- */
 
-// Include config first (before any output)
 require_once '../config/config.php';
 
-// Check if user is logged in
 require_login();
 
 require_once 'models/Invoice.php';
@@ -86,7 +77,6 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- Invoice Status Card -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row align-items-center">
@@ -121,7 +111,6 @@ require_once 'includes/header.php';
 
 <div class="row">
     <div class="col-lg-8">
-        <!-- Invoice Details -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -187,8 +176,6 @@ require_once 'includes/header.php';
                 <?php endif; ?>
             </div>
         </div>
-        
-        <!-- Payment History -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -250,7 +237,6 @@ require_once 'includes/header.php';
     </div>
     
     <div class="col-lg-4">
-        <!-- Quick Actions -->
         <div class="card mb-4">
             <div class="card-header">
                 <h6 class="card-title mb-0">Quick Actions</h6>
@@ -275,7 +261,6 @@ require_once 'includes/header.php';
             </div>
         </div>
         
-        <!-- Invoice Metadata -->
         <div class="card">
             <div class="card-header">
                 <h6 class="card-title mb-0">Invoice Details</h6>
@@ -482,14 +467,12 @@ function showPaymentToast(title, message, type = 'info') {
     });
     toast.show();
     
-    // Remove toast element after it's hidden
     toastElement.addEventListener('hidden.bs.toast', () => {
         toastElement.remove();
     });
 }
 </script>
 
-<!-- Payment Modal -->
 <div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

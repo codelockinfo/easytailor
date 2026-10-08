@@ -233,7 +233,6 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- Order Status Card -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row align-items-center">
@@ -289,9 +288,7 @@ require_once 'includes/header.php';
 </div>
 
 <div class="row">
-    <!-- Left Column -->
     <div class="col-lg-4 mb-4">
-        <!-- Customer Information -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 <h6 class="card-title mb-0">
@@ -352,7 +349,6 @@ require_once 'includes/header.php';
             </div>
         </div>
         
-        <!-- Assigned Tailor -->
         <?php if ($tailor): ?>
         <div class="card mb-4">
             <div class="card-header bg-info text-white">
@@ -372,7 +368,6 @@ require_once 'includes/header.php';
         </div>
         <?php endif; ?>
         
-        <!-- Timeline -->
         <div class="card">
             <div class="card-header bg-secondary text-white">
                 <h6 class="card-title mb-0">
@@ -406,10 +401,7 @@ require_once 'includes/header.php';
             </div>
         </div>
     </div>
-    
-    <!-- Right Column -->
     <div class="col-lg-8">
-        <!-- Order Details -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -446,7 +438,6 @@ require_once 'includes/header.php';
             </div>
         </div>
         
-        <!-- Measurement Details -->
         <?php if ($measurement): ?>
         <div class="card mb-4">
             <div class="card-header bg-success text-white">
@@ -500,7 +491,6 @@ require_once 'includes/header.php';
         </div>
         <?php endif; ?>
         
-        <!-- Invoices -->
         <div class="card mb-4">
             <div class="card-header bg-warning">
                 <h6 class="card-title mb-0">
@@ -563,8 +553,6 @@ require_once 'includes/header.php';
                 <?php endif; ?>
             </div>
         </div>
-        
-        <!-- Update Status -->
         <div class="card">
             <div class="card-header">
                 <h6 class="card-title mb-0">

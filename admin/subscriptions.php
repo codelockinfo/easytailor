@@ -1,24 +1,13 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Subscriptions Page
- * Tailoring Management System - Multi-Tenant
- */
-
-// Include config first (before any output)
 require_once '../config/config.php';
 
-// Check if user is logged in
 require_login();
 
-// Only admins can manage subscriptions
 require_role('admin');
 
 require_once 'models/Company.php';
@@ -85,8 +74,6 @@ if ($company['subscription_expiry']) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<!-- Current Subscription Card -->
 <div class="card mb-4">
     <div class="card-header bg-<?php echo $currentPlanData['color']; ?> text-white">
         <div class="d-flex justify-content-between align-items-center">
@@ -165,8 +152,6 @@ if ($company['subscription_expiry']) {
         </div>
     </div>
 </div>
-
-<!-- Subscription Plans -->
 <div class="row mb-4">
     <?php foreach ($plans as $planKey => $plan): ?>
     <div class="col-lg-3 col-md-6 mb-4">
@@ -248,7 +233,6 @@ if ($company['subscription_expiry']) {
     <?php endforeach; ?>
 </div>
 
-<!-- Plan Comparison Table -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">
@@ -344,7 +328,6 @@ if ($company['subscription_expiry']) {
     </div>
 </div>
 
-<!-- Upgrade Modal -->
 <div class="modal fade" id="upgradeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -771,7 +754,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Razorpay Checkout Script -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <?php require_once 'includes/footer.php'; ?>

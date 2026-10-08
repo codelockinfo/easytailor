@@ -1,16 +1,9 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Customer Details Page
- * Tailoring Management System
- */
 
 $page_title = 'Customer Details';
 require_once 'includes/header.php';
@@ -121,7 +114,6 @@ foreach ($orders as $order) {
     </div>
 </div>
 
-<!-- Customer Information Card -->
 <div class="row mb-4">
     <div class="col-lg-4 mb-4">
         <div class="card h-100">
@@ -222,7 +214,6 @@ foreach ($orders as $order) {
     </div>
     
     <div class="col-lg-8">
-        <!-- Statistics Cards -->
         <div class="row mb-4">
             <div class="col-md-3 mb-3">
                 <div class="card border-left-primary h-100">
@@ -288,9 +279,7 @@ foreach ($orders as $order) {
                 </div>
             </div>
         </div>
-        
-        <!-- Order Status Distribution -->
-        <div class="card mb-4">
+                <div class="card mb-4">
             <div class="card-header">
                 <h6 class="card-title mb-0">
                     <i class="fas fa-chart-pie me-2"></i>Order Status Distribution
@@ -334,7 +323,6 @@ foreach ($orders as $order) {
     </div>
 </div>
 
-<!-- Tabs for Orders, Payments, and Measurements -->
 <div class="card">
     <div class="card-header">
         <ul class="nav nav-tabs card-header-tabs" id="customerTabs" role="tablist">
@@ -362,7 +350,7 @@ foreach ($orders as $order) {
     </div>
     <div class="card-body">
         <div class="tab-content" id="customerTabsContent">
-            <!-- Orders Tab -->
+   
             <div class="tab-pane fade show active" id="orders" role="tabpanel">
                 <?php if (!empty($orders)): ?>
                     <div class="table-responsive">
@@ -437,8 +425,6 @@ foreach ($orders as $order) {
                     </div>
                 <?php endif; ?>
             </div>
-            
-            <!-- Invoices Tab -->
             <div class="tab-pane fade" id="invoices" role="tabpanel">
                 <?php if (!empty($invoices)): ?>
                     <div class="table-responsive">
@@ -501,8 +487,6 @@ foreach ($orders as $order) {
                     </div>
                 <?php endif; ?>
             </div>
-            
-            <!-- Payments Tab -->
             <div class="tab-pane fade" id="payments" role="tabpanel">
                 <?php if (!empty($customerPayments)): ?>
                     <div class="table-responsive">
@@ -565,8 +549,6 @@ foreach ($orders as $order) {
                     </div>
                 <?php endif; ?>
             </div>
-            
-            <!-- Measurements Tab -->
             <div class="tab-pane fade" id="measurements" role="tabpanel">
                 <?php if (!empty($measurements)): ?>
                     <div class="row">

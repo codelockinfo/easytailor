@@ -1516,7 +1516,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         
                         modalBody.innerHTML = `
                             <div class="order-details-popup">
-                                <!-- Order Summary -->
                                 <div class="row mb-4">
                                     <div class="col-md-12">
                                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 bg-light rounded">
@@ -1543,7 +1542,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                 </div>
                                 
                                 <div class="row">
-                                    <!-- Customer Information -->
                                     <div class="col-md-6 mb-4">
                                         <div class="card h-100">
                                             <div class="card-header bg-primary text-white">
@@ -1559,7 +1557,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                         </div>
                                     </div>
                                     
-                                    <!-- Timeline -->
                                     <div class="col-md-6 mb-4">
                                         <div class="card h-100">
                                             <div class="card-header bg-primary text-white">
@@ -1575,8 +1572,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Order Information -->
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="card">
@@ -1621,7 +1616,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         const reports = data.reports;
                         modalBody.innerHTML = `
                             <div class="company-reports-popup">
-                                <!-- Key Metrics -->
+                               
                                 <div class="row mb-4">
                                     <div class="col-md-3 mb-3">
                                         <div class="card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
@@ -1660,10 +1655,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Detailed Statistics -->
                                 <div class="row">
-                                    <!-- Orders Statistics -->
                                     <div class="col-md-6 mb-4">
                                         <div class="card">
                                             <div class="card-header bg-primary text-white">
@@ -1711,8 +1703,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Invoices Statistics -->
                                     <div class="col-md-6 mb-4">
                                         <div class="card">
                                             <div class="card-header bg-success text-white">
@@ -1761,8 +1751,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Additional Statistics -->
                                 <div class="row">
                                     <div class="col-md-6 mb-4">
                                         <div class="card">

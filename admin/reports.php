@@ -1,16 +1,10 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Reports Page
- * Tailoring Management System
- */
+
 
 $page_title = 'Reports & Analytics';
 require_once 'includes/header.php';
@@ -60,8 +54,6 @@ for ($i = 11; $i >= 0; $i--) {
 }
 ?>
 
-
-<!-- Date Range Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <form id="filterForm" class="row g-3">
@@ -85,15 +77,12 @@ for ($i = 11; $i >= 0; $i--) {
     </div>
 </div>
 
-<!-- Loading Indicator -->
 <div id="loadingIndicator" class="text-center py-4" style="display: none;">
     <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
     <p class="mt-2 text-muted">Loading reports data...</p>
 </div>
-
-<!-- Key Metrics -->
 <div id="keyMetrics" class="row mb-4">
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
@@ -156,7 +145,6 @@ for ($i = 11; $i >= 0; $i--) {
     </div>
 </div>
 
-<!-- Charts -->
 <div class="row mb-4">
     <div class="col-xl-8 col-lg-7 mb-4">
         <div class="card">
@@ -186,8 +174,6 @@ for ($i = 11; $i >= 0; $i--) {
         </div>
     </div>
 </div>
-
-<!-- Detailed Reports -->
 <div class="row">
     <div class="col-xl-8 col-lg-7 mb-4">
         <div class="card">
@@ -218,7 +204,6 @@ for ($i = 11; $i >= 0; $i--) {
     </div>
 </div>
 
-<!-- Summary Tables -->
 <div class="row">
     <div class="col-xl-12 mb-4">
         <div class="card">
@@ -275,7 +260,6 @@ for ($i = 11; $i >= 0; $i--) {
     </div>
 </div>
 
-<!-- Export Options -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">

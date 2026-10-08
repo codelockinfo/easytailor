@@ -27,28 +27,20 @@ $seoOptions = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
-    
-    <!-- Google Analytics 4 (GA4) -->
-    <?php
+        <?php
     require_once 'helpers/GA4Helper.php';
     echo GA4Helper::generateBaseCode();
     ?>
-    
+
     <link href="assets/css/style15.css" rel="stylesheet">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+=    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Favicon - Primary ICO format for Google Search -->
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     
     <style>
@@ -181,8 +173,6 @@ $seoOptions = [
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <!-- Navigation -->
     <?php require_once 'includes/nav.php'; ?>
 
 <div class="container terms-of-service-section py-0 py-sm-5">
@@ -390,15 +380,12 @@ $seoOptions = [
     </div>
 </div>
 
-<!-- Footer -->
 <?php require_once 'includes/footer.php'; ?>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- WhatsApp Button -->
 <?php require_once 'includes/whatsapp-button.php'; ?>
-<!-- Go to Top Button -->
+
 <script src="assets/js/script2.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>

@@ -1,16 +1,9 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
-/**
- * Measurements Management Page
- * Tailoring Management System
- */
 
 require_once '../config/config.php';
 require_login();
@@ -211,17 +204,13 @@ if (isset($_GET['edit'])) {
     }
 }
 
-// Get measurement statistics
 $stats = $measurementModel->getMeasurementStats();
 
-// Set page title for header
 $page_title = 'Measurements';
 require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-
-    <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card bg-primary text-white">
@@ -285,7 +274,6 @@ require_once 'includes/header.php';
         </div>
     </div>
 
-    <!-- Search and Filter -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -328,8 +316,6 @@ require_once 'includes/header.php';
             </div>
         </div>
     </div>
-
-    <!-- Measurements Table -->
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -429,7 +415,6 @@ require_once 'includes/header.php';
                             </table>
                         </div>
 
-                        <!-- Pagination -->
                         <div id="paginationContainer">
                         <?php if ($totalPages > 1): ?>
                             <nav aria-label="Measurements pagination">
@@ -461,8 +446,6 @@ require_once 'includes/header.php';
         </div>
     </div>
 </div>
-
-<!-- Add/Edit Measurement Modal -->
 <div class="modal fade" id="addMeasurementModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <form method="POST" id="measurementForm" class="modal-content" onsubmit="debugFormSubmission(event)">
@@ -536,8 +519,6 @@ require_once 'includes/header.php';
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Measurement Chart Display -->
                     <div id="measurementChartContainer" class="mb-4" style="display:none;">
                         <div class="card">
                             <div class="card-header bg-info text-white">
@@ -554,7 +535,6 @@ require_once 'includes/header.php';
                     <div class="mb-3">
                         <label class="form-label">Measurements</label>
                         <div id="measurementFieldsContainer">
-                            <!-- Dynamic measurement fields will be added here -->
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomMeasurementField()">
                             <i class="fas fa-plus me-1"></i>Add Custom Field
@@ -577,7 +557,6 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- View Measurement Modal -->
 <div class="modal fade" id="viewMeasurementModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -607,11 +586,10 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <!-- Modal Header -->
+            
             <div class="modal-header bg-danger text-white border-0">
                 <div class="d-flex align-items-center w-100">
                     <div class="me-3">
@@ -627,7 +605,6 @@ require_once 'includes/header.php';
                 </div>
             </div>
             
-            <!-- Modal Body -->
             <div class="modal-body text-center py-4">
                 <div class="mb-4">
                     <i class="fas fa-ruler-combined fa-4x text-danger mb-3"></i>
@@ -641,8 +618,6 @@ require_once 'includes/header.php';
                     All measurement data will be permanently removed from the system.
                 </p>
             </div>
-            
-            <!-- Modal Footer -->
             <div class="modal-footer border-0 justify-content-center pb-4">
                 <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancel

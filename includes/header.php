@@ -44,34 +44,25 @@ $seoOptions = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
-    
-    <!-- Favicon - Primary ICO format for Google Search -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <!-- Favicon - PNG fallback -->
+        <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+   
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     
-    <!-- Google Analytics 4 (GA4) -->
     <?php
-    // Ensure GA4 is always loaded
     if (!defined('GA4_MEASUREMENT_ID')) {
-        // Fallback: define it directly if not already defined
         define('GA4_MEASUREMENT_ID', 'G-27LLB9QMEV');
     }
     
     require_once __DIR__ . '/../helpers/GA4Helper.php';
     $ga4Code = GA4Helper::generateBaseCode();
     
-    // Always output GA4 code, even if helper returns empty
     if (!empty($ga4Code)) {
         echo $ga4Code;
     } else {
-        // Fallback: output GA4 code directly if helper fails
         $ga4Id = defined('GA4_MEASUREMENT_ID') ? GA4_MEASUREMENT_ID : 'G-27LLB9QMEV';
         ?>
-    <!-- Google tag (gtag.js) - Fallback -->
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
@@ -85,17 +76,12 @@ $seoOptions = [
         <?php
     }
     ?>
-    
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Custom CSS -->
     <style>
         :root {
             --primary-color: #667eea;
@@ -549,12 +535,10 @@ $seoOptions = [
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
             <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
                 <?php
-                // Get brand logo using smart path detection
                 $brandLogo = get_logo_path('brand-logo.png');
                 if ($brandLogo):
                 ?>
@@ -663,10 +647,7 @@ $seoOptions = [
             </ul>
         </div>
     </nav>
-    
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Top Header -->
         <header class="top-header">
             <div class="d-flex align-items-center">
                 <button class="btn btn-link d-md-none me-3" id="sidebarToggle">
@@ -676,10 +657,8 @@ $seoOptions = [
             </div>
             
             <div class="d-flex align-items-center">
-                <!-- Language Switcher -->
                 <?php include __DIR__ . '/../lang/language_switcher.php'; ?>
                 
-                <!-- User Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle me-1"></i>
@@ -697,10 +676,8 @@ $seoOptions = [
             </div>
         </header>
         
-        <!-- Content Area -->
         <main class="content-area">
         
-        <!-- Premium Dropdown JavaScript -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Add Google Fonts for better typography

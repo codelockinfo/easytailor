@@ -1,9 +1,6 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
@@ -177,7 +174,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
     </div>
 <?php endif; ?>
 
-<!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-2 align-items-end">
@@ -215,7 +211,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
     </div>
 </div>
 
-<!-- Customers Table -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -306,8 +301,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Customer pagination" class="mt-4">
@@ -349,11 +342,9 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
         <?php endif; ?>
     </div>
 </div>
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <!-- Modal Header -->
             <div class="modal-header bg-danger text-white border-0">
                 <div class="d-flex align-items-center">
                     <div class="me-3">
@@ -369,7 +360,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <!-- Modal Body -->
             <div class="modal-body p-4">
                 <div class="text-center mb-4">
                     <div class="mb-3">
@@ -399,7 +389,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
                 </div>
             </div>
             
-            <!-- Modal Footer -->
             <div class="modal-footer border-0 p-4 bg-light">
                 <div class="w-100 d-flex justify-content-end gap-2">
                     <button type="button" class="btn btn-light border" data-bs-dismiss="modal">

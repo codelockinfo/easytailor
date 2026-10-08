@@ -115,8 +115,6 @@ $catStats = $categoryModel->getCategoryStats();
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<!-- Category Statistics -->
 <div class="row mb-4">
     <div class="col-xl-4 col-md-6">
         <div class="stat-card">
@@ -180,9 +178,6 @@ $catStats = $categoryModel->getCategoryStats();
         </button>
     </div>
     <div class="card-body">
-        <!-- Search and Filter -->
-
-
         <?php if (!empty($categories)): ?>
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -219,8 +214,6 @@ $catStats = $categoryModel->getCategoryStats();
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Category pagination">
@@ -260,8 +253,6 @@ $catStats = $categoryModel->getCategoryStats();
         <?php endif; ?>
     </div>
 </div>
-
-<!-- Category Modal -->
 <div class="modal fade" id="categoryModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -299,8 +290,6 @@ $catStats = $categoryModel->getCategoryStats();
         </div>
     </div>
 </div>
-
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

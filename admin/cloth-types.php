@@ -1,9 +1,6 @@
-<!-- Favicon - Primary ICO format for Google Search -->
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<!-- Favicon - PNG fallback -->
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 
 <?php
@@ -187,8 +184,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<!-- Cloth Type Statistics -->
 <div class="row mb-2">
     <div class="col-xl col-md-6">
         <div class="stat-card">
@@ -232,8 +227,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
         </div>
     </div>
 </div>
-
-<!-- Search and Filter -->
 <div class="card mb-4">
     <div class="card-body">
         <div class="row g-3">
@@ -273,8 +266,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
         </div>
     </div>
 </div>
-
-<!-- Cloth Types Table -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -356,8 +347,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Pagination -->
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Cloth type pagination">
@@ -403,8 +392,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
         <?php endif; ?>
     </div>
 </div>
-
-<!-- Cloth Type Modal -->
 <div class="modal fade" id="clothTypeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -490,12 +477,10 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
         </div>
     </div>
 </div>
-
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <!-- Modal Header -->
+            
             <div class="modal-header bg-danger text-white border-0">
                 <div class="d-flex align-items-center w-100">
                     <div class="me-3">
@@ -510,8 +495,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
-            
-            <!-- Modal Body -->
             <div class="modal-body text-center py-4">
                 <div class="mb-4">
                     <i class="fas fa-cut fa-4x text-danger mb-3"></i>
@@ -525,8 +508,6 @@ $categoriesList = array_unique(array_column($dbCategories, 'name'));
                     All associated measurements and orders will be affected.
                 </p>
             </div>
-            
-            <!-- Modal Footer -->
             <div class="modal-footer border-0 justify-content-center pb-4">
                 <button type="button" class="btn btn-outline-secondary me-3" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancel

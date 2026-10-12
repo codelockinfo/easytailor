@@ -1,16 +1,9 @@
 <?php
-/**
- * Expenses Page
- * Tailoring Management System
- */
 
 require_once __DIR__ . '/../config/config.php';
-
-// Check if user is logged in
 if (!is_logged_in()) {
     smart_redirect('login.php');
 }
-
 require_once 'models/Expense.php';
 require_once 'models/Category.php';
 
@@ -18,8 +11,6 @@ $expenseModel = new Expense();
 $categoryModel = new Category();
 $message = '';
 $messageType = '';
-
-// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
@@ -79,8 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = 'Invalid request';
         $messageType = 'error';
     }
-    
-    // Standard PHP PRG Redirect
     if ($messageType === 'success') {
         $msgType = match($action) {
             'create' => 'created',
@@ -92,8 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
-// Show success message from GET parameter
 if (empty($message) && isset($_GET['msg'])) {
     $msgMap = [
         'created' => ['Expense recorded successfully!', 'success'],
@@ -104,12 +91,8 @@ if (empty($message) && isset($_GET['msg'])) {
         [$message, $messageType] = $msgMap[$_GET['msg']];
     }
 }
-
-// Now include the header which outputs HTML
 $page_title = 'Expense Management';
 require_once 'includes/header.php';
-
-// Get expenses
 $category_filter = $_GET['category'] ?? '';
 $date_from = $_GET['date_from'] ?? '';
 $date_to = $_GET['date_to'] ?? '';
@@ -117,7 +100,6 @@ $search = $_GET['search'] ?? '';
 $page = (int)($_GET['page'] ?? 1);
 $limit = RECORDS_PER_PAGE;
 $offset = ($page - 1) * $limit;
-
 $conditions = [];
 if (!empty($category_filter)) {
     $conditions['category'] = $category_filter;
@@ -127,18 +109,15 @@ $expenses = $expenseModel->getExpensesWithDetails($conditions, $limit, $offset);
 $totalExpenses = $expenseModel->count($conditions);
 $totalPages = ceil($totalExpenses / $limit);
 
-// Get expense for editing
 $editExpense = null;
 if (isset($_GET['edit'])) {
     $editExpense = $expenseModel->find((int)$_GET['edit']);
 }
-
-// Get statistics
 $expenseStats = $expenseModel->getExpenseStats();
 
 $totalCashIn = 0;
 $totalCashOut = 0;
-$profit = 0; // profit = cash in - cash out
+$profit = 0; 
 foreach ($expenseStats['by_payment_method'] as $pm) {
     if ($pm['payment_method'] === 'cash_in') {
         $totalCashIn = $pm['total'];
@@ -147,220 +126,312 @@ foreach ($expenseStats['by_payment_method'] as $pm) {
     }
 }
 $profit = $totalCashIn - $totalCashOut;
-// Get categories from database
 $current_company_id = get_company_id();
 $dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
 $categories = array_unique(array_column($dbCategories, 'name'));
-
-// If no categories in DB, use default list
 if (empty($categories)) {
     $categories = ['Rent', 'Utilities', 'Salaries', 'Materials', 'Equipment', 'Marketing', 'Transportation', 'Other'];
 }
 ?>
-
-
+<style>
+.cat-stat-box {
+    border-radius: 16px;
+    padding: 10px 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cat-stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.cat-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+    padding: 0;
+    text-decoration: none;
+}
+.cat-action-edit {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+.cat-action-edit:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.cat-action-view {
+    background: #f0fdfa;
+    border-color: #99f6e4;
+    color: #0d9488;
+}
+.cat-action-view:hover {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+.cat-action-del {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+.cat-action-del:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+.cat-table-head th {
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding: 12px 14px !important;
+    text-transform: uppercase;
+}
+.category-table tbody tr {
+    transition: background-color 0.12s ease;
+}
+.category-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+.cat-badge-cash-in {
+    background-color: #f0fdf4 !important;
+    color: #15803d !important;
+    border: 1px solid #bbf7d0 !important;
+}
+.cat-badge-cash-out {
+    background-color: #fef2f2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+}
+#searchInput, #dateFromFilter, #dateToFilter {
+    height: 42px !important;
+    font-size: 0.85rem !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+}
+@media (max-width: 768px) {
+    .cat-stat-box .fs-4 {
+        font-size: 1.15rem !important;
+    }
+}
+</style>
 <?php if ($message): ?>
-    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
+    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show" style="border-radius: 12px;">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<div class="row mb-2">
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number" id="statTotalExpenses"><?php echo number_format($expenseStats['total']); ?></div>
-                    <div class="stat-label">Total Expenses</div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
+<?php 
+$pageHeaderTitle = 'Expenses';
+$pageHeaderSubtitle = 'Track operational spendings, cash flows, and tailor shop outgoing costs.';
+include 'includes/page-header.php'; 
+?>
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
+            <div>
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL EXPENSES</span>
+                <div class="fs-4 fw-bold text-dark mt-1" id="statTotalExpenses"><?php echo number_format($expenseStats['total']); ?></div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #dbeafe; color: #2563eb; font-size: 0.95rem;">
+                <i class="fas fa-receipt"></i>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number" id="statTotalCashIn"><?php echo format_currency($totalCashIn); ?></div>
-                    <div class="stat-label">Total Cash In</div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-arrow-down"></i>
-                </div>
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+            <div>
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL CASH IN</span>
+                <div class="fs-4 fw-bold text-success mt-1" id="statTotalCashIn"><?php echo format_currency($totalCashIn); ?></div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #dcfce7; color: #16a34a; font-size: 0.95rem;">
+                <i class="fas fa-arrow-down"></i>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                 <div>
-                    <div class="stat-number" id="statTotalCashOut"><?php echo format_currency($totalCashOut); ?></div>
-                    <div class="stat-label">Total Cash Out</div>
-                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-arrow-up"></i>
-                </div>
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #fef2f2; border: 1px solid #fee2e2;">
+            <div>
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL CASH OUT</span>
+                <div class="fs-4 fw-bold text-danger mt-1" id="statTotalCashOut"><?php echo format_currency($totalCashOut); ?></div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #fee2e2; color: #dc2626; font-size: 0.95rem;">
+                <i class="fas fa-arrow-up"></i>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number" id="statProfit"><?php echo format_currency($profit); ?></div>
-                        <div class="stat-label">Profit</div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
+            <div>
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">NET PROFIT / FLOW</span>
+                <div class="fs-4 fw-bold <?php echo $profit >= 0 ? 'text-primary' : 'text-danger'; ?> mt-1" id="statProfit"><?php echo format_currency($profit); ?></div>
             </div>
-                <div class="col-xl-3 col-md-6">
-          
-        </div>
-        </div>
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                    </span>
-                    <input type="text" 
-                           id="searchInput"
-                           class="form-control" 
-                           placeholder="Search expenses..."
-                           autocomplete="off">
-                </div>
-            </div>
-            <div class="col-md-3">
-                <input type="date" class="form-control" id="dateFromFilter" placeholder="From Date">
-            </div>
-            <div class="col-md-3">
-                <input type="date" class="form-control" id="dateToFilter" placeholder="To Date">
-            </div>
-            <div class="col-md-2">
-                <button type="button" id="clearFilters" class="btn btn-outline-danger w-100">
-                    <i class="fas fa-times me-1"></i> Clear
-                </button>
-            </div>
-        </div>
-        <div id="filterResults" class="mt-3" style="display: none;">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <span id="filterCount">0</span> expenses found
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #ede9fe; color: #9333ea; font-size: 0.95rem;">
+                <i class="fas fa-chart-line"></i>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-            <i class="fas fa-receipt me-2"></i>
-            Expenses (<?php echo number_format($totalExpenses); ?>)
-        </h5>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#expenseModal">
-                <i class="fas fa-plus me-1"></i>Record Expense
+<!-- 3. Clean 2-Row Search, Filter & Action Bar -->
+<div class="row g-2 align-items-center mb-2">
+    <!-- Row 1: Search on left -->
+    <div class="col-12 col-md-5">
+        <div class="position-relative">
+            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.85rem;"></i>
+            <input type="text" 
+                   id="searchInput"
+                   class="form-control ps-5" 
+                   placeholder="Search description, payment method..."
+                   autocomplete="off"
+                   style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding-left: 2.4rem;">
+        </div>
+    </div>
+    <!-- Row 1: Actions on right -->
+    <div class="col-12 col-md-7 d-flex justify-content-md-end align-items-center gap-2">
+        <?php 
+        $exportCheck = SubscriptionHelper::canExportData($companyId ?? get_company_id());
+        if ($exportCheck['allowed']): 
+        ?>
+            <button type="button" class="btn text-secondary fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-3 shadow-none" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.84rem; height: 42px;" onclick="exportExpenses()">
+                <i class="fas fa-file-excel text-success me-1"></i>
+                <span>Export</span>
             </button>
-            <?php 
-            $exportCheck = SubscriptionHelper::canExportData($companyId ?? get_company_id());
-            if ($exportCheck['allowed']): 
-            ?>
-            <button type="button" class="btn btn-sm btn-outline-light" onclick="exportExpenses()">
-                <i class="fas fa-download me-1"></i>Export
-            </button>
-            <?php else: ?>
-            <a href="subscriptions.php" class="btn btn-sm btn-outline-light text-warning" title="Upgrade to Premium to Export" style="border-color: rgba(255,193,7,0.5);">
-                <i class="fas fa-lock me-1"></i>Export
+        <?php else: ?>
+            <a href="subscriptions.php" class="btn text-secondary fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-3 shadow-none" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.84rem; height: 42px;" title="Upgrade to Premium to Export">
+                <i class="fas fa-lock text-warning me-1"></i>
+                <span>Export</span>
             </a>
-            <?php endif; ?>
-        </div>
+        <?php endif; ?>
+        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#expenseModal">
+            <i class="fas fa-plus"></i>
+            <span>Record Expense</span>
+        </button>
     </div>
-    <div class="card-body">
+</div>
+
+<!-- Row 2: Date Filters & Clear -->
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-6 col-md-5">
+        <input type="date" class="form-control" id="dateFromFilter" title="From Date" placeholder="From Date">
+    </div>
+    <div class="col-6 col-md-5">
+        <input type="date" class="form-control" id="dateToFilter" title="To Date" placeholder="To Date">
+    </div>
+    <div class="col-12 col-md-2">
+        <button type="button" id="clearFilters" class="btn btn-outline-danger align-items-center justify-content-center text-nowrap w-100" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 16px; display: inline-flex;" title="Clear Filters">
+            <i class="fas fa-times me-1"></i> Clear
+        </button>
+    </div>
+</div>
+
+<div id="filterResults" class="mb-3" style="display: none;">
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center" style="border-radius: 12px; font-size: 0.85rem;">
+        <i class="fas fa-info-circle me-2"></i>
+        <span><strong id="filterCount">0</strong> expenses found</span>
+    </div>
+</div>
+
+<!-- 4. Expenses Table -->
+<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+    <div class="card-body p-0">
         <?php if (!empty($expenses)): ?>
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover mb-0 align-middle category-table">
+                    <thead class="cat-table-head">
                         <tr>
-                            <th>Date</th>
-                            
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Payment Method</th>
-                            
-                            <th>Created By</th>
-                            <th>Actions</th>
+                            <th class="ps-3 py-3">DATE</th>
+                            <th class="py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>DESCRIPTION</span>
+                                    <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" id="sortExpensesBtn" title="Sort A-Z" style="font-size: 0.75rem; line-height: 1; text-decoration: none;">
+                                        <i class="fas fa-sort" id="sortIcon"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th class="py-3">AMOUNT</th>
+                            <th class="py-3">PAYMENT METHOD</th>
+                            <th class="py-3">CREATED BY</th>
+                            <th class="pe-3 py-3 text-end">ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($expenses as $expense): ?>
-                        <tr>
-                            <td>
+                    <tbody id="expensesTableBody">
+                        <?php foreach ($expenses as $expense): 
+                            $isCashIn = $expense['payment_method'] === 'cash_in';
+                            $pmBadgeClass = $isCashIn ? 'cat-badge-cash-in' : 'cat-badge-cash-out';
+                            $pmText = ucfirst(str_replace('_', ' ', $expense['payment_method']));
+                            $pmIcon = $isCashIn ? 'fa-arrow-down' : 'fa-arrow-up';
+                            $amountClass = $isCashIn ? 'text-success' : 'text-danger';
+                        ?>
+                        <tr class="expense-row" data-description="<?php echo htmlspecialchars(strtolower($expense['description'])); ?>">
+                            <td class="ps-3 py-3">
                                 <div>
-                                    <?php echo format_date($expense['expense_date']); ?>
-                                    <br>
-                                    <small class="text-muted"><?php echo format_date($expense['created_at'], 'H:i'); ?></small>
+                                    <span class="fw-semibold text-dark" style="font-size: 0.85rem;"><?php echo format_date($expense['expense_date']); ?></span>
+                                    <div class="text-muted" style="font-size: 0.72rem;"><?php echo format_date($expense['created_at'], 'H:i'); ?></div>
                                 </div>
                             </td>
-                         
-                            <td>
-                                <div>
-                                    <?php echo display_val($expense['description']); ?>
-                                    <?php if (!empty($expense['receipt_image'])): ?>
-                                        <br>
-                                        <small class="text-muted">
-                                            <i class="fas fa-paperclip"></i> Receipt attached
-                                        </small>
-                                    <?php endif; ?>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; border-radius: 8px; background: <?php echo $isCashIn ? '#f0fdf4' : '#fef2f2'; ?>; color: <?php echo $isCashIn ? '#16a34a' : '#dc2626'; ?>; font-size: 0.82rem;">
+                                        <i class="fas <?php echo $pmIcon; ?>"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-dark text-truncate" style="font-size: 0.88rem; max-width: 260px;">
+                                            <?php echo display_val($expense['description']); ?>
+                                        </div>
+                                        <?php if (!empty($expense['receipt_image'])): ?>
+                                            <div class="text-muted" style="font-size: 0.72rem;">
+                                                <i class="fas fa-paperclip text-primary me-1"></i>Receipt attached
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </td>
-                            <td>
-                                <strong class="text-danger"><?php echo format_currency($expense['amount']); ?></strong>
+                            <td class="py-3">
+                                <strong class="<?php echo $amountClass; ?>" style="font-size: 0.9rem;">
+                                    <?php echo ($isCashIn ? '+ ' : '- ') . format_currency($expense['amount']); ?>
+                                </strong>
                             </td>
-                            <td>
-                                <span class="badge bg-<?php 
-                                    echo match($expense['payment_method']) {
-                                        'cash_in' => 'success',
-                                        'cash_out' => 'danger',
-                                        default => 'secondary'
-                                    };
-                                ?>">
-                                    <?php echo ucfirst(str_replace('_', ' ', $expense['payment_method'])); ?>
+                            <td class="py-3">
+                                <span class="badge rounded-pill fw-semibold px-2 py-1 <?php echo $pmBadgeClass; ?>" style="font-size: 0.75rem;">
+                                    <?php echo $pmText; ?>
                                 </span>
                             </td>
-                            <td><?php echo display_val($expense['created_by_name']); ?></td>
-                            <td>
-                                <div class="btn-group btn-group-sm" role="group">
+                            <td class="py-3">
+                                <span class="text-secondary" style="font-size: 0.82rem;">
+                                    <i class="fas fa-user-circle me-1 text-muted"></i><?php echo display_val($expense['created_by_name']); ?>
+                                </span>
+                            </td>
+                            <td class="pe-3 py-3 text-end">
+                                <div class="d-inline-flex align-items-center gap-1">
                                     <button type="button" 
-                                            class="btn btn-outline-primary" 
+                                            class="cat-action-btn cat-action-edit" 
                                             onclick="editExpense(<?php echo htmlspecialchars(json_encode($expense)); ?>)"
-                                            title="Edit" style="border: 1px solid #667eea;">
+                                            title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <?php if (!empty($expense['receipt_image'])): ?>
                                         <button type="button" 
-                                                class="btn btn-outline-info" 
+                                                class="cat-action-btn cat-action-view" 
                                                 onclick="viewReceipt('<?php echo htmlspecialchars($expense['receipt_image']); ?>')"
-                                                title="View Receipt" style="border: 1px solid #667eea;">
+                                                title="View Receipt">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     <?php endif; ?>
                                     <button type="button" 
-                                            class="btn btn-outline-danger" 
+                                            class="cat-action-btn cat-action-del" 
                                             onclick="deleteExpense(<?php echo $expense['id']; ?>, '<?php echo htmlspecialchars($expense['description']); ?>')"
-                                            title="Delete" style="border: 1px solid #667eea;">
-                                        <i class="fas fa-trash"></i>
+                                            title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
                             </td>
@@ -369,10 +440,10 @@ if (empty($categories)) {
                     </tbody>
                 </table>
             </div>
-            <div id="paginationContainer">
+            <div id="paginationContainer" class="p-3">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Expense pagination">
-                    <ul class="pagination justify-content-center">
+                    <ul class="pagination justify-content-center mb-0">
                         <?php if ($page > 1): ?>
                             <li class="page-item">
                                 <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $category_filter ? '&category=' . urlencode($category_filter) : ''; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?><?php echo $date_from ? '&date_from=' . urlencode($date_from) : ''; ?><?php echo $date_to ? '&date_to=' . urlencode($date_to) : ''; ?>">Previous</a>
@@ -396,9 +467,11 @@ if (empty($categories)) {
             </div>
         <?php else: ?>
             <div class="text-center py-5">
-                <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No expenses found</h5>
-                <p class="text-muted">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                    <i class="fas fa-receipt fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">No expenses found</h5>
+                <p class="text-muted small mb-3">
                     <?php if (!empty($search) || !empty($category_filter) || !empty($date_from) || !empty($date_to)): ?>
                         No expenses match your search criteria.
                     <?php else: ?>
@@ -406,8 +479,8 @@ if (empty($categories)) {
                     <?php endif; ?>
                 </p>
                 <?php if (empty($search) && empty($category_filter) && empty($date_from) && empty($date_to)): ?>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#expenseModal">
-                        <i class="fas fa-plus me-2"></i>Record Expense
+                    <button type="button" class="btn text-white fw-semibold px-4 py-2" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                        <i class="fas fa-plus me-1"></i>Record Expense
                     </button>
                 <?php endif; ?>
             </div>
@@ -695,11 +768,8 @@ function exportExpenses() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
-        // Show success message
         showToast('✅ Export completed! Your Excel file has been downloaded.', 'success');
         
-        // Re-enable the export button
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
     })
@@ -707,13 +777,10 @@ function exportExpenses() {
         console.error('Export error:', error);
         showToast('❌ Export failed. Please try again.', 'error');
         
-        // Re-enable the export button
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
     });
 }
-
-// Reset modal when closed
 document.getElementById('expenseModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('expenseModalTitle').textContent = 'Record Expense';
     document.getElementById('expenseAction').value = 'create';
@@ -721,10 +788,8 @@ document.getElementById('expenseModal').addEventListener('hidden.bs.modal', func
     document.getElementById('expenseForm').reset();
     document.getElementById('expense_date').value = '<?php echo date('Y-m-d'); ?>';
 });
-
-// AJAX Expense Filtering
 document.addEventListener('DOMContentLoaded', function() {
-    const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+    const formatCurrency = (amount) => '₹' + parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
     let filterTimeout;
     const searchInput = document.getElementById('searchInput');
     const dateFromFilter = document.getElementById('dateFromFilter');
@@ -732,18 +797,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearFilters = document.getElementById('clearFilters');
     const filterResults = document.getElementById('filterResults');
     const filterCount = document.getElementById('filterCount');
-    const expensesTable = document.querySelector('.table tbody');
+    const expensesTable = document.getElementById('expensesTableBody') || document.querySelector('.table tbody');
 
-    // Check if all required elements exist
-    if (!searchInput || !expensesTable) {
-        console.error('Required DOM elements not found for expense filtering');
-        return;
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
-
-    // Store original table content
-    const originalTableContent = expensesTable.innerHTML;
-
-    // Add event listeners for all filters
     [searchInput, dateFromFilter, dateToFilter].forEach(element => {
         if (element) {
             element.addEventListener('change', performFilter);
@@ -753,20 +817,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    clearFilters.addEventListener('click', function() {
-        searchInput.value = '';
-        dateFromFilter.value = '';
-        dateToFilter.value = '';
-        
-        // Reload the page to show all expenses
-        window.location.href = 'expenses.php';
-    });
+    if (clearFilters) {
+        clearFilters.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (dateFromFilter) dateFromFilter.value = '';
+            if (dateToFilter) dateToFilter.value = '';
+            
+            window.location.href = 'expenses.php';
+        });
+    }
 
     function performFilter() {
-        // Clear previous timeout
         clearTimeout(filterTimeout);
-        
-        // Debounce search input
         if (this === searchInput) {
             filterTimeout = setTimeout(() => {
                 executeFilter();
@@ -777,15 +839,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function executeFilter() {
-        const search = searchInput.value.trim();
-        const dateFrom = dateFromFilter.value;
-        const dateTo = dateToFilter.value;
+        const search = searchInput ? searchInput.value.trim() : '';
+        const dateFrom = dateFromFilter ? dateFromFilter.value : '';
+        const dateTo = dateToFilter ? dateToFilter.value : '';
         
-        // Show loading state
-        filterResults.style.display = 'block';
-        filterCount.textContent = 'Filtering...';
+        if (filterResults) filterResults.style.display = 'block';
+        if (filterCount) filterCount.textContent = 'Filtering...';
         
-        // Build query string
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         if (dateFrom) params.append('date_from', dateFrom);
@@ -811,12 +871,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     const data = JSON.parse(text);
                     if (data.success) {
-                        // Ensure expenses is an array
                         const expenses = Array.isArray(data.expenses) ? data.expenses : [];
                         
                         displayFilterResults(expenses);
                         if (data.pagination && data.pagination.total_expenses !== undefined) {
-                            filterCount.textContent = data.pagination.total_expenses;
+                            if (filterCount) filterCount.textContent = data.pagination.total_expenses;
                             const paginationContainer = document.getElementById('paginationContainer');
                             if (paginationContainer) {
                                 if (data.pagination.total_pages <= 1) {
@@ -826,11 +885,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                             }
                         } else {
-                            filterCount.textContent = expenses.length;
+                            if (filterCount) filterCount.textContent = expenses.length;
                         }
-                        
-                        // Dynamically update stats above table
-                        if (data.stats) {
+                                                if (data.stats) {
                             const statTotalExpenses = document.getElementById('statTotalExpenses');
                             const statTotalCashIn = document.getElementById('statTotalCashIn');
                             const statTotalCashOut = document.getElementById('statTotalCashOut');
@@ -843,148 +900,155 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     } else {
                         console.error('Filter error:', data.error);
-                        filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
-                        if (expensesTable) {
-                            expensesTable.innerHTML = `
-                            <tr>
-                                <td colspan="6" class="text-center py-4">
-                                    <div class="alert alert-danger">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        ${data.error || 'Unknown error'}
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                        }
+                        if (filterCount) filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
                     }
                 } catch (parseError) {
                     console.error('JSON parse error:', parseError);
                     console.error('Response text:', text);
-                    filterCount.textContent = 'Invalid response from server';
-                    if (expensesTable) {
-                        expensesTable.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="text-center py-4">
-                                <div class="alert alert-danger">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    Invalid response from server. Please check the console for details.
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    }
+                    if (filterCount) filterCount.textContent = 'Invalid response from server';
                 }
             })
             .catch(error => {
                 console.error('Filter fetch error:', error);
-                filterCount.textContent = 'Filter failed: ' + error.message;
+                if (filterCount) filterCount.textContent = 'Filter failed: ' + error.message;
             });
     }
 
     function displayFilterResults(expenses) {
+        const tableBody = document.getElementById('expensesTableBody') || document.querySelector('.table tbody');
+        if (!tableBody) return;
+
         if (!expenses || expenses.length === 0) {
-            if (expensesTable) {
-                expensesTable.innerHTML = `
+            tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-4">
+                    <td colspan="6" class="text-center py-5">
                         <i class="fas fa-search fa-2x text-muted mb-2"></i>
                         <h5 class="text-muted">No expenses found</h5>
-                        <p class="text-muted">Try adjusting your filter criteria</p>
+                        <p class="text-muted small">Try adjusting your filter criteria</p>
                     </td>
                 </tr>
             `;
-            }
             return;
         }
         
         let tableHTML = '';
         expenses.forEach(expense => {
-            // Format date to match PHP format (YYYY-MM-DD)
             const expenseDateObj = new Date(expense.expense_date);
-            const expenseDate = expenseDateObj.getFullYear() + '-' + 
+            const expenseDate = isNaN(expenseDateObj.getTime()) ? (expense.expense_date || 'N/A') :
+                expenseDateObj.getFullYear() + '-' + 
                 String(expenseDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
                 String(expenseDateObj.getDate()).padStart(2, '0');
+                        let createdTime = '';
+            if (expense.created_at) {
+                const createdTimeObj = new Date(expense.created_at);
+                if (!isNaN(createdTimeObj.getTime())) {
+                    createdTime = String(createdTimeObj.getHours()).padStart(2, '0') + ':' + 
+                        String(createdTimeObj.getMinutes()).padStart(2, '0');
+                }
+            }
             
-            // Format time to match PHP format (HH:MM - 24 hour format)
-            const createdTimeObj = new Date(expense.created_at);
-            const createdTime = String(createdTimeObj.getHours()).padStart(2, '0') + ':' + 
-                String(createdTimeObj.getMinutes()).padStart(2, '0');
-            
-            // Format payment method badge
-            const getPaymentMethodBadge = (method) => {
-                const badges = {
-                    'cash_in': 'success',
-                    'cash_out': 'danger'
-                };
-                return badges[method] || 'secondary';
-            };
+            const isCashIn = expense.payment_method === 'cash_in';
+            const badgeClass = isCashIn ? 'cat-badge-cash-in' : 'cat-badge-cash-out';
+            const pmLabel = (expense.payment_method || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const pmIcon = isCashIn ? 'fa-arrow-down' : 'fa-arrow-up';
+            const amountClass = isCashIn ? 'text-success' : 'text-danger';
+            const amountPrefix = isCashIn ? '+ ' : '- ';
+            const cleanDesc = escapeHtml(expense.description || '');
+            const expenseJson = JSON.stringify(expense).replace(/"/g, '&quot;');
             
             tableHTML += `
-                <tr>
-                    <td>
+                <tr class="expense-row" data-description="${cleanDesc.toLowerCase()}">
+                    <td class="ps-3 py-3">
                         <div>
-                            ${expenseDate}
-                            <br>
-                            <small class="text-muted">${createdTime}</small>
+                            <span class="fw-semibold text-dark" style="font-size: 0.85rem;">${expenseDate}</span>
+                            ${createdTime ? `<div class="text-muted" style="font-size: 0.72rem;">${createdTime}</div>` : ''}
                         </div>
                     </td>
-                    <td>
-                        <div>
-                            ${expense.description}
-                            ${expense.receipt_image ? `
-                                <br>
-                                <small class="text-muted">
-                                    <i class="fas fa-paperclip"></i> Receipt attached
-                                </small>
-                            ` : ''}
+                    <td class="py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; border-radius: 8px; background: ${isCashIn ? '#f0fdf4' : '#fef2f2'}; color: ${isCashIn ? '#16a34a' : '#dc2626'}; font-size: 0.82rem;">
+                                <i class="fas ${pmIcon}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.88rem; max-width: 260px;">
+                                    ${cleanDesc}
+                                </div>
+                                ${expense.receipt_image ? `
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <i class="fas fa-paperclip text-primary me-1"></i>Receipt attached
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
                     </td>
-                    <td>
-                        <strong class="text-danger">${formatCurrency(expense.amount)}</strong>
+                    <td class="py-3">
+                        <strong class="${amountClass}" style="font-size: 0.9rem;">
+                            ${amountPrefix}${formatCurrency(expense.amount)}
+                        </strong>
                     </td>
-                    <td>
-                        <span class="badge bg-${getPaymentMethodBadge(expense.payment_method)}">
-                            ${expense.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    <td class="py-3">
+                        <span class="badge rounded-pill fw-semibold px-2 py-1 ${badgeClass}" style="font-size: 0.75rem;">
+                            ${pmLabel}
                         </span>
                     </td>
-                    <td>
-                        ${expense.created_by_name || '-'}
+                    <td class="py-3">
+                        <span class="text-secondary" style="font-size: 0.82rem;">
+                            <i class="fas fa-user-circle me-1 text-muted"></i>${escapeHtml(expense.created_by_name || '-')}
+                        </span>
                     </td>
-                    <td>
-                        <div class="btn-group btn-group-sm" role="group">
+                    <td class="pe-3 py-3 text-end">
+                        <div class="d-inline-flex align-items-center gap-1">
                             <button type="button" 
-                                    class="btn btn-outline-primary" 
-                                    onclick="editExpense(${JSON.stringify(expense).replace(/"/g, '&quot;')})"
-                                    title="Edit" style="border: 1px solid #667eea;">
+                                    class="cat-action-btn cat-action-edit" 
+                                    onclick="editExpense(${expenseJson})"
+                                    title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
                             ${expense.receipt_image ? `
                                 <button type="button" 
-                                        class="btn btn-outline-info" 
-                                        onclick="viewReceipt('${expense.receipt_image}')"
-                                        title="View Receipt" style="border: 1px solid #667eea;">
+                                        class="cat-action-btn cat-action-view" 
+                                        onclick="viewReceipt('${escapeHtml(expense.receipt_image)}')"
+                                        title="View Receipt">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             ` : ''}
                             <button type="button" 
-                                    class="btn btn-outline-danger" 
-                                    onclick="deleteExpense(${expense.id}, '${expense.description.replace(/'/g, "\\'")}')"
-                                    title="Delete" style="border: 1px solid #667eea;">
-                                    <i class="fas fa-trash"></i>
+                                    class="cat-action-btn cat-action-del" 
+                                    onclick="deleteExpense(${expense.id}, '${cleanDesc.replace(/'/g, "\\'")}')"
+                                    title="Delete">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
             `;
         });
-        
-        expensesTable.innerHTML = tableHTML;
+        tableBody.innerHTML = tableHTML;
+    }
+    let sortAscending = true;
+    const sortBtn = document.getElementById('sortExpensesBtn');
+    if (sortBtn) {
+        sortBtn.addEventListener('click', function() {
+            sortAscending = !sortAscending;
+            const sortIcon = document.getElementById('sortIcon');
+            if (sortIcon) {
+                sortIcon.className = sortAscending ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+            }
+            const tableBody = document.getElementById('expensesTableBody') || document.querySelector('.table tbody');
+            if (tableBody) {
+                const rows = Array.from(tableBody.querySelectorAll('tr.expense-row'));
+                rows.sort((a, b) => {
+                    const nameA = a.getAttribute('data-description') || '';
+                    const nameB = b.getAttribute('data-description') || '';
+                    return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                });
+                rows.forEach(r => tableBody.appendChild(r));
+            }
+        });
     }
 });
 </script>
-
 <?php require_once 'includes/footer.php'; ?>
-
 <style>
     @media (max-width: 768px) {
         .card-header {

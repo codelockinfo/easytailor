@@ -1,8 +1,3 @@
-<link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
 
 require_once '../config/config.php';
@@ -208,242 +203,406 @@ $stats = $measurementModel->getMeasurementStats();
 
 $page_title = 'Measurements';
 require_once 'includes/header.php';
+
+$success_message = $_SESSION['success_message'] ?? '';
+$error_message = $_SESSION['error_message'] ?? '';
+unset($_SESSION['success_message'], $_SESSION['error_message']);
+
+// Function for customer avatar design
+if (!function_exists('getCustomerAvatarDesign')) {
+    function getCustomerAvatarDesign($name, $index) {
+        $palettes = [
+            ['bg' => '#eff6ff', 'border' => '#dbeafe', 'color' => '#3b82f6'],
+            ['bg' => '#f0fdf4', 'border' => '#dcfce7', 'color' => '#10b981'],
+            ['bg' => '#faf5ff', 'border' => '#ede9fe', 'color' => '#8b5cf6'],
+            ['bg' => '#fffbeb', 'border' => '#fef3c7', 'color' => '#f59e0b'],
+            ['bg' => '#fdf2f8', 'border' => '#fce7f3', 'color' => '#ec4899'],
+        ];
+        return $palettes[$index % count($palettes)];
+    }
+}
 ?>
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title"><?php echo number_format($stats['total']); ?></h4>
-                            <p class="card-text">Total Measurements</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-ruler fa-2x"></i>
-                        </div>
-                    </div>
+<style>
+/* Exact Measurements Styling Matching Category Page */
+.cat-stat-box {
+    border-radius: 16px;
+    padding: 10px 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cat-stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.cat-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+.cat-action-edit {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+.cat-action-edit:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.cat-action-view {
+    background: #f0fdfa;
+    border-color: #99f6e4;
+    color: #0d9488;
+}
+.cat-action-view:hover {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+.cat-action-del {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #ef4444;
+}
+.cat-action-del:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.cat-table-head th {
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding: 12px 14px !important;
+    text-transform: uppercase;
+}
+#clothTypeFilter {
+    height: 42px !important;
+    padding: 0.45rem 2.2rem 0.45rem 1rem !important;
+    line-height: 1.4 !important;
+    font-size: 0.85rem !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+}
+#searchInput, #startDateFilter, #endDateFilter {
+    height: 42px !important;
+    font-size: 0.85rem !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+}
+@media (max-width: 767.98px) {
+    .category-table th {
+        font-size: 0.72rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+    .category-table td {
+        font-size: 0.78rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+}
+@media (max-width: 575.98px) {
+    .cat-action-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.74rem;
+    }
+}
+</style>
+
+<?php if ($success_message): ?>
+    <div class="alert alert-success alert-dismissible fade show mb-3" style="border-radius: 12px;">
+        <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success_message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+<?php if ($error_message): ?>
+    <div class="alert alert-danger alert-dismissible fade show mb-3" style="border-radius: 12px;">
+        <i class="fas fa-exclamation-triangle me-2"></i><?php echo htmlspecialchars($error_message); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<!-- 1. Measurements Hero Banner (Using Shared Component) -->
+<?php
+$pageHeaderTitle = 'Measurements';
+$pageHeaderSubtitle = 'Track and manage your customer garment measurements easily.';
+include 'includes/page-header.php';
+?>
+
+<!-- 2. Stat Cards (2x2 on Mobile, 4 cols on Desktop) -->
+<div class="row g-2 mb-3">
+    <!-- Total Measurements -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #c084fc; color: #ffffff;">
+                    <i class="fas fa-ruler-combined" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($stats['total']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Total Measurements</div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title"><?php echo number_format($stats['this_month']); ?></h4>
-                            <p class="card-text">This Month</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-calendar fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #c084fc;">
+                <span style="width: 3px; height: 35%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 60%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 45%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title"><?php echo count($stats['by_cloth_type']); ?></h4>
-                            <p class="card-text">Cloth Types</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-tshirt fa-2x"></i>
-                        </div>
-                    </div>
+    </div>
+    
+    <!-- This Month -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #22c55e; color: #ffffff;">
+                    <i class="fas fa-calendar-alt" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($stats['this_month']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">This Month</div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title"><?php echo number_format($totalActiveCustomers); ?></h4>
-                            <p class="card-text">Active Customers</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #4ade80;">
+                <span style="width: 3px; height: 40%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 65%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 50%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row g-2 align-items-end">
-                        <div class="col">
-                            <label for="searchInput" class="form-label mb-1" style="font-size: 0.85rem;">Search</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" id="searchInput" class="form-control" placeholder="Search..." autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="col">
-                            <label for="clothTypeFilter" class="form-label mb-1" style="font-size: 0.85rem;">Cloth Type</label>
-                            <select class="form-select" id="clothTypeFilter">
-                                <option value="">All Types</option>
-                            </select>
-                        </div>
-                        <div class="col">
-                            <label for="startDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">Start Date</label>
-                            <input type="date" class="form-control" id="startDateFilter">
-                        </div>
-                        <div class="col">
-                            <label for="endDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">End Date</label>
-                            <input type="date" class="form-control" id="endDateFilter">
-                        </div>
-                        <div class="col-auto">
-                            <button type="button" id="clearFilters" class="btn btn-outline-danger" title="Clear Filters">
-                                <i class="fas fa-times me-1"></i> Clear
-                            </button>
-                        </div>
-                    </div>
-                    <div id="filterResults" class="mt-3" style="display: none;">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <span id="filterCount">0</span> measurements found
-                        </div>
-                    </div>
+    <!-- Cloth Types -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #3b82f6; color: #ffffff;">
+                    <i class="fas fa-tshirt" style="font-size: 0.95rem;"></i>
                 </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo count($stats['by_cloth_type']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Cloth Types</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #60a5fa;">
+                <span style="width: 3px; height: 30%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 55%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 40%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 90%; background: currentColor; border-radius: 2px;"></span>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Measurements (<?php echo number_format($totalMeasurements); ?>)</h5>
-                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
-                        <i class="fas fa-plus me-1"></i>Add Measurement
-                    </button>
-                </div>
-                <div class="card-body">
-                    <?php if (empty($measurements)): ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-ruler fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No measurements found</h5>
-                            <p class="text-muted">Start by adding your first measurement.</p>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
-                                <i class="fas fa-plus me-1"></i>Add Measurement
-                            </button>
-                        </div>
-                    <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Customer</th>
-                                        <th>Cloth Type</th>
-                                        <th>Measurements</th>
-                                        <th>Notes</th>
-                                        <th>Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($measurements as $measurement): ?>
-                                        <tr>
-                                            <td>
-                                                <div>
-                                                    <strong><?php echo htmlspecialchars(!empty($measurement['name']) ? $measurement['name'] : trim($measurement['first_name'] . ' ' . $measurement['last_name'])); ?></strong>
-                                                    <br>
-                                                    <small class="text-muted"><?php echo htmlspecialchars(!empty($measurement['phone_number']) ? $measurement['phone_number'] : $measurement['customer_code']); ?></small>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-secondary">
-                                                    <?php echo htmlspecialchars($measurement['cloth_type_name']); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <?php 
-                                                $measurementData = json_decode($measurement['measurement_data'], true);
-                                                if (is_array($measurementData) && !empty($measurementData)): 
-                                                ?>
-                                                    <div class="measurement-summary">
-                                                        <?php foreach (array_slice($measurementData, 0, 3) as $key => $value): ?>
-                                                            <small class="d-block">
-                                                                <strong><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> 
-                                                                <?php echo htmlspecialchars($value); ?>
-                                                            </small>
-                                                        <?php endforeach; ?>
-                                                        <?php if (count($measurementData) > 3): ?>
-                                                            <small class="text-muted">+<?php echo count($measurementData) - 3; ?> more...</small>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <span class="text-muted">No measurements</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php if (!empty($measurement['notes'])): ?>
-                                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" 
-                                                          title="<?php echo htmlspecialchars($measurement['notes']); ?>">
-                                                        <?php echo htmlspecialchars($measurement['notes']); ?>
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="text-muted">No notes</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <small><?php echo format_date($measurement['created_at'], 'M j, Y'); ?></small>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" onclick="editMeasurement(<?php echo htmlspecialchars(json_encode($measurement)); ?>)" title="Edit" style="border: 1px solid #667eea;">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-info" onclick="viewMeasurement(<?php echo $measurement['id']; ?>)" title="View Details" style="border: 1px solid #667eea;">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-danger" onclick="deleteMeasurement(<?php echo $measurement['id']; ?>)" title="Delete" style="border: 1px solid #667eea;">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
 
-                        <div id="paginationContainer">
-                        <?php if ($totalPages > 1): ?>
-                            <nav aria-label="Measurements pagination">
-                                <ul class="pagination justify-content-center">
-                                    <?php if ($page > 1): ?>
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>">Previous</a>
-                                        </li>
-                                    <?php endif; ?>
-                                    
-                                    <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
-                                        <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                                            <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>"><?php echo $i; ?></a>
-                                        </li>
-                                    <?php endfor; ?>
-                                    
-                                    <?php if ($page < $totalPages): ?>
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>">Next</a>
-                                        </li>
-                                    <?php endif; ?>
-                                </ul>
-                            </nav>
+    <!-- Active Customers -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #f59e0b; color: #ffffff;">
+                    <i class="fas fa-users" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($totalActiveCustomers); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Active Customers</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #fbbf24;">
+                <span style="width: 3px; height: 45%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 70%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 55%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Search and Action Row -->
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-12 col-md-3">
+        <div class="position-relative">
+            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.9rem;"></i>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search customer, phone..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 0.8rem; height: 42px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-2">
+        <select class="form-select" id="clothTypeFilter" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px !important; padding: 0.45rem 2.2rem 0.45rem 0.8rem !important; line-height: 1.4 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <option value="">All Cloth Types</option>
+            <?php foreach ($clothTypes as $ct): ?>
+                <option value="<?php echo $ct['id']; ?>" <?php echo $cloth_type_id == $ct['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($ct['name']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-6 col-sm-3 col-md-2">
+        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    </div>
+    <div class="col-6 col-sm-3 col-md-2">
+        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    </div>
+    <div class="col-12 col-md-3 d-flex gap-2 justify-content-end">
+        <button type="button" id="clearFilters" class="btn btn-outline-danger align-items-center justify-content-center" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo (empty($search) && empty($cloth_type_id) && empty($start_date) && empty($end_date)) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
+            <i class="fas fa-times me-1"></i> Clear
+        </button>
+        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 flex-grow-1 text-nowrap px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
+            <i class="fas fa-plus"></i>
+            <span>Add Measurement</span>
+        </button>
+    </div>
+</div>
+
+<div id="filterResults" class="mb-3" style="display: none;">
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center" style="border-radius: 12px; font-size: 0.85rem;">
+        <i class="fas fa-info-circle me-2"></i>
+        <span><strong id="filterCount">0</strong> measurements found</span>
+    </div>
+</div>
+
+<!-- 4. Measurements Table (Shown in both Desktop & Mobile View) -->
+<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+    <div class="card-body p-0">
+        <?php if (!empty($measurements)): ?>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle category-table">
+                    <thead class="cat-table-head">
+                        <tr>
+                            <th class="ps-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>CUSTOMER</span>
+                                    <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" id="sortMeasurementsBtn" title="Sort A-Z" style="font-size: 0.75rem; line-height: 1; text-decoration: none;">
+                                        <i class="fas fa-sort" id="sortIcon"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">CLOTH TYPE</th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">MEASUREMENTS</th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">NOTES</th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">DATE</th>
+                            <th class="text-end pe-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="measurementsTableBody">
+                        <?php foreach ($measurements as $idx => $measurement): 
+                            $cleanCustName = !empty($measurement['name']) ? $measurement['name'] : trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
+                            if (empty($cleanCustName)) $cleanCustName = 'Walk-in Customer';
+                            $custDesign = getCustomerAvatarDesign($cleanCustName, $idx);
+                            $initial = strtoupper(substr($cleanCustName, 0, 1) ?: 'C');
+                        ?>
+                        <tr class="measurement-row" data-name="<?php echo strtolower($cleanCustName); ?>">
+                            <td class="ps-3 py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 36px; height: 36px; border-radius: 10px; background: <?php echo $custDesign['bg']; ?>; border: 1px solid <?php echo $custDesign['border']; ?>; color: <?php echo $custDesign['color']; ?>; font-size: 0.88rem;">
+                                        <?php echo $initial; ?>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark cust-name" style="font-size: 0.9rem;"><?php echo htmlspecialchars($cleanCustName); ?></strong>
+                                        <div class="text-muted small" style="font-size: 0.74rem;"><?php echo htmlspecialchars(!empty($measurement['phone_number']) ? $measurement['phone_number'] : ($measurement['customer_code'] ?? '')); ?></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                    <?php echo htmlspecialchars($measurement['cloth_type_name'] ?? 'Custom'); ?>
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <?php 
+                                $measurementData = json_decode($measurement['measurement_data'], true);
+                                if (is_array($measurementData) && !empty($measurementData)): 
+                                ?>
+                                    <div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">
+                                        <?php foreach (array_slice($measurementData, 0, 3) as $key => $value): ?>
+                                            <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;">
+                                                <strong style="color: #475569;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> <?php echo htmlspecialchars($value); ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                        <?php if (count($measurementData) > 3): ?>
+                                            <span class="text-muted small" style="font-size: 0.72rem;">+<?php echo count($measurementData) - 3; ?> more</span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-muted small">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="py-3">
+                                <?php if (!empty($measurement['notes'])): ?>
+                                    <span class="text-muted small text-truncate d-inline-block" style="max-width: 140px; font-size: 0.78rem;" title="<?php echo htmlspecialchars($measurement['notes']); ?>">
+                                        <?php echo htmlspecialchars($measurement['notes']); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted small">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="py-3">
+                                <span class="text-muted small" style="font-size: 0.8rem;"><?php echo format_date($measurement['created_at'], 'M j, Y'); ?></span>
+                            </td>
+                            <td class="text-end pe-3 py-3">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <button type="button" class="cat-action-btn cat-action-edit" onclick="editMeasurement(<?php echo htmlspecialchars(json_encode($measurement)); ?>)" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="cat-action-btn cat-action-view" onclick="viewMeasurement(<?php echo $measurement['id']; ?>)" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="cat-action-btn cat-action-del" onclick="deleteMeasurement(<?php echo $measurement['id']; ?>)" title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="paginationContainer">
+            <?php if ($totalPages > 1): ?>
+                <nav aria-label="Measurements pagination">
+                    <ul class="pagination justify-content-center">
+                        <?php if ($page > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>">Previous</a>
+                            </li>
                         <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                        
+                        <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                            <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
+                                <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        
+                        <?php if ($page < $totalPages): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>">Next</a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+            <?php endif; ?>
             </div>
-        </div>
+        <?php else: ?>
+            <div class="text-center py-5">
+                <i class="fas fa-ruler-combined fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No measurements found</h5>
+                <p class="text-muted small">Start by adding your first measurement.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMeasurementModal" style="border-radius: 12px;">
+                    <i class="fas fa-plus me-1"></i>Add Measurement
+                </button>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 <div class="modal fade" id="addMeasurementModal" tabindex="-1">
@@ -1290,18 +1449,44 @@ function printMeasurement() {
 
 // Delete measurement
 function deleteMeasurement(id) {
-    // Find the measurement data to display in the modal
-    const measurementRow = document.querySelector(`button[onclick="deleteMeasurement(${id})"]`).closest('tr');
-    const customerName = measurementRow.querySelector('td:nth-child(2)').textContent.trim();
-    const clothType = measurementRow.querySelector('td:nth-child(3)').textContent.trim();
+    const btn = document.querySelector(`button[onclick="deleteMeasurement(${id})"]`);
+    const measurementRow = btn ? btn.closest('tr') : null;
+    let customerName = 'Measurement';
+    let clothType = '';
     
-    // Set the measurement info in the modal
-    document.getElementById('deleteMeasurementInfo').textContent = `${customerName} - ${clothType}`;
+    if (measurementRow) {
+        const custElem = measurementRow.querySelector('.cust-name');
+        customerName = custElem ? custElem.textContent.trim() : (measurementRow.querySelector('td:first-child')?.textContent.trim() || 'Measurement');
+        const clothElem = measurementRow.querySelector('td:nth-child(2)');
+        clothType = clothElem ? clothElem.textContent.trim() : '';
+    }
+    
+    document.getElementById('deleteMeasurementInfo').textContent = clothType ? `${customerName} - ${clothType}` : customerName;
     document.getElementById('deleteMeasurementId').value = id;
-    
-    // Show the modal
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
+
+// Interactive Sort (A-Z / Z-A)
+let sortAscending = true;
+document.getElementById('sortMeasurementsBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    sortAscending = !sortAscending;
+    const sortIcon = document.getElementById('sortIcon');
+    if (sortIcon) {
+        sortIcon.className = sortAscending ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+    }
+    
+    const tableBody = document.getElementById('measurementsTableBody') || document.querySelector('.table tbody');
+    if (tableBody) {
+        const rows = Array.from(tableBody.querySelectorAll('tr.measurement-row'));
+        rows.sort((a, b) => {
+            const nameA = a.getAttribute('data-name') || '';
+            const nameB = b.getAttribute('data-name') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        rows.forEach(r => tableBody.appendChild(r));
+    }
+});
 
 // Auto-dismiss alerts
 setTimeout(function() {
@@ -1314,7 +1499,6 @@ setTimeout(function() {
 
 // AJAX Measurement Filtering
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait a bit more to ensure all content is rendered
     setTimeout(function() {
     let filterTimeout;
     const searchInput = document.getElementById('searchInput');
@@ -1324,19 +1508,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearFilters = document.getElementById('clearFilters');
     const filterResults = document.getElementById('filterResults');
     const filterCount = document.getElementById('filterCount');
-    const measurementsTable = document.querySelector('.table tbody');
+    const measurementsTable = document.getElementById('measurementsTableBody') || document.querySelector('.table tbody');
 
     // Check if all required elements exist
     if (!searchInput || !clothTypeFilter) {
         console.error('Required DOM elements not found for measurement filtering');
-        console.error('searchInput:', !!searchInput);
-        console.error('clothTypeFilter:', !!clothTypeFilter);
-        console.error('measurementsTable:', !!measurementsTable);
         return;
     }
-    
-    // Store original table content if table exists
-    const originalTableContent = measurementsTable ? measurementsTable.innerHTML : '';
 
 // Load filter options on page load
 loadFilterOptions();
@@ -1363,7 +1541,6 @@ function loadFilterOptions() {
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
-                console.error('Response text:', text);
             }
         })
         .catch(error => {
@@ -1372,12 +1549,12 @@ function loadFilterOptions() {
 }
 
 function populateFilterOptions(options) {
-
-    // Populate cloth types
     const clothTypeSelect = document.getElementById('clothTypeFilter');
+    const currentVal = clothTypeSelect.value;
     clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
     options.cloth_types.forEach(clothType => {
-        clothTypeSelect.innerHTML += `<option value="${clothType.id}">${clothType.name}</option>`;
+        const isSelected = String(clothType.id) === String(currentVal) ? 'selected' : '';
+        clothTypeSelect.innerHTML += `<option value="${clothType.id}" ${isSelected}>${clothType.name}</option>`;
     });
 }
 
@@ -1390,21 +1567,19 @@ function populateFilterOptions(options) {
     }
 });
 
-clearFilters.addEventListener('click', function() {
-    searchInput.value = '';
-    clothTypeFilter.value = '';
-    if (startDateFilter) startDateFilter.value = '';
-    if (endDateFilter) endDateFilter.value = '';
-    
-    // Reload the page to show all measurements
-    window.location.href = 'measurements.php';
-});
+if (clearFilters) {
+    clearFilters.addEventListener('click', function() {
+        searchInput.value = '';
+        if (clothTypeFilter) clothTypeFilter.value = '';
+        if (startDateFilter) startDateFilter.value = '';
+        if (endDateFilter) endDateFilter.value = '';
+        clearFilters.style.setProperty('display', 'none', 'important');
+        window.location.href = 'measurements.php';
+    });
+}
 
 function performFilter() {
-    // Clear previous timeout
     clearTimeout(filterTimeout);
-    
-    // Debounce search input
     if (this === searchInput) {
         filterTimeout = setTimeout(() => {
             executeFilter();
@@ -1420,9 +1595,18 @@ function executeFilter() {
     const startDate = startDateFilter ? startDateFilter.value : '';
     const endDate = endDateFilter ? endDateFilter.value : '';
     
+    const hasFilter = Boolean(search || clothType || startDate || endDate);
+    if (clearFilters) {
+        clearFilters.style.setProperty('display', hasFilter ? 'inline-flex' : 'none', 'important');
+    }
+    
     // Show loading state
-    filterResults.style.display = 'block';
-    filterCount.textContent = 'Filtering...';
+    if (filterResults) {
+        filterResults.style.display = hasFilter ? 'block' : 'none';
+    }
+    if (filterCount) {
+        filterCount.textContent = 'Filtering...';
+    }
     
     // Build query string
     const params = new URLSearchParams();
@@ -1434,61 +1618,40 @@ function executeFilter() {
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     
     const url = `ajax/filter_measurements.php?${params.toString()}`;
-    console.log('Fetching from URL:', url);
     
     fetch(url)
         .then(response => {
-            console.log('Response status:', response.status, response.statusText);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.text();
         })
         .then(text => {
-            console.log('Raw response text (first 500 chars):', text.substring(0, 500));
             if (text.trim().startsWith('<')) {
-                console.error('Server returned HTML instead of JSON. Full response:', text);
-                throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
+                throw new Error('Server returned HTML instead of JSON.');
             }
             
             try {
                 const data = JSON.parse(text);
-                console.log('Parsed JSON data:', data);
-                console.log('Success:', data.success);
-                console.log('Measurements array:', data.measurements);
-                console.log('Measurements length:', data.measurements ? data.measurements.length : 'undefined');
-                
                 if (data.success) {
-                    // Ensure measurements is an array
                     const measurements = Array.isArray(data.measurements) ? data.measurements : [];
-                    console.log('Final measurements count:', measurements.length);
-                    
-                    if (measurements.length > 0) {
-                        console.log('First measurement:', measurements[0]);
-                    }
-                    
                     displayFilterResults(measurements);
                     if (data.pagination) {
-                        filterCount.textContent = data.pagination.total_measurements || measurements.length;
+                        if (filterCount) filterCount.textContent = data.pagination.total_measurements || measurements.length;
                         const paginationContainer = document.getElementById('paginationContainer');
                         if (paginationContainer) {
-                            if (data.pagination.total_pages <= 1) {
-                                paginationContainer.style.display = 'none';
-                            } else {
-                                paginationContainer.style.display = 'block';
-                            }
+                            paginationContainer.style.display = (data.pagination.total_pages <= 1) ? 'none' : 'block';
                         }
                     } else {
-                        filterCount.textContent = measurements.length;
+                        if (filterCount) filterCount.textContent = measurements.length;
                     }
                 } else {
-                    console.error('Filter error:', data.error);
-                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                    if (filterCount) filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
                     if (measurementsTable) {
                         measurementsTable.innerHTML = `
                         <tr>
                             <td colspan="6" class="text-center py-4">
-                                <div class="alert alert-danger">
+                                <div class="alert alert-danger mb-0">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
                                     ${data.error || 'Unknown error'}
                                 </div>
@@ -1499,15 +1662,14 @@ function executeFilter() {
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
-                console.error('Response text:', text);
-                filterCount.textContent = 'Invalid response from server';
+                if (filterCount) filterCount.textContent = 'Invalid response from server';
                 if (measurementsTable) {
                     measurementsTable.innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center py-4">
-                            <div class="alert alert-danger">
+                            <div class="alert alert-danger mb-0">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
-                                Invalid response from server. Please check the console for details.
+                                Invalid response from server.
                             </div>
                         </td>
                     </tr>
@@ -1517,21 +1679,38 @@ function executeFilter() {
         })
         .catch(error => {
             console.error('Filter fetch error:', error);
-            filterCount.textContent = 'Filter failed: ' + error.message;
+            if (filterCount) filterCount.textContent = 'Filter failed: ' + error.message;
         });
 }
 
+const avatarPalettes = [
+    { bg: '#faf5ff', border: '#f3e8ff', color: '#9333ea' },
+    { bg: '#f0fdf4', border: '#dcfce7', color: '#16a34a' },
+    { bg: '#eff6ff', border: '#dbeafe', color: '#2563eb' },
+    { bg: '#fffbeb', border: '#fef3c7', color: '#d97706' },
+    { bg: '#fdf2f8', border: '#fce7f3', color: '#db2777' },
+    { bg: '#f0fdfa', border: '#ccfbf1', color: '#0d9488' }
+];
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function displayFilterResults(measurements) {
-    console.log('Displaying filter results, count:', measurements ? measurements.length : 0);
-    
     if (!measurements || measurements.length === 0) {
         if (measurementsTable) {
             measurementsTable.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center py-4">
+                <td colspan="6" class="text-center py-5">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No measurements found</h5>
-                    <p class="text-muted">Try adjusting your filter criteria</p>
+                    <p class="text-muted small">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
@@ -1540,8 +1719,19 @@ function displayFilterResults(measurements) {
     }
     
     let tableHTML = '';
-    measurements.forEach(measurement => {
-        // Parse measurement data safely
+    measurements.forEach((measurement, idx) => {
+        let cleanCustName = measurement.name || ((measurement.first_name || '') + ' ' + (measurement.last_name || '')).trim();
+        if (!cleanCustName) cleanCustName = 'Walk-in Customer';
+        
+        let initial = (cleanCustName.charAt(0) || 'C').toUpperCase();
+        let subText = measurement.phone_number || measurement.customer_code || '';
+        
+        let charCodeSum = 0;
+        for (let c = 0; c < cleanCustName.length; c++) charCodeSum += cleanCustName.charCodeAt(c);
+        const palette = avatarPalettes[(charCodeSum + idx) % avatarPalettes.length];
+        
+        const clothTypeName = measurement.cloth_type_name || 'Custom';
+        
         let measurementData = {};
         if (measurement.measurement_data) {
             try {
@@ -1551,80 +1741,83 @@ function displayFilterResults(measurements) {
                     measurementData = measurement.measurement_data;
                 }
             } catch (e) {
-                console.error('Error parsing measurement_data:', e, measurement.measurement_data);
                 measurementData = {};
             }
         }
-        const measurementCount = Object.keys(measurementData).length;
         
-        // Build measurement summary (matching original structure)
-        let measurementSummary = '';
-        if (measurementCount > 0) {
-            const measurementEntries = Object.entries(measurementData);
-            measurementSummary = '<div class="measurement-summary">';
-            
-            // Show first 3 measurements
-            measurementEntries.slice(0, 3).forEach(([key, value]) => {
+        const keys = Object.keys(measurementData || {});
+        let measurementSummaryHtml = '';
+        if (keys.length > 0) {
+            measurementSummaryHtml = '<div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">';
+            keys.slice(0, 3).forEach(key => {
                 const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-                measurementSummary += `<small class="d-block"><strong>${formattedKey}:</strong> ${value}</small>`;
+                const val = measurementData[key];
+                measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;"><strong style="color: #475569;">${escapeHtml(formattedKey)}:</strong> ${escapeHtml(val)}</span>`;
             });
-            
-            // Show "+X more..." if there are more than 3
-            if (measurementCount > 3) {
-                measurementSummary += `<small class="text-muted">+${measurementCount - 3} more...</small>`;
+            if (keys.length > 3) {
+                measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.72rem;">+${keys.length - 3} more</span>`;
             }
-            
-            measurementSummary += '</div>';
+            measurementSummaryHtml += '</div>';
         } else {
-            measurementSummary = '<span class="text-muted">No measurements</span>';
+            measurementSummaryHtml = '<span class="text-muted small">—</span>';
         }
         
-        // Format date (matching original format)
-        const date = new Date(measurement.created_at);
-        const formattedDate = date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric' 
-        });
+        let formattedDate = '—';
+        if (measurement.created_at) {
+            const date = new Date(measurement.created_at);
+            if (!isNaN(date.getTime())) {
+                formattedDate = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+            } else {
+                formattedDate = escapeHtml(measurement.created_at);
+            }
+        }
         
-        // Build notes display (matching original structure)
-        let notesDisplay = '';
+        let notesDisplay = '<span class="text-muted small">—</span>';
         if (measurement.notes && measurement.notes.trim()) {
-            notesDisplay = `<span class="text-truncate d-inline-block" style="max-width: 150px;" title="${measurement.notes}">${measurement.notes}</span>`;
-        } else {
-            notesDisplay = '<span class="text-muted">No notes</span>';
+            notesDisplay = `<span class="text-muted small text-truncate d-inline-block" style="max-width: 140px; font-size: 0.78rem;" title="${escapeHtml(measurement.notes)}">${escapeHtml(measurement.notes)}</span>`;
         }
         
         tableHTML += `
-            <tr>
-                <td>
-                    <div>
-                        <strong>${measurement.customer_name}</strong>
-                        ${measurement.customer_code ? `<br><small class="text-muted">${measurement.customer_code}</small>` : ''}
+            <tr class="measurement-row" data-name="${escapeHtml(cleanCustName.toLowerCase())}">
+                <td class="ps-3 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 36px; height: 36px; border-radius: 10px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.88rem;">
+                            ${initial}
+                        </div>
+                        <div>
+                            <strong class="text-dark cust-name" style="font-size: 0.9rem;">${escapeHtml(cleanCustName)}</strong>
+                            <div class="text-muted small" style="font-size: 0.74rem;">${escapeHtml(subText)}</div>
+                        </div>
                     </div>
                 </td>
-                <td>
-                    <span class="badge bg-secondary">${measurement.cloth_type_name}</span>
+                <td class="py-3">
+                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                        ${escapeHtml(clothTypeName)}
+                    </span>
                 </td>
-                <td>
-                    ${measurementSummary}
+                <td class="py-3">
+                    ${measurementSummaryHtml}
                 </td>
-                <td>
+                <td class="py-3">
                     ${notesDisplay}
                 </td>
-                <td>
-                    <small>${formattedDate}</small>
+                <td class="py-3">
+                    <span class="text-muted small" style="font-size: 0.8rem;">${formattedDate}</span>
                 </td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary" onclick="editMeasurementFromFilter(${measurement.id})" title="Edit" style="border: 1px solid #667eea;">
+                <td class="text-end pe-3 py-3">
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <button type="button" class="cat-action-btn cat-action-edit" onclick="editMeasurementFromFilter(${measurement.id})" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-outline-info" onclick="viewMeasurement(${measurement.id})" title="View Details" style="border: 1px solid #667eea;">
+                        <button type="button" class="cat-action-btn cat-action-view" onclick="viewMeasurement(${measurement.id})" title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-outline-danger" onclick="deleteMeasurement(${measurement.id})" title="Delete" style="border: 1px solid #667eea;">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="cat-action-btn cat-action-del" onclick="deleteMeasurement(${measurement.id})" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </td>
@@ -1636,7 +1829,7 @@ function displayFilterResults(measurements) {
         measurementsTable.innerHTML = tableHTML;
     }
 }
-    }, 100); // Close setTimeout
+    }, 100);
 }); // Close the DOMContentLoaded event listener
 </script>
 

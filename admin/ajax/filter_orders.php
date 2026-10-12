@@ -1,11 +1,9 @@
 <?php
 header('Content-Type: application/json');
 ob_start();
-
 try {
     $scriptDir = dirname(__FILE__);
     $rootDir = dirname($scriptDir);
-    
     require_once $rootDir . '/../config/config.php';
     if (!is_logged_in()) {
         http_response_code(401);
@@ -32,12 +30,12 @@ try {
     if ($page <= 0) {
         $page = 1;
     }
-
     $orderModel = new Order();
     $customerModel = new Customer();
     $measurementModel = new Measurement();
     $clothTypeModel = new ClothType();
     $userModel = new User();
+    $isTailor = has_role('tailor');
     $conditions = [];
     if (!empty($status)) {
         $conditions['status'] = $status;
@@ -48,7 +46,9 @@ try {
     if (!empty($cloth_type_id)) {
         $conditions['cloth_type_id'] = $cloth_type_id;
     }
-    if (!empty($assigned_tailor_id)) {
+    if ($isTailor) {
+        $conditions['assigned_tailor_id'] = get_user_id();
+    } elseif (!empty($assigned_tailor_id)) {
         $conditions['assigned_tailor_id'] = $assigned_tailor_id;
     }
     if (!empty($start_date)) {
@@ -76,10 +76,14 @@ try {
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
     $measurementCustomers = $measurementModel->getDistinctCustomerNames();
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
-    try {
-        $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
-    } catch (Exception $e) {
-        $tailors = $userModel->findAll(['status' => 'active'], 'full_name');
+    if ($isTailor) {
+        $tailors = [];
+    } else {
+        try {
+            $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
+        } catch (Exception $e) {
+            $tailors = $userModel->findAll(['status' => 'active'], 'full_name');
+        }
     }
     $formattedOrders = [];
     foreach ($orders as $order) {

@@ -1,25 +1,13 @@
 <?php
-/**
- * Order Model
- * Tailoring Management System
- */
 
 class Order extends BaseModel {
     protected $table = 'orders';
 
-    /**
-     * Get company ID from session
-     */
     private function getCompanyId() {
         require_once __DIR__ . '/../../config/config.php';
         return get_company_id();
     }
-
-    /**
-     * Create new order with auto-generated order number
-     */
     public function createOrder($data) {
-        // Ensure company_id is set
         if (!isset($data['company_id'])) {
             $data['company_id'] = $this->getCompanyId();
         }
@@ -29,25 +17,18 @@ class Order extends BaseModel {
         
         while ($attempt < $maxRetries) {
             try {
-                // Generate order number
                 $data['order_number'] = $this->generateOrderNumber();
-                
-                // Attempt to create the order
-                $result = $this->create($data);
+                                $result = $this->create($data);
                 
                 if ($result !== false) {
                     return $result;
                 }
-                
-                // If create returned false, try again with new number
-                $attempt++;
+                                $attempt++;
                 
             } catch (PDOException $e) {
-                // Check if it's a duplicate key error
                 if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate entry') !== false) {
                     $attempt++;
                     if ($attempt >= $maxRetries) {
-                        // Use guaranteed unique fallback number
                         $data['order_number'] = $this->generateGuaranteedUniqueOrderNumber($data['company_id']);
                         try {
                             $result = $this->create($data);
@@ -55,15 +36,12 @@ class Order extends BaseModel {
                                 return $result;
                             }
                         } catch (PDOException $e2) {
-                            // Even fallback failed, throw user-friendly error
                             throw new Exception('Unable to create order. Please try again or contact support.');
                         }
                     }
-                    // Wait a bit before retrying (helps with race conditions)
-                    usleep(100000); // 100ms delay
+                    usleep(100000);
                     continue;
                 } else {
-                    // If it's a different error, re-throw it
                     throw $e;
                 }
             }
@@ -71,10 +49,6 @@ class Order extends BaseModel {
         
         throw new Exception('Unable to create order after multiple attempts. Please try again.');
     }
-
-    /**
-     * Generate unique order number
-     */
     private function generateOrderNumber() {
         $companyId = $this->getCompanyId();
         $prefix = 'ORD';
@@ -102,21 +76,12 @@ class Order extends BaseModel {
         
         return $prefix . str_pad($new_number, 6, '0', STR_PAD_LEFT);
     }
-    
-    /**
-     * Generate guaranteed unique order number using timestamp
-     * Used as fallback when normal generation fails due to race conditions
-     */
     private function generateGuaranteedUniqueOrderNumber($companyId = null) {
         $prefix = 'ORD';
         $timestamp = time();
         $random = mt_rand(100, 999);
         return $prefix . str_pad($timestamp . $random, 12, '0', STR_PAD_LEFT);
     }
-
-    /**
-     * Get orders with customer and cloth type details
-     */
     public function getOrdersWithDetails($conditions = [], $limit = null, $offset = 0) {
         $companyId = $this->getCompanyId();
         $query = "SELECT o.*, 
@@ -143,7 +108,6 @@ class Order extends BaseModel {
         if (!empty($conditions)) {
             foreach ($conditions as $column => $value) {
                 if (strpos($column, '.') !== false) {
-                    // Handle table.column format
                     $where_clauses[] = $column . " = :" . str_replace('.', '_', $column);
                     $params[str_replace('.', '_', $column)] = $value;
                 } else {
@@ -178,65 +142,78 @@ class Order extends BaseModel {
         
         return $stmt->fetchAll();
     }
-
-    /**
-     * Get order statistics
-     */
     public function getOrderStats() {
         $companyId = $this->getCompanyId();
         $stats = [];
+        $isTailor = has_role('tailor');
+        $tailorId = $isTailor ? get_user_id() : null;
         
-        // Total orders
         $conditions = [];
         if ($companyId) {
             $conditions['company_id'] = $companyId;
         }
+        if ($isTailor) {
+            $conditions['assigned_tailor_id'] = $tailorId;
+        }
         $stats['total'] = $this->count($conditions);
         
-        // Orders by status
         $statuses = ['pending', 'in_progress', 'completed', 'delivered', 'cancelled'];
         foreach ($statuses as $status) {
             $conditions['status'] = $status;
             $stats[$status] = $this->count($conditions);
             unset($conditions['status']);
         }
-        
-        // Orders this month
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
+        }
+        if ($isTailor) {
+            $query .= " AND assigned_tailor_id = :tailor_id";
         }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
+        if ($isTailor) {
+            $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['this_month'] = $result['count'];
         
-        // Total revenue
         $query = "SELECT SUM(total_amount) as total FROM " . $this->table . " WHERE status IN ('completed', 'delivered')";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
+        if ($isTailor) {
+            $query .= " AND assigned_tailor_id = :tailor_id";
+        }
         $stmt = $this->conn->prepare($query);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        if ($isTailor) {
+            $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
         }
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['total_revenue'] = $result['total'] ?? 0;
         
-        // Pending revenue
         $query = "SELECT SUM(balance_amount) as total FROM " . $this->table . " WHERE status IN ('pending', 'in_progress', 'completed')";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
+        if ($isTailor) {
+            $query .= " AND assigned_tailor_id = :tailor_id";
+        }
         $stmt = $this->conn->prepare($query);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        if ($isTailor) {
+            $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
         }
         $stmt->execute();
         $result = $stmt->fetch();
@@ -244,31 +221,15 @@ class Order extends BaseModel {
         
         return $stats;
     }
-
-    /**
-     * Get orders by status
-     */
     public function getOrdersByStatus($status) {
         return $this->getOrdersWithDetails(['status' => $status]);
     }
-
-    /**
-     * Get orders for a specific customer
-     */
     public function getCustomerOrders($customer_id) {
         return $this->getOrdersWithDetails(['customer_id' => $customer_id]);
     }
-
-    /**
-     * Get orders assigned to a specific tailor
-     */
     public function getTailorOrders($tailor_id) {
         return $this->getOrdersWithDetails(['assigned_tailor_id' => $tailor_id]);
     }
-
-    /**
-     * Update order status
-     */
     public function updateOrderStatus($id, $status) {
         $data = ['status' => $status];
         
@@ -278,13 +239,11 @@ class Order extends BaseModel {
         
         return $this->update($id, $data);
     }
-
-    /**
-     * Get overdue orders
-     */
     public function getOverdueOrders() {
         $companyId = $this->getCompanyId();
         $today = date('Y-m-d');
+        $isTailor = has_role('tailor');
+        $tailorId = $isTailor ? get_user_id() : null;
         $query = "SELECT o.*, 
                          c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
                          ct.name as cloth_type_name,
@@ -298,6 +257,9 @@ class Order extends BaseModel {
         if ($companyId) {
             $query .= " AND o.company_id = :company_id";
         }
+        if ($isTailor) {
+            $query .= " AND o.assigned_tailor_id = :tailor_id";
+        }
         $query .= " ORDER BY o.due_date ASC";
         
         $stmt = $this->conn->prepare($query);
@@ -305,22 +267,17 @@ class Order extends BaseModel {
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
+        if ($isTailor) {
+            $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         
         return $stmt->fetchAll();
     }
-
-    /**
-     * Get orders due today
-     */
     public function getOrdersDueToday() {
         $today = date('Y-m-d');
         return $this->getOrdersWithDetails(['due_date' => $today, 'status' => 'pending'], 10);
     }
-
-    /**
-     * Get monthly revenue
-     */
     public function getMonthlyRevenue($year = null, $month = null) {
         $companyId = $this->getCompanyId();
         if (!$year) $year = date('Y');
@@ -346,10 +303,6 @@ class Order extends BaseModel {
         $result = $stmt->fetch();
         return $result['total'] ?? 0;
     }
-    
-    /**
-     * Get order by ID
-     */
     public function getOrderById($id) {
         $companyId = $this->getCompanyId();
         $query = "SELECT * FROM " . $this->table . " WHERE id = :id";
@@ -366,10 +319,6 @@ class Order extends BaseModel {
         
         return $stmt->fetch();
     }
-    
-    /**
-     * Get cloth type by ID
-     */
     public function getClothTypeById($id) {
         $query = "SELECT * FROM cloth_types WHERE id = :id";
         $stmt = $this->conn->prepare($query);
@@ -378,15 +327,9 @@ class Order extends BaseModel {
         
         return $stmt->fetch();
     }
-
-    /**
-     * Get order statistics by date range
-     */
     public function getOrderStatsByDateRange($date_from, $date_to) {
         $companyId = $this->getCompanyId();
         $stats = [];
-        
-        // Total orders in date range
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE DATE(created_at) BETWEEN :date_from AND :date_to";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
@@ -400,8 +343,6 @@ class Order extends BaseModel {
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['total'] = $result['count'];
-        
-        // Orders by status in date range
         $statuses = ['pending', 'in_progress', 'completed', 'delivered', 'cancelled'];
         foreach ($statuses as $status) {
             $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE status = :status AND DATE(created_at) BETWEEN :date_from AND :date_to";
@@ -422,10 +363,6 @@ class Order extends BaseModel {
         
         return $stats;
     }
-
-    /**
-     * Get monthly revenue by date range
-     */
     public function getMonthlyRevenueByDateRange($year, $month, $date_from, $date_to) {
         $companyId = $this->getCompanyId();
         $query = "SELECT SUM(total_amount) as total 
@@ -437,7 +374,6 @@ class Order extends BaseModel {
         if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
-        
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':year', $year, PDO::PARAM_INT);
         $stmt->bindParam(':month', $month, PDO::PARAM_INT);
@@ -451,10 +387,6 @@ class Order extends BaseModel {
         $result = $stmt->fetch();
         return $result['total'] ?? 0;
     }
-
-    /**
-     * Get orders with details by date range
-     */
     public function getOrdersWithDetailsByDateRange($date_from, $date_to, $limit = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT o.*, 
@@ -476,66 +408,44 @@ class Order extends BaseModel {
         if ($limit) {
             $query .= " LIMIT :limit";
         }
-        
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':date_from', $date_from);
         $stmt->bindParam(':date_to', $date_to);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
-        
         if ($limit) {
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         }
-        
         $stmt->execute();
-        
         return $stmt->fetchAll();
     }
-
-    /**
-     * Override update to ensure company_id is checked
-     */
     public function update($id, $data) {
         $companyId = $this->getCompanyId();
-        // First verify the record belongs to this company
         if ($companyId) {
             $existing = $this->getOrderById($id);
             if (!$existing || $existing['company_id'] != $companyId) {
-                return false; // Record doesn't exist or doesn't belong to this company
+                return false; 
             }
         }
         return parent::update($id, $data);
     }
-
-    /**
-     * Override delete to ensure company_id is checked
-     */
     public function delete($id) {
         $companyId = $this->getCompanyId();
-        // First verify the record belongs to this company
         if ($companyId) {
             $existing = $this->getOrderById($id);
             if (!$existing || $existing['company_id'] != $companyId) {
-                return false; // Record doesn't exist or doesn't belong to this company
+                return false; 
             }
         }
         return parent::delete($id);
     }
-
-    /**
-     * Override create to include company_id
-     */
     public function create($data) {
         if (!isset($data['company_id'])) {
             $data['company_id'] = $this->getCompanyId();
         }
         return parent::create($data);
     }
-
-    /**
-     * Override count to include company_id filter
-     */
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
@@ -543,10 +453,6 @@ class Order extends BaseModel {
         }
         return parent::count($conditions);
     }
-
-    /**
-     * Override findAll to include company_id filter
-     */
     public function findAll($conditions = [], $order_by = null, $limit = null) {
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
@@ -554,10 +460,6 @@ class Order extends BaseModel {
         }
         return parent::findAll($conditions, $order_by, $limit);
     }
-
-    /**
-     * Override findOne to include company_id filter
-     */
     public function findOne($conditions = []) {
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
@@ -565,10 +467,6 @@ class Order extends BaseModel {
         }
         return parent::findOne($conditions);
     }
-
-    /**
-     * Override find to include company_id filter
-     */
     public function find($id) {
         $companyId = $this->getCompanyId();
         $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
@@ -582,9 +480,7 @@ class Order extends BaseModel {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }
         $stmt->execute();
-        
         return $stmt->fetch();
     }
 }
 ?>
-

@@ -10,6 +10,17 @@ $current_user = [
     'role' => get_user_role(),
     'username' => $_SESSION['username'] ?? ''
 ];
+
+// Tailor role page restriction: tailors can only access allowed pages
+if (has_role('tailor')) {
+    $tailorAllowedPages = ['orders.php', 'order-details.php', 'profile.php', 'change-password.php', 'logout.php'];
+    $currentScript = basename($_SERVER['PHP_SELF']);
+    if (!in_array($currentScript, $tailorAllowedPages)) {
+        smart_redirect('orders.php');
+        exit;
+    }
+}
+
 require_once __DIR__ . '/../../config/database.php';
 $database = new Database();
 $db = $database->getConnection();
@@ -25,8 +36,16 @@ if (!empty($current_user['id']) && function_exists('get_company_id')) {
     $headerCompanyId = get_company_id();
     if ($headerCompanyId) {
         try {
-            $stmtOverdue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND due_date < CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
-            $stmtOverdue->execute([':cid' => $headerCompanyId]);
+            $isTailor = has_role('tailor');
+            $tailorId = $current_user['id'];
+
+            if ($isTailor) {
+                $stmtOverdue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND assigned_tailor_id = :tid AND due_date < CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
+                $stmtOverdue->execute([':cid' => $headerCompanyId, ':tid' => $tailorId]);
+            } else {
+                $stmtOverdue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND due_date < CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
+                $stmtOverdue->execute([':cid' => $headerCompanyId]);
+            }
             $overdueCnt = (int)($stmtOverdue->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
             if ($overdueCnt > 0) {
                 $notifCount += $overdueCnt;
@@ -37,8 +56,14 @@ if (!empty($current_user['id']) && function_exists('get_company_id')) {
                     'link' => 'orders.php'
                 ];
             }
-            $stmtDue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND due_date = CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
-            $stmtDue->execute([':cid' => $headerCompanyId]);
+
+            if ($isTailor) {
+                $stmtDue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND assigned_tailor_id = :tid AND due_date = CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
+                $stmtDue->execute([':cid' => $headerCompanyId, ':tid' => $tailorId]);
+            } else {
+                $stmtDue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND due_date = CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
+                $stmtDue->execute([':cid' => $headerCompanyId]);
+            }
             $dueCnt = (int)($stmtDue->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
             if ($dueCnt > 0) {
                 $notifCount += $dueCnt;
@@ -49,20 +74,31 @@ if (!empty($current_user['id']) && function_exists('get_company_id')) {
                     'link' => 'orders.php'
                 ];
             }
-            $stmtInv = $db->prepare("SELECT COUNT(*) as cnt FROM invoices WHERE company_id = :cid AND status IN ('due', 'partial')");
-            $stmtInv->execute([':cid' => $headerCompanyId]);
-            $invDueCnt = (int)($stmtInv->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
-            if ($invDueCnt > 0) {
-                $notifItems[] = [
-                    'icon' => 'fas fa-file-invoice text-info',
-                    'title' => "$invDueCnt Unpaid Invoice" . ($invDueCnt > 1 ? 's' : ''),
-                    'desc' => 'Pending payment collections',
-                    'link' => 'invoices.php'
-                ];
+
+            if (!$isTailor) {
+                $stmtInv = $db->prepare("SELECT COUNT(*) as cnt FROM invoices WHERE company_id = :cid AND status IN ('due', 'partial')");
+                $stmtInv->execute([':cid' => $headerCompanyId]);
+                $invDueCnt = (int)($stmtInv->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
+                if ($invDueCnt > 0) {
+                    $notifItems[] = [
+                        'icon' => 'fas fa-file-invoice text-info',
+                        'title' => "$invDueCnt Unpaid Invoice" . ($invDueCnt > 1 ? 's' : ''),
+                        'desc' => 'Pending payment collections',
+                        'link' => 'invoices.php'
+                    ];
+                }
             }
         } catch (Exception $e) {
             
         }
+    }
+}
+
+if (!function_exists('render_page_header')) {
+    function render_page_header($title = null, $subtitle = null) {
+        $pageHeaderTitle = $title;
+        $pageHeaderSubtitle = $subtitle;
+        include __DIR__ . '/page-header.php';
     }
 }
 ?>
@@ -120,10 +156,10 @@ $seoOptions = [
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --sidebar-width: 280px;
-            --header-height: 70px;
+            --primary-color: #4f46e5;
+            --secondary-color: #4338ca;
+            --sidebar-width: 236px;
+            --header-height: 62px;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -135,43 +171,62 @@ $seoOptions = [
             left: 0;
             height: 100vh;
             width: var(--sidebar-width);
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%);
             z-index: 1000;
             transition: all 0.3s ease;
             overflow-y: auto;
         }
         .sidebar-header {
-            padding: 0.5rem;
+            padding: 1rem 1.1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         
         .sidebar-brand {
             color: white;
             text-decoration: none;
-            font-size: 1.5rem;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            text-align: center;
+        }
+        .sidebar-logo-img {
+            height: 52px;
+            width: auto;
+            max-width: 185px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+            transition: transform 0.2s ease;
+        }
+        .sidebar-logo-img:hover {
+            transform: scale(1.03);
         }
         #sidebarClose {
             display: none;
         }
         
         .sidebar-nav {
-            padding: 1rem 0;
+            padding: 0.75rem 0;
         }
         
         .nav-item {
-            margin: 0.25rem 1rem;
+            margin: 0.15rem 0.65rem;
         }
         
         .sidebar .nav-link {
             color: rgba(255, 255, 255, 0.85) !important;
-            padding: 0.72rem 1.1rem;
-            border-radius: 12px;
+            padding: 0.52rem 0.85rem;
+            border-radius: 10px;
             transition: all 0.2s ease;
             text-decoration: none;
             display: flex;
             align-items: center;
-            font-size: 0.94rem;
+            font-size: 0.86rem;
             font-weight: 500;
         }
         
@@ -179,14 +234,14 @@ $seoOptions = [
         .sidebar .nav-link:focus {
             color: #ffffff !important;
             background-color: rgba(255, 255, 255, 0.12) !important;
-            transform: translateX(4px);
+            transform: translateX(3px);
         }
 
         .sidebar .nav-link.active {
             color: #ffffff !important;
-            background-color: rgba(255, 255, 255, 0.22) !important;
+            background-color: rgba(255, 255, 255, 0.18) !important;
             font-weight: 600 !important;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
         
         .nav-link i {
@@ -212,18 +267,22 @@ $seoOptions = [
         .top-header {
             background: white;
             height: var(--header-height);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 2rem;
-            position: sticky;
+            position: fixed;
             top: 0;
-            z-index: 999;
+            left: var(--sidebar-width);
+            right: 0;
+            z-index: 998;
+            transition: left 0.3s ease;
         }
         
         .content-area {
             padding: 1rem;
+            padding-top: calc(var(--header-height) + 1rem);
         }
         .card {
             border: none;
@@ -657,7 +716,14 @@ $seoOptions = [
                 overflow-x: hidden;
             }
             .top-header {
+                left: 0 !important;
                 padding: 0 12px !important;
+                position: fixed;
+                top: 0;
+                right: 0 !important;
+                height: 58px;
+                background: #ffffff;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.06);
             }
             .page-main-title {
                 display: inline-block !important;
@@ -672,9 +738,86 @@ $seoOptions = [
             .mobile-center-brand {
                 display: none !important;
             }
-            .content-area {
-                padding: 12px 12px 30px !important;
+            .mobile-header-logo {
+                display: inline-flex;
+                align-items: center;
+                text-decoration: none;
             }
+            .mobile-header-logo img {
+                height: 34px;
+                width: auto;
+                max-width: 140px;
+                object-fit: contain;
+                display: block;
+            }
+            .content-area {
+                padding: 12px 12px 80px !important;
+                padding-top: calc(var(--header-height) + 12px) !important;
+            }
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 999px;
+            border: 1.5px solid #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+            box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.05);
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 4px 6px;
+        }
+        .mobile-bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-decoration: none;
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 500;
+            transition: color 0.15s ease;
+            padding: 4px 0;
+            border: none;
+            background: transparent;
+        }
+        .mobile-bottom-nav-item i {
+            font-size: 1.15rem;
+            margin-bottom: 3px;
+        }
+        .mobile-bottom-nav-item.active {
+            color: #7c3aed !important;
+            font-weight: 700;
+            background: #f5f3ff;
+            border-radius: 14px;
+        }
+        .mobile-bottom-nav-item:hover, .mobile-bottom-nav-item:focus {
+            color: #7c3aed;
         }
 
         @media (max-width: 767.98px) {
@@ -693,6 +836,9 @@ $seoOptions = [
                 padding: 0 !important;
                 margin: 0 !important;
                 flex: none !important;
+            }
+            .row:has(> [class*="col"] > .stat-card) > [class*="col"]:last-child:nth-child(odd) {
+                grid-column: 1 / -1 !important;
             }
             .stat-card {
                 padding: 12px 14px !important;
@@ -830,6 +976,20 @@ $seoOptions = [
                 font-size: 0.78rem !important;
             }
         }
+        /* Global Page Hero Banner Card (Standardized from Category page) */
+        .cat-hero-card {
+            border-radius: 18px;
+            background: #faf5ff;
+            border: 1px solid #ede9fe;
+            min-height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+        @media (max-width: 767.98px) {
+            .cat-hero-card {
+                min-height: 120px;
+            }
+        }
         .notif-bell-btn {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -965,25 +1125,18 @@ $seoOptions = [
 <body>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <nav class="sidebar">
-        <div class="sidebar-header d-flex justify-content-between align-items-center">
-            <a href="dashboard.php" class="sidebar-brand d-flex align-items-center">
-                <?php
-                $brandLogo = get_logo_path('footer-logo.png');
-                if ($brandLogo):
-                ?>
-                    <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" style="height: 44px; width: auto; max-width: 170px; display: block;">
-                <?php else: ?>
-                    <i class="fas fa-cut me-2"></i>
-                    <?php echo APP_NAME; ?>
-                <?php endif; ?>
+        <div class="sidebar-header position-relative d-flex align-items-center justify-content-center py-2">
+            <a href="<?php echo has_role('tailor') ? 'orders.php' : 'dashboard.php'; ?>" class="sidebar-brand d-flex align-items-center justify-content-center text-decoration-none w-100">
+                <img src="../assets/images/tailor_logo.png" alt="Tailor Pro" class="sidebar-logo-img">
             </a>
-            <button type="button" class="btn text-white p-1" id="sidebarClose" aria-label="Close Sidebar">
+            <button type="button" class="btn text-white p-1 position-absolute end-0 me-3" id="sidebarClose" aria-label="Close Sidebar" style="top: 50%; transform: translateY(-50%);">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         
         <div class="sidebar-nav">
             <ul class="nav flex-column">
+                <?php if (!has_role('tailor')): ?>
                 <li class="nav-item">
                     <a href="dashboard.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
                         <i class="fas fa-tachometer-alt"></i>
@@ -1016,6 +1169,8 @@ $seoOptions = [
                         Customers
                     </a>
                 </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a href="orders.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'orders.php' ? 'active' : ''; ?>">
                         <i class="fas fa-clipboard-list"></i>
@@ -1023,6 +1178,7 @@ $seoOptions = [
                     </a>
                 </li>
                 
+                <?php if (!has_role('tailor')): ?>
                 <li class="nav-item">
                     <a href="invoices.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'invoices.php' ? 'active' : ''; ?>">
                         <i class="fas fa-file-invoice"></i>
@@ -1073,6 +1229,54 @@ $seoOptions = [
                     </a>
                 </li>
                 
+                <li class="px-3 mt-3 mb-3">
+                    <div class="position-relative overflow-hidden text-white d-flex flex-column justify-content-between"
+                         style="background: linear-gradient(135deg, rgba(42, 28, 110, 0.95) 0%, rgba(52, 32, 125, 0.88) 38%, rgba(62, 32, 135, 0.35) 72%, transparent 100%),
+                                url('../assets/images/dashboard/tailor_pro_bg.jpg') no-repeat 78% center / cover;
+                                border-radius: 18px;
+                                min-height: 185px;
+                                padding: 18px 16px 16px 16px;
+                                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);">
+
+                        <div>
+                            <!-- Purple Badge with White Crown -->
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);">
+                                <i class="fas fa-crown text-white" style="font-size: 1.05rem;"></i>
+                            </div>
+
+                            <!-- Title (+3px) -->
+                            <div class="fw-bold text-white mt-2 mb-1" style="font-size: 1.25rem; letter-spacing: -0.2px;">
+                                Tailor Pro
+                            </div>
+
+                            <!-- Description (+3px) -->
+                            <p class="mb-0" style="font-size: 0.94rem; color: rgba(255, 255, 255, 0.9); line-height: 1.35; max-width: 155px;">
+                                Manage your tailoring<br>business with ease!
+                            </p>
+                        </div>
+
+                        <!-- Dark Navy Upgrade Plan Button (+3px) -->
+                        <div class="mt-3">
+                            <a href="subscriptions.php"
+                               class="d-flex align-items-center justify-content-center gap-2 w-100 text-white text-decoration-none fw-semibold"
+                               style="background: #1c1a44;
+                                      border: 1px solid rgba(255, 255, 255, 0.08);
+                                      border-radius: 12px;
+                                      padding: 10px 14px;
+                                      font-size: 1.02rem;
+                                      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+                                      transition: all 0.2s ease;"
+                               onmouseover="this.style.background='#252358'; this.style.transform='translateY(-1px)';"
+                               onmouseout="this.style.background='#1c1a44'; this.style.transform='translateY(0)';">
+                                <span>Upgrade Plan</span>
+                                <i class="fas fa-arrow-right" style="font-size: 0.85rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                
+                <?php endif; ?>
                 <?php endif; ?>
             </ul>
         </div>
@@ -1083,12 +1287,37 @@ $seoOptions = [
                 <button class="btn btn-link p-1 text-primary d-lg-none" id="sidebarToggle" aria-label="Toggle Navigation" style="font-size: 1.25rem; text-decoration: none; color: #4f46e5 !important; line-height: 1;">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="mb-0 page-main-title fw-bold text-dark" style="text-transform: capitalize; font-size: 1.25rem; letter-spacing: -0.3px;">
-                    <?php 
-                        $displayPageTitle = str_ireplace([' Management', ' management'], '', $page_title ?? 'Dashboard');
-                        echo htmlspecialchars(ucwords(__t(strtolower(str_replace('_', ' ', $displayPageTitle))))); 
-                    ?>
-                </h4>
+                <?php 
+                $currScript = basename($_SERVER['PHP_SELF']);
+                if ($currScript == 'dashboard.php'): 
+                ?>
+                    <a href="dashboard.php" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
+                        <img src="../assets/images/tailor_logo_color.png?v=<?php echo time(); ?>" alt="Tailor Pro">
+                    </a>
+                    <div class="position-relative d-none d-lg-block" style="width: 320px;">
+                        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem;"></i>
+                        <input type="text" class="form-control rounded-pill ps-5 py-2 border-0" style="font-size: 0.82rem; background-color: #f1f5f9 !important; color: #334155;" placeholder="Search orders, customers, categories...">
+                    </div>
+                <?php elseif (in_array($currScript, ['categories.php', 'cloth-types.php', 'measurements.php', 'customers.php', 'orders.php', 'invoices.php', 'expenses.php', 'reports.php', 'contacts.php', 'company-settings.php', 'users.php'])): ?>
+                    <a href="dashboard.php" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
+                        <img src="../assets/images/tailor_logo_color.png?v=<?php echo time(); ?>" alt="Tailor Pro">
+                    </a>
+                    <div class="d-none d-lg-block">
+                        <h4 class="mb-0 page-main-title fw-bold text-dark" style="text-transform: capitalize; font-size: 1.25rem; letter-spacing: -0.3px;">
+                            <?php 
+                                $displayPageTitle = str_ireplace([' Management', ' management'], '', $page_title ?? 'Cloth Type');
+                                echo htmlspecialchars(ucwords(__t(strtolower(str_replace('_', ' ', $displayPageTitle))))); 
+                            ?>
+                        </h4>
+                    </div>
+                <?php else: ?>
+                    <h4 class="mb-0 page-main-title fw-bold text-dark" style="text-transform: capitalize; font-size: 1.25rem; letter-spacing: -0.3px;">
+                        <?php 
+                            $displayPageTitle = str_ireplace([' Management', ' management'], '', $page_title ?? 'Dashboard');
+                            echo htmlspecialchars(ucwords(__t(strtolower(str_replace('_', ' ', $displayPageTitle))))); 
+                        ?>
+                    </h4>
+                <?php endif; ?>
             </div>
             
             <div class="d-flex align-items-center gap-2">
@@ -1099,9 +1328,7 @@ $seoOptions = [
                 <div class="dropdown">
                     <button class="notif-bell-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
-                        <?php if ($notifCount > 0): ?>
-                            <span class="notif-dot"></span>
-                        <?php endif; ?>
+                        <span class="notif-badge"><?php echo ($notifCount > 0) ? $notifCount : '1'; ?></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" style="border-radius: 12px; min-width: 280px; max-width: 320px; z-index: 1060;">
                         <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-1">

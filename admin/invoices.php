@@ -1,8 +1,3 @@
-<link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
 require_once '../config/config.php';
 
@@ -20,10 +15,8 @@ $paymentModel = new Payment();
 $message = '';
 $messageType = '';
 $companyId = get_company_id();
-
-// Handle fixing existing invoices with advance payments
 if (isset($_GET['fix_advance']) && $_GET['fix_advance'] === '1') {
-    // Get all invoices that need fixing
+   
     $invoices = $invoiceModel->getInvoicesWithDetails();
     $fixed = 0;
     
@@ -34,14 +27,11 @@ if (isset($_GET['fix_advance']) && $_GET['fix_advance'] === '1') {
             $advanceAmount = (float)$order['advance_amount'];
             $balanceAmount = $totalAmount - $advanceAmount;
             
-            // Only update if the invoice doesn't already have the advance payment
             if ($invoice['paid_amount'] == 0 && $invoice['balance_amount'] == $totalAmount) {
                 $invoiceModel->update($invoice['id'], [
                     'paid_amount' => $advanceAmount,
                     'balance_amount' => $balanceAmount
                 ]);
-                
-                // Update payment status
                 $invoiceModel->updatePaymentStatus($invoice['id']);
                 $fixed++;
             }
@@ -53,15 +43,12 @@ if (isset($_GET['fix_advance']) && $_GET['fix_advance'] === '1') {
     header('Location: invoices.php');
     exit;
 }
-
-// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
         
         switch ($action) {
             case 'create':
-                // Check if invoice generation is allowed for this plan
                 $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                 if (!$invoiceCheck['allowed']) {
                     $_SESSION['message'] = $invoiceCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('invoices', SubscriptionHelper::getCurrentPlan($companyId));
@@ -70,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
-                // Get order details to include advance payment
                 $order = $orderModel->find((int)$_POST['order_id']);
                 $advanceAmount = $order ? (float)$order['advance_amount'] : 0;
                 $totalAmount = (float)$_POST['total_amount'];
@@ -85,19 +71,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'tax_amount' => (float)$_POST['tax_amount'],
                     'discount_amount' => (float)$_POST['discount_amount'],
                     'total_amount' => $totalAmount,
-                    'paid_amount' => $advanceAmount, // Include advance payment from order
-                    'balance_amount' => $balanceAmount, // Calculate balance after advance
+                    'paid_amount' => $advanceAmount,
+                    'balance_amount' => $balanceAmount, 
                     'notes' => sanitize_input($_POST['notes']),
                     'created_by' => get_user_id()
                 ];
                 
                 $invoiceId = $invoiceModel->createInvoice($data);
                 if ($invoiceId) {
-                    // Update payment status based on advance payment
+
                     $invoiceModel->updatePaymentStatus($invoiceId);
-                    // Get invoice details for tracking
                     $invoice = $invoiceModel->find($invoiceId);
-                    // Track create invoice event
                     require_once '../helpers/GA4Helper.php';
                     $_SESSION['ga4_event'] = GA4Helper::trackCreateInvoice(
                         $invoiceId,
@@ -115,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
                 
             case 'update':
-                // Check if invoice generation is allowed for this plan
                 $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                 if (!$invoiceCheck['allowed']) {
                     $_SESSION['message'] = $invoiceCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('invoices', SubscriptionHelper::getCurrentPlan($companyId));
@@ -134,13 +117,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
-                // Get order details to recalculate advance payment
                 $order = $orderModel->find((int)$_POST['order_id']);
                 $advanceAmount = $order ? (float)$order['advance_amount'] : 0;
                 $totalAmount = (float)$_POST['total_amount'];
-                
-                // Calculate new balance - preserve existing paid amount if it's greater than advance
-                $currentPaidAmount = (float)$existingInvoice['paid_amount'];
+                                $currentPaidAmount = (float)$existingInvoice['paid_amount'];
                 $newPaidAmount = max($advanceAmount, $currentPaidAmount);
                 $balanceAmount = $totalAmount - $newPaidAmount;
                 
@@ -159,7 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ];
                 
                 if ($invoiceModel->update($invoiceId, $data)) {
-                    // Update payment status based on new amounts
                     $invoiceModel->updatePaymentStatus($invoiceId);
                     $_SESSION['message'] = 'Invoice updated successfully';
                     $_SESSION['messageType'] = 'success';
@@ -269,7 +248,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get messages from session
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     $messageType = $_SESSION['messageType'] ?? 'info';
@@ -277,11 +255,9 @@ if (isset($_SESSION['message'])) {
     unset($_SESSION['messageType']);
 }
 
-// NOW include header (after all redirects are done)
 $page_title = 'Invoice Management';
 require_once 'includes/header.php';
 
-// Get invoices
 $status_filter = $_GET['status'] ?? '';
 $search = $_GET['search'] ?? '';
 $page = (int)($_GET['page'] ?? 1);
@@ -305,37 +281,169 @@ if ($limit > 0) {
     $totalPages = 1;
 }
 
-// Get orders that can have invoices (not cancelled and not fully invoiced)
-// Show orders with status: pending, in_progress, completed, or delivered
 $allOrders = $orderModel->getOrdersWithDetails([], 100);
 
-// Filter orders that:
-// 1. Are not cancelled
-// 2. Don't have an invoice yet (or have balance remaining)
 $unpaidOrders = [];
 foreach ($allOrders as $order) {
     if ($order['status'] !== 'cancelled') {
-        // Check if this order already has an invoice
         $existingInvoices = $invoiceModel->findAll(['order_id' => $order['id']]);
         
         if (empty($existingInvoices)) {
-            // No invoice exists, show this order
             $unpaidOrders[] = $order;
         }
     }
 }
-
-// Get invoice statistics
 $invoiceStats = $invoiceModel->getInvoiceStats();
 
-// Check subscription for invoice generation
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
+
+if (!function_exists('getCustomerAvatarDesign')) {
+    function getCustomerAvatarDesign($name, $index) {
+        $palettes = [
+            ['bg' => '#eff6ff', 'border' => '#dbeafe', 'color' => '#3b82f6'],
+            ['bg' => '#f0fdf4', 'border' => '#dcfce7', 'color' => '#10b981'],
+            ['bg' => '#faf5ff', 'border' => '#ede9fe', 'color' => '#8b5cf6'],
+            ['bg' => '#fffbeb', 'border' => '#fef3c7', 'color' => '#f59e0b'],
+            ['bg' => '#fdf2f8', 'border' => '#fce7f3', 'color' => '#ec4899'],
+            ['bg' => '#f0fdfa', 'border' => '#ccfbf1', 'color' => '#0d9488']
+        ];
+        return $palettes[$index % count($palettes)];
+    }
+}
 ?>
 
+<style>
+.cat-stat-box {
+    border-radius: 16px;
+    padding: 10px 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cat-stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.cat-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+    padding: 0;
+    text-decoration: none;
+}
+.cat-action-edit {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+.cat-action-edit:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.cat-action-view {
+    background: #f0fdfa;
+    border-color: #99f6e4;
+    color: #0d9488;
+}
+.cat-action-view:hover {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+.cat-action-pay {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #16a34a;
+}
+.cat-action-pay:hover {
+    background: #dcfce7;
+    color: #15803d;
+}
+.cat-action-print {
+    background: #faf5ff;
+    border-color: #ede9fe;
+    color: #8b5cf6;
+}
+.cat-action-print:hover {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+.cat-table-head th {
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding: 12px 14px !important;
+    text-transform: uppercase;
+}
+.category-table tbody tr {
+    transition: background-color 0.12s ease;
+}
+.category-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+.cat-badge-paid {
+    background-color: #f0fdf4 !important;
+    color: #15803d !important;
+    border: 1px solid #bbf7d0 !important;
+}
+.cat-badge-partial {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+}
+.cat-badge-due {
+    background-color: #fef2f2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+}
+#searchInput, #startDateFilter, #endDateFilter {
+    height: 42px !important;
+    font-size: 0.85rem !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+}
+#statusFilter {
+    height: 42px !important;
+    font-size: 0.85rem !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+    padding: 0.45rem 2.2rem 0.45rem 0.8rem !important;
+    line-height: 1.4 !important;
+    background-color: #ffffff !important;
+}
+@media (max-width: 767.98px) {
+    .category-table th {
+        font-size: 0.72rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+    .category-table td {
+        font-size: 0.78rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+}
+@media (max-width: 575.98px) {
+    .cat-action-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.74rem;
+    }
+}
+</style>
 
 <?php if ($message): ?>
-    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
+    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -343,7 +451,7 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
 <?php endif; ?>
 
 <?php if (!$invoiceCheck['allowed']): ?>
-    <div class="alert alert-warning alert-dismissible fade show">
+    <div class="alert alert-warning alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-exclamation-triangle me-2"></i>
         <strong>Invoice Generation Not Available:</strong> Invoice generation is not available in the Free plan. 
         <a href="subscriptions.php" class="alert-link">Upgrade to Basic, Premium, or Enterprise plan</a> to use this feature.
@@ -351,222 +459,289 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
     </div>
 <?php endif; ?>
 
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo number_format($invoiceStats['total']); ?></div>
-                    <div class="stat-label">Total Invoices</div>
+<!-- 1. Invoices Hero Banner (Using Shared Component) -->
+<?php
+$pageHeaderTitle = 'Invoices';
+$pageHeaderSubtitle = 'Track customer billings, payment balances and financial receipts.';
+include 'includes/page-header.php';
+?>
+
+<!-- 2. Stat Cards (2x2 on Mobile, 4 cols on Desktop) -->
+<div class="row g-2 mb-2">
+    <!-- Total Invoices -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #a855f7; color: #ffffff;">
+                    <i class="fas fa-file-invoice" style="font-size: 0.95rem;"></i>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-file-invoice"></i>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($invoiceStats['total']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Total Invoices</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #c084fc;">
+                <span style="width: 3px; height: 40%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 75%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 50%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paid Invoices -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #22c55e; color: #ffffff;">
+                    <i class="fas fa-check-circle" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($invoiceStats['paid']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Paid Invoices</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #4ade80;">
+                <span style="width: 3px; height: 35%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 60%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 45%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 95%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partial Invoices -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #f59e0b; color: #ffffff;">
+                    <i class="fas fa-clock" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($invoiceStats['partial']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Partially Paid</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #fbbf24;">
+                <span style="width: 3px; height: 30%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 55%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 40%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 90%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Due Invoices -->
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #fef2f2; border: 1px solid #fee2e2;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #ef4444; color: #ffffff;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($invoiceStats['due']); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Payment Due</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #f87171;">
+                <span style="width: 3px; height: 45%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 70%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 55%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Financial Revenue Strip -->
+<div class="row g-2 mb-3">
+    <div class="col-12 col-md-4">
+        <div class="p-2 px-3 d-flex align-items-center justify-content-between" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; border-radius: 8px; background: #ecfdf5; color: #10b981;">
+                    <i class="fas fa-coins" style="font-size: 0.85rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Total Revenue</div>
+                    <div class="fw-bold text-dark lh-1 text-truncate" style="font-size: 1.05rem;"><?php echo format_currency($invoiceStats['total_amount']); ?></div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo number_format($invoiceStats['paid']); ?></div>
-                    <div class="stat-label">Paid</div>
+    <div class="col-12 col-md-4">
+        <div class="p-2 px-3 d-flex align-items-center justify-content-between" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #3b82f6;">
+                    <i class="fas fa-hand-holding-usd" style="font-size: 0.85rem;"></i>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo number_format($invoiceStats['partial']); ?></div>
-                    <div class="stat-label">Partial</div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
+                <div class="min-w-0">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Paid Amount</div>
+                    <div class="fw-bold text-success lh-1 text-truncate" style="font-size: 1.05rem;"><?php echo format_currency($invoiceStats['paid_amount']); ?></div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="stat-number"><?php echo number_format($invoiceStats['due']); ?></div>
-                    <div class="stat-label">Due</div>
+    <div class="col-12 col-md-4">
+        <div class="p-2 px-3 d-flex align-items-center justify-content-between" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; border-radius: 8px; background: #fff7ed; color: #ea580c;">
+                    <i class="fas fa-hourglass-half" style="font-size: 0.85rem;"></i>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
+                <div class="min-w-0">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Pending Amount</div>
+                    <div class="fw-bold text-danger lh-1 text-truncate" style="font-size: 1.05rem;"><?php echo format_currency($invoiceStats['due_amount']); ?></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<div class="row mb-4">
-    <div class="col-xl-4 col-md-6 mb-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title text-success">Total Revenue</h5>
-                <h3 class="text-success"><?php echo format_currency($invoiceStats['total_amount']); ?></h3>
-            </div>
-        </div>
+
+<!-- 4. Search and Action Row -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <div class="position-relative flex-grow-1 min-w-0" style="min-width: 220px;">
+        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.9rem;"></i>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search invoices..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 0.8rem; height: 42px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
     </div>
-    
-    <div class="col-xl-4 col-md-6 mb-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title text-info">Paid Amount</h5>
-                <h3 class="text-info"><?php echo format_currency($invoiceStats['paid_amount']); ?></h3>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-4 col-md-6 mb-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title text-warning">Pending Amount</h5>
-                <h3 class="text-warning"><?php echo format_currency($invoiceStats['due_amount']); ?></h3>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-2 align-items-end">
-            <div class="col">
-                <label for="searchInput" class="form-label mb-1" style="font-size: 0.85rem;">Search</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search invoices..." autocomplete="off">
-                </div>
-            </div>
-            <div class="col">
-                <label for="statusFilter" class="form-label mb-1" style="font-size: 0.85rem;">Status</label>
-                <select class="form-select" id="statusFilter">
-                    <option value="">All</option>
-                    <option value="paid">Paid</option>
-                    <option value="partial">Partial</option>
-                    <option value="due">Due</option>
-                </select>
-            </div>
-            <div class="col">
-                <label for="startDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">Start Date</label>
-                <input type="date" class="form-control" id="startDateFilter">
-            </div>
-            <div class="col">
-                <label for="endDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">End Date</label>
-                <input type="date" class="form-control" id="endDateFilter">
-            </div>
-            <div class="col-auto">
-                <button type="button" id="clearFilters" class="btn btn-outline-danger" title="Clear Filters" >
-                    <i class="fas fa-times me-1"></i> Clear
-                </button>
-            </div>
-        </div>
-        <div id="filterResults" class="mt-3" style="display: none;">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <span id="filterCount">0</span> invoices found
-            </div>
-        </div>
-    </div>
-</div>
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-            <i class="fas fa-file-invoice me-2"></i>
-            Invoices (<?php echo number_format($totalInvoices); ?>)
-        </h5>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#invoiceModal" <?php echo !$invoiceCheck['allowed'] ? 'disabled title="Upgrade required to create invoices"' : ''; ?>>
-                <i class="fas fa-plus me-1"></i>Create Invoice
-                <?php if (!$invoiceCheck['allowed']): ?>
-                    <span class="badge bg-warning ms-2">Upgrade Required</span>
-                <?php endif; ?>
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <?php 
+        $exportCheck = SubscriptionHelper::canExportData($companyId);
+        if ($exportCheck['allowed']): 
+        ?>
+            <button type="button" class="btn btn-outline-secondary align-items-center justify-content-center text-nowrap" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" onclick="exportInvoices()" title="Export Invoices">
+                <i class="fas fa-download me-1"></i> Export
             </button>
-            <?php 
-            $exportCheck = SubscriptionHelper::canExportData($companyId);
-            if ($exportCheck['allowed']): 
-            ?>
-            <button type="button" class="btn btn-sm btn-outline-light" onclick="exportInvoices()">
-                <i class="fas fa-download me-1"></i>Export
-            </button>
-            <?php else: ?>
-            <a href="subscriptions.php" class="btn btn-sm btn-outline-light text-warning" title="Upgrade to Premium to Export" style="border-color: rgba(255,193,7,0.5);">
-                <i class="fas fa-lock me-1"></i>Export
+        <?php else: ?>
+            <a href="subscriptions.php" class="btn btn-outline-secondary align-items-center justify-content-center text-muted text-nowrap" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" title="Upgrade to Premium to Export">
+                <i class="fas fa-lock me-1 text-warning"></i> Export
             </a>
+        <?php endif; ?>
+        
+        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#invoiceModal" <?php echo !$invoiceCheck['allowed'] ? 'disabled title="Upgrade required to create invoices"' : ''; ?>>
+            <i class="fas fa-plus"></i>
+            <span>Create Invoice</span>
+            <?php if (!$invoiceCheck['allowed']): ?>
+                <span class="badge bg-warning ms-1" style="font-size: 0.65rem;">Upgrade</span>
             <?php endif; ?>
-        </div>
+        </button>
     </div>
-    <div class="card-body">
+</div>
+
+<!-- Detailed Filters Row -->
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-6 col-md-4">
+        <select class="form-select" id="statusFilter" title="Filter by Status" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 2.2rem 0.45rem 0.8rem; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <option value="">All Payment Statuses</option>
+            <option value="paid" <?php echo $status_filter === 'paid' ? 'selected' : ''; ?>>Paid</option>
+            <option value="partial" <?php echo $status_filter === 'partial' ? 'selected' : ''; ?>>Partial</option>
+            <option value="due" <?php echo $status_filter === 'due' ? 'selected' : ''; ?>>Due</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    </div>
+    <div class="col-6 col-md-3">
+        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    </div>
+    <div class="col-6 col-md-2">
+        <button type="button" id="clearFilters" class="btn btn-outline-danger align-items-center justify-content-center text-nowrap w-100" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 16px; display: inline-flex;" title="Clear Filters">
+            <i class="fas fa-times me-1"></i> Clear
+        </button>
+    </div>
+</div>
+
+<div id="filterResults" class="mb-3" style="display: none;">
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center" style="border-radius: 12px; font-size: 0.85rem;">
+        <i class="fas fa-info-circle me-2"></i>
+        <span><strong id="filterCount">0</strong> invoices found</span>
+    </div>
+</div>
+
+<!-- 5. Invoices Table -->
+<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+    <div class="card-body p-0">
         <?php if (!empty($invoices)): ?>
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover mb-0 align-middle category-table">
+                    <thead class="cat-table-head">
                         <tr>
-                            <th>Invoice #</th>
-                            <th>Customer</th>
-                            <th>Order #</th>
-                            <th>Invoice Date</th>
-                            <th>Due Date</th>
-                            <th>Amount</th>
-                            <th>Paid</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="ps-3 py-3">INVOICE #</th>
+                            <th class="py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>CUSTOMER</span>
+                                    <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" id="sortInvoicesBtn" title="Sort A-Z" style="font-size: 0.75rem; line-height: 1; text-decoration: none;">
+                                        <i class="fas fa-sort" id="sortIcon"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th class="py-3">ORDER #</th>
+                            <th class="py-3">INVOICE DATE</th>
+                            <th class="py-3">DUE DATE</th>
+                            <th class="py-3">AMOUNT</th>
+                            <th class="py-3">PAID</th>
+                            <th class="py-3">STATUS</th>
+                            <th class="pe-3 py-3 text-end">ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($invoices as $invoice): ?>
-                        <tr>
-                            <td>
-                                <span class="badge bg-primary"><?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?></span>
+                    <tbody id="invoicesTableBody">
+                        <?php foreach ($invoices as $index => $invoice): 
+                            $custName = htmlspecialchars($invoice['measurement_customer_name'] ?? (($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? '')));
+                            $initial = strtoupper(mb_substr(trim($custName), 0, 1) ?: 'C');
+                            $avColor = getCustomerAvatarDesign($custName, $index);
+                            $isOverdue = $invoice['due_date'] < date('Y-m-d') && $invoice['payment_status'] !== 'paid';
+                        ?>
+                        <tr class="invoice-row" data-customer="<?php echo htmlspecialchars($custName); ?>">
+                            <td class="ps-3 py-3">
+                                <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.82rem; padding: 5px 9px; border-radius: 8px;">
+                                    <?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?>
+                                </span>
                             </td>
-                            <td>
-                                <div>
-                                    <strong><?php echo htmlspecialchars($invoice['measurement_customer_name'] ?? (($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''))); ?></strong>
-                                    <br>
-                                    <small class="text-muted"><?php echo htmlspecialchars($invoice['customer_code'] ?? ''); ?></small>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 34px; height: 34px; border-radius: 10px; background: <?php echo $avColor['bg']; ?>; border: 1px solid <?php echo $avColor['border']; ?>; color: <?php echo $avColor['color']; ?>; font-size: 0.85rem;">
+                                        <?php echo $initial; ?>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem; max-width: 170px;">
+                                            <?php echo $custName; ?>
+                                        </div>
+                                        <?php if (!empty($invoice['customer_code'])): ?>
+                                            <div class="text-muted" style="font-size: 0.72rem;"><?php echo htmlspecialchars($invoice['customer_code']); ?></div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </td>
-                            <td>
-                                <span class="badge bg-info"><?php echo htmlspecialchars($invoice['order_number'] ?? ''); ?></span>
+                            <td class="py-3">
+                                <span class="badge fw-medium" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px;">
+                                    <?php echo htmlspecialchars($invoice['order_number'] ?? 'N/A'); ?>
+                                </span>
                             </td>
-                            <td><?php echo format_date($invoice['invoice_date']); ?></td>
-                            <td>
-                                <span class="<?php echo $invoice['due_date'] < date('Y-m-d') && $invoice['payment_status'] !== 'paid' ? 'text-danger fw-bold' : ''; ?>">
+                            <td class="py-3 text-secondary" style="font-size: 0.82rem;"><?php echo format_date($invoice['invoice_date']); ?></td>
+                            <td class="py-3" style="font-size: 0.82rem;">
+                                <span class="<?php echo $isOverdue ? 'text-danger fw-bold' : 'text-dark'; ?>">
+                                    <?php if ($isOverdue): ?><i class="fas fa-exclamation-circle text-danger me-1"></i><?php endif; ?>
                                     <?php echo format_date($invoice['due_date']); ?>
                                 </span>
                             </td>
-                            <td>
-                                <strong><?php echo format_currency($invoice['total_amount']); ?></strong>
-                                <?php if ($invoice['tax_amount'] > 0): ?>
-                                    <br>
-                                    <small class="text-muted">
-                                        Tax: <?php echo format_currency($invoice['tax_amount']); ?>
-                                    </small>
-                                <?php endif; ?>
+                            <td class="py-3">
+                                <div>
+                                    <strong class="text-dark" style="font-size: 0.88rem;"><?php echo format_currency($invoice['total_amount']); ?></strong>
+                                    <?php if ($invoice['tax_amount'] > 0): ?>
+                                        <div class="text-muted" style="font-size: 0.72rem;">
+                                            Tax: <?php echo format_currency($invoice['tax_amount']); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
                             </td>
-                            <td><?php echo format_currency($invoice['paid_amount']); ?></td>
-                            <td>
-                                <span class="badge bg-<?php 
-                                    echo match($invoice['payment_status']) {
-                                        'paid' => 'success',
-                                        'partial' => 'warning',
-                                        'due' => 'danger',
-                                        default => 'secondary'
-                                    };
-                                ?>">
+                            <td class="py-3">
+                                <span class="fw-semibold text-success" style="font-size: 0.85rem;"><?php echo format_currency($invoice['paid_amount']); ?></span>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge rounded-pill fw-semibold px-2 py-1 cat-badge-<?php echo htmlspecialchars($invoice['payment_status']); ?>" style="font-size: 0.75rem;">
                                     <?php echo ucfirst($invoice['payment_status']); ?>
                                 </span>
                             </td>
-                            <td>
-                                <div class="btn-group btn-group-sm" role="group">
+                            <td class="pe-3 py-3 text-end">
+                                <div class="d-inline-flex align-items-center gap-1">
                                     <?php
                                         $invoicePayload = [
                                             'id' => $invoice['id'],
@@ -586,27 +761,27 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                                         $invoiceJson = htmlspecialchars(json_encode($invoicePayload), ENT_QUOTES, 'UTF-8');
                                     ?>
                                     <button type="button" 
-                                            class="btn btn-outline-primary" 
+                                            class="cat-action-btn cat-action-edit" 
                                             onclick="editInvoice(<?php echo $invoiceJson; ?>)"
-                                            title="Edit Invoice" style="border: 1px solid #667eea;">
+                                            title="Edit Invoice">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-outline-info" 
+                                            class="cat-action-btn cat-action-view" 
                                             onclick="viewInvoice(<?php echo $invoice['id']; ?>)"
-                                            title="View Details" style="border: 1px solid #667eea;">
+                                            title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-outline-success" 
+                                            class="cat-action-btn cat-action-pay" 
                                             onclick="addPayment(<?php echo $invoice['id']; ?>, '<?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?>', <?php echo $invoice['balance_amount']; ?>)"
-                                            title="Add Payment" style="border: 1px solid #667eea;">
+                                            title="Add Payment">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-outline-primary" 
+                                            class="cat-action-btn cat-action-print" 
                                             onclick="printInvoice(<?php echo $invoice['id']; ?>)"
-                                            title="Print Invoice" style="border: 1px solid #667eea;">
+                                            title="Print Invoice">
                                         <i class="fas fa-print"></i>
                                     </button>
                                 </div>
@@ -616,10 +791,10 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     </tbody>
                 </table>
             </div>
-            <div id="paginationContainer">
+            <div id="paginationContainer" class="p-3">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Invoice pagination">
-                    <ul class="pagination justify-content-center">
+                    <ul class="pagination justify-content-center mb-0">
                         <?php if ($page > 1): ?>
                             <li class="page-item">
                                 <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $status_filter ? '&status=' . urlencode($status_filter) : ''; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Previous</a>
@@ -643,9 +818,11 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
             </div>
         <?php else: ?>
             <div class="text-center py-5">
-                <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No invoices found</h5>
-                <p class="text-muted">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                    <i class="fas fa-file-invoice fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">No invoices found</h5>
+                <p class="text-muted small mb-3">
                     <?php if (!empty($search) || !empty($status_filter)): ?>
                         No invoices match your search criteria.
                     <?php else: ?>
@@ -653,10 +830,10 @@ $invoiceCheck = SubscriptionHelper::canGenerateInvoice($companyId);
                     <?php endif; ?>
                 </p>
                 <?php if (empty($search) && empty($status_filter)): ?>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal" <?php echo !$invoiceCheck['allowed'] ? 'disabled title="Upgrade required to create invoices"' : ''; ?>>
-                        <i class="fas fa-plus me-2"></i>Create Invoice
+                    <button type="button" class="btn text-white fw-semibold px-4 py-2" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#invoiceModal" <?php echo !$invoiceCheck['allowed'] ? 'disabled title="Upgrade required to create invoices"' : ''; ?>>
+                        <i class="fas fa-plus me-1"></i>Create Invoice
                         <?php if (!$invoiceCheck['allowed']): ?>
-                            <span class="badge bg-warning ms-2">Upgrade Required</span>
+                            <span class="badge bg-warning ms-1" style="font-size: 0.65rem;">Upgrade Required</span>
                         <?php endif; ?>
                     </button>
                 <?php endif; ?>
@@ -902,7 +1079,6 @@ function addPayment(invoiceId, invoiceNumber, balanceAmount) {
     new bootstrap.Modal(document.getElementById('paymentModal')).show();
 }
 
-// Handle payment form submission via AJAX
 function submitPaymentForm(event) {
     event.preventDefault();
     
@@ -911,19 +1087,16 @@ function submitPaymentForm(event) {
     const form = document.getElementById('paymentForm');
     const formData = new FormData(form);
     
-    // Debug: Log form data
     console.log('Form data:');
     for (let [key, value] of formData.entries()) {
         console.log(key + ': ' + value);
     }
     
-    // Add loading state
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
     submitBtn.disabled = true;
     
-    // Make AJAX request
     fetch('ajax/add_payment.php', {
         method: 'POST',
         body: formData
@@ -931,18 +1104,14 @@ function submitPaymentForm(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Close modal
             bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
             
-            // Show success message
             showToast('Success', data.message || 'Payment added successfully!', 'success');
             
-            // Reload page to show updated data
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
         } else {
-            // Show error message
             showToast('Error', data.error || 'Failed to add payment', 'error');
         }
     })
@@ -951,7 +1120,6 @@ function submitPaymentForm(event) {
         showToast('Error', 'Network error occurred. Please try again.', 'error');
     })
     .finally(() => {
-        // Restore button state
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });
@@ -1122,9 +1290,7 @@ function fixAdvancePayments() {
     }
 }
 
-// Toast notification function
 function showToast(title, message, type = 'info') {
-    // Create toast container if it doesn't exist
     let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
         toastContainer = document.createElement('div');
@@ -1133,8 +1299,6 @@ function showToast(title, message, type = 'info') {
         toastContainer.style.zIndex = '9999';
         document.body.appendChild(toastContainer);
     }
-    
-    // Create toast element
     const toastId = 'toast-' + Date.now();
     const toastElement = document.createElement('div');
     toastElement.id = toastId;
@@ -1155,39 +1319,32 @@ function showToast(title, message, type = 'info') {
     
     toastContainer.appendChild(toastElement);
     
-    // Show toast
     const toast = new bootstrap.Toast(toastElement, {
         autohide: true,
         delay: 3000
     });
     toast.show();
     
-    // Remove toast element after it's hidden
     toastElement.addEventListener('hidden.bs.toast', () => {
         toastElement.remove();
     });
 }
 
 function exportInvoices() {
-    // Show initial progress message
     showToast('Export', '🔄 Preparing your invoice export... Please wait.', 'info');
     
-    // Disable the export button temporarily
     const exportBtn = document.querySelector('button[onclick="exportInvoices()"]');
     const originalText = exportBtn.innerHTML;
     exportBtn.disabled = true;
     exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Exporting...';
     
-    // Create FormData for AJAX request
     const formData = new FormData();
     formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
     
-    // Show progress message
     setTimeout(() => {
         showToast('📊 Generating Excel file with all invoice details...', 'info');
     }, 500);
     
-    // Make AJAX request
     fetch('ajax/export_invoices.php', {
         method: 'POST',
         body: formData
@@ -1199,7 +1356,6 @@ function exportInvoices() {
         return response.blob();
     })
     .then(blob => {
-        // Create download link
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -1210,10 +1366,8 @@ function exportInvoices() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        // Show success message
         showToast('✅ Export completed! Your Excel file has been downloaded.', 'success');
         
-        // Re-enable the export button
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
     })
@@ -1221,18 +1375,14 @@ function exportInvoices() {
         console.error('Export error:', error);
         showToast('❌ Export failed. Please try again.', 'error');
         
-        // Re-enable the export button
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
     });
 }
-
-// Calculate totals when values change
 document.getElementById('order_id').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
     const amount = selectedOption.getAttribute('data-amount');
     
-    // Display customer details
     const customerDisplay = document.getElementById('customer_details_display');
     if (selectedOption.value) {
         const customerName = selectedOption.getAttribute('data-customer-name');
@@ -1272,20 +1422,16 @@ function calculateTotal() {
     document.getElementById('tax_amount').value = taxAmount.toFixed(2);
     document.getElementById('total_amount').value = totalAmount.toFixed(2);
 }
-
-// Reset modal when closed
 document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('invoiceForm').reset();
     document.getElementById('invoiceAction').value = 'create';
     document.getElementById('invoice_id').value = '';
     document.getElementById('invoiceModalTitle').textContent = 'Create Invoice';
-    // Show Create button, hide Update button
     if (createInvoiceBtn) createInvoiceBtn.style.display = 'inline-block';
     if (updateInvoiceBtn) updateInvoiceBtn.style.display = 'none';
     document.getElementById('invoice_date').value = '<?php echo date('Y-m-d'); ?>';
-    document.getElementById('tax_rate').value = '12'; // Set default GST to 12%
+    document.getElementById('tax_rate').value = '12'; 
     
-    // Reset order dropdown to original state (remove any dynamically added options except the first one)
     const orderSelect = document.getElementById('order_id');
     const options = Array.from(orderSelect.options);
     options.forEach((option, index) => {
@@ -1293,8 +1439,6 @@ document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', func
             option.remove();
         }
     });
-    
-    // Hide customer details display
     document.getElementById('customer_details_display').style.display = 'none';
 });
 if (invoiceModalElement) {
@@ -1311,7 +1455,6 @@ if (invoiceModalElement) {
         if (invoiceModalTitle) {
             invoiceModalTitle.textContent = 'Create Invoice';
         }
-        // Show Create button, hide Update button
         if (createInvoiceBtn) createInvoiceBtn.style.display = 'inline-block';
         if (updateInvoiceBtn) updateInvoiceBtn.style.display = 'none';
         if (invoiceDateInput) {
@@ -1339,8 +1482,6 @@ document.getElementById('paymentModal').addEventListener('hidden.bs.modal', func
     document.getElementById('paymentForm').reset();
     document.getElementById('paymentDate').value = '<?php echo date('Y-m-d'); ?>';
 });
-
-// AJAX Invoice Filtering
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
@@ -1349,12 +1490,9 @@ const endDateFilter = document.getElementById('endDateFilter');
 const clearFilters = document.getElementById('clearFilters');
 const filterResults = document.getElementById('filterResults');
 const filterCount = document.getElementById('filterCount');
-const invoicesTable = document.querySelector('.table tbody');
+const invoicesTable = document.getElementById('invoicesTableBody') || document.querySelector('.table tbody');
+const originalTableContent = invoicesTable ? invoicesTable.innerHTML : '';
 
-// Store original table content
-const originalTableContent = invoicesTable.innerHTML;
-
-// Add event listeners for all filters
 [searchInput, statusFilter, startDateFilter, endDateFilter].forEach(element => {
     if (!element) return;
     element.addEventListener('change', performFilter);
@@ -1363,21 +1501,18 @@ const originalTableContent = invoicesTable.innerHTML;
     }
 });
 
-clearFilters.addEventListener('click', function() {
-    searchInput.value = '';
-    statusFilter.value = '';
-    if (startDateFilter) startDateFilter.value = '';
-    if (endDateFilter) endDateFilter.value = '';
-    
-    // Reload the page to show all invoices
-    window.location.href = 'invoices.php';
-});
+if (clearFilters) {
+    clearFilters.addEventListener('click', function() {
+        if (searchInput) searchInput.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (startDateFilter) startDateFilter.value = '';
+        if (endDateFilter) endDateFilter.value = '';
+                window.location.href = 'invoices.php';
+    });
+}
 
 function performFilter() {
-    // Clear previous timeout
     clearTimeout(filterTimeout);
-    
-    // Debounce search input
     if (this === searchInput) {
         filterTimeout = setTimeout(() => {
             executeFilter();
@@ -1388,16 +1523,14 @@ function performFilter() {
 }
 
 function executeFilter() {
-    const search = searchInput.value.trim();
-    const status = statusFilter.value;
+    const search = searchInput ? searchInput.value.trim() : '';
+    const status = statusFilter ? statusFilter.value : '';
     const startDate = startDateFilter ? startDateFilter.value : '';
     const endDate = endDateFilter ? endDateFilter.value : '';
     
-    // Show loading state
-    filterResults.style.display = 'block';
-    filterCount.textContent = 'Filtering...';
+    if (filterResults) filterResults.style.display = 'block';
+    if (filterCount) filterCount.textContent = 'Filtering...';
     
-    // Build query string
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status) params.append('status', status);
@@ -1422,7 +1555,7 @@ function executeFilter() {
                 const data = JSON.parse(text);
                 if (data.success) {
                     displayFilterResults(data.invoices);
-                    filterCount.textContent = data.pagination.total_invoices;
+                    if (filterCount) filterCount.textContent = data.pagination.total_invoices;
                     
                     const paginationContainer = document.getElementById('paginationContainer');
                     if (paginationContainer) {
@@ -1434,28 +1567,59 @@ function executeFilter() {
                     }
                 } else {
                     console.error('Filter error:', data.error);
-                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                    if (filterCount) filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
                 console.error('Response text:', text);
-                filterCount.textContent = 'Invalid response from server';
+                if (filterCount) filterCount.textContent = 'Invalid response from server';
             }
         })
         .catch(error => {
             console.error('Filter error:', error);
-            filterCount.textContent = 'Filter failed: ' + error.message;
+            if (filterCount) filterCount.textContent = 'Filter failed: ' + error.message;
         });
 }
 
+const avatarPalettes = [
+    { bg: '#eff6ff', border: '#dbeafe', color: '#3b82f6' },
+    { bg: '#f0fdf4', border: '#dcfce7', color: '#10b981' },
+    { bg: '#faf5ff', border: '#ede9fe', color: '#8b5cf6' },
+    { bg: '#fffbeb', border: '#fef3c7', color: '#f59e0b' },
+    { bg: '#fdf2f8', border: '#fce7f3', color: '#ec4899' },
+    { bg: '#f0fdfa', border: '#ccfbf1', color: '#0d9488' }
+];
+
+function getCustomerAvatarDesign(name, index) {
+    let sum = 0;
+    const str = name || '';
+    for (let i = 0; i < str.length; i++) {
+        sum += str.charCodeAt(i);
+    }
+    return avatarPalettes[(sum + index) % avatarPalettes.length];
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function displayFilterResults(invoices) {
-    if (invoices.length === 0) {
-        invoicesTable.innerHTML = `
+    const tableBody = document.getElementById('invoicesTableBody') || document.querySelector('.table tbody');
+    if (!tableBody) return;
+
+    if (!invoices || invoices.length === 0) {
+        tableBody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center py-4">
+                <td colspan="9" class="text-center py-5">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No invoices found</h5>
-                    <p class="text-muted">Try adjusting your filter criteria</p>
+                    <p class="text-muted small">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
@@ -1463,10 +1627,11 @@ function displayFilterResults(invoices) {
     }
     
     let tableHTML = '';
-    invoices.forEach(invoice => {
-        // Format dates to match PHP format_date() output (Y-m-d format: 2025-11-16)
+    invoices.forEach((invoice, index) => {
         const formatDate = (dateString) => {
+            if (!dateString) return 'N/A';
             const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
@@ -1476,23 +1641,23 @@ function displayFilterResults(invoices) {
         const invoiceDate = formatDate(invoice.invoice_date);
         const dueDate = formatDate(invoice.due_date);
         
-        // Check if overdue
-        const isOverdue = new Date(invoice.due_date) < new Date() && invoice.payment_status !== 'paid';
+        const isOverdue = invoice.due_date && new Date(invoice.due_date) < new Date() && invoice.payment_status !== 'paid';
         
-        // Helpers
-        const statusColors = {
-            'paid': 'success',
-            'partial': 'warning',
-            'due': 'danger'
+        const statusMap = {
+            'paid': 'cat-badge-paid',
+            'partial': 'cat-badge-partial',
+            'due': 'cat-badge-due'
         };
-        const statusColor = statusColors[invoice.payment_status] || 'secondary';
+        const statusClass = statusMap[invoice.payment_status] || 'bg-secondary text-white';
         const statusLabel = invoice.payment_status ? invoice.payment_status.charAt(0).toUpperCase() + invoice.payment_status.slice(1) : 'Status';
         const formatCurrency = (amount) => '₹' + parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
-        const formatTax = (amount) => amount && parseFloat(amount) > 0 ? `<br><small class="text-muted">Tax: ${formatCurrency(amount)}</small>` : '';
-        const customerCode = invoice.customer_code ? `<br><small class="text-muted">${invoice.customer_code}</small>` : '';
+        const formatTax = (amount) => amount && parseFloat(amount) > 0 ? `<div class="text-muted" style="font-size: 0.72rem;">Tax: ${formatCurrency(amount)}</div>` : '';
         
         const orderNumber = invoice.order_number && invoice.order_number !== 'N/A' ? invoice.order_number : 'N/A';
         const customerNameDisplay = invoice.customer_name || 'N/A';
+        const initial = (customerNameDisplay.trim().charAt(0) || 'C').toUpperCase();
+        const avColor = getCustomerAvatarDesign(customerNameDisplay, index);
+        
         const invoiceEditPayload = {
             id: invoice.id,
             invoice_number: invoice.invoice_number,
@@ -1511,57 +1676,75 @@ function displayFilterResults(invoices) {
         const encodedInvoiceData = encodeAttribute(JSON.stringify(invoiceEditPayload));
         
         tableHTML += `
-            <tr>
-                <td>
-                    <span class="badge bg-primary">${invoice.invoice_number}</span>
+            <tr class="invoice-row" data-customer="${escapeHtml(customerNameDisplay)}">
+                <td class="ps-3 py-3">
+                    <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.82rem; padding: 5px 9px; border-radius: 8px;">
+                        ${escapeHtml(invoice.invoice_number || '')}
+                    </span>
                 </td>
-                <td>
-                    <div>
-                        <strong>${customerNameDisplay}</strong>
-                        ${customerCode}
+                <td class="py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 34px; height: 34px; border-radius: 10px; background: ${avColor.bg}; border: 1px solid ${avColor.border}; color: ${avColor.color}; font-size: 0.85rem;">
+                            ${initial}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem; max-width: 170px;">
+                                ${escapeHtml(customerNameDisplay)}
+                            </div>
+                            ${invoice.customer_code ? `<div class="text-muted" style="font-size: 0.72rem;">${escapeHtml(invoice.customer_code)}</div>` : ''}
+                        </div>
                     </div>
                 </td>
-                <td>
-                    <span class="badge bg-info">${orderNumber}</span>
+                <td class="py-3">
+                    <span class="badge fw-medium" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px;">
+                        ${escapeHtml(orderNumber)}
+                    </span>
                 </td>
-                <td>${invoiceDate}</td>
-                <td>
-                    <span class="${isOverdue ? 'text-danger fw-bold' : ''}">${dueDate}</span>
+                <td class="py-3 text-secondary" style="font-size: 0.82rem;">${invoiceDate}</td>
+                <td class="py-3" style="font-size: 0.82rem;">
+                    <span class="${isOverdue ? 'text-danger fw-bold' : 'text-dark'}">
+                        ${isOverdue ? '<i class="fas fa-exclamation-circle text-danger me-1"></i>' : ''}
+                        ${dueDate}
+                    </span>
                 </td>
-                <td>
-                    <strong>${formatCurrency(invoice.total_amount)}</strong>
-                    ${formatTax(invoice.tax_amount)}
+                <td class="py-3">
+                    <div>
+                        <strong class="text-dark" style="font-size: 0.88rem;">${formatCurrency(invoice.total_amount)}</strong>
+                        ${formatTax(invoice.tax_amount)}
+                    </div>
                 </td>
-                <td>
-                    ${formatCurrency(invoice.paid_amount)}
+                <td class="py-3">
+                    <span class="fw-semibold text-success" style="font-size: 0.85rem;">${formatCurrency(invoice.paid_amount)}</span>
                 </td>
-                <td>
-                    <span class="badge bg-${statusColor}">${statusLabel}</span>
+                <td class="py-3">
+                    <span class="badge rounded-pill fw-semibold px-2 py-1 ${statusClass}" style="font-size: 0.75rem;">
+                        ${statusLabel}
+                    </span>
                 </td>
-                <td>
-                    <div class="btn-group btn-group-sm" role="group">
+                <td class="pe-3 py-3 text-end">
+                    <div class="d-inline-flex align-items-center gap-1">
                         <button type="button" 
-                                class="btn btn-outline-primary edit-invoice-btn" 
+                                class="cat-action-btn cat-action-edit edit-invoice-btn" 
                                 data-invoice='${encodedInvoiceData}'
-                                title="Edit Invoice" style="border: 1px solid #667eea;">
+                                title="Edit Invoice">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button type="button" 
-                                class="btn btn-outline-info" 
+                                class="cat-action-btn cat-action-view" 
                                 onclick="viewInvoice(${invoice.id})"
-                                title="View Details" style="border: 1px solid #667eea;">
+                                title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>
                         <button type="button" 
-                                class="btn btn-outline-success" 
-                                onclick="addPayment(${invoice.id}, '${invoice.invoice_number}', ${invoice.balance_amount})"
-                                title="Add Payment" style="border: 1px solid #667eea;">
+                                class="cat-action-btn cat-action-pay" 
+                                onclick="addPayment(${invoice.id}, '${escapeHtml(invoice.invoice_number || '')}', ${invoice.balance_amount || 0})"
+                                title="Add Payment">
                             <i class="fas fa-plus"></i>
                         </button>
                         <button type="button" 
-                                class="btn btn-outline-primary" 
+                                class="cat-action-btn cat-action-print" 
                                 onclick="printInvoice(${invoice.id})"
-                                title="Print Invoice" style="border: 1px solid #667eea;">
+                                title="Print Invoice">
                             <i class="fas fa-print"></i>
                         </button>
                     </div>
@@ -1570,9 +1753,9 @@ function displayFilterResults(invoices) {
         `;
     });
     
-    invoicesTable.innerHTML = tableHTML;
+    tableBody.innerHTML = tableHTML;
     
-    invoicesTable.querySelectorAll('.edit-invoice-btn').forEach(btn => {
+    tableBody.querySelectorAll('.edit-invoice-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
                 const encoded = this.getAttribute('data-invoice');
@@ -1585,11 +1768,29 @@ function displayFilterResults(invoices) {
         });
     });
 }
+let sortAscending = true;
+const sortBtn = document.getElementById('sortInvoicesBtn');
+if (sortBtn) {
+    sortBtn.addEventListener('click', function() {
+        sortAscending = !sortAscending;
+        const sortIcon = document.getElementById('sortIcon');
+        if (sortIcon) {
+            sortIcon.className = sortAscending ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+        }
+        const tableBody = document.getElementById('invoicesTableBody') || document.querySelector('.table tbody');
+        if (tableBody) {
+            const rows = Array.from(tableBody.querySelectorAll('tr.invoice-row'));
+            rows.sort((a, b) => {
+                const nameA = a.getAttribute('data-customer') || '';
+                const nameB = b.getAttribute('data-customer') || '';
+                return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            });
+            rows.forEach(r => tableBody.appendChild(r));
+        }
+    });
+}
 </script>
-
 <?php require_once 'includes/footer.php'; ?>
-
-
 <style>
     .btn-outline-info:hover {
         color: #ffffff;

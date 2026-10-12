@@ -1,5 +1,34 @@
   </main>
     </div>
+    <nav class="mobile-bottom-nav d-lg-none" aria-label="Mobile Bottom Navigation">
+        <?php $currentScript = basename($_SERVER['PHP_SELF']); ?>
+        <a href="dashboard.php" class="mobile-bottom-nav-item <?php echo ($currentScript === 'dashboard.php') ? 'active' : ''; ?>">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="orders.php" class="mobile-bottom-nav-item <?php echo ($currentScript === 'orders.php' || $currentScript === 'order-details.php') ? 'active' : ''; ?>">
+            <i class="fas fa-file-alt"></i>
+            <span>Orders</span>
+        </a>
+        <a href="customers.php" class="mobile-bottom-nav-item <?php echo ($currentScript === 'customers.php') ? 'active' : ''; ?>">
+            <i class="fas fa-users"></i>
+            <span>Customers</span>
+        </a>
+        <a href="invoices.php" class="mobile-bottom-nav-item <?php echo ($currentScript === 'invoices.php') ? 'active' : ''; ?>">
+            <i class="fas fa-file-invoice"></i>
+            <span>Invoices</span>
+        </a>
+        <button type="button" class="mobile-bottom-nav-item <?php echo ($currentScript === 'categories.php') ? 'active' : ''; ?>" onclick="openAdminSidebar(); return false;" aria-label="More Menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="mb-1" style="display: block;">
+                <circle cx="6" cy="6" r="3.2"/>
+                <circle cx="18" cy="6" r="3.2"/>
+                <circle cx="6" cy="18" r="3.2"/>
+                <circle cx="18" cy="18" r="3.2"/>
+            </svg>
+            <span>More</span>
+        </button>
+    </nav>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -85,7 +114,6 @@
                     input.classList.remove('is-invalid');
                 }
             });
-
             return isValid;
         }
         function formatCurrency(amount) {
@@ -119,7 +147,6 @@
                     </div>
                 </div>
             `;
-            
             toastContainer.insertAdjacentHTML('beforeend', toastHtml);
             const toastElement = document.getElementById(toastId);
             const toast = new bootstrap.Toast(toastElement);

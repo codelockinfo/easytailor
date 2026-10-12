@@ -1,33 +1,20 @@
-<link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
-/**
- * Customers Page
- * Tailoring Management System
- */
+
 
 $page_title = 'Customer Management';
 require_once 'includes/header.php';
-
 require_once '../models/Customer.php';
 require_once '../helpers/SubscriptionHelper.php';
-
 $customerModel = new Customer();
 $message = '';
 $messageType = '';
 $companyId = get_company_id();
-
-// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
         
         switch ($action) {
             case 'create':
-                // Check subscription limit for customers
                 $limitCheck = SubscriptionHelper::canAddCustomer($companyId);
                 if (!$limitCheck['allowed']) {
                     $message = $limitCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('customers', SubscriptionHelper::getCurrentPlan($companyId));
@@ -48,13 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'status' => $_POST['status'] ?? 'active',
                     'notes' => sanitize_input($_POST['notes'])
                 ];
-                
-                // Add company_id if not present
                 if ($companyId && !isset($data['company_id'])) {
                     $data['company_id'] = $companyId;
                 }
-                
-                // Validate email uniqueness
                 if (!empty($data['email']) && $customerModel->emailExists($data['email'])) {
                     $message = 'Email already exists';
                     $messageType = 'error';
@@ -85,8 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'status' => $_POST['status'] ?? 'active',
                     'notes' => sanitize_input($_POST['notes'])
                 ];
-                
-                // Validate email uniqueness
                 if (!empty($data['email']) && $customerModel->emailExists($data['email'], $customerId)) {
                     $message = 'Email already exists';
                     $messageType = 'error';
@@ -118,40 +99,148 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $messageType = 'error';
     }
 }
-
-// Get customers
 $search = $_GET['search'] ?? '';
 $page = (int)($_GET['page'] ?? 1);
 $limit = RECORDS_PER_PAGE;
 $offset = ($page - 1) * $limit;
+$allCustomers = $customerModel->getCustomersWithOrderCount();
+$totalCustomers = count($allCustomers);
 
 if (!empty($search)) {
     $customers = $customerModel->searchCustomers($search, $limit);
-    $totalCustomers = count($customers);
 } else {
-    // Get all customers for the company first to get accurate count
-    $allCustomers = $customerModel->getCustomersWithOrderCount();
-    $totalCustomers = count($allCustomers);
-    // Then slice for pagination
     $customers = array_slice($allCustomers, $offset, $limit);
 }
 
 $totalPages = ceil($totalCustomers / $limit);
-
-// Get customer for editing
+$customerStats = $customerModel->getCustomerStats();
+$totalCustomerCount = $totalCustomers;
+$activeCustomerCount = 0;
+$totalOrdersCount = 0;
+foreach ($allCustomers as $c) {
+    if (($c['status'] ?? 'active') === 'active') {
+        $activeCustomerCount++;
+    }
+    $totalOrdersCount += (int)($c['order_count'] ?? 0);
+}
+$thisMonthCustomerCount = $customerStats['this_month'] ?? 0;
 $editCustomer = null;
 if (isset($_GET['edit'])) {
     $editCustomer = $customerModel->find((int)$_GET['edit']);
 }
-
-// Check subscription limits
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
+if (!function_exists('getCustomerAvatarDesign')) {
+    function getCustomerAvatarDesign($name, $index) {
+        $palettes = [
+            ['bg' => '#eff6ff', 'border' => '#dbeafe', 'color' => '#3b82f6'],
+            ['bg' => '#f0fdf4', 'border' => '#dcfce7', 'color' => '#10b981'],
+            ['bg' => '#faf5ff', 'border' => '#ede9fe', 'color' => '#8b5cf6'],
+            ['bg' => '#fffbeb', 'border' => '#fef3c7', 'color' => '#f59e0b'],
+            ['bg' => '#fdf2f8', 'border' => '#fce7f3', 'color' => '#ec4899'],
+            ['bg' => '#f0fdfa', 'border' => '#ccfbf1', 'color' => '#0d9488']
+        ];
+        return $palettes[$index % count($palettes)];
+    }
+}
 ?>
 
-
+<style>
+.cat-stat-box {
+    border-radius: 16px;
+    padding: 10px 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cat-stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.cat-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+    padding: 0;
+    text-decoration: none;
+}
+.cat-action-edit {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+.cat-action-edit:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.cat-action-view {
+    background: #f0fdfa;
+    border-color: #99f6e4;
+    color: #0d9488;
+}
+.cat-action-view:hover {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+.cat-action-del {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #ef4444;
+}
+.cat-action-del:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.cat-table-head th {
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding: 12px 14px !important;
+    text-transform: uppercase;
+}
+.category-table tbody tr {
+    transition: background-color 0.12s ease;
+}
+.category-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+#searchInput, #startDateFilter, #endDateFilter {
+    height: 42px !important;
+    font-size: 0.85rem !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+}
+@media (max-width: 767.98px) {
+    .category-table th {
+        font-size: 0.72rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+    .category-table td {
+        font-size: 0.78rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+}
+@media (max-width: 575.98px) {
+    .cat-action-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.74rem;
+    }
+}
+</style>
 <?php if ($message): ?>
-    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
+    <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
         <?php echo htmlspecialchars($message); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -159,143 +248,253 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 <?php endif; ?>
 
 <?php if (isset($customerLimitCheck['remaining']) && $customerLimitCheck['remaining'] <= 5 && $customerLimitCheck['remaining'] > 0): ?>
-    <div class="alert alert-warning alert-dismissible fade show">
+    <div class="alert alert-warning alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-exclamation-triangle me-2"></i>
         <strong>Customer Limit Warning:</strong> You have <?php echo $customerLimitCheck['remaining']; ?> customer slot(s) remaining in your <?php echo ucfirst($currentPlan); ?> plan. 
         <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more customers.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php elseif (!$customerLimitCheck['allowed']): ?>
-    <div class="alert alert-danger alert-dismissible fade show">
+    <div class="alert alert-danger alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-ban me-2"></i>
         <strong>Customer Limit Reached:</strong> <?php echo $customerLimitCheck['message']; ?> 
         <a href="subscriptions.php" class="alert-link">Upgrade your plan</a> to add more customers.
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-2 align-items-end">
-            <div class="col">
-                <label for="searchInput" class="form-label mb-1" style="font-size: 0.85rem;">Search Customers</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search customers by name, code, email, or phone..." autocomplete="off">
+<?php
+$pageHeaderTitle = 'Customers';
+$pageHeaderSubtitle = 'Manage your clients, track their garment orders and relationships.';
+include 'includes/page-header.php';
+?>
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #c084fc; color: #ffffff;">
+                    <i class="fas fa-users" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($totalCustomerCount); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Total Customers</div>
                 </div>
             </div>
-            <div class="col">
-                <label for="startDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">Start Date</label>
-                <input type="date" class="form-control" id="startDateFilter">
-            </div>
-            <div class="col">
-                <label for="endDateFilter" class="form-label mb-1" style="font-size: 0.85rem;">End Date</label>
-                <input type="date" class="form-control" id="endDateFilter">
-            </div>
-            <div class="col-auto">
-                <button type="button" id="clearSearch" class="btn btn-outline-secondary" title="Clear Filters" style="display: none;">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #c084fc;">
+                <span style="width: 3px; height: 40%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 75%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 50%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
             </div>
         </div>
-        <div class="row">
-            <div class="col-12">
-                <div id="searchResults" class="mt-3" style="display: none;">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <span id="searchCount">0</span> customers found
-                    </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #22c55e; color: #ffffff;">
+                    <i class="fas fa-user-check" style="font-size: 0.95rem;"></i>
                 </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($activeCustomerCount); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Active Clients</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #4ade80;">
+                <span style="width: 3px; height: 35%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 60%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 45%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 95%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #3b82f6; color: #ffffff;">
+                    <i class="fas fa-shopping-bag" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($totalOrdersCount); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">Total Orders</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #60a5fa;">
+                <span style="width: 3px; height: 30%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 55%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 40%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 90%; background: currentColor; border-radius: 2px;"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #f59e0b; color: #ffffff;">
+                    <i class="fas fa-user-plus" style="font-size: 0.95rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark lh-1" style="font-size: 1.35rem;"><?php echo number_format($thisMonthCustomerCount); ?></div>
+                    <div class="text-muted text-truncate" style="font-size: 0.72rem; margin-top: 3px;">This Month</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-end gap-1 ms-1 flex-shrink-0" style="height: 24px; color: #fbbf24;">
+                <span style="width: 3px; height: 45%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 70%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 55%; background: currentColor; border-radius: 2px;"></span>
+                <span style="width: 3px; height: 100%; background: currentColor; border-radius: 2px;"></span>
             </div>
         </div>
     </div>
 </div>
-
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-            <i class="fas fa-users me-2"></i>
-            Customers (<?php echo number_format($totalCustomers); ?>)
-        </h5>
-        <div class="d-flex gap-2">
-            <?php 
-            $exportCheck = SubscriptionHelper::canExportData($companyId);
-            if ($exportCheck['allowed']): 
-            ?>
-            <button type="button" class="btn btn-sm btn-light" onclick="exportCustomers()">
-                <i class="fas fa-download me-1"></i>Export
-            </button>
-            <?php else: ?>
-            <a href="subscriptions.php" class="btn btn-sm btn-light text-muted" title="Upgrade to Premium to Export">
-                <i class="fas fa-lock me-1 text-warning"></i>Export
-            </a>
-            <?php endif; ?>
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-12 col-md-4">
+        <div class="position-relative">
+            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.9rem;"></i>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search customer, code, phone..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 0.8rem; height: 42px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
         </div>
     </div>
-    <div class="card-body">
+    <div class="col-6 col-sm-3 col-md-2">
+        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    </div>
+    <div class="col-6 col-sm-3 col-md-2">
+        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    </div>
+    <div class="col-12 col-md-4 d-flex gap-2 justify-content-end">
+        <button type="button" id="clearSearch" class="btn btn-outline-danger align-items-center justify-content-center" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo empty($search) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
+            <i class="fas fa-times me-1"></i> Clear
+        </button>
+        <?php 
+        $exportCheck = SubscriptionHelper::canExportData($companyId);
+        if ($exportCheck['allowed']): 
+        ?>
+            <button type="button" class="btn btn-outline-secondary align-items-center justify-content-center text-nowrap" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" onclick="exportCustomers()" title="Export Customers">
+                <i class="fas fa-download me-1"></i> Export
+            </button>
+        <?php else: ?>
+            <a href="subscriptions.php" class="btn btn-outline-secondary align-items-center justify-content-center text-muted text-nowrap" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" title="Upgrade to Premium to Export">
+                <i class="fas fa-lock me-1 text-warning"></i> Export
+            </a>
+        <?php endif; ?>
+        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 flex-grow-1 text-nowrap px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#customerModal">
+            <i class="fas fa-plus"></i>
+            <span>Add Customer</span>
+        </button>
+    </div>
+</div>
+
+<div id="searchResults" class="mb-3" style="display: none;">
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center" style="border-radius: 12px; font-size: 0.85rem;">
+        <i class="fas fa-info-circle me-2"></i>
+        <span><strong id="searchCount">0</strong> customers found</span>
+    </div>
+</div>
+<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+    <div class="card-body p-0">
         <?php if (!empty($customers)): ?>
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover mb-0 align-middle category-table">
+                    <thead class="cat-table-head">
                         <tr>
-                            <th>Code</th>
-                            <th>Name</th>
-                            <th>Contact</th>
-                            <th>Location</th>
-                            <th>Orders</th>
-                            <th>Status</th>
+                            <th class="ps-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>CUSTOMER</span>
+                                    <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" id="sortCustomersBtn" title="Sort A-Z" style="font-size: 0.75rem; line-height: 1; text-decoration: none;">
+                                        <i class="fas fa-sort" id="sortIcon"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">CONTACT</th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">LOCATION</th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">ORDERS</th>
+                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">STATUS</th>
+                            <th class="text-end pe-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($customers as $customer): ?>
-                        <tr>
-                            <td>
-                                <span class="badge bg-primary"><?php echo htmlspecialchars($customer['customer_code']); ?></span>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong><?php echo display_val($customer['first_name'] . ' ' . $customer['last_name']); ?></strong>
-                                    <?php if (!empty($customer['date_of_birth'])): ?>
-                                        <br>
-                                        <small class="text-muted">
-                                            <i class="fas fa-birthday-cake me-1"></i>
-                                            <?php echo format_date($customer['date_of_birth']); ?>
-                                        </small>
-                                    <?php endif; ?>
+                    <tbody id="customersTableBody">
+                        <?php foreach ($customers as $idx => $customer): 
+                            $cleanCustName = display_val($customer['first_name'] . ' ' . $customer['last_name']);
+                            if (empty(trim($cleanCustName))) $cleanCustName = 'Walk-in Customer';
+                            $custDesign = getCustomerAvatarDesign($cleanCustName, $idx);
+                            $initial = strtoupper(substr(trim($cleanCustName), 0, 1) ?: 'C');
+                            $dobDisplay = !empty($customer['date_of_birth']) ? format_date($customer['date_of_birth']) : '';
+                        ?>
+                        <tr class="customer-row" data-name="<?php echo strtolower($cleanCustName); ?>">
+                            <td class="ps-3 py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 36px; height: 36px; border-radius: 10px; background: <?php echo $custDesign['bg']; ?>; border: 1px solid <?php echo $custDesign['border']; ?>; color: <?php echo $custDesign['color']; ?>; font-size: 0.88rem;">
+                                        <?php echo $initial; ?>
+                                    </div>
+                                    <div>
+                                        <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="text-decoration-none">
+                                            <strong class="text-dark cust-name" style="font-size: 0.9rem;"><?php echo htmlspecialchars($cleanCustName); ?></strong>
+                                        </a>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="badge rounded-pill px-2 py-0 fw-medium" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;">
+                                                <?php echo htmlspecialchars($customer['customer_code']); ?>
+                                            </span>
+                                            <?php if ($dobDisplay): ?>
+                                                <span class="text-muted small" style="font-size: 0.72rem;">
+                                                    <i class="fas fa-birthday-cake me-1 text-muted"></i><?php echo $dobDisplay; ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
-                            <td>
+                            <td class="py-3">
                                 <div>
                                     <?php if (!empty($customer['phone'])): ?>
-                                        <div>
-                                            <i class="fas fa-phone me-1"></i>
+                                        <div class="text-dark" style="font-size: 0.84rem;">
+                                            <i class="fas fa-phone me-1 text-muted" style="font-size: 0.75rem;"></i>
                                             <?php echo display_val($customer['phone']); ?>
                                         </div>
                                     <?php endif; ?>
                                     <?php if (!empty($customer['email'])): ?>
-                                        <div>
-                                            <i class="fas fa-envelope me-1"></i>
+                                        <div class="text-muted" style="font-size: 0.78rem;">
+                                            <i class="fas fa-envelope me-1 text-muted" style="font-size: 0.72rem;"></i>
                                             <?php echo display_val($customer['email']); ?>
                                         </div>
                                     <?php endif; ?>
+                                    <?php if (empty($customer['phone']) && empty($customer['email'])): ?>
+                                        <span class="text-muted small">—</span>
+                                    <?php endif; ?>
                                 </div>
                             </td>
-                            <td>
-                                <?php if (!empty($customer['address'])): ?>
-                                    <div>
-                                        <?php echo display_val($customer['address']); ?>
-                                    </div>
+                            <td class="py-3">
+                                <?php if (!empty($customer['address']) || !empty($customer['city'])): 
+                                    $loc = trim(($customer['address'] ?? '') . (!empty($customer['city']) ? ', ' . $customer['city'] : ''));
+                                ?>
+                                    <span class="text-muted small text-truncate d-inline-block" style="max-width: 180px; font-size: 0.8rem;" title="<?php echo htmlspecialchars($loc); ?>">
+                                        <?php echo htmlspecialchars($loc); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted small">—</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <span class="badge bg-info"><?php echo $customer['order_count'] ?? 0; ?></span>
-                            </td>
-                            <td>
-                                <span class="badge bg-<?php echo $customer['status'] === 'active' ? 'success' : 'secondary'; ?>">
-                                    <?php echo ucfirst($customer['status']); ?>
+                            <td class="py-3">
+                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                    <?php echo (int)($customer['order_count'] ?? 0); ?> Orders
                                 </span>
                             </td>
-                           
+                            <td class="py-3">
+                                <?php if (($customer['status'] ?? 'active') === 'active'): ?>
+                                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #dcfce7; color: #15803d; font-size: 0.72rem;">Active</span>
+                                <?php else: ?>
+                                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #f1f5f9; color: #64748b; font-size: 0.72rem;">Inactive</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end pe-3 py-3">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="cat-action-btn cat-action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomer(<?php echo htmlspecialchars(json_encode($customer)); ?>)" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomer(<?php echo $customer['id']; ?>, '<?php echo htmlspecialchars($cleanCustName); ?>')" title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -303,8 +502,8 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
             </div>
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
-                <nav aria-label="Customer pagination" class="mt-4">
-                    <ul class="pagination justify-content-center">
+                <nav aria-label="Customer pagination" class="mt-4 pb-3">
+                    <ul class="pagination justify-content-center mb-0">
                         <?php if ($page > 1): ?>
                             <li class="page-item">
                                 <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Previous</a>
@@ -330,18 +529,116 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
             <div class="text-center py-5">
                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted">No customers found</h5>
-                <p class="text-muted">
+                <p class="text-muted small">
                     <?php if (!empty($search)): ?>
                         No customers match your search criteria.
                     <?php else: ?>
                         Get started by adding your first customer.
                     <?php endif; ?>
                 </p>
-               
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal" style="border-radius: 12px;">
+                    <i class="fas fa-plus me-1"></i>Add Customer
+                </button>
             </div>
         <?php endif; ?>
     </div>
 </div>
+<div class="modal fade" id="customerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <form method="POST" id="customerForm">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);">
+                    <h5 class="modal-title fw-bold" id="customerModalTitle">Add Customer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                    <input type="hidden" name="action" id="customerAction" value="create">
+                    <input type="hidden" name="customer_id" id="customerId">
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label fw-semibold small text-dark">First Name *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Enter first name" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label fw-semibold small text-dark">Last Name *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Enter last name" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold small text-dark">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="customer@example.com" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label fw-semibold small text-dark">Phone *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0" style="border-radius: 12px 0 0 12px; font-size: 0.85rem;">+91</span>
+                                <input type="tel" 
+                                       class="form-control border-start-0" 
+                                       id="phone" 
+                                       name="phone" 
+                                       placeholder="10-digit mobile number"
+                                       maxlength="10"
+                                       pattern="[0-9]{10}"
+                                       required
+                                       style="border-radius: 0 12px 12px 0; height: 42px; font-size: 0.85rem;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label fw-semibold small text-dark">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="2" placeholder="Street address or landmark" style="border-radius: 12px; font-size: 0.85rem;"></textarea>
+                    </div>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label for="city" class="form-label fw-semibold small text-dark">City</label>
+                            <input type="text" class="form-control" id="city" name="city" placeholder="e.g., Surat" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label fw-semibold small text-dark">State</label>
+                            <input type="text" class="form-control" id="state" name="state" placeholder="e.g., Gujarat" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="postal_code" class="form-label fw-semibold small text-dark">PIN Code</label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code" placeholder="e.g., 395001" maxlength="6" pattern="[0-9]{6}" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="date_of_birth" class="form-label fw-semibold small text-dark">Date of Birth</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label fw-semibold small text-dark">Status</label>
+                            <select class="form-select" id="status" name="status" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label for="notes" class="form-label fw-semibold small text-dark">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Special customer preferences, notes..." style="border-radius: 12px; font-size: 0.85rem;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal" style="border-radius: 12px;">Cancel</button>
+                    <button type="submit" class="btn text-white px-4 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; border: none;">
+                        <i class="fas fa-save me-1"></i>Save Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -409,7 +706,6 @@ $customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 </div>
 
 <script>
-// Phone number validation - use reusable function
 document.addEventListener('DOMContentLoaded', function() {
     setupPhoneValidation('phone', '+91');
 });
@@ -419,13 +715,10 @@ function editCustomer(customer) {
     document.getElementById('customerAction').value = 'update';
     document.getElementById('customerId').value = customer.id;
     
-    // Populate form fields
     document.getElementById('first_name').value = customer.first_name || '';
     document.getElementById('last_name').value = customer.last_name || '';
     document.getElementById('email').value = customer.email || '';
-    
-    // Handle phone number - remove +91 prefix if present, keep only 10 digits
-    let phoneNumber = customer.phone || '';
+        let phoneNumber = customer.phone || '';
     phoneNumber = phoneNumber.replace(/^\+91/, '').replace(/[^0-9]/g, '').slice(0, 10);
     document.getElementById('phone').value = phoneNumber;
     
@@ -437,7 +730,6 @@ function editCustomer(customer) {
     document.getElementById('status').value = customer.status || 'active';
     document.getElementById('notes').value = customer.notes || '';
     
-    // Show modal
     new bootstrap.Modal(document.getElementById('customerModal')).show();
 }
 
@@ -448,25 +740,20 @@ function deleteCustomer(customerId, customerName) {
 }
 
 function exportCustomers() {
-    // Show initial progress message
     showToast('🔄 Preparing your customer export... Please wait.', 'info');
     
-    // Disable the export button temporarily
     const exportBtn = document.querySelector('button[onclick="exportCustomers()"]');
     const originalText = exportBtn.innerHTML;
     exportBtn.disabled = true;
     exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Exporting...';
     
-    // Create FormData for AJAX request
     const formData = new FormData();
     formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
     
-    // Show progress message
     setTimeout(() => {
         showToast('📊 Generating Excel file with all customer details...', 'info');
     }, 500);
     
-    // Make AJAX request
     fetch('ajax/export_customers.php', {
         method: 'POST',
         body: formData
@@ -478,7 +765,6 @@ function exportCustomers() {
         return response.blob();
     })
     .then(blob => {
-        // Create download link
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -489,10 +775,8 @@ function exportCustomers() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        // Show success message
         showToast('✅ Export completed! Your Excel file has been downloaded.', 'success');
         
-        // Re-enable the export button
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
     })
@@ -500,14 +784,10 @@ function exportCustomers() {
         console.error('Export error:', error);
         showToast('❌ Export failed. Please try again.', 'error');
         
-        // Re-enable the export button
         exportBtn.disabled = false;
         exportBtn.innerHTML = originalText;
     });
 }
-
-
-// Form submission - prepend +91 to phone number
 document.addEventListener('DOMContentLoaded', function() {
     const customerForm = document.getElementById('customerForm');
     if (customerForm) {
@@ -522,15 +802,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Please enter a valid 10-digit mobile number.');
                     return false;
                 }
-                
-                // Set phone value with prefix before submission
-                phoneField.value = phoneValue;
+                                phoneField.value = phoneValue;
             }
         });
     }
 });
-
-// Reset modal when closed
 const customerModal = document.getElementById('customerModal');
 if (customerModal) {
     customerModal.addEventListener('hidden.bs.modal', function() {
@@ -545,7 +821,27 @@ if (customerModal) {
     });
 }
 
-// AJAX Customer Search
+let sortAscending = true;
+document.getElementById('sortCustomersBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    sortAscending = !sortAscending;
+    const sortIcon = document.getElementById('sortIcon');
+    if (sortIcon) {
+        sortIcon.className = sortAscending ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+    }
+    
+    const tableBody = document.getElementById('customersTableBody') || document.querySelector('.table tbody');
+    if (tableBody) {
+        const rows = Array.from(tableBody.querySelectorAll('tr.customer-row'));
+        rows.sort((a, b) => {
+            const nameA = a.getAttribute('data-name') || '';
+            const nameB = b.getAttribute('data-name') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        rows.forEach(r => tableBody.appendChild(r));
+    }
+});
+
 let searchTimeout;
 const searchInput = document.getElementById('searchInput');
 const startDateFilter = document.getElementById('startDateFilter');
@@ -553,9 +849,8 @@ const endDateFilter = document.getElementById('endDateFilter');
 const searchResults = document.getElementById('searchResults');
 const searchCount = document.getElementById('searchCount');
 const clearSearch = document.getElementById('clearSearch');
-const customersTable = document.querySelector('.table tbody');
+const customersTable = document.getElementById('customersTableBody') || document.querySelector('.table tbody');
 
-// Store original table content only if table exists
 let originalTableContent = '';
 if (customersTable) {
     originalTableContent = customersTable.innerHTML;
@@ -566,41 +861,34 @@ function performSearch() {
     const startDate = startDateFilter ? startDateFilter.value : '';
     const endDate = endDateFilter ? endDateFilter.value : '';
     
-    // Clear previous timeout
     clearTimeout(searchTimeout);
-    
-    if (searchTerm.length < 1 && !startDate && !endDate) {
-        // Show original table if it exists
+    const hasFilter = Boolean(searchTerm.length > 0 || startDate || endDate);
+    if (clearSearch) {
+        clearSearch.style.setProperty('display', hasFilter ? 'inline-flex' : 'none', 'important');
+    }
+    if (!hasFilter) {
         if (customersTable && originalTableContent) {
             customersTable.innerHTML = originalTableContent;
         }
         if (searchResults) {
             searchResults.style.display = 'none';
         }
-        if (clearSearch) {
-            clearSearch.style.display = 'none';
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) {
+            paginationContainer.style.display = 'block';
         }
         return;
     }
-    
-    // Show loading state
     if (searchResults) {
         searchResults.style.display = 'block';
     }
     if (searchCount) {
         searchCount.textContent = 'Searching...';
     }
-    if (clearSearch) {
-        clearSearch.style.display = 'inline-block';
-    }
-    
-    // Build query string
     const params = new URLSearchParams();
     if (searchTerm) params.append('search', searchTerm);
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
-    
-    // Set timeout to avoid too many requests
     searchTimeout = setTimeout(() => {
         const url = `ajax/search_customers.php?${params.toString()}`;
         
@@ -614,9 +902,7 @@ function performSearch() {
                     }
                     const paginationContainer = document.getElementById('paginationContainer');
                     if (paginationContainer) {
-                        if (data.count <= 10) { // Assume 10 records per page for simplicity, or just hide on search
-                            paginationContainer.style.display = 'none';
-                        }
+                        paginationContainer.style.display = 'none';
                     }
                 } else {
                     console.error('Search error:', data.error);
@@ -652,7 +938,7 @@ if (clearSearch) {
         if (startDateFilter) startDateFilter.value = '';
         if (endDateFilter) endDateFilter.value = '';
         
-        this.style.display = 'none';
+        this.style.setProperty('display', 'none', 'important');
         if (customersTable && originalTableContent) {
             customersTable.innerHTML = originalTableContent;
         }
@@ -664,19 +950,36 @@ if (clearSearch) {
     });
 }
 
+const avatarPalettes = [
+    { bg: '#eff6ff', border: '#dbeafe', color: '#3b82f6' },
+    { bg: '#f0fdf4', border: '#dcfce7', color: '#10b981' },
+    { bg: '#faf5ff', border: '#ede9fe', color: '#8b5cf6' },
+    { bg: '#fffbeb', border: '#fef3c7', color: '#f59e0b' },
+    { bg: '#fdf2f8', border: '#fce7f3', color: '#ec4899' },
+    { bg: '#f0fdfa', border: '#ccfbf1', color: '#0d9488' }
+];
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 function displaySearchResults(customers) {
     if (!customersTable) {
         console.warn('Customers table not found');
         return;
     }
-    
-    if (customers.length === 0) {
+    if (!customers || customers.length === 0) {
         customersTable.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="6" class="text-center py-5">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No customers found</h5>
-                    <p class="text-muted">Try adjusting your search terms</p>
+                    <p class="text-muted small">Try adjusting your search terms</p>
                 </td>
             </tr>
         `;
@@ -684,45 +987,84 @@ function displaySearchResults(customers) {
     }
     
     let tableHTML = '';
-    customers.forEach(customer => {
-        // Format date of birth if available
+    customers.forEach((customer, idx) => {
+        let cleanCustName = customer.name || ((customer.first_name || '') + ' ' + (customer.last_name || '')).trim();
+        if (!cleanCustName) cleanCustName = 'Walk-in Customer';
+        
+        let initial = (cleanCustName.charAt(0) || 'C').toUpperCase();
+        
+        let charCodeSum = 0;
+        for (let c = 0; c < cleanCustName.length; c++) charCodeSum += cleanCustName.charCodeAt(c);
+        const palette = avatarPalettes[(charCodeSum + idx) % avatarPalettes.length];
+        
         const dobDisplay = customer.date_of_birth ? 
-            `<br><small class="text-muted"><i class="fas fa-birthday-cake me-1"></i>${customer.date_of_birth}</small>` : '';
+            `<span class="text-muted small" style="font-size: 0.72rem;"><i class="fas fa-birthday-cake me-1 text-muted"></i>${escapeHtml(customer.date_of_birth)}</span>` : '';
         
-        // Format contact info
-        const phoneDisplay = customer.phone ? 
-            `<div><i class="fas fa-phone me-1"></i>${customer.phone}</div>` : '';
-        const emailDisplay = customer.email ? 
-            `<div><i class="fas fa-envelope me-1"></i>${customer.email}</div>` : '';
+        let phoneDisplay = '';
+        if (customer.phone) {
+            phoneDisplay = `<div class="text-dark" style="font-size: 0.84rem;"><i class="fas fa-phone me-1 text-muted" style="font-size: 0.75rem;"></i>${escapeHtml(customer.phone)}</div>`;
+        }
+        let emailDisplay = '';
+        if (customer.email) {
+            emailDisplay = `<div class="text-muted" style="font-size: 0.78rem;"><i class="fas fa-envelope me-1 text-muted" style="font-size: 0.72rem;"></i>${escapeHtml(customer.email)}</div>`;
+        }
+        const contactHtml = (phoneDisplay || emailDisplay) ? `${phoneDisplay}${emailDisplay}` : '<span class="text-muted small">—</span>';
+        const locationDisplay = customer.address ? 
+            `<span class="text-muted small text-truncate d-inline-block" style="max-width: 180px; font-size: 0.8rem;" title="${escapeHtml(customer.address)}">${escapeHtml(customer.address)}</span>` : 
+            '<span class="text-muted small">—</span>';
+        const orderCount = customer.total_orders || customer.order_count || 0;
+        const status = (customer.status || 'active').toLowerCase();
+        const statusBadge = status === 'active' ?
+            '<span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #dcfce7; color: #15803d; font-size: 0.72rem;">Active</span>' :
+            '<span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #f1f5f9; color: #64748b; font-size: 0.72rem;">Inactive</span>';
         
-        // Format location
-        const locationDisplay = customer.address ? customer.address : '';
-        
+        const customerJson = JSON.stringify(customer).replace(/"/g, '&quot;');
         tableHTML += `
-            <tr>
-                <td>
-                    <span class="badge bg-primary">${customer.customer_code}</span>
-                </td>
-                <td>
-                    <div>
-                        <strong>${customer.name}</strong>
-                        ${dobDisplay}
+            <tr class="customer-row" data-name="${escapeHtml(cleanCustName.toLowerCase())}">
+                <td class="ps-3 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 36px; height: 36px; border-radius: 10px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.88rem;">
+                            ${initial}
+                        </div>
+                        <div>
+                            <a href="customer-details.php?id=${customer.id}" class="text-decoration-none">
+                                <strong class="text-dark cust-name" style="font-size: 0.9rem;">${escapeHtml(cleanCustName)}</strong>
+                            </a>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge rounded-pill px-2 py-0 fw-medium" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;">
+                                    ${escapeHtml(customer.customer_code || '')}
+                                </span>
+                                ${dobDisplay}
+                            </div>
+                        </div>
                     </div>
                 </td>
-                <td>
-                    <div>
-                        ${phoneDisplay}
-                        ${emailDisplay}
+                <td class="py-3">
+                    ${contactHtml}
+                </td>
+                <td class="py-3">
+                    ${locationDisplay}
+                </td>
+                <td class="py-3">
+                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                        ${orderCount} Orders
+                    </span>
+                </td>
+                <td class="py-3">
+                    ${statusBadge}
+                </td>
+                <td class="text-end pe-3 py-3">
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <a href="customer-details.php?id=${customer.id}" class="cat-action-btn cat-action-view" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomer(${customerJson})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomer(${customer.id}, '${escapeHtml(cleanCustName)}')" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
-                </td>
-                <td>
-                    ${locationDisplay ? `<div>${locationDisplay}</div>` : ''}
-                </td>
-                <td>
-                    <span class="badge bg-info">${customer.total_orders || 0}</span>
-                </td>
-                <td>
-                    <span class="badge bg-${customer.status === 'active' ? 'success' : 'secondary'}">${customer.status ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1).toLowerCase() : 'Active'}</span>
                 </td>
             </tr>
         `;

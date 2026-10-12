@@ -1,75 +1,64 @@
 <?php
-/**
- * Login Page
- * Tailoring Management System
- */
 
 require_once '../config/config.php';
-
-// Redirect if already logged in
 if (is_logged_in()) {
-    smart_redirect('dashboard.php');
+    if (get_user_role() === 'tailor') {
+        smart_redirect('orders.php');
+    } else {
+        smart_redirect('dashboard.php');
+    }
 }
-
 $error_message = '';
 $success_message = '';
-
-// Handle login form submission BEFORE any output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize_input($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
-    // Check for site admin login
     if ($username === 'codelock2021@gmail.com' && $password === 'Codelock@63') {
-        // Set site admin session
         $_SESSION['site_admin_logged_in'] = true;
         $_SESSION['site_admin_email'] = $username;
         smart_redirect('../siteadmin/index.php');
         exit;
     }
-    
     if (!empty($username) && !empty($password)) {
         require_once '../controllers/AuthController.php';
         $authController = new AuthController();
         $result = $authController->login($username, $password);
         
         if ($result['success']) {
-            // Track login event
+            
             require_once '../helpers/GA4Helper.php';
             $_SESSION['ga4_event'] = GA4Helper::trackLogin($result['user']['id'] ?? null, $result['user']['role'] ?? null);
-            smart_redirect('dashboard.php');
+            if (($result['user']['role'] ?? '') === 'tailor') {
+                smart_redirect('orders.php');
+            } else {
+                smart_redirect('dashboard.php');
+            }
         } else {
-            // Store error in session and redirect to prevent form resubmission
             $_SESSION['login_error'] = $result['message'];
             smart_redirect('login.php');
             exit;
         }
     } else {
-        // Store error in session and redirect to prevent form resubmission
-        $_SESSION['login_error'] = 'Please enter both username and password';
+                $_SESSION['login_error'] = 'Please enter both username and password';
         smart_redirect('login.php');
         exit;
     }
 }
 
-// Get messages from session
 if (isset($_SESSION['login_error'])) {
     $error_message = $_SESSION['login_error'];
     unset($_SESSION['login_error']);
 }
 
-// Handle logout message
 if (isset($_GET['logout'])) {
     $success_message = 'You have been logged out successfully';
 }
 
-// Handle registration success message
 if (isset($_SESSION['reg_success'])) {
     $success_message = $_SESSION['reg_success'];
     unset($_SESSION['reg_success']);
 }
 
-// Handle password reset success message
 if (isset($_SESSION['login_success'])) {
     $success_message = $_SESSION['login_success'];
     unset($_SESSION['login_success']);
@@ -176,7 +165,6 @@ $seoOptions = [
                     <div class="login-header">
                         <a href="../" class="text-decoration-none">
                         <?php
-                        // Get brand logo using smart path detection
                         $brandLogo = get_logo_path('footer-logo.png');
                         if ($brandLogo):
                         ?>
@@ -285,7 +273,6 @@ $seoOptions = [
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle password visibility
         document.getElementById('togglePassword').addEventListener('click', function() {
             const password = document.getElementById('password');
             const icon = this.querySelector('i');
@@ -300,8 +287,6 @@ $seoOptions = [
                 icon.classList.add('fa-eye');
             }
         });
-
-        // Auto-hide alerts after 5 seconds
         setTimeout(function() {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
@@ -309,12 +294,10 @@ $seoOptions = [
                 bsAlert.close();
             });
         }, 5000);
-        
-        // Fire GA4 events stored in session (for signup events)
         <?php if (isset($_SESSION['ga4_event']) && !empty($_SESSION['ga4_event'])): ?>
         (function() {
             var attempts = 0;
-            var maxAttempts = 50; // 5 seconds max wait time
+            var maxAttempts = 50;
             
             function fireGA4Event() {
                 if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
@@ -325,7 +308,6 @@ $seoOptions = [
                         console.error('GA4 event tracking error:', e);
                     }
                 } else {
-                    // Retry after 100ms if gtag is not ready
                     attempts++;
                     if (attempts < maxAttempts) {
                         setTimeout(fireGA4Event, 100);
@@ -334,15 +316,12 @@ $seoOptions = [
                     }
                 }
             }
-            
-            // Start trying to fire the event
             fireGA4Event();
         })();
         <?php 
-        unset($_SESSION['ga4_event']); // Clear after firing
+        unset($_SESSION['ga4_event']);
         endif; 
         ?>
     </script>
 </body>
 </html>
-

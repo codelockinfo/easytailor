@@ -1,10 +1,5 @@
 <?php
-/**
- * General Error Handler
- * Tailoring Management System
- */
 
-// Get error details
 $error_code = $_GET['error'] ?? '500';
 $error_messages = [
     '400' => 'Bad Request',
@@ -15,21 +10,16 @@ $error_messages = [
     '502' => 'Bad Gateway',
     '503' => 'Service Unavailable'
 ];
-
 $error_title = $error_messages[$error_code] ?? 'Error';
 $page_title = $error_title;
 require_once 'includes/header.php';
-
-// Get the requested URL for display
 $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
 ?>
-
 <div class="container-fluid">
     <div class="row justify-content-center align-items-center min-vh-100">
         <div class="col-lg-6 col-md-8 col-sm-10">
             <div class="card shadow-lg border-0">
                 <div class="card-body text-center p-5">
-                   
                     <div class="mb-4">
                         <?php if ($error_code === '404'): ?>
                             <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
@@ -139,6 +129,4 @@ $requested_url = $_SERVER['REQUEST_URI'] ?? 'Unknown';
     }
 }
 </style>
-
 <?php require_once 'includes/footer.php'; ?>
-

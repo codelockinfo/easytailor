@@ -1,10 +1,5 @@
 <?php
-/**
- * Privacy Policy Page
- * Tailoring Management System - Standalone Page
- */
 
-// Set page title
 $page_title = 'Privacy Policy';
 ?>
 <?php

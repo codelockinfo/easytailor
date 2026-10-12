@@ -1,10 +1,4 @@
 <?php
-/**
- * Language Switcher UI Component
- * Tailoring Management System
- */
-
-// Include language loader if not already included
 if (!class_exists('LanguageLoader')) {
     require_once __DIR__ . '/language_loader.php';
 }
@@ -161,27 +155,17 @@ $currentFlag = $loader->getLanguageFlag();
 </style>
 
 <script>
-/**
- * Switch language function
- */
 function switchLanguage(langCode) {
-    // Add loading state
     const switcher = document.querySelector('.language-switcher');
     switcher.classList.add('language-switching');
     
-    // Get current URL and add/update lang parameter
     const url = new URL(window.location);
     url.searchParams.set('lang', langCode);
     
-    // Redirect to new URL with language parameter
     window.location.href = url.toString();
 }
 
-/**
- * Initialize language switcher
- */
 document.addEventListener('DOMContentLoaded', function() {
-    // Add click handlers for language options
     const languageOptions = document.querySelectorAll('.language-option');
     
     languageOptions.forEach(option => {
@@ -192,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add keyboard navigation
     const languageBtn = document.querySelector('.language-btn');
     const languageDropdown = document.querySelector('.language-dropdown');
     
@@ -204,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Handle arrow key navigation in dropdown
         languageDropdown.addEventListener('keydown', function(e) {
             const options = Array.from(this.querySelectorAll('.language-option'));
             const currentIndex = options.indexOf(document.activeElement);
@@ -236,14 +218,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-/**
- * Auto-save language preference
- */
 function saveLanguagePreference(langCode) {
-    // Save to localStorage for persistence
     localStorage.setItem('preferred_language', langCode);
     
-    // Also save to session via AJAX if needed
     fetch('lang/save_language.php', {
         method: 'POST',
         headers: {
@@ -257,9 +234,6 @@ function saveLanguagePreference(langCode) {
     });
 }
 
-/**
- * Get current language from URL or default
- */
 function getCurrentLanguage() {
     const urlParams = new URLSearchParams(window.location.search);
     const langFromUrl = urlParams.get('lang');
@@ -267,7 +241,6 @@ function getCurrentLanguage() {
         return langFromUrl;
     }
     
-    // Check if there's a language indicator in the current language display
     const currentLangElement = document.querySelector('.current-language');
     if (currentLangElement) {
         const text = currentLangElement.textContent.trim();
@@ -277,21 +250,15 @@ function getCurrentLanguage() {
         }
     }
     
-    // Default fallback
     return 'en';
 }
 
-/**
- * Load saved language preference
- */
 function loadLanguagePreference() {
     const savedLang = localStorage.getItem('preferred_language');
     if (savedLang && savedLang !== getCurrentLanguage()) {
-        // Only switch if different from current
         switchLanguage(savedLang);
     }
 }
 
-// Load preference on page load
 document.addEventListener('DOMContentLoaded', loadLanguagePreference);
 </script>

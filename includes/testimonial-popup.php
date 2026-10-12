@@ -1,9 +1,4 @@
 <?php
-/**
- * Testimonial Popup Component
- * Form for users to submit testimonials/reviews
- */
-
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Company.php';
 
@@ -11,16 +6,13 @@ $database = new Database();
 $db = $database->getConnection();
 $companyModel = new Company($db);
 
-// Get active companies for dropdown
 $companies = [];
 try {
     $companies = $companyModel->getActiveCompanies();
 } catch (Exception $e) {
-    // Table might not exist yet
     $companies = [];
 }
 
-// Get active tailors (users with role 'tailor') - query directly to avoid company filtering
 $tailors = [];
 try {
     $tailorQuery = "SELECT id, full_name FROM users WHERE role = 'tailor' AND status = 'active' ORDER BY full_name ASC";
@@ -28,7 +20,6 @@ try {
     $tailorStmt->execute();
     $tailors = $tailorStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    // Table might not exist yet
     $tailors = [];
 }
 ?>
@@ -627,11 +618,9 @@ try {
 (function() {
     'use strict';
     
-    // Global functions accessible from anywhere
     window.openTestimonialPopup = function() {
         const popup = document.getElementById('testimonialPopup');
         if (popup) {
-            // Reset form and submitting flag when opening popup
             const form = document.getElementById('testimonialForm');
             if (form) {
                 form.reset();
@@ -641,11 +630,9 @@ try {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Review';
                 }
-                // Reset star to default
                 const star5 = document.getElementById('star5');
                 if (star5) star5.checked = true;
                 
-                // Reset Shop Name and Tailor searchable dropdown fields
                 const companySearch = document.getElementById('company_search');
                 const companySelect = document.getElementById('company_id');
                 const tailorSearch = document.getElementById('tailor_search');
@@ -656,11 +643,9 @@ try {
                 if (tailorSearch) tailorSearch.value = '';
                 if (tailorSelect) tailorSelect.value = '';
                 
-                // Reset selected text variables stored on form
                 form.dataset.selectedCompanyText = '';
                 form.dataset.selectedTailorText = '';
                 
-                // Reset dropdown visibility
                 const companyDropdown = document.getElementById('company_dropdown');
                 const tailorDropdown = document.getElementById('tailor_dropdown');
                 if (companyDropdown) {
@@ -691,7 +676,6 @@ try {
             popup.style.display = 'none';
             document.body.style.overflow = '';
             
-            // Reset submit button when closing popup
             const form = document.getElementById('testimonialForm');
             if (form) {
                 const submitBtn = form.querySelector('.btn-testimonial-submit');
@@ -703,7 +687,6 @@ try {
         }
     };
     
-    // Initialize when DOM is ready
     function initTestimonialPopup() {
         const openBtn = document.getElementById('openTestimonialPopup');
         const closeBtn = document.getElementById('closeTestimonialPopup');
@@ -711,18 +694,15 @@ try {
         const popup = document.getElementById('testimonialPopup');
         const form = document.getElementById('testimonialForm');
         
-        // Open popup handler
         if (openBtn) {
             openBtn.onclick = function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 window.openTestimonialPopup();
-                // Form reset is handled in openTestimonialPopup function
                 return false;
             };
         }
         
-        // Close popup handlers
         if (closeBtn) {
             closeBtn.onclick = function(e) {
                 e.preventDefault();
@@ -737,7 +717,6 @@ try {
             };
         }
         
-        // Close on overlay click
         if (popup) {
             popup.onclick = function(e) {
                 if (e.target === popup) {
@@ -746,19 +725,15 @@ try {
             };
         }
         
-        // Form handling
         if (form) {
-            // Searchable dropdown variables
             const companySearch = document.getElementById('company_search');
             const companySelect = document.getElementById('company_id');
             const companyDropdown = document.getElementById('company_dropdown');
             const tailorSearch = document.getElementById('tailor_search');
             const tailorSelect = document.getElementById('user_id');
             const tailorDropdown = document.getElementById('tailor_dropdown');
-            // Store selected text on form element so it can be accessed globally
             form.dataset.selectedCompanyText = '';
             form.dataset.selectedTailorText = '';
-            // Helper functions to sync local variables with form dataset
             const setSelectedCompanyText = (value) => {
                 form.dataset.selectedCompanyText = value || '';
             };
@@ -768,14 +743,12 @@ try {
             const getSelectedCompanyText = () => form.dataset.selectedCompanyText || '';
             const getSelectedTailorText = () => form.dataset.selectedTailorText || '';
             
-            // Company searchable dropdown
             if (companySearch && companySelect && companyDropdown) {
                 function filterCompanyOptions() {
                     const searchTerm = companySearch.value.toLowerCase().trim();
                     const options = companySelect.querySelectorAll('option');
                     companyDropdown.innerHTML = '';
                     
-                    // If value is selected and no search term, don't show dropdown
                     if (companySelect.value && searchTerm === '' && companySearch.value === getSelectedCompanyText()) {
                         companyDropdown.classList.remove('show');
                         companyDropdown.style.display = 'none';
@@ -787,7 +760,6 @@ try {
                     let hasResults = false;
                     options.forEach(function(option) {
                         if (option.value === '') {
-                            // Show "Select Shop" option when no value selected or when searching
                             if (!companySelect.value || searchTerm !== '') {
                                 const item = document.createElement('div');
                                 item.className = 'searchable-dropdown-item';
@@ -810,7 +782,6 @@ try {
                             }
                         } else {
                             const optionText = option.getAttribute('data-text') || option.textContent.toLowerCase();
-                            // Show option if search term matches or if no search term (show all)
                             if (searchTerm === '' || optionText.includes(searchTerm)) {
                                 const item = document.createElement('div');
                                 item.className = 'searchable-dropdown-item';
@@ -881,14 +852,12 @@ try {
                 });
             }
             
-            // Tailor searchable dropdown
             if (tailorSearch && tailorSelect && tailorDropdown) {
                 function filterTailorOptions() {
                     const searchTerm = tailorSearch.value.toLowerCase().trim();
                     const options = tailorSelect.querySelectorAll('option');
                     tailorDropdown.innerHTML = '';
                     
-                    // If value is selected and no search term, don't show dropdown
                     if (tailorSelect.value && searchTerm === '' && tailorSearch.value === getSelectedTailorText()) {
                         tailorDropdown.classList.remove('show');
                         tailorDropdown.style.display = 'none';
@@ -900,7 +869,6 @@ try {
                     let hasResults = false;
                     options.forEach(function(option) {
                         if (option.value === '') {
-                            // Show "Select Tailor" option when no value selected or when searching
                             if (!tailorSelect.value || searchTerm !== '') {
                                 const item = document.createElement('div');
                                 item.className = 'searchable-dropdown-item';
@@ -923,7 +891,6 @@ try {
                             }
                         } else {
                             const optionText = option.getAttribute('data-text') || option.textContent.toLowerCase();
-                            // Show option if search term matches or if no search term (show all)
                             if (searchTerm === '' || optionText.includes(searchTerm)) {
                                 const item = document.createElement('div');
                                 item.className = 'searchable-dropdown-item';
@@ -994,16 +961,13 @@ try {
                 });
             }
             
-            // Reset form function
             function resetForm() {
                 form.reset();
                 
-                // Reset submitting flag
                 if (form.dataset.isSubmitting) {
                     form.dataset.isSubmitting = 'false';
                 }
                 
-                // Reset submit button
                 const submitBtn = form.querySelector('.btn-testimonial-submit');
                 if (submitBtn) {
                     submitBtn.disabled = false;
@@ -1037,7 +1001,6 @@ try {
                 form.dataset.selectedTailorText = '';
             }
             
-            // Form submission - prevent duplicate submissions
             if (!form.dataset.submitListenerAttached) {
                 form.dataset.submitListenerAttached = 'true';
                 form.dataset.isSubmitting = 'false';
@@ -1045,16 +1008,14 @@ try {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
-                    // Prevent duplicate submissions
                     if (form.dataset.isSubmitting === 'true') {
                         return false;
                     }
                     
                     form.dataset.isSubmitting = 'true';
                     
-                    // Get the checked star value explicitly
                     const testimonialForm = document.getElementById('testimonialForm');
-                    let starValue = 5; // default
+                    let starValue = 5;
                     
                     const starInputs = testimonialForm.querySelectorAll('input[name="star"]');
                     for (let i = 0; i < starInputs.length; i++) {
@@ -1064,7 +1025,6 @@ try {
                         }
                     }
                     
-                    // Create FormData fresh - don't use form directly to avoid old values
                     const formData = new FormData();
                     formData.append('user_name', testimonialForm.querySelector('[name="user_name"]').value);
                     formData.append('email', testimonialForm.querySelector('[name="email"]').value);
@@ -1073,7 +1033,6 @@ try {
                     if (userIdInput && userIdInput.value) {
                         formData.append('user_id', userIdInput.value);
                     }
-                    // Set star value explicitly
                     formData.append('star', starValue.toString());
                     formData.append('comment', testimonialForm.querySelector('[name="comment"]').value);
                     
@@ -1110,7 +1069,6 @@ try {
                 });
             }
             
-            // Show message popup function
             function showMessagePopup(type, message) {
                 let messagePopup = document.getElementById('messagePopup');
                 
@@ -1190,14 +1148,12 @@ try {
         }
     }
     
-    // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initTestimonialPopup);
     } else {
         initTestimonialPopup();
     }
     
-    // Also try after delays as backup
     setTimeout(initTestimonialPopup, 100);
     setTimeout(initTestimonialPopup, 500);
 })();

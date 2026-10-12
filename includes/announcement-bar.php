@@ -1,26 +1,15 @@
 <?php
-/**
- * Announcement Bar Component
- * Reusable announcement bar for displaying offers and promotions
- * 
- * Usage: <?php require_once 'includes/announcement-bar.php'; ?>
- * 
- * Customization: Edit the $announcement array below to change the message, link, and styling
- */
-
-// Announcement configuration - Easy to customize
 $announcement = [
     'message' => 'FREE TO USE, FREE REGISTRATION',
-    'link' => null, // Link disabled - clicking bar shows popup instead
-    'link_text' => 'Register Now', // Not used anymore
-    'show_close_button' => true, // Show close button
-    'bg_color' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Background color/gradient
-    'text_color' => '#ffffff', // Text color
-    'icon' => 'fa-gift', // Font Awesome icon class
-    'enabled' => true // Set to false to hide the bar
+    'link' => null,
+    'link_text' => 'Register Now',
+    'show_close_button' => true,
+    'bg_color' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'text_color' => '#ffffff',
+    'icon' => 'fa-gift',
+    'enabled' => true
 ];
 
-// Don't show if disabled
 if (isset($announcement['enabled']) && $announcement['enabled'] === false) {
     return;
 }
@@ -243,7 +232,7 @@ if (isset($announcement['enabled']) && $announcement['enabled'] === false) {
 @media (max-width: 375px) {
     .announcement-content {
         padding: 0.6rem 0.75rem;
-        padding-right: 2rem; /* Space for close button */
+        padding-right: 2rem; 
     }
     
     .announcement-text {
@@ -274,13 +263,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const announcementBar = document.getElementById('announcementBar');
     const body = document.body;
     
-    // Always show announcement bar on page load
     if (announcementBar && !announcementBar.classList.contains('hidden')) {
         body.classList.add('announcement-visible');
         adjustNavbarPosition();
     }
     
-    // Function to adjust navbar position
     function adjustNavbarPosition() {
         const navbar = document.querySelector('.navbar.fixed-top');
         if (navbar) {
@@ -297,10 +284,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initial adjustment
     adjustNavbarPosition();
     
-    // Close button functionality - hides announcement bar for current session
     const closeButton = document.getElementById('closeAnnouncement');
     if (closeButton) {
         closeButton.addEventListener('click', function(e) {
@@ -321,7 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Make only "Click Now" text clickable to show popup
     const clickNowHint = document.querySelector('.announcement-click-hint');
     if (clickNowHint) {
         clickNowHint.style.cursor = 'pointer';
@@ -329,28 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             
-            // Show the promo popup
-            // const promoPopup = document.getElementById('promoPopup');
-            // if (promoPopup) {
-            //     promoPopup.style.display = 'flex';
-            //     promoPopup.classList.add('show');
-            //     document.body.style.overflow = 'hidden'; 
-            //     const handleOverlayClick = function(evt) {
-            //         if (evt.target === promoPopup) {
-            //             promoPopup.style.display = 'none';
-            //             promoPopup.classList.remove('show');
-            //             document.body.style.overflow = '';
-            //             promoPopup.removeEventListener('click', handleOverlayClick);
-            //         }
-            //     };
-            //     promoPopup.addEventListener('click', handleOverlayClick);
-            // }
-
             window.location.href = './admin/register';
         });
     }
     
-    // Adjust on window resize
     window.addEventListener('resize', adjustNavbarPosition);
 });
 </script>

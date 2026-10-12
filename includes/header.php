@@ -1,12 +1,6 @@
 <?php
-/**
- * Header Include
- * Tailoring Management System
- */
-
 require_once __DIR__ . '/../config/config.php';
 
-// Check if user is logged in
 if (!is_logged_in()) {
     smart_redirect('admin/login.php');
 }
@@ -26,7 +20,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $canonicalUrl = $baseUrl . '/' . $currentPage;
 $pageTitle = __t(strtolower(str_replace(' ', '_', $page_title ?? 'dashboard')));
 
-// 404 page should be indexed but with low priority
 $is404 = ($currentPage === '404.php' || strpos($pageTitle, 'not found') !== false);
 
 $seoOptions = [
@@ -34,7 +27,7 @@ $seoOptions = [
     'description' => 'Manage your tailor shop with ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System') . ' - ' . ucfirst($pageTitle) . ' dashboard',
     'keywords' => 'tailor shop management, tailoring software, ' . strtolower($pageTitle),
     'canonical' => $canonicalUrl,
-    'noindex' => !$is404 // Admin pages should not be indexed, but 404 can be
+    'noindex' => !$is404
 ];
 ?>
 <!DOCTYPE html>
@@ -680,17 +673,14 @@ $seoOptions = [
         
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Add Google Fonts for better typography
             const fontLink = document.createElement('link');
             fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
             fontLink.rel = 'stylesheet';
             document.head.appendChild(fontLink);
             
-            // Enhance all form-select elements
             const selects = document.querySelectorAll('.form-select');
             
             selects.forEach(select => {
-                // Add sophisticated hover effects
                 select.addEventListener('mouseenter', function() {
                     this.style.transform = 'translateY(-2px)';
                     this.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)';
@@ -703,7 +693,6 @@ $seoOptions = [
                     }
                 });
                 
-                // Add focus enhancement
                 select.addEventListener('focus', function() {
                     this.style.transform = 'translateY(-2px)';
                     this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 20px rgba(0, 0, 0, 0.08)';
@@ -716,7 +705,6 @@ $seoOptions = [
                     this.parentElement.classList.remove('focused');
                 });
                 
-                // Add elegant click animation
                 select.addEventListener('mousedown', function() {
                     this.style.transform = 'translateY(-1px)';
                     this.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
@@ -727,15 +715,12 @@ $seoOptions = [
                     this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 20px rgba(0, 0, 0, 0.08)';
                 });
                 
-                // Add selection feedback
                 select.addEventListener('change', function() {
-                    // Elegant selection animation
                     this.style.transform = 'scale(0.98)';
                     setTimeout(() => {
                         this.style.transform = 'translateY(-2px)';
                     }, 100);
                     
-                    // Add ripple effect
                     const ripple = document.createElement('div');
                     ripple.style.cssText = `
                         position: absolute;
@@ -760,7 +745,6 @@ $seoOptions = [
                 });
             });
             
-            // Add ripple animation keyframes
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes ripple {

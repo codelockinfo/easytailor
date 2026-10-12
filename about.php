@@ -356,9 +356,7 @@ if (file_exists($jsonFile)) {
 <?php require_once 'includes/footer.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    // Track page view (wait for gtag to be available)
     <?php
     $pageViewCode = '// GA4Helper not available';
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
@@ -377,8 +375,7 @@ if (file_exists($jsonFile)) {
     ?>
     (function() {
         var attempts = 0;
-        var maxAttempts = 50; // 5 seconds max wait time
-        
+        var maxAttempts = 50;
         function firePageView() {
             if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
                 try {
@@ -395,16 +392,11 @@ if (file_exists($jsonFile)) {
                 }
             }
         }
-        
-        // Start trying to fire the page view
         firePageView();
     })();
 </script>
-
 <?php require_once 'includes/whatsapp-button.php'; ?>
-
 <script src="assets/js/script2.js"></script> 
 <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>
 </html>
-

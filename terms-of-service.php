@@ -1,10 +1,5 @@
 <?php
-/**
- * Terms of Service Page
- * Tailoring Management System - Standalone Page
- */
 
-// Set page title
 $page_title = 'Terms of Service';
 ?>
 <?php

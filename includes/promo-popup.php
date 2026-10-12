@@ -1,53 +1,33 @@
 <?php
-/**
- * Promotional Popup Component
- * Reusable popup offering 1 year free Professional subscription
- * Valid until next December
- */
-
-// Temporarily disable popup
 return;
 
-// Determine base path for links based on current directory
 $isAdmin = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false);
 $basePath = $isAdmin ? '../' : '';
 
-// Check if user is logged in - if yes, don't show popup
-// Start session if not already started and headers not sent
 $isLoggedIn = false;
 $sessionActive = false;
 
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-    // Try to start session only if headers haven't been sent
     @session_start();
 }
 
-// Check if session is actually active
 $sessionActive = (session_status() === PHP_SESSION_ACTIVE);
 
-// Check if user is logged in - check multiple session variables to be sure
-// Only check if session is active AND we can access session data
 if ($sessionActive) {
-    // Check for regular user login
     if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
         $isLoggedIn = true;
     }
-    // Also check for site admin
     if (isset($_SESSION['site_admin_logged_in']) && $_SESSION['site_admin_logged_in'] === true) {
         $isLoggedIn = true;
     }
 }
 
-// Only block popup if we're CERTAIN user is logged in (session active + user_id exists)
-// If session is not active or can't be checked, allow popup to show
 if ($isLoggedIn && $sessionActive) {
-    return; // Exit early, don't render popup - user is definitely logged in
+    return;
 }
 
-// Pass PHP variables to JavaScript for additional client-side check
 $jsIsLoggedIn = $isLoggedIn ? 'true' : 'false';
 
-// Calculate next December date
 $currentYear = date('Y');
 $currentMonth = date('n');
 $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $currentYear . '-12-31';
@@ -90,10 +70,8 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
 (function() {
     'use strict';
     
-    // PHP variables passed to JavaScript
     const PHP_IS_LOGGED_IN = <?php echo $jsIsLoggedIn; ?>;
     
-    // Cookie helper functions
     function setCookie(name, value, days) {
         const date = new Date();
         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -117,24 +95,20 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
         document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
     
-    // Cookie keys
     const POPUP_DISMISSED_COOKIE = 'promo_popup_dismissed';
     const OFFER_SOURCE_COOKIE = 'promo_offer_source';
-    const COOKIE_EXPIRY_DAYS = 1; // 24 hours = 1 day
+    const COOKIE_EXPIRY_DAYS = 1;
     
     function shouldShowPopup() {
         console.log('Checking if popup should show...');
         console.log('PHP_IS_LOGGED_IN:', PHP_IS_LOGGED_IN);
         console.log('dismissed cookie:', getCookie(POPUP_DISMISSED_COOKIE));
         
-        // First check: If user is logged in (from PHP), don't show
-        // Only block if PHP definitely says user is logged in
         if (PHP_IS_LOGGED_IN === true) {
             console.log('Popup blocked: User is logged in (from PHP)');
             return false;
         }
         
-        // Second check: If popup was dismissed, don't show (for 24 hours)
         const dismissed = getCookie(POPUP_DISMISSED_COOKIE);
         if (dismissed) {
             console.log('Popup blocked: Popup was dismissed (cookie exists)');
@@ -146,7 +120,6 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
     }
     
     function dismissPopup() {
-        // Set cookie to expire in 24 hours (1 day)
         const timestamp = Date.now().toString();
         setCookie(POPUP_DISMISSED_COOKIE, timestamp, COOKIE_EXPIRY_DAYS);
         console.log('Popup dismissed - Cookie set:', POPUP_DISMISSED_COOKIE, '=', timestamp);
@@ -159,9 +132,7 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
     }
     
     function setOfferSourceCookie() {
-        // Set cookie when user clicks registration from offer
-        // This cookie will be available on registration page
-        setCookie(OFFER_SOURCE_COOKIE, 'promo_popup', 7); // Valid for 7 days
+        setCookie(OFFER_SOURCE_COOKIE, 'promo_popup', 7);
     }
     
     function showPopup() {
@@ -173,7 +144,6 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
         
         console.log('showPopup() called');
         
-        // Double-check before showing
         if (!shouldShowPopup()) {
             console.log('Popup blocked by shouldShowPopup() check');
             popup.style.display = 'none';
@@ -183,9 +153,7 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
         
         console.log('All checks passed, showing popup...');
         
-        // Small delay for better UX
         setTimeout(function() {
-            // Check one more time before showing (in case something changed)
             if (shouldShowPopup()) {
                 console.log('Final check passed, displaying popup');
                 popup.style.display = 'flex';
@@ -202,7 +170,6 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
         }, 1000);
     }
     
-    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         const popup = document.getElementById('promoPopup');
         
@@ -213,43 +180,37 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
         
         console.log('Popup element found, initializing...');
         
-        // Immediate check: If user is logged in, hide popup immediately
         if (PHP_IS_LOGGED_IN === true) {
             popup.style.display = 'none';
             popup.style.visibility = 'hidden';
             popup.classList.remove('show');
             console.log('Popup hidden immediately: User logged in');
             console.log('PHP_IS_LOGGED_IN:', PHP_IS_LOGGED_IN);
-            return; // Exit early, don't set up event listeners
+            return;
         }
         
         const closeBtn = document.getElementById('closePromoPopup');
         const dismissBtn = document.getElementById('dismissPromoPopup');
         const registerBtn = document.querySelector('.btn-promo-primary');
         
-        // Close button (X) - set cookie when clicked
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
                 dismissPopup();
             });
         }
         
-        // Dismiss button (Maybe Later) - set cookie when clicked
         if (dismissBtn) {
             dismissBtn.addEventListener('click', function() {
                 dismissPopup();
             });
         }
         
-        // Track when user clicks registration button from offer
         if (registerBtn) {
             registerBtn.addEventListener('click', function() {
                 setOfferSourceCookie();
-                // Allow navigation to continue
             });
         }
         
-        // Close on overlay click - set cookie when clicked
         if (popup) {
             popup.addEventListener('click', function(e) {
                 if (e.target === popup) {
@@ -258,11 +219,9 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
             });
         }
         
-        // Show popup (only if all checks pass)
         showPopup();
     });
     
-    // Close on Escape key - set cookie when pressed
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const popup = document.getElementById('promoPopup');
@@ -273,4 +232,3 @@ $nextDecember = ($currentMonth >= 12) ? ($currentYear + 1) . '-12-31' : $current
     });
 })();
 </script>
-

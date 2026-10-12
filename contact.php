@@ -1,25 +1,16 @@
 <?php
-/**
- * Contact Us Page
- * Tailoring Management System - Standalone Page
- */
-
-// Load config for session and helper functions
 if (file_exists(__DIR__ . '/config/config.php')) {
     require_once __DIR__ . '/config/config.php';
 } else {
     session_start();
 }
 
-// Set page title
 $page_title = 'Contact Us';
 
-// Check if user is logged in
 $user_logged = is_logged_in() ? 1 : 0;
 $user_id = get_user_id();
 ?>
 <?php
-// Load SEO Helper if available
 if (file_exists(__DIR__ . '/helpers/SEOHelper.php')) {
     require_once 'helpers/SEOHelper.php';
 }
@@ -360,7 +351,6 @@ $seoOptions = [
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Form validation and submission
     document.getElementById('contactForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -369,12 +359,10 @@ $seoOptions = [
         const formMessage = document.getElementById('formMessage');
         const originalBtnText = submitBtn.innerHTML;
         
-        // Reset previous states
         formMessage.classList.add('d-none');
         form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
         
-        // Validate form
         let isValid = true;
         const name = document.getElementById('name').value.trim();
         const emailId = document.getElementById('emailId').value.trim();
@@ -402,14 +390,11 @@ $seoOptions = [
             return;
         }
         
-        // Disable submit button
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
         
-        // Prepare form data
         const formData = new FormData(form);
         
-        // Submit form
         fetch('ajax/submit_contact.php', {
             method: 'POST',
             body: formData
@@ -422,7 +407,6 @@ $seoOptions = [
                 formMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Thank you! Your message has been sent successfully. We will get back to you soon.');
                 form.reset();
                 
-                // Track contact form submission
                 <?php
                 if (file_exists(__DIR__ . '/helpers/GA4Helper.php') && class_exists('GA4Helper')) {
                     echo "if (typeof gtag !== 'undefined') { gtag('event', 'contact_form_submit', { 'event_category': 'engagement' }); }";
@@ -444,7 +428,6 @@ $seoOptions = [
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
             
-            // Scroll to message
             formMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     });
@@ -465,7 +448,6 @@ $seoOptions = [
 </script>
 
 <script>
-    // Track page view (wait for gtag to be available)
     <?php
     if (file_exists(__DIR__ . '/helpers/GA4Helper.php')) {
         require_once 'helpers/GA4Helper.php';

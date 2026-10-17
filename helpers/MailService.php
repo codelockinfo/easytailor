@@ -3,13 +3,6 @@
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 
-/**
- * MailService
- *
- * Wrapper around PHPMailer with graceful fallbacks
- * for when SMTP is not configured or dependencies
- * are missing.
- */
 class MailService
 {
     private bool $canSend = false;
@@ -22,7 +15,6 @@ class MailService
 
     private function initialise(): void
     {
-        // Ensure required credentials exist
         if (empty(SMTP_HOST) || empty(SMTP_USERNAME) || empty(SMTP_PASSWORD) || empty(SMTP_FROM_EMAIL)) {
             $this->lastError = 'SMTP credentials are not configured.';
             return;
@@ -219,10 +211,54 @@ class MailService
             return false;
         }
     }
+    public function sendLoginOtpEmail(array $payload): bool
+    {
+        if (!$this->canSend) {
+            return false;
+        }
 
-    /**
-     * Notify site admin about a new email change request
-     */
+        $email = $payload['email'] ?? '';
+        $name = $payload['name'] ?? 'User';
+        $code = $payload['code'] ?? '';
+
+        if (empty($email) || empty($code)) {
+            $this->lastError = 'Missing email or OTP code.';
+            return false;
+        }
+
+        try {
+            $mailer = $this->createMailer();
+            if (!$mailer) {
+                return false;
+            }
+
+            $mailer->clearAllRecipients();
+            $mailer->addAddress($email, $name);
+            $mailer->Subject = 'Your Login Verification Code - ' . APP_NAME;
+
+            $mailer->Body = $this->renderTemplate('login_otp', [
+                'appName' => APP_NAME,
+                'logoUrl' => $this->getLogoUrl(),
+                'userName' => $name,
+                'code' => $code,
+                'supportEmail' => SMTP_FROM_EMAIL,
+            ]);
+
+            $mailer->AltBody = "Hello {$name},\n\n"
+                . "Your login verification code for " . APP_NAME . " is: {$code}\n\n"
+                . "This code is valid for 10 minutes. Never share this code with anyone.\n"
+                . "If you did not request this code, you can safely ignore this email.";
+
+            $mailer->send();
+            return true;
+        } catch (PHPMailerException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        } catch (RuntimeException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
     public function sendEmailChangeRequestNotification(array $payload): bool
     {
         if (!$this->canSend) {

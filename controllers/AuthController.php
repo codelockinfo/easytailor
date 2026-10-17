@@ -1,28 +1,62 @@
 <?php
-/**
- * Authentication Controller
- * Tailoring Management System
- */
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/PasswordReset.php';
+require_once __DIR__ . '/../models/LoginOtp.php';
 require_once __DIR__ . '/../helpers/MailService.php';
-
 class AuthController {
     private $userModel;
     private $passwordResetModel;
     private $mailService;
-
+    private $loginOtpModel;
     public function __construct() {
         $this->userModel = new User();
         $this->passwordResetModel = new PasswordReset();
         $this->mailService = new MailService();
+        $this->loginOtpModel = new LoginOtp();
     }
+    public function completeUserLogin($user) {
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found'];
+        }
+        require_once __DIR__ . '/../admin/models/Company.php';
+        $companyModel = new Company();
+        $company = $companyModel->find($user['company_id']);
+        if ($company && $company['subscription_expiry']) {
+            $expiry = strtotime($company['subscription_expiry']);
+            $today = strtotime(date('Y-m-d'));
+            if ($expiry < $today) {
+                return ['success' => false, 'message' => 'Your subscription package has expired. Please contact support to renew.'];
+            }
+        }
+        if (!headers_sent()) {
+            session_regenerate_id(true);
+        }
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['user_role'] = $user['role'];
+        $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['company_id'] = $user['company_id'];
+        $_SESSION['login_time'] = time();
+                try {
+            $this->userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
+        } catch (Exception $e) {
+        }
+        if (file_exists(__DIR__ . '/../helpers/GA4Helper.php')) {
+            require_once __DIR__ . '/../helpers/GA4Helper.php';
+            $_SESSION['ga4_event'] = GA4Helper::trackLogin($user['id'] ?? null, $user['role'] ?? null);
+        }
 
-    /**
-     * Login user
-     */
+        $redirect = (($user['role'] ?? '') === 'tailor') ? 'orders.php' : 'dashboard.php';
+        
+        return [
+            'success' => true,
+            'message' => 'Login successful',
+            'user' => $user,
+            'redirect' => $redirect
+        ];
+    }
     public function login($username, $password) {
         if (empty($username) || empty($password)) {
             return ['success' => false, 'message' => 'Username and password are required'];
@@ -31,51 +65,178 @@ class AuthController {
         $user = $this->userModel->authenticate($username, $password);
         
         if ($user) {
-            // Check company subscription expiry
-            require_once __DIR__ . '/../admin/models/Company.php';
-            $companyModel = new Company();
-            $company = $companyModel->find($user['company_id']);
-            
-            if ($company && $company['subscription_expiry']) {
-                $expiry = strtotime($company['subscription_expiry']);
-                $today = strtotime(date('Y-m-d'));
-                if ($expiry < $today) {
-                    return ['success' => false, 'message' => 'Your subscription package has expired. Please contact support to renew.'];
-                }
-            }
-
-            // Regenerate session ID for security
-            session_regenerate_id(true);
-            
-            // Set session variables
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['user_role'] = $user['role'];
-            $_SESSION['user_name'] = $user['full_name'];
-            $_SESSION['company_id'] = $user['company_id'];
-            $_SESSION['login_time'] = time();
-            
-            // Note: last_login column is optional - skip if doesn't exist
-            try {
-                $this->userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
-            } catch (Exception $e) {
-                // Column doesn't exist, ignore this error
-            }
-            
-            return ['success' => true, 'message' => 'Login successful', 'user' => $user];
+            return $this->completeUserLogin($user);
         } else {
             return ['success' => false, 'message' => 'Invalid username or password'];
         }
     }
 
-    /**
-     * Logout user
-     */
+    public function loginWithPasswordOtp($username, $password, $clientIp = null) {
+        $username = trim(sanitize_input($username ?? ''));
+        $password = $password ?? '';
+
+        if (empty($username) || empty($password)) {
+            return ['success' => false, 'message' => 'Username and password are required.'];
+        }
+
+        // Special check for site admin
+        if ($username === 'codelock2021@gmail.com' && $password === 'Codelock@63') {
+            $_SESSION['site_admin_logged_in'] = true;
+            $_SESSION['site_admin_email'] = $username;
+            return [
+                'success' => true,
+                'requires_otp' => false,
+                'redirect' => '../siteadmin/index.php'
+            ];
+        }
+
+        $user = $this->userModel->authenticate($username, $password);
+        if (!$user) {
+            return ['success' => false, 'message' => 'Invalid username or password.'];
+        }
+
+        if (empty($user['email']) || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'message' => 'No valid email address found for this user to receive OTP.'];
+        }
+
+        // Generate and send OTP to the user's verified registered email
+        $otpResult = $this->requestLoginOtp($user['email'], $clientIp);
+        if (!$otpResult['success']) {
+            return $otpResult;
+        }
+
+        return [
+            'success' => true,
+            'requires_otp' => true,
+            'email' => $user['email'],
+            'message' => $otpResult['message'] ?? 'Password verified! Verification code has been sent to your email.',
+            'cooldown' => $otpResult['cooldown'] ?? 60,
+            'dev_otp' => $otpResult['dev_otp'] ?? null
+        ];
+    }
+
+    public function requestLoginOtp($email, $ipAddress = null) {
+        $email = trim(sanitize_input($email ?? ''));
+
+        if (empty($email)) {
+            return ['success' => false, 'message' => 'Please enter your registered email address.'];
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'message' => 'Please enter a valid email address.'];
+        }
+        $user = $this->userModel->getActiveUserByEmail($email);
+        if (!$user) {
+            return ['success' => false, 'message' => 'No active account found with this email address.'];
+        }
+        $cooldown = $this->loginOtpModel->getRecentRequestCooldown($email, 60);
+        if ($cooldown > 0) {
+            return [
+                'success' => false,
+                'message' => "Please wait {$cooldown} seconds before requesting a new OTP.",
+                'cooldown' => $cooldown
+            ];
+        }
+        $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+        $saved = $this->loginOtpModel->createOtp($user['id'], $user['email'], $code, $token, $expiresAt, $ipAddress);
+        if (!$saved) {
+            return ['success' => false, 'message' => 'Failed to generate OTP. Please try again.'];
+        }
+        $emailSent = false;
+        $mailError = '';
+        if ($this->mailService->isEnabled()) {
+            $emailSent = $this->mailService->sendLoginOtpEmail([
+                'email' => $user['email'],
+                'name' => $user['full_name'],
+                'code' => $code
+            ]);
+            if (!$emailSent) {
+                $mailError = $this->mailService->getLastError();
+            }
+        } else {
+            $mailError = $this->mailService->getLastError();
+        }
+
+        if (!$emailSent) {
+            $subject = 'Your Login Verification Code - ' . APP_NAME;
+            $msg = "Hello {$user['full_name']},\n\nYour login code is: {$code}\nValid for 10 minutes.";
+            $headers = 'From: ' . (defined('SMTP_FROM_EMAIL') && SMTP_FROM_EMAIL ? SMTP_FROM_EMAIL : 'no-reply@localhost') . "\r\n";
+            @mail($user['email'], $subject, $msg, $headers);
+        }
+
+        $isLocalhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', '']) || 
+                       strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false ||
+                       strpos($_SERVER['SERVER_NAME'] ?? '', 'localhost') !== false ||
+                       (php_sapi_name() === 'cli');
+
+        if (!$emailSent) {
+            if ($isLocalhost) {
+                return [
+                    'success' => true,
+                    'message' => "SMTP is not configured on localhost. Your OTP is: <strong>{$code}</strong>",
+                    'email' => $user['email'],
+                    'cooldown' => 60,
+                    'dev_otp' => $code
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Unable to send email. Please check SMTP configuration.' . (!empty($mailError) ? " ({$mailError})" : '')
+                ];
+            }
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Verification code has been sent to your email address.',
+            'email' => $user['email'],
+            'cooldown' => 60
+        ];
+    }
+    public function verifyLoginOtp($email, $code) {
+        $email = trim(sanitize_input($email ?? ''));
+        $code = trim(sanitize_input($code ?? ''));
+
+        if (empty($email) || empty($code)) {
+            return ['success' => false, 'message' => 'Email and 6-digit verification code are required.'];
+        }
+
+        if (!preg_match('/^\d{6}$/', $code)) {
+            return ['success' => false, 'message' => 'Please enter a valid 6-digit numeric code.'];
+        }
+        $otp = $this->loginOtpModel->findLatestActiveOtp($email);
+        if (!$otp) {
+            return ['success' => false, 'message' => 'No active OTP found or code already used. Please request a new code.'];
+        }
+        if ((int)$otp['attempts'] >= 5) {
+            $this->loginOtpModel->invalidateOtp($otp['id']);
+            return ['success' => false, 'message' => 'Too many failed attempts. This OTP has been invalidated. Please request a new one.'];
+        }
+        if (strtotime($otp['expires_at']) < time()) {
+            $this->loginOtpModel->invalidateOtp($otp['id']);
+            return ['success' => false, 'message' => 'Verification code has expired. Please request a new one.'];
+        }
+        if (!hash_equals((string)$otp['otp_code'], (string)$code)) {
+            $this->loginOtpModel->incrementAttempts($otp['id']);
+            $remaining = 5 - ((int)$otp['attempts'] + 1);
+            $remainMsg = $remaining > 0 ? " You have {$remaining} attempt(s) remaining." : " Maximum attempts reached.";
+            return ['success' => false, 'message' => 'Invalid verification code.' . $remainMsg];
+        }
+        $this->loginOtpModel->markAsUsed($otp['id']);
+        $user = $this->userModel->find($otp['user_id']);
+        if (!$user || ($user['status'] ?? '') !== 'active') {
+            return ['success' => false, 'message' => 'User account is inactive or not found.'];
+        }
+        return $this->completeUserLogin($user);
+    }
     public function logout() {
-        // Destroy session
-        session_destroy();
-        
-        // Clear session cookie
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(session_name(), '', time() - 42000,
@@ -86,30 +247,18 @@ class AuthController {
         
         return ['success' => true, 'message' => 'Logged out successfully'];
     }
-
-    /**
-     * Check if user is logged in
-     */
     public function isLoggedIn() {
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['login_time'])) {
             return false;
         }
-        
-        // Check session timeout
         if (time() - $_SESSION['login_time'] > SESSION_TIMEOUT) {
             $this->logout();
             return false;
         }
-        
-        // Update last activity time
         $_SESSION['login_time'] = time();
         
         return true;
     }
-
-    /**
-     * Change password
-     */
     public function changePassword($user_id, $current_password, $new_password) {
         $user = $this->userModel->find($user_id);
         
@@ -133,10 +282,6 @@ class AuthController {
             return ['success' => false, 'message' => 'Failed to change password'];
         }
     }
-
-    /**
-     * Reset password (admin only)
-     */
     public function resetPassword($user_id, $new_password) {
         if (strlen($new_password) < 6) {
             return ['success' => false, 'message' => 'Password must be at least 6 characters long'];
@@ -150,10 +295,6 @@ class AuthController {
             return ['success' => false, 'message' => 'Failed to reset password'];
         }
     }
-
-    /**
-     * Get current user
-     */
     public function getCurrentUser() {
         if (!$this->isLoggedIn()) {
             return null;
@@ -166,10 +307,6 @@ class AuthController {
             'name' => $_SESSION['user_name']
         ];
     }
-
-    /**
-     * Check user role
-     */
     public function hasRole($role) {
         if (!$this->isLoggedIn()) {
             return false;
@@ -177,10 +314,6 @@ class AuthController {
         
         return $_SESSION['user_role'] === $role || $_SESSION['user_role'] === 'admin';
     }
-
-    /**
-     * Require specific role
-     */
     public function requireRole($role) {
         if (!$this->hasRole($role)) {
             http_response_code(403);
@@ -188,43 +321,28 @@ class AuthController {
         }
     }
 
-    /**
-     * Request password reset - sends 6-digit code to email
-     */
     public function requestPasswordReset($email) {
         if (empty($email)) {
             return ['success' => false, 'message' => 'Email is required'];
         }
-
-        // Validate email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => 'Invalid email format'];
         }
-
-        // Check if user exists
         $user = $this->passwordResetModel->getUserByEmail($email);
 
         if (!$user) {
             return ['success' => false, 'message' => 'No account found with this email address'];
         }
-
-        // Generate 6-digit code
         $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
         
-        // Generate unique token
         $token = bin2hex(random_bytes(32));
-        
-        // Set expiration time (15 minutes from now)
         $expires_at = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
-        // Store in database
         $resetId = $this->passwordResetModel->createResetRequest($email, $code, $token, $expires_at);
         
         if (!$resetId) {
             return ['success' => false, 'message' => 'Failed to process password reset request'];
         }
-
-        // Send email with code
         $emailSent = false;
         $mailError = '';
 
@@ -244,8 +362,6 @@ class AuthController {
                 $mailError = 'Unable to dispatch email via SMTP or fallback mail().';
             }
         }
-
-        // Development mode: Show code if email fails
         $message = 'Password reset code has been sent to your email';
         if (!$emailSent) {
             $message = "EMAIL NOT CONFIGURED - Your verification code is: <strong>$code</strong> (Valid for 15 minutes)";
@@ -261,23 +377,15 @@ class AuthController {
             'email' => $email
         ];
     }
-
-    /**
-     * Verify password reset code
-     */
     public function verifyResetCode($email, $code) {
         if (empty($email) || empty($code)) {
             return ['success' => false, 'message' => 'Email and code are required'];
         }
-
-        // Find valid reset request
         $reset = $this->passwordResetModel->findByEmailAndCode($email, $code);
 
         if (!$reset) {
             return ['success' => false, 'message' => 'Invalid verification code'];
         }
-
-        // Check if expired
         if (strtotime($reset['expires_at']) < time()) {
             return ['success' => false, 'message' => 'Verification code has expired. Please request a new one.'];
         }
@@ -288,60 +396,38 @@ class AuthController {
             'token' => $reset['token']
         ];
     }
-
-    /**
-     * Reset password with token
-     */
     public function resetPasswordWithToken($token, $new_password, $confirm_password) {
         if (empty($token) || empty($new_password) || empty($confirm_password)) {
             return ['success' => false, 'message' => 'All fields are required'];
         }
-
-        // Check if passwords match
         if ($new_password !== $confirm_password) {
             return ['success' => false, 'message' => 'Passwords do not match'];
         }
-
-        // Validate password strength
         if (strlen($new_password) < 6) {
             return ['success' => false, 'message' => 'Password must be at least 6 characters long'];
         }
-
-        // Find valid reset request
         $reset = $this->passwordResetModel->findByToken($token);
 
         if (!$reset) {
             return ['success' => false, 'message' => 'Invalid or expired reset token'];
         }
-
-        // Check if expired
         if (strtotime($reset['expires_at']) < time()) {
             return ['success' => false, 'message' => 'Reset token has expired. Please request a new one.'];
         }
-
-        // Get user
         $user = $this->passwordResetModel->getUserByEmail($reset['email']);
 
         if (!$user) {
             return ['success' => false, 'message' => 'User not found'];
         }
-
-        // Update password
         $result = $this->userModel->updatePassword($user['id'], $new_password);
 
         if (!$result) {
             return ['success' => false, 'message' => 'Failed to update password'];
         }
-
-        // Mark token as used
         $this->passwordResetModel->markAsUsed($reset['id']);
 
         return ['success' => true, 'message' => 'Password has been reset successfully'];
     }
-
-    /**
-     * Validate reset token without updating password
-     */
     public function validateResetToken($token) {
         if (empty($token)) {
             return ['success' => false, 'message' => 'Reset token is required'];
@@ -363,10 +449,6 @@ class AuthController {
             'email' => $reset['email']
         ];
     }
-
-    /**
-     * Send password reset email
-     */
     private function sendPasswordResetEmailFallback($email, $name, $code, $token) {
         $subject = "Password Reset Code - " . APP_NAME;
 

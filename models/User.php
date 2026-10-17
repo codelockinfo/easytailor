@@ -1,31 +1,16 @@
 <?php
-/**
- * User Model
- * Tailoring Management System
- */
 
 class User extends BaseModel {
     protected $table = 'users';
 
-    /**
-     * Get company ID from session
-     */
     private function getCompanyId() {
         require_once __DIR__ . '/../config/config.php';
         return get_company_id();
     }
-
-    /**
-     * Check if current user is admin
-     */
     private function isAdmin() {
         require_once __DIR__ . '/../config/config.php';
         return get_user_role() === 'admin';
     }
-
-    /**
-     * Authenticate user
-     */
     public function authenticate($username, $password) {
         $query = "SELECT * FROM " . $this->table . " WHERE (username = :username OR email = :email) AND status = 'active' LIMIT 1";
         $stmt = $this->conn->prepare($query);
@@ -41,40 +26,27 @@ class User extends BaseModel {
         
         return false;
     }
-
-    /**
-     * Create new user
-     */
+    public function getActiveUserByEmail($email) {
+        $query = "SELECT * FROM " . $this->table . " WHERE email = :email AND status = 'active' LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        return $stmt->fetch();
+    }
     public function createUser($data) {
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         return $this->create($data);
     }
-
-    /**
-     * Update user password
-     */
     public function updatePassword($id, $new_password) {
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
         return $this->update($id, ['password' => $hashed_password]);
     }
-
-    /**
-     * Get users by role
-     */
     public function getUsersByRole($role) {
         return $this->findAll(['role' => $role, 'status' => 'active']);
     }
-
-    /**
-     * Get active users
-     */
     public function getActiveUsers() {
         return $this->findAll(['status' => 'active'], 'full_name ASC');
     }
-
-    /**
-     * Check if username exists
-     */
     public function usernameExists($username, $exclude_id = null) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -98,10 +70,6 @@ class User extends BaseModel {
         
         return $stmt->fetch() ? true : false;
     }
-
-    /**
-     * Check if email exists
-     */
     public function emailExists($email, $exclude_id = null) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -125,27 +93,19 @@ class User extends BaseModel {
         
         return $stmt->fetch() ? true : false;
     }
-
-    /**
-     * Get user statistics
-     */
     public function getUserStats() {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
         $stats = [];
-        
-        // Total users
         $conditions = [];
         if ($companyId) {
             $conditions['company_id'] = $companyId;
         }
         $stats['total'] = $this->count($conditions);
         
-        // Active users
         $conditions['status'] = 'active';
         $stats['active'] = $this->count($conditions);
         
-        // Users by role
         $roles = ['admin', 'staff', 'tailor', 'cashier'];
         foreach ($roles as $role) {
             $conditions['role'] = $role;
@@ -155,10 +115,6 @@ class User extends BaseModel {
         
         return $stats;
     }
-
-    /**
-     * Override find to include company_id filter for non-admin users
-     */
     public function find($id) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -176,10 +132,6 @@ class User extends BaseModel {
         
         return $stmt->fetch();
     }
-
-    /**
-     * Override findAll to include company_id filter for non-admin users
-     */
     public function findAll($conditions = [], $order_by = null, $limit = null) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -188,10 +140,6 @@ class User extends BaseModel {
         }
         return parent::findAll($conditions, $order_by, $limit);
     }
-
-    /**
-     * Override findOne to include company_id filter for non-admin users
-     */
     public function findOne($conditions = []) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -200,10 +148,6 @@ class User extends BaseModel {
         }
         return parent::findOne($conditions);
     }
-
-    /**
-     * Override count to include company_id filter for non-admin users
-     */
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -212,10 +156,6 @@ class User extends BaseModel {
         }
         return parent::count($conditions);
     }
-
-    /**
-     * Override update to ensure company_id is checked for non-admin users
-     */
     public function update($id, $data) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();
@@ -227,10 +167,6 @@ class User extends BaseModel {
         }
         return parent::update($id, $data);
     }
-
-    /**
-     * Override delete to ensure company_id is checked for non-admin users
-     */
     public function delete($id) {
         $companyId = $this->getCompanyId();
         $isAdmin = $this->isAdmin();

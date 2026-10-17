@@ -11,6 +11,31 @@ if (is_logged_in()) {
 $error_message = '';
 $success_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $authMethod = sanitize_input($_POST['auth_method'] ?? 'password');
+    if ($authMethod === 'otp_verify') {
+        $email = trim(sanitize_input($_POST['email'] ?? ''));
+        $code = trim(sanitize_input($_POST['code'] ?? ''));
+
+        if (!empty($email) && !empty($code)) {
+            require_once '../controllers/AuthController.php';
+            $authController = new AuthController();
+            $result = $authController->verifyLoginOtp($email, $code);
+
+            if ($result['success']) {
+                smart_redirect($result['redirect'] ?? 'dashboard.php');
+                exit;
+            } else {
+                $_SESSION['login_error'] = $result['message'];
+                smart_redirect('login.php?method=otp&email=' . urlencode($email));
+                exit;
+            }
+        } else {
+            $_SESSION['login_error'] = 'Please enter both your email and the 6-digit verification code.';
+            smart_redirect('login.php?method=otp');
+            exit;
+        }
+    }
+
     $username = sanitize_input($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     if ($username === 'codelock2021@gmail.com' && $password === 'Codelock@63') {
@@ -22,16 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($username) && !empty($password)) {
         require_once '../controllers/AuthController.php';
         $authController = new AuthController();
-        $result = $authController->login($username, $password);
+        $result = $authController->loginWithPasswordOtp($username, $password, $_SERVER['REMOTE_ADDR'] ?? '');
         
         if ($result['success']) {
-            
-            require_once '../helpers/GA4Helper.php';
-            $_SESSION['ga4_event'] = GA4Helper::trackLogin($result['user']['id'] ?? null, $result['user']['role'] ?? null);
-            if (($result['user']['role'] ?? '') === 'tailor') {
-                smart_redirect('orders.php');
+            if (!empty($result['requires_otp'])) {
+                $_SESSION['login_success'] = $result['message'];
+                smart_redirect('login.php?step=verify&email=' . urlencode($result['email']));
+                exit;
             } else {
-                smart_redirect('dashboard.php');
+                smart_redirect($result['redirect'] ?? 'dashboard.php');
+                exit;
             }
         } else {
             $_SESSION['login_error'] = $result['message'];
@@ -39,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     } else {
-                $_SESSION['login_error'] = 'Please enter both username and password';
+        $_SESSION['login_error'] = 'Please enter both username and password';
         smart_redirect('login.php');
         exit;
     }
@@ -144,6 +169,28 @@ $seoOptions = [
             border-radius: 0 10px 10px 0;
         }
 
+        .code-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        .code-digit {
+            width: 44px;
+            height: 52px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .code-digit:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
         .mt-4 {
             margin-top: 0.5rem !important;
         }
@@ -153,6 +200,11 @@ $seoOptions = [
             }
             .text-center.mt-4 a {
                 font-size: 15px;
+            }
+            .code-digit {
+                width: 38px;
+                height: 48px;
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -192,59 +244,111 @@ $seoOptions = [
                             </div>
                         <?php endif; ?>
                         
-                        <form method="POST" action="">
-                            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
-                            
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username or Email</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" 
-                                           class="form-control with-icon" 
-                                           id="username" 
-                                           name="username" 
-                                           placeholder="Enter username or email"
-                                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
-                                           required>
+                        <!-- Unified Login Alert Box -->
+                        <div id="otpAlertBox" class="alert d-none mb-3" role="alert"></div>
+
+                        <!-- Step 1: Email / Username + Password (default view) -->
+                        <div id="stepPassword">
+                            <form method="POST" action="" id="passwordLoginForm" onsubmit="handlePasswordLogin(event)">
+                                <input type="hidden" name="csrf_token" id="loginCsrfToken" value="<?php echo generate_csrf_token(); ?>">
+                                <input type="hidden" name="auth_method" value="password">
+
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username or Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                        <input type="text"
+                                               class="form-control with-icon"
+                                               id="username"
+                                               name="username"
+                                               placeholder="Enter username or email"
+                                               value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
+                                               autocomplete="username"
+                                               required>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="password" class="form-label">Password</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    <input type="password" 
-                                           class="form-control with-icon" 
-                                           id="password" 
-                                           name="password" 
-                                           placeholder="Enter password"
-                                           required>
-                                    <button class="btn btn-outline-secondary" 
-                                            type="button" 
-                                            id="togglePassword">
-                                        <i class="fas fa-eye"></i>
+
+                                <div class="mb-3" id="passwordFieldBlock">
+                                    <label for="password" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password"
+                                               class="form-control with-icon"
+                                               id="password"
+                                               name="password"
+                                               placeholder="Enter password"
+                                               autocomplete="current-password"
+                                               required>
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mb-3">
+                                    <button type="submit" id="btnPasswordSignIn" class="btn btn-primary btn-login">
+                                        <span class="btn-text"><i class="fas fa-sign-in-alt me-2"></i>Sign In</span>
+                                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
                                     </button>
                                 </div>
+
+                                <div class="text-center mt-3 mb-1">
+                                    <a href="forgot-password.php" class="text-decoration-none small text-muted">
+                                        <i class="fas fa-key me-1"></i>Forgot Password?
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Step 2: OTP — Enter Code -->
+                        <div id="stepOtpVerify" style="display:none;">
+                            <div class="p-2 mb-3 rounded-3 text-center" style="background:#f1f5f9;font-size:0.82rem;">
+                                <span>Code sent to <strong id="otpTargetEmailText" class="text-dark"></strong></span>
+                                <button type="button" class="btn btn-link btn-sm text-primary p-0 ms-1" style="font-size:0.8rem;text-decoration:none;" onclick="backToPassword()">Change</button>
                             </div>
-                            
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-login">
-                                    <i class="fas fa-sign-in-alt me-2"></i>
-                                    Sign In
-                                </button>
-                            </div>
-                            
-                            <div class="text-center mt-3">
-                                <a href="forgot-password.php" class="text-decoration-none">
-                                    <i class="fas fa-key me-1"></i>Forgot Password?
-                                </a>
-                            </div>
-                        </form>
-                        
+
+                            <form id="formVerifyOtp" onsubmit="handleVerifyOtp(event)">
+                                <input type="hidden" id="otpCsrfToken" value="<?php echo generate_csrf_token(); ?>">
+                                <input type="hidden" id="postOtpEmail">
+                                <input type="hidden" id="postOtpCode">
+
+                                <div class="mb-3">
+                                    <label class="form-label text-center w-100 mb-2" style="font-size:0.88rem;font-weight:600;">Verification Code</label>
+                                    <div class="code-inputs" id="codeInputsContainer">
+                                        <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" autocomplete="one-time-code" required>
+                                        <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" required>
+                                        <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" required>
+                                        <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" required>
+                                        <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" required>
+                                        <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" required>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mb-3">
+                                    <button type="button" id="btnResendOtp" class="btn btn-link text-decoration-none p-0" style="font-size:0.82rem;" onclick="handleResendOtp()" disabled>
+                                        Resend code in <span id="otpCountdown" class="fw-bold">60</span>s
+                                    </button>
+                                </div>
+
+                                <div class="d-grid mb-3">
+                                    <button type="submit" id="btnVerifyOtp" class="btn btn-primary btn-login">
+                                        <span class="btn-text"><i class="fas fa-check-circle me-2"></i>Verify &amp; Sign In</span>
+                                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+
+                                <div class="text-center">
+                                    <button type="button" class="btn btn-link p-0 text-secondary small text-decoration-none" onclick="backToPassword()">
+                                        <i class="fas fa-arrow-left me-1"></i>Back to Password Login
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                         <div class="text-center mt-4">
                             <p class="text-muted mb-2">
                                 Don't have an account? 
@@ -322,6 +426,238 @@ $seoOptions = [
         unset($_SESSION['ga4_event']);
         endif; 
         ?>
+
+        function showOtpAlert(message, type = 'danger') {
+            const box = document.getElementById('otpAlertBox');
+            if (!box) return;
+            box.className = `alert alert-${type} alert-dismissible fade show`;
+            box.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i><span>${message}</span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            box.classList.remove('d-none');
+        }
+
+        function hideOtpAlert() {
+            const box = document.getElementById('otpAlertBox');
+            if (box) box.classList.add('d-none');
+        }
+
+        async function handlePasswordLogin(e) {
+            if (e) e.preventDefault();
+            hideOtpAlert();
+
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const username = (usernameInput?.value || '').trim();
+            const password = passwordInput?.value || '';
+            const csrf = document.getElementById('loginCsrfToken')?.value || '';
+            const btn = document.getElementById('btnPasswordSignIn');
+
+            if (!username || !password) {
+                showOtpAlert('Please enter both username/email and password.');
+                return;
+            }
+
+            setButtonLoading(btn, true);
+
+            try {
+                const res = await fetch('ajax/auth_otp.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'login_password',
+                        username: username,
+                        password: password,
+                        csrf_token: csrf
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    if (data.redirect && !data.requires_otp) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+
+                    // Password is correct! OTP was generated and sent!
+                    showOtpAlert(data.message || 'Password verified! Verification code has been sent to your email.', 'success');
+                    document.getElementById('otpTargetEmailText').textContent = data.email || username;
+                    document.getElementById('postOtpEmail').value = data.email || username;
+                    document.getElementById('stepPassword').style.display = 'none';
+                    document.getElementById('stepOtpRequest').style.display = 'none';
+                    document.getElementById('stepOtpVerify').style.display = 'block';
+
+                    startOtpCountdown(data.cooldown || 60);
+
+                    setTimeout(() => {
+                        const firstInput = document.querySelector('.code-digit');
+                        if (firstInput) firstInput.focus();
+                    }, 100);
+                } else {
+                    showOtpAlert(data.message || 'Invalid username or password.');
+                }
+            } catch (err) {
+                showOtpAlert('An unexpected error occurred. Please try again.');
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        // Check if redirected from server POST with step=verify
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('step') === 'verify') {
+                const email = urlParams.get('email') || '';
+                if (email) {
+                    document.getElementById('otpTargetEmailText').textContent = email;
+                    document.getElementById('postOtpEmail').value = email;
+                    document.getElementById('stepPassword').style.display = 'none';
+                    document.getElementById('stepOtpVerify').style.display = 'block';
+                    startOtpCountdown(60);
+                }
+            }
+        })();
+
+        // Go back to password form
+        function backToPassword() {
+            hideOtpAlert();
+            if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+            document.getElementById('stepPassword').style.display = 'block';
+            document.getElementById('stepOtpVerify').style.display = 'none';
+            document.getElementById('password').value = '';
+            document.getElementById('password')?.focus();
+        }
+
+        // ── Countdown timer & button helpers ──────────────────────────────────
+        let resendTimer = null;
+        let cooldownSeconds = 60;
+
+        function startOtpCountdown(seconds = 60) {
+            cooldownSeconds = seconds;
+            const resendBtn = document.getElementById('btnResendOtp');
+            if (!resendBtn) return;
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = `Resend code in <span id="otpCountdown" class="fw-bold">${cooldownSeconds}</span>s`;
+            if (resendTimer) clearInterval(resendTimer);
+            resendTimer = setInterval(() => {
+                cooldownSeconds--;
+                const span = document.getElementById('otpCountdown');
+                if (span) span.textContent = cooldownSeconds;
+                if (cooldownSeconds <= 0) {
+                    clearInterval(resendTimer);
+                    resendTimer = null;
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Resend Verification Code';
+                }
+            }, 1000);
+        }
+
+        function setButtonLoading(btn, isLoading) {
+            if (!btn) return;
+            const textEl = btn.querySelector('.btn-text');
+            const spinEl = btn.querySelector('.spinner-border');
+            btn.disabled = isLoading;
+            if (textEl && spinEl) {
+                textEl.classList.toggle('d-none', isLoading);
+                spinEl.classList.toggle('d-none', !isLoading);
+            }
+        }
+
+        // ── Resend OTP ─────────────────────────────────────────────────────────
+        async function handleResendOtp() {
+            hideOtpAlert();
+            const email = document.getElementById('postOtpEmail')?.value || document.getElementById('otpEmail')?.value || '';
+            const csrf = document.getElementById('otpCsrfToken')?.value || '';
+            const resendBtn = document.getElementById('btnResendOtp');
+            if (!email) return;
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+            try {
+                const res = await fetch('ajax/auth_otp.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action: 'resend_otp', email, csrf_token: csrf })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showOtpAlert('A new verification code has been sent to your email.', 'success');
+                    startOtpCountdown(data.cooldown || 60);
+                } else {
+                    showOtpAlert(data.message || 'Failed to resend code.');
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Resend Verification Code';
+                }
+            } catch (err) {
+                showOtpAlert('Error resending OTP. Please try again.');
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Resend Verification Code';
+            }
+        }
+
+        // ── Verify OTP ─────────────────────────────────────────────────────────
+        async function handleVerifyOtp(e) {
+            if (e) e.preventDefault();
+            hideOtpAlert();
+            const email = document.getElementById('postOtpEmail')?.value || '';
+            const csrf = document.getElementById('otpCsrfToken')?.value || '';
+            const btn = document.getElementById('btnVerifyOtp');
+            const digits = Array.from(document.querySelectorAll('.code-digit')).map(i => i.value.trim());
+            const code = digits.join('');
+            if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                showOtpAlert('Please enter the complete 6-digit verification code.');
+                return;
+            }
+            setButtonLoading(btn, true);
+            try {
+                const res = await fetch('ajax/auth_otp.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action: 'verify_otp', email, code, csrf_token: csrf })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showOtpAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => { window.location.href = data.redirect || 'dashboard.php'; }, 400);
+                } else {
+                    showOtpAlert(data.message || 'Invalid verification code.');
+                    document.querySelectorAll('.code-digit').forEach(i => i.value = '');
+                    document.querySelector('.code-digit')?.focus();
+                    setButtonLoading(btn, false);
+                }
+            } catch (err) {
+                showOtpAlert('An unexpected network error occurred. Please try again.');
+                setButtonLoading(btn, false);
+            }
+        }
+
+        // ── Digit input navigation (auto-tab, backspace, paste) ────────────────
+        (function() {
+            const container = document.getElementById('codeInputsContainer');
+            if (!container) return;
+            const inputs = container.querySelectorAll('.code-digit');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    const val = this.value.replace(/\D/g, '');
+                    this.value = val ? val[0] : '';
+                    if (this.value && index < inputs.length - 1) inputs[index + 1].focus();
+                    const allFilled = Array.from(inputs).every(i => i.value.trim().length === 1);
+                    if (allFilled && index === inputs.length - 1) handleVerifyOtp();
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && !this.value && index > 0) inputs[index - 1].focus();
+                });
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const clean = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                    if (clean.length > 0) {
+                        clean.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
+                        inputs[Math.min(clean.length, inputs.length - 1)].focus();
+                        if (clean.length === 6) handleVerifyOtp();
+                    }
+                });
+            });
+        })();
+
+        // ── Password show/hide ─────────────────────────────────────────────────
     </script>
 </body>
 </html>

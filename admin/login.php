@@ -483,7 +483,6 @@ $seoOptions = [
                     document.getElementById('otpTargetEmailText').textContent = data.email || username;
                     document.getElementById('postOtpEmail').value = data.email || username;
                     document.getElementById('stepPassword').style.display = 'none';
-                    document.getElementById('stepOtpRequest').style.display = 'none';
                     document.getElementById('stepOtpVerify').style.display = 'block';
 
                     startOtpCountdown(data.cooldown || 60);

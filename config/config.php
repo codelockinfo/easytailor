@@ -1,29 +1,15 @@
 <?php
-/**
- * Application Configuration
- * Tailoring Management System
- */
-
-// Error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Session configuration
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
+ini_set('session.cookie_secure', 0); 
 session_start();
-
-// Application constants
 define('APP_NAME', 'Tailoring Management System');
 define('APP_VERSION', '1.0.0');
-
-// Google Analytics 4 (GA4) Configuration
 define('GA4_MEASUREMENT_ID', 'G-27LLB9QMEV');
-
-// Include language loader
 require_once __DIR__ . '/../lang/language_loader.php';
-// Auto-detect APP_URL based on current request
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $script_name = $_SERVER['SCRIPT_NAME'] ?? '';
@@ -31,23 +17,21 @@ $path = dirname($script_name);
 $path = $path === '/' ? '' : $path;
 define('APP_URL', $protocol . '://' . $host . $path);
 define('APP_PATH', __DIR__ . '/../');
-
-// Security constants
+if (file_exists(APP_PATH . 'vendor/autoload.php')) {
+    require_once APP_PATH . 'vendor/autoload.php';
+}
+if (file_exists(__DIR__ . '/vapid.php')) {
+    require_once __DIR__ . '/vapid.php';
+}
 define('CSRF_TOKEN_NAME', 'csrf_token');
-define('SESSION_TIMEOUT', 3600); // 1 hour
-
-// File upload settings
+define('SESSION_TIMEOUT', 3600);
 define('UPLOAD_PATH', APP_PATH . 'uploads/');
-define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); 
 define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif']);
 
-// Pagination settings
 define('RECORDS_PER_PAGE', 10);
+date_default_timezone_set('Asia/Kolkata');
 
-// Date and time settings
-date_default_timezone_set('Asia/Kolkata'); // Indian Standard Time
-
-// Load mail configuration if available, otherwise fall back to environment/defaults
 $mailConfigFile = __DIR__ . '/mail.php';
 if (file_exists($mailConfigFile)) {
     require_once $mailConfigFile;
@@ -74,8 +58,6 @@ if (!defined('SMTP_FROM_EMAIL')) {
 if (!defined('SMTP_FROM_NAME')) {
     define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: APP_NAME);
 }
-
-// Autoloader
 spl_autoload_register(function ($class_name) {
     $directories = [
         APP_PATH . 'models/',
@@ -92,21 +74,11 @@ spl_autoload_register(function ($class_name) {
         }
     }
 });
-
-// Helper functions
 function sanitize_input($data) {
     $data = trim($data);
     $data = stripslashes($data);
-    // NOTE: Do NOT apply htmlspecialchars() here - data is stored raw in DB.
-    // HTML encoding is applied in the view layer via htmlspecialchars() when outputting.
     return $data;
 }
-
-/**
- * Safe display function: decodes any pre-existing HTML entities from DB,
- * then re-encodes for safe HTML output. Handles both old double-encoded
- * data (Men&#039;s Wear) and new clean data (Men's Wear) correctly.
- */
 function display_val($data) {
     if ($data === null) return '';
     return htmlspecialchars(html_entity_decode((string)$data, ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8');
@@ -142,7 +114,6 @@ function is_logged_in() {
 
 function require_login() {
     if (!is_logged_in()) {
-        // Check if we're already in admin folder
         $current_script = $_SERVER['SCRIPT_NAME'] ?? '';
         if (strpos($current_script, '/admin/') !== false) {
             smart_redirect('login.php');
@@ -159,7 +130,6 @@ function has_role($role) {
 function require_role($role) {
     require_login();
     if (!has_role($role) && !has_role('admin')) {
-        // Check if we're already in admin folder
         $current_script = $_SERVER['SCRIPT_NAME'] ?? '';
         if (strpos($current_script, '/admin/') !== false) {
             smart_redirect('unauthorized.php');
@@ -188,12 +158,8 @@ function get_company_id() {
 function set_company_id($company_id) {
     $_SESSION['company_id'] = $company_id;
 }
-
-/**
- * Get logo path that works on any deployment
- */
 function get_logo_path($logo_name = 'brand-logo.png') {
-    // Try different possible paths
+
     $possible_paths = [
         'uploads/logos/' . $logo_name,
         '../uploads/logos/' . $logo_name,
@@ -202,37 +168,27 @@ function get_logo_path($logo_name = 'brand-logo.png') {
     
     foreach ($possible_paths as $path) {
         if (file_exists($path)) {
-            // Return relative path for web access
             if (strpos($path, '../') === 0) {
                 return $path;
             } elseif (strpos($path, 'uploads/') === 0) {
                 return $path;
             } else {
-                // Convert absolute path to relative
                 $relative_path = str_replace(__DIR__ . '/../', '', $path);
                 return $relative_path;
             }
         }
     }
     
-    return null; // Logo not found
+    return null;
 }
-
-/**
- * Smart redirect function that works on any deployment
- */
 function smart_redirect($url) {
-    // Remove any leading slashes and admin/admin duplicates
     $url = ltrim($url, '/');
     $url = preg_replace('#admin/admin/#', 'admin/', $url);
-    
-    // If URL doesn't start with http, make it relative to current directory
-    if (!preg_match('/^https?:\/\//', $url)) {
-        // Get current directory structure
+        if (!preg_match('/^https?:\/\//', $url)) {
+      
         $current_path = dirname($_SERVER['SCRIPT_NAME']);
         $current_path = $current_path === '/' ? '' : $current_path;
         
-        // Build the full URL
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         $full_url = $protocol . '://' . $host . $current_path . '/' . $url;
@@ -243,13 +199,9 @@ function smart_redirect($url) {
     header('Location: ' . $full_url);
     exit;
 }
-
-// Create upload directory if it doesn't exist
 if (!file_exists(UPLOAD_PATH)) {
     mkdir(UPLOAD_PATH, 0755, true);
 }
-
-// Create subdirectories for different file types
 $upload_subdirs = ['customers', 'orders', 'measurements', 'receipts', 'logos', 'reviews'];
 foreach ($upload_subdirs as $subdir) {
     $dir = UPLOAD_PATH . $subdir . '/';
@@ -257,13 +209,7 @@ foreach ($upload_subdirs as $subdir) {
         mkdir($dir, 0755, true);
     }
 }
-
-// Razorpay Configuration (Test Mode)
-// IMPORTANT: Replace these with your actual Razorpay test keys from https://dashboard.razorpay.com/app/keys
-// For test mode, use keys starting with 'rzp_test_'
-// You can also set these via environment variables: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET
 define('RAZORPAY_KEY_ID', getenv('RAZORPAY_KEY_ID') ?: 'rzp_test_RfbZw5apB4THcH');
 define('RAZORPAY_KEY_SECRET', getenv('RAZORPAY_KEY_SECRET') ?: 'CEpjpNKALClK7tuKFf20D9VM');
-define('RAZORPAY_MODE', getenv('RAZORPAY_MODE') ?: 'test'); // 'test' or 'live'
+define('RAZORPAY_MODE', getenv('RAZORPAY_MODE') ?: 'test'); 
 ?>
-

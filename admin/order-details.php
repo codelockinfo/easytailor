@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $updateResult = $orderModel->updateOrderStatus($orderId, $status);
                 error_log("updateOrderStatus returned: " . ($updateResult ? 'true' : 'false'));
                 if ($updateResult) {
-                    usleep(100000); // 0.1 second
+                    usleep(100000); 
                    $updatedOrder = $orderModel->find($orderId);
                     if ($updatedOrder && $updatedOrder['status'] === $status) {
                         $_SESSION['message'] = 'Order status updated successfully';
@@ -134,6 +134,12 @@ if (has_role('tailor') && (!isset($order['assigned_tailor_id']) || $order['assig
     $_SESSION['messageType'] = 'error';
     header('Location: orders.php');
     exit;
+}
+
+if ($orderId > 0 && is_logged_in()) {
+    require_once __DIR__ . '/../helpers/NotificationService.php';
+    $notifService = new NotificationService();
+    $notifService->markOrderNotificationsAsRead($orderId, get_user_id());
 }
 $customer = !empty($order['customer_id']) ? $customerModel->find($order['customer_id']) : false;
 $measurement = null;
@@ -685,6 +691,10 @@ require_once 'includes/header.php';
                         <option value="delivered" <?php echo $order['status'] === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
                         <option value="cancelled" <?php echo $order['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
                     </select>
+                    <div class="mb-3" id="cancellationReasonGroup" style="display: <?php echo $order['status'] === 'cancelled' ? 'block' : 'none'; ?>;">
+                        <label class="form-label fw-medium text-danger">Cancellation Reason</label>
+                        <textarea class="form-control rounded-3" id="cancellation_reason" name="cancellation_reason" rows="2" placeholder="Explain reason for cancellation..."></textarea>
+                    </div>
                     <small class="text-muted d-block">
                         <i class="fas fa-info-circle me-1"></i> Progression: Pending → In Progress → Completed → Delivered
                     </small>
@@ -732,6 +742,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('updateStatusForm');
     const updateBtn = document.getElementById('updateStatusBtn');
     const statusSelect = document.getElementById('status');
+    const cancelReasonGroup = document.getElementById('cancellationReasonGroup');
+    const cancelReasonInput = document.getElementById('cancellation_reason');
+
+    if (statusSelect && cancelReasonGroup) {
+        statusSelect.addEventListener('change', function() {
+            cancelReasonGroup.style.display = this.value === 'cancelled' ? 'block' : 'none';
+        });
+    }
+
     if (form && updateBtn) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -744,7 +763,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('csrf_token', csrfToken);
             formData.append('order_id', orderId);
-            formData.append('status', status);   
+            formData.append('status', status);
+            if (status === 'cancelled' && cancelReasonInput) {
+                formData.append('cancellation_reason', cancelReasonInput.value.trim());
+            }   
             fetch('ajax/update_order_status.php', {
                 method: 'POST',
                 body: formData

@@ -321,7 +321,8 @@
         unset($_SESSION['ga4_event']);
         endif; 
         ?>
-    </script>
     <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+    <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;"></div>
+    <script src="../assets/js/push-notifications.js"></script>
 </body>
 </html>

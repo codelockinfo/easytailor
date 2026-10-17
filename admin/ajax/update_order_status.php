@@ -33,6 +33,7 @@ try {
         echo json_encode(['success' => false, 'error' => 'Invalid status']);
         exit;
     }
+    $reason = sanitize_input($_POST['cancellation_reason'] ?? $_POST['reason'] ?? '');
     $orderModel = new Order();
     if (has_role('tailor')) {
         $existingOrder = $orderModel->find($orderId);
@@ -42,6 +43,26 @@ try {
         }
     }
     if ($orderModel->updateOrderStatus($orderId, $status)) {
+        try {
+            require_once $rootDir . '/../helpers/NotificationService.php';
+            $notifService = new NotificationService();
+            if (has_role('tailor')) {
+                $tailorId = get_user_id();
+                $tailorName = get_user_name();
+                if ($status === 'in_progress') {
+                    $notifService->onTailorStartedWork($orderId, $tailorId, $tailorName);
+                } elseif ($status === 'completed') {
+                    $notifService->onTailorCompletedOrder($orderId, $tailorId, $tailorName);
+                } elseif ($status === 'cancelled') {
+                    $notifService->onTailorCancelledOrder($orderId, $tailorId, $tailorName, $reason);
+                }
+            } else {
+                $notifService->onAdminUpdatedOrderStatus($orderId, $status, get_user_id(), $reason);
+            }
+        } catch (Throwable $notifEx) {
+            error_log("Status change notification error: " . $notifEx->getMessage());
+        }
+
         echo json_encode([
             'success' => true,
             'message' => 'Order status updated successfully',

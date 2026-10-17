@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../../config/config.php';
 if (!is_logged_in()) {
     smart_redirect('login.php');
@@ -10,8 +9,6 @@ $current_user = [
     'role' => get_user_role(),
     'username' => $_SESSION['username'] ?? ''
 ];
-
-// Tailor role page restriction: tailors can only access allowed pages
 if (has_role('tailor')) {
     $tailorAllowedPages = ['orders.php', 'order-details.php', 'profile.php', 'change-password.php', 'logout.php'];
     $currentScript = basename($_SERVER['PHP_SELF']);
@@ -30,70 +27,16 @@ $stmt->bindParam(':id', $userId);
 $stmt->execute();
 $headerUserData = $stmt->fetch(PDO::FETCH_ASSOC);
 $current_user['profile_image'] = $headerUserData['profile_image'] ?? null;
-$notifCount = 0;
-$notifItems = [];
-if (!empty($current_user['id']) && function_exists('get_company_id')) {
-    $headerCompanyId = get_company_id();
-    if ($headerCompanyId) {
-        try {
-            $isTailor = has_role('tailor');
-            $tailorId = $current_user['id'];
-
-            if ($isTailor) {
-                $stmtOverdue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND assigned_tailor_id = :tid AND due_date < CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
-                $stmtOverdue->execute([':cid' => $headerCompanyId, ':tid' => $tailorId]);
-            } else {
-                $stmtOverdue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND due_date < CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
-                $stmtOverdue->execute([':cid' => $headerCompanyId]);
-            }
-            $overdueCnt = (int)($stmtOverdue->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
-            if ($overdueCnt > 0) {
-                $notifCount += $overdueCnt;
-                $notifItems[] = [
-                    'icon' => 'fas fa-exclamation-circle text-danger',
-                    'title' => "$overdueCnt Overdue Order" . ($overdueCnt > 1 ? 's' : ''),
-                    'desc' => 'Need immediate attention',
-                    'link' => 'orders.php'
-                ];
-            }
-
-            if ($isTailor) {
-                $stmtDue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND assigned_tailor_id = :tid AND due_date = CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
-                $stmtDue->execute([':cid' => $headerCompanyId, ':tid' => $tailorId]);
-            } else {
-                $stmtDue = $db->prepare("SELECT COUNT(*) as cnt FROM orders WHERE company_id = :cid AND due_date = CURDATE() AND status NOT IN ('completed', 'delivered', 'cancelled')");
-                $stmtDue->execute([':cid' => $headerCompanyId]);
-            }
-            $dueCnt = (int)($stmtDue->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
-            if ($dueCnt > 0) {
-                $notifCount += $dueCnt;
-                $notifItems[] = [
-                    'icon' => 'fas fa-clock text-warning',
-                    'title' => "$dueCnt Order" . ($dueCnt > 1 ? 's' : '') . " Due Today",
-                    'desc' => 'Scheduled for delivery today',
-                    'link' => 'orders.php'
-                ];
-            }
-
-            if (!$isTailor) {
-                $stmtInv = $db->prepare("SELECT COUNT(*) as cnt FROM invoices WHERE company_id = :cid AND status IN ('due', 'partial')");
-                $stmtInv->execute([':cid' => $headerCompanyId]);
-                $invDueCnt = (int)($stmtInv->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
-                if ($invDueCnt > 0) {
-                    $notifItems[] = [
-                        'icon' => 'fas fa-file-invoice text-info',
-                        'title' => "$invDueCnt Unpaid Invoice" . ($invDueCnt > 1 ? 's' : ''),
-                        'desc' => 'Pending payment collections',
-                        'link' => 'invoices.php'
-                    ];
-                }
-            }
-        } catch (Exception $e) {
-            
-        }
-    }
+require_once __DIR__ . '/../../helpers/NotificationService.php';
+$notifService = new NotificationService($db);
+$unreadNotifCount = 0;
+$recentNotifs = [];
+if (!empty($current_user['id'])) {
+    $headerCompanyId = function_exists('get_company_id') ? get_company_id() : null;
+    $unreadNotifCount = $notifService->getUnreadCount($current_user['id'], $headerCompanyId);
+    $recentNotifs = $notifService->getRecentNotifications($current_user['id'], $headerCompanyId, 12);
 }
-
+$notifCount = $unreadNotifCount;
 if (!function_exists('render_page_header')) {
     function render_page_header($title = null, $subtitle = null) {
         $pageHeaderTitle = $title;
@@ -1239,24 +1182,17 @@ $seoOptions = [
                                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);">
 
                         <div>
-                            <!-- Purple Badge with White Crown -->
                             <div class="d-flex align-items-center justify-content-center"
                                  style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);">
                                 <i class="fas fa-crown text-white" style="font-size: 1.05rem;"></i>
                             </div>
-
-                            <!-- Title (+3px) -->
                             <div class="fw-bold text-white mt-2 mb-1" style="font-size: 1.25rem; letter-spacing: -0.2px;">
                                 Tailor Pro
                             </div>
-
-                            <!-- Description (+3px) -->
                             <p class="mb-0" style="font-size: 0.94rem; color: rgba(255, 255, 255, 0.9); line-height: 1.35; max-width: 155px;">
                                 Manage your tailoring<br>business with ease!
                             </p>
                         </div>
-
-                        <!-- Dark Navy Upgrade Plan Button (+3px) -->
                         <div class="mt-3">
                             <a href="subscriptions.php"
                                class="d-flex align-items-center justify-content-center gap-2 w-100 text-white text-decoration-none fw-semibold"
@@ -1321,41 +1257,56 @@ $seoOptions = [
             </div>
             
             <div class="d-flex align-items-center gap-2">
-                
+                <button id="enablePushBtn" class="btn btn-sm btn-outline-primary rounded-pill px-2 px-sm-3 py-1 d-flex align-items-center gap-1" style="font-size: 0.78rem; transition: all 0.2s;" title="Enable Browser Push Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="d-none d-sm-inline">Enable Notifications</span>
+                </button>
+
                 <div class="d-none d-md-block">
                     <?php include __DIR__ . '/../../lang/language_switcher.php'; ?>
                 </div>
                 <div class="dropdown">
                     <button class="notif-bell-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notif-badge"><?php echo ($notifCount > 0) ? $notifCount : '1'; ?></span>
+                        <span class="notif-badge" style="<?php echo ($unreadNotifCount > 0) ? '' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?></span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" style="border-radius: 12px; min-width: 280px; max-width: 320px; z-index: 1060;">
-                        <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-1">
-                            <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e293b;">Notifications</h6>
-                            <?php if ($notifCount > 0): ?>
-                                <span class="badge bg-danger rounded-pill" style="font-size: 0.7rem;"><?php echo $notifCount; ?> new</span>
-                            <?php endif; ?>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" style="border-radius: 14px; min-width: 300px; max-width: 360px; z-index: 1060;">
+                        <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 border-bottom pb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e293b;">Notifications</h6>
+                                <span id="notifHeaderCountBadge" class="badge bg-danger rounded-pill" style="font-size: 0.68rem; <?php echo ($unreadNotifCount > 0) ? '' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?> new</span>
+                            </div>
+                            <a href="#" onclick="window.markAllNotificationsRead(event)" class="text-decoration-none text-primary fw-medium" style="font-size: 0.72rem;">Mark all read</a>
                         </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <?php if (!empty($notifItems)): ?>
-                            <?php foreach ($notifItems as $nItem): ?>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-start gap-2 p-2 rounded" href="<?php echo $nItem['link']; ?>" style="white-space: normal;">
-                                    <i class="<?php echo $nItem['icon']; ?> mt-1"></i>
-                                    <div>
-                                        <div class="fw-semibold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars($nItem['title']); ?></div>
-                                        <div class="text-muted" style="font-size: 0.72rem;"><?php echo htmlspecialchars($nItem['desc']); ?></div>
-                                    </div>
-                                </a>
-                            </li>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <li class="text-center py-3 text-muted" style="font-size: 0.8rem;">
-                                <i class="fas fa-check-circle text-success mb-1 d-block" style="font-size: 1.2rem;"></i>
-                                All caught up! No urgent alerts.
-                            </li>
-                        <?php endif; ?>
+                        <div id="notifDropdownItems" style="max-height: 360px; overflow-y: auto;">
+                            <?php if (!empty($recentNotifs)): ?>
+                                <?php foreach ($recentNotifs as $nItem): 
+                                    $isUnread = ((int)$nItem['is_read'] === 0);
+                                    $bgClass = $isUnread ? 'bg-light-subtle fw-medium' : '';
+                                    $unreadDot = $isUnread ? '<span class="rounded-circle bg-primary d-inline-block ms-auto" style="width: 7px; height: 7px;"></span>' : '';
+                                    $link = !empty($nItem['link']) ? $nItem['link'] : 'orders.php';
+                                ?>
+                                <li class="notif-item-row" data-id="<?php echo (int)$nItem['id']; ?>">
+                                    <a class="dropdown-item d-flex align-items-start gap-2 p-2 rounded <?php echo $bgClass; ?>" href="<?php echo htmlspecialchars($link); ?>" style="white-space: normal;" onclick="window.markNotifRead(<?php echo (int)$nItem['id']; ?>, event, '<?php echo htmlspecialchars($link); ?>')">
+                                        <i class="<?php echo htmlspecialchars($nItem['icon']); ?> mt-1" style="font-size: 1rem;"></i>
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;"><?php echo htmlspecialchars($nItem['title']); ?></div>
+                                                <?php echo $unreadDot; ?>
+                                            </div>
+                                            <div class="text-muted text-break" style="font-size: 0.74rem; line-height: 1.35;"><?php echo htmlspecialchars($nItem['message']); ?></div>
+                                            <div class="text-secondary mt-1" style="font-size: 0.68rem;"><i class="far fa-clock me-1"></i><?php echo htmlspecialchars($nItem['time_ago'] ?? 'Recent'); ?></div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li class="text-center py-4 text-muted" style="font-size: 0.85rem;">
+                                    <i class="fas fa-check-circle text-success mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    All caught up! No notifications.
+                                </li>
+                            <?php endif; ?>
+                        </div>
                     </ul>
                 </div>
                 <div class="dropdown">
@@ -1533,8 +1484,6 @@ $seoOptions = [
                     font-weight: 600 !important;
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
                 }
-                
-                /* Enhanced dropdown container */
                 .dropdown-container {
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 }

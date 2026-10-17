@@ -7,19 +7,19 @@ require_once '../models/Measurement.php';
 require_once 'models/ClothType.php';
 require_once 'models/User.php';
 require_once '../helpers/SubscriptionHelper.php';
+require_once '../helpers/NotificationService.php';
 $orderModel = new Order();
 $customerModel = new Customer();
 $measurementModel = new Measurement();
 $clothTypeModel = new ClothType();
 $userModel = new User();
-
+$notifService = new NotificationService();
 $message = '';
 $messageType = '';
 $companyId = get_company_id();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
-        
         switch ($action) {
             case 'create':
                 if (has_role('tailor')) {
@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: orders.php');
                     exit;
                 }
-                
                 $userId = get_user_id();
                 if (!$userId) {
                     $_SESSION['message'] = 'Error: User session invalid. Please logout and login again.';
@@ -43,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: orders.php');
                     exit;
                 }
-                
                 $user = $userModel->find($userId);
                 if (!$user) {
                     $_SESSION['message'] = 'Error: User account not found. Please contact administrator.';
@@ -52,12 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
+                if (empty($_POST['assigned_tailor_id'])) {
+                    $_SESSION['message'] = 'Please select an assigned tailor.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
                     'customer_id' => null,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
-                    'assigned_tailor_id' => !empty($_POST['assigned_tailor_id']) ? (int)$_POST['assigned_tailor_id'] : null,
+                    'assigned_tailor_id' => (int)$_POST['assigned_tailor_id'],
                     'order_date' => $_POST['order_date'],
                     'due_date' => $_POST['due_date'],
                     'total_amount' => (float)$_POST['total_amount'],
@@ -80,6 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $order['order_number'] ?? null,
                             $data['total_amount'] ?? null
                         );
+                        try {
+                            $assignedTailorId = !empty($data['assigned_tailor_id']) ? (int)$data['assigned_tailor_id'] : null;
+                            if ($assignedTailorId) {
+                                $notifService->onOrderAssigned($orderId, $assignedTailorId, null);
+                            }
+                        } catch (Throwable $notifEx) {
+                            error_log("Order create notification error: " . $notifEx->getMessage());
+                        }
                         $_SESSION['message'] = 'Order created successfully';
                         $_SESSION['messageType'] = 'success';
                     } else {
@@ -102,12 +115,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 $orderId = (int)$_POST['order_id'];
+                $prevOrder = $orderModel->find($orderId);
+                $prevTailorId = $prevOrder['assigned_tailor_id'] ?? null;
+
+                if (empty($_POST['assigned_tailor_id'])) {
+                    $_SESSION['message'] = 'Please select an assigned tailor.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
                     'customer_id' => null,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
-                    'assigned_tailor_id' => !empty($_POST['assigned_tailor_id']) ? (int)$_POST['assigned_tailor_id'] : null,
+                    'assigned_tailor_id' => (int)$_POST['assigned_tailor_id'],
                     'order_date' => $_POST['order_date'],
                     'due_date' => $_POST['due_date'],
                     'total_amount' => (float)$_POST['total_amount'],
@@ -117,6 +140,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ];
                 
                 if ($orderModel->update($orderId, $data)) {
+                    try {
+                        $newTailorId = $data['assigned_tailor_id'] ?? null;
+                        if ($newTailorId && (int)$newTailorId !== (int)$prevTailorId) {
+                            $notifService->onOrderAssigned($orderId, $newTailorId, $prevTailorId);
+                        }
+                    } catch (Throwable $notifEx) {
+                        error_log("Order assignment notification error: " . $notifEx->getMessage());
+                    }
                     $_SESSION['message'] = 'Order updated successfully';
                     $_SESSION['messageType'] = 'success';
                 } else {
@@ -129,7 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'update_status':
                 $orderId = (int)$_POST['order_id'];
-                $status = $_POST['status'];
+                $status = sanitize_input($_POST['status'] ?? '');
+                $reason = sanitize_input($_POST['cancellation_reason'] ?? $_POST['reason'] ?? '');
+
                 if (has_role('tailor')) {
                     $existingOrder = $orderModel->find($orderId);
                     if (!$existingOrder || $existingOrder['assigned_tailor_id'] != get_user_id()) {
@@ -141,6 +174,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 if ($orderModel->updateOrderStatus($orderId, $status)) {
+                    try {
+                        if (has_role('tailor')) {
+                            $tailorId = get_user_id();
+                            $tailorName = get_user_name();
+                            if ($status === 'in_progress') {
+                                $notifService->onTailorStartedWork($orderId, $tailorId, $tailorName);
+                            } elseif ($status === 'completed') {
+                                $notifService->onTailorCompletedOrder($orderId, $tailorId, $tailorName);
+                            } elseif ($status === 'cancelled') {
+                                $notifService->onTailorCancelledOrder($orderId, $tailorId, $tailorName, $reason);
+                            }
+                        } else {
+                            $notifService->onAdminUpdatedOrderStatus($orderId, $status, get_user_id(), $reason);
+                        }
+                    } catch (Throwable $notifEx) {
+                        error_log("Status change notification error: " . $notifEx->getMessage());
+                    }
+
                     $_SESSION['message'] = 'Order status updated successfully';
                     $_SESSION['messageType'] = 'success';
                 } else {
@@ -185,8 +236,6 @@ if (isset($_SESSION['message'])) {
 }
 $page_title = 'Order Management';
 require_once 'includes/header.php';
-
-// Get orders
 $status_filter = $_GET['status'] ?? '';
 $search = $_GET['search'] ?? '';
 $page = (int)($_GET['page'] ?? 1);
@@ -200,34 +249,23 @@ if (!empty($status_filter)) {
 if (has_role('tailor')) {
     $conditions['assigned_tailor_id'] = get_user_id();
 }
-
-// Get all orders for the company first to get accurate count
 $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
 $totalOrders = count($allOrders);
-// Then slice for pagination
 $orders = array_slice($allOrders, $offset, $limit);
 $totalPages = ceil($totalOrders / $limit);
-
-// Get data for dropdowns
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
 $measurementCustomers = $measurementModel->getDistinctCustomerNames();
 $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
 $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
 
-// Get order for editing
 $editOrder = null;
 if (isset($_GET['edit'])) {
     $editOrder = $orderModel->find((int)$_GET['edit']);
 }
-
-// Check subscription limits
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
 
-// Get order statistics
 $orderStats = $orderModel->getOrderStats();
-
-// Function for customer avatar design
 if (!function_exists('getCustomerAvatarDesign')) {
     function getCustomerAvatarDesign($name, $index) {
         $palettes = [
@@ -244,7 +282,6 @@ if (!function_exists('getCustomerAvatarDesign')) {
 ?>
 
 <style>
-/* Exact Orders Styling Matching Category / Customer Page */
 .cat-stat-box {
     border-radius: 16px;
     padding: 10px 12px;
@@ -402,17 +439,12 @@ if (!function_exists('getCustomerAvatarDesign')) {
     </div>
 <?php endif; ?>
 <?php endif; ?>
-
-<!-- 1. Orders Hero Banner (Using Shared Component) -->
 <?php
 $pageHeaderTitle = 'Orders';
 $pageHeaderSubtitle = 'Track, manage and update customer tailoring orders.';
 include 'includes/page-header.php';
 ?>
-
-<!-- 2. Stat Cards (2x2 on Mobile, 4 cols on Desktop) -->
 <div class="row g-2 mb-3">
-    <!-- Pending -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -432,8 +464,6 @@ include 'includes/page-header.php';
             </div>
         </div>
     </div>
-
-    <!-- In Progress -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -453,8 +483,6 @@ include 'includes/page-header.php';
             </div>
         </div>
     </div>
-
-    <!-- Completed -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -474,8 +502,6 @@ include 'includes/page-header.php';
             </div>
         </div>
     </div>
-
-    <!-- Delivered -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -496,8 +522,6 @@ include 'includes/page-header.php';
         </div>
     </div>
 </div>
-
-<!-- 3. Search and Primary Action Row -->
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
     <div class="position-relative flex-grow-1 min-w-0" style="min-width: 220px;">
         <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.9rem;"></i>
@@ -510,8 +534,6 @@ include 'includes/page-header.php';
     </button>
     <?php endif; ?>
 </div>
-
-<!-- Detailed Filters Row -->
 <div class="row g-2 align-items-center mb-3">
     <div class="col-6 col-md">
         <select class="form-select" id="statusFilter" title="Filter by Status" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 2.2rem 0.45rem 0.8rem; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
@@ -560,8 +582,6 @@ include 'includes/page-header.php';
         <span><strong id="filterCount">0</strong> orders found</span>
     </div>
 </div>
-
-<!-- 4. Orders Table -->
 <div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
     <div class="card-body p-0">
         <?php if (!empty($orders)): ?>
@@ -784,9 +804,7 @@ include 'includes/page-header.php';
                             </select>
                         </div>
                     </div>
-                    
-                    <!-- Measurement Details Preview Card -->
-                    <div id="measurementDetailsPreview" class="mb-3" style="display: none;">
+                                        <div id="measurementDetailsPreview" class="mb-3" style="display: none;">
                         <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; border: 1px solid #e8ecf1;">
                             <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; padding: 10px 16px;">
                                 <span class="text-white fw-bold" style="font-size: 0.9rem;">
@@ -796,7 +814,6 @@ include 'includes/page-header.php';
                             </div>
                             <div class="card-body py-3 px-3" style="background: #fafcff;">
                                 <div id="previewMeasurementValues" class="row g-2 justify-content-center">
-                                    <!-- Populated dynamically via JS -->
                                 </div>
                                 <div id="previewMeasurementNotes" class="mt-2 pt-2 border-top text-muted small" style="display: none;">
                                     <i class="fas fa-sticky-note text-warning me-1"></i><strong>Notes:</strong> <span id="previewNotesText"></span>
@@ -807,8 +824,8 @@ include 'includes/page-header.php';
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="assigned_tailor_id" class="form-label">Assigned Tailor</label>
-                            <select class="form-select" id="assigned_tailor_id" name="assigned_tailor_id">
+                            <label for="assigned_tailor_id" class="form-label">Assigned Tailor *</label>
+                            <select class="form-select" id="assigned_tailor_id" name="assigned_tailor_id" required>
                                 <option value="">Select Tailor</option>
                                 <?php foreach ($tailors as $tailor): ?>
                                     <option value="<?php echo $tailor['id']; ?>">
@@ -900,6 +917,10 @@ include 'includes/page-header.php';
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
+                    <div class="mb-3" id="orderStatusCancellationReasonGroup" style="display: none;">
+                        <label for="order_status_cancellation_reason" class="form-label text-danger">Cancellation Reason</label>
+                        <textarea class="form-control" id="order_status_cancellation_reason" name="cancellation_reason" rows="2" placeholder="Explain reason for cancellation..."></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -914,20 +935,27 @@ include 'includes/page-header.php';
 
 
 <script>
-
+document.addEventListener('DOMContentLoaded', function() {
+    const orderModalStatusSelect = document.querySelector('#statusModal select[name="status"]');
+    if (orderModalStatusSelect) {
+        orderModalStatusSelect.addEventListener('change', function() {
+            const group = document.getElementById('orderStatusCancellationReasonGroup');
+            if (group) {
+                group.style.display = this.value === 'cancelled' ? 'block' : 'none';
+            }
+        });
+    }
+});
 
 function editOrder(order) {
-    console.log('Editing order:', order); // Debug log
+    console.log('Editing order:', order); 
     
     document.getElementById('orderModalTitle').textContent = 'Edit Order';
     document.getElementById('orderAction').value = 'update';
     document.getElementById('orderId').value = order.id || '';
-    
-    // Populate form fields - convert to string and handle null/undefined
-    const customerName = order.customer_name || '';
+        const customerName = order.customer_name || '';
     const clothTypeId = order.cloth_type_id ? String(order.cloth_type_id) : '';
     const assignedTailorId = order.assigned_tailor_id ? String(order.assigned_tailor_id) : '';
-    
     document.getElementById('customer_id').value = customerName;
     document.getElementById('cloth_type_id').value = clothTypeId;
     document.getElementById('assigned_tailor_id').value = assignedTailorId;
@@ -938,15 +966,11 @@ function editOrder(order) {
     document.getElementById('special_instructions').value = order.special_instructions || '';
     
     console.log('Set values:', { customerName, clothTypeId, assignedTailorId }); // Debug log
-    
-    // Load measurements for the selected customer name
-    const measurementSelect = document.getElementById('measurement_id');
+        const measurementSelect = document.getElementById('measurement_id');
     
     if (customerName) {
-        // Show loading state
         measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
         
-        // Load measurements via AJAX by name
         fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
             .then(response => response.json())
             .then(data => {
@@ -968,8 +992,6 @@ function editOrder(order) {
                     noMeasurementsOption.disabled = true;
                     measurementSelect.appendChild(noMeasurementsOption);
                 }
-                
-                // Set the existing measurement if available
                 if (order.measurement_id) {
                     measurementSelect.value = String(order.measurement_id);
                 }
@@ -991,41 +1013,32 @@ function editOrder(order) {
         }
         displaySelectedMeasurement();
     }
-    
-    // Show modal
     new bootstrap.Modal(document.getElementById('orderModal')).show();
 }
 
 function updateOrderStatusAjax(orderId, status, clickedElement) {
-    // Prevent default link behavior
+    
     if (event) {
         event.preventDefault();
         event.stopPropagation();
     }
-    
-    // Add loading state to the clicked element
     const originalText = clickedElement.innerHTML;
     clickedElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
     clickedElement.style.pointerEvents = 'none';
-    
-    // Find the status badge in the same row (7th column, 6th index)
-    const row = clickedElement.closest('tr');
-    const statusCell = row.children[6]; // Status column (7th column)
+        const row = clickedElement.closest('tr');
+    const statusCell = row.children[6];
     const statusBadge = statusCell.querySelector('.badge');
     const originalBadgeHtml = statusBadge.innerHTML;
     const originalStatus = row.dataset.status || getCurrentStatusFromBadge(statusBadge);
     
-    // Add loading state to status badge
     statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating';
     statusBadge.className = 'badge rounded-pill fw-semibold px-2 py-1 bg-secondary text-white';
     
-    // Prepare form data
     const formData = new FormData();
     formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
     formData.append('order_id', orderId);
     formData.append('status', status);
     
-    // Make AJAX request
     fetch('ajax/update_order_status.php', {
         method: 'POST',
         body: formData
@@ -1033,7 +1046,6 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update status badge with new status
             const statusClasses = {
                 'pending': 'cat-badge-pending',
                 'in_progress': 'cat-badge-in_progress',
@@ -1045,14 +1057,10 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
             statusBadge.className = `badge rounded-pill fw-semibold px-2 py-1 ${statusClasses[status] || 'bg-secondary'}`;
             statusBadge.innerHTML = data.status_display;
             row.dataset.status = status;
-            
-            // Update statistics at the top
             updateOrderStatistics(originalStatus, status);
             
-            // Show success message
             showToast('Success', data.message, 'success');
             
-            // Close the dropdown
             const dropdownMenu = clickedElement.closest('.dropdown-menu');
             if (dropdownMenu) {
                 const dropdown = dropdownMenu.closest('.dropdown');
@@ -1067,24 +1075,17 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
                 }
             }
         } else {
-            // Restore original badge
             statusBadge.innerHTML = originalBadgeHtml;
             
-            // Show error message
             showToast('Error', data.error || 'Failed to update status', 'error');
         }
     })
     .catch(error => {
         console.error('Error updating status:', error);
-        
-        // Restore original badge
         statusBadge.innerHTML = originalBadgeHtml;
-        
-        // Show error message
         showToast('Error', 'Network error occurred', 'error');
     })
     .finally(() => {
-        // Restore original element state
         clickedElement.innerHTML = originalText;
         clickedElement.style.pointerEvents = 'auto';
     });
@@ -1101,27 +1102,20 @@ function getCurrentStatusFromBadge(badge) {
 }
 
 function updateOrderStatistics(oldStatus, newStatus) {
-    // Only update if status actually changed
     if (oldStatus === newStatus) return;
-    
-    // Get current stat values
     const statElements = {
         'pending': document.getElementById('stat-pending'),
         'in_progress': document.getElementById('stat-in_progress'),
         'completed': document.getElementById('stat-completed'),
         'delivered': document.getElementById('stat-delivered')
     };
-    
-    // Decrease count for old status (if not cancelled and exists in stats)
-    if (oldStatus && statElements[oldStatus]) {
+        if (oldStatus && statElements[oldStatus]) {
         const oldCount = parseInt(statElements[oldStatus].textContent.replace(/,/g, ''));
         if (oldCount > 0) {
             statElements[oldStatus].textContent = formatNumber(oldCount - 1);
         }
     }
-    
-    // Increase count for new status (if not cancelled and exists in stats)
-    if (newStatus && statElements[newStatus]) {
+        if (newStatus && statElements[newStatus]) {
         const newCount = parseInt(statElements[newStatus].textContent.replace(/,/g, ''));
         statElements[newStatus].textContent = formatNumber(newCount + 1);
     }
@@ -1131,9 +1125,7 @@ function formatNumber(num) {
     return num.toLocaleString('en-US');
 }
 
-// Toast notification function
 function showToast(title, message, type = 'info') {
-    // Create toast container if it doesn't exist
     let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
         toastContainer = document.createElement('div');
@@ -1142,8 +1134,6 @@ function showToast(title, message, type = 'info') {
         toastContainer.style.zIndex = '9999';
         document.body.appendChild(toastContainer);
     }
-    
-    // Create toast element
     const toastId = 'toast-' + Date.now();
     const toastElement = document.createElement('div');
     toastElement.id = toastId;
@@ -1167,15 +1157,11 @@ function showToast(title, message, type = 'info') {
     `;
     
     toastContainer.appendChild(toastElement);
-    
-    // Show toast
     const toast = new bootstrap.Toast(toastElement, {
         autohide: true,
         delay: 3000
     });
     toast.show();
-    
-    // Remove toast element after it's hidden
     toastElement.addEventListener('hidden.bs.toast', () => {
         toastElement.remove();
     });
@@ -1184,8 +1170,6 @@ function showToast(title, message, type = 'info') {
 function viewOrder(orderId) {
     window.location.href = 'order-details.php?id=' + orderId;
 }
-
-// Auto-fill total amount when cloth type is selected
 const clothTypeSelectEl = document.getElementById('cloth_type_id');
 if (clothTypeSelectEl) {
     clothTypeSelectEl.addEventListener('change', function() {
@@ -1197,26 +1181,18 @@ if (clothTypeSelectEl) {
         }
     });
 }
-
-// Current customer measurements cache
 window.currentCustomerMeasurements = [];
-
-// Load measurements when customer name is selected
 const customerSelectEl = document.getElementById('customer_id');
 if (customerSelectEl) {
     customerSelectEl.addEventListener('change', function() {
         const customerName = this.value;
         const measurementSelect = document.getElementById('measurement_id');
         if (!measurementSelect) return;
-        
-        // Hide measurement preview when customer changes
         hideMeasurementPreview();
         
         if (customerName) {
-            // Show loading state
             measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
             
-            // Load measurements via AJAX by name
             fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1250,8 +1226,6 @@ if (customerSelectEl) {
         }
     });
 }
-
-// Auto-fill cloth type and show measurements preview when measurement is selected
 const measurementSelectEl = document.getElementById('measurement_id');
 if (measurementSelectEl) {
     measurementSelectEl.addEventListener('change', function() {
@@ -1270,8 +1244,6 @@ if (measurementSelectEl) {
         displaySelectedMeasurement();
     });
 }
-
-// Display measurement preview based on currently selected measurement ID
 function displaySelectedMeasurement() {
     const measurementSelect = document.getElementById('measurement_id');
     const previewContainer = document.getElementById('measurementDetailsPreview');
@@ -1282,14 +1254,11 @@ function displaySelectedMeasurement() {
         hideMeasurementPreview();
         return;
     }
-    
-    // Check in cached customer measurements first
     let measurement = (window.currentCustomerMeasurements || []).find(m => String(m.id) === String(measurementId));
     
     if (measurement && measurement.measurement_data) {
         renderMeasurementPreview(measurement);
     } else {
-        // Fetch via AJAX if not in memory
         fetch(`ajax/get_measurement_details.php?id=${encodeURIComponent(measurementId)}`)
             .then(res => res.json())
             .then(resData => {
@@ -1332,8 +1301,6 @@ function renderMeasurementPreview(measurement) {
     valuesContainer.innerHTML = '';
     const mData = measurement.measurement_data;
     let hasValues = false;
-    
-    // Icon mapping for common measurement keys
     const measurementIcons = {
         'chest': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M24 8c-4 0-8 2-10 5l-4 8v12c0 2 1 3 3 3h22c2 0 3-1 3-3V21l-4-8c-2-3-6-5-10-5z" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 21h20" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="24" cy="16" r="2" fill="#4a7cff"/></svg>`,
         'waist': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M14 12c0 0 2 8 10 8s10-8 10-8" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 12v24h20V12" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 26h20" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
@@ -1346,8 +1313,6 @@ function renderMeasurementPreview(measurement) {
         'arm': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M20 10c0 0-2 12-2 20s2 8 6 8 6-2 6-8-2-20-2-20" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M18 24h12" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
         'width': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M8 24h32M8 20v8M40 20v8" stroke="#4a7cff" stroke-width="2"/><path d="M12 24l4-3v6l-4-3zM36 24l-4-3v6l4-3z" fill="#4a7cff"/></svg>`,
     };
-    
-    // Default icon for unknown keys
     const defaultIcon = `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="3" stroke="#4a7cff" stroke-width="2" fill="none"/><line x1="16" y1="14" x2="32" y2="14" stroke="#4a7cff" stroke-width="1.5"/><line x1="16" y1="20" x2="28" y2="20" stroke="#4a7cff" stroke-width="1.5"/><line x1="16" y1="26" x2="30" y2="26" stroke="#4a7cff" stroke-width="1.5"/><line x1="16" y1="32" x2="24" y2="32" stroke="#4a7cff" stroke-width="1.5"/></svg>`;
     
     if (mData && typeof mData === 'object') {
@@ -1409,8 +1374,6 @@ function escapeHtml(text) {
     };
     return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
 }
-
-// Reset modal when closed
 const orderModalEl = document.getElementById('orderModal');
 if (orderModalEl) {
     orderModalEl.addEventListener('hidden.bs.modal', function() {
@@ -1428,8 +1391,6 @@ if (orderModalEl) {
         window.currentCustomerMeasurements = [];
     });
 }
-
-// AJAX Order Filtering
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
@@ -1441,11 +1402,7 @@ const clearFilters = document.getElementById('clearFilters');
 const filterResults = document.getElementById('filterResults');
 const filterCount = document.getElementById('filterCount');
 const ordersTable = document.getElementById('ordersTableBody') || document.querySelector('.table tbody');
-
-// Store original table content (only if table exists)
 const originalTableContent = ordersTable ? ordersTable.innerHTML : '';
-
-// Load filter options on page load
 loadFilterOptions();
 
 function loadFilterOptions() {
@@ -1467,30 +1424,25 @@ function loadFilterOptions() {
                     populateFilterOptions(data.filter_options);
                 } else {
                     console.error('Filter options error:', data.error);
-                    // Continue without filter options
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
                 console.error('Response text:', text);
-                // Continue without filter options
+               
             }
         })
         .catch(error => {
             console.error('Error loading filter options:', error);
-            // Continue without filter options - the page will still work
         });
 }
 
 function populateFilterOptions(options) {
 
-    // Populate cloth types
     const clothTypeSelect = document.getElementById('clothTypeFilter');
     clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
     options.cloth_types.forEach(clothType => {
         clothTypeSelect.innerHTML += `<option value="${clothType.id}">${clothType.name}</option>`;
     });
-    
-    // Populate tailors
     const tailorSelect = document.getElementById('tailorFilter');
     if (tailorSelect && options.tailors) {
         tailorSelect.innerHTML = '<option value="">All Tailors</option>';
@@ -1499,8 +1451,6 @@ function populateFilterOptions(options) {
         });
     }
 }
-
-// Add event listeners for all filters
 [searchInput, statusFilter, clothTypeFilter, tailorFilter, startDateFilter, endDateFilter].forEach(element => {
     if (!element) return;
     element.addEventListener('change', performFilter);
@@ -1511,16 +1461,12 @@ function populateFilterOptions(options) {
 
 if (clearFilters) {
     clearFilters.addEventListener('click', function() {
-        // Reload the page to reset all filters and show all orders
         window.location.href = 'orders.php';
     });
 }
 
 function performFilter() {
-    // Clear previous timeout
     clearTimeout(filterTimeout);
-    
-    // Debounce search input
     if (this === searchInput) {
         filterTimeout = setTimeout(() => {
             executeFilter();
@@ -1538,11 +1484,9 @@ function executeFilter() {
     const startDate = startDateFilter ? startDateFilter.value : '';
     const endDate = endDateFilter ? endDateFilter.value : '';
     
-    // Show loading state
     filterResults.style.display = 'block';
     filterCount.textContent = 'Filtering...';
     
-    // Build query string
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status) params.append('status', status);
@@ -1558,10 +1502,10 @@ function executeFilter() {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.text(); // Get as text first to check for HTML
+            return response.text(); 
         })
         .then(text => {
-            // Check if response is HTML (error page)
+          
             if (text.trim().startsWith('<')) {
                 throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
             }
@@ -1764,12 +1708,9 @@ function displayFilterResults(orders) {
     });
     
     ordersTable.innerHTML = tableHTML;
-    
-    // Attach event listeners to edit buttons
     ordersTable.querySelectorAll('.edit-order-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
-                // Decode HTML entities back to JSON string, then parse
                 const orderJson = this.getAttribute('data-order')
                     .replace(/&quot;/g, '"')
                     .replace(/&#39;/g, "'")
@@ -1785,8 +1726,6 @@ function displayFilterResults(orders) {
         });
     });
 }
-
-// Interactive Sort (A-Z / Z-A)
 let sortAscending = true;
 document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) {
     e.preventDefault();
@@ -1807,8 +1746,6 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
         rows.forEach(r => tableBody.appendChild(r));
     }
 });
-
-// Fix dropdown positioning in table to prevent clipping
 document.addEventListener('shown.bs.dropdown', function(e) {
     const toggle = e.target;
     const dropdown = toggle.closest('.dropdown');
@@ -1817,35 +1754,25 @@ document.addEventListener('shown.bs.dropdown', function(e) {
     
     const menu = dropdown.querySelector('.dropdown-menu');
     if (!menu) return;
-    
-    // Wait for Bootstrap to position it first
     setTimeout(function() {
         const toggleRect = toggle.getBoundingClientRect();
         const menuRect = menu.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
-        
-        // Use fixed positioning to escape table container
         menu.style.position = 'fixed';
         menu.style.zIndex = '9999';
         menu.style.pointerEvents = 'auto';
         menu.style.minWidth = '150px';
         menu.style.visibility = 'visible';
         menu.style.opacity = '1';
-        
-        // Calculate position
         let top = toggleRect.bottom;
         let left = toggleRect.left;
-        
-        // Check if dropdown would go off bottom of viewport
         if (top + menuRect.height > viewportHeight - 10) {
             top = toggleRect.top - menuRect.height;
             if (top < 10) {
                 top = viewportHeight - menuRect.height - 10;
             }
         }
-        
-        // Check horizontal boundaries
         if (left + menuRect.width > viewportWidth - 10) {
             left = viewportWidth - menuRect.width - 10;
         }
@@ -1860,15 +1787,11 @@ document.addEventListener('shown.bs.dropdown', function(e) {
     }, 10);
 });
 </script>
-
 <?php require_once 'includes/footer.php'; ?>
-
 <style>
     .btn-outline-info:hover {
         color: #ffffff;
     }
-    
-    /* Fix dropdown clipping in table */
     .table-responsive {
         overflow-x: auto !important;
         overflow-y: visible !important;
@@ -1897,9 +1820,7 @@ document.addEventListener('shown.bs.dropdown', function(e) {
         visibility: visible !important;
         opacity: 1 !important;
     }
-    
-    /* Ensure dropdown can overflow table boundaries */
-    .card-body {
+        .card-body {
         overflow: visible !important;
         position: relative;
     }
@@ -1913,13 +1834,9 @@ document.addEventListener('shown.bs.dropdown', function(e) {
         margin-bottom: 0;
         position: relative;
     }
-    
-    /* Prevent any parent from clipping */
     .content-area {
         overflow: visible !important;
     }
-    
-    /* Ensure table cells don't block dropdown */
     .table td {
         position: static;
     }

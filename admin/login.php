@@ -457,7 +457,7 @@ $seoOptions = [
             }
 
             setButtonLoading(btn, true);
-
+         
             try {
                 const res = await fetch('ajax/auth_otp.php', {
                     method: 'POST',
@@ -656,7 +656,6 @@ $seoOptions = [
             });
         })();
 
-        // ── Password show/hide ─────────────────────────────────────────────────
-    </script>
+=    </script>
 </body>
 </html>

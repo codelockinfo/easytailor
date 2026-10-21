@@ -49,14 +49,22 @@ class MailService
         $mailer = new PHPMailer(true);
         $mailer->isSMTP();
         $mailer->Host = SMTP_HOST;
-        $mailer->Port = SMTP_PORT ?: 587;
+        $port = (int)(SMTP_PORT ?: 587);
+        $mailer->Port = $port;
         $mailer->SMTPAuth = true;
         $mailer->Username = SMTP_USERNAME;
         $mailer->Password = SMTP_PASSWORD;
         $mailer->CharSet = 'UTF-8';
 
-        if (!empty(SMTP_ENCRYPTION)) {
-            $mailer->SMTPSecure = SMTP_ENCRYPTION;
+        $encryption = strtolower(trim((string)(defined('SMTP_ENCRYPTION') ? SMTP_ENCRYPTION : '')));
+        if ($port === 465 && ($encryption === 'tls' || empty($encryption))) {
+            $encryption = 'ssl';
+        } elseif ($port === 587 && ($encryption === 'ssl' || empty($encryption))) {
+            $encryption = 'tls';
+        }
+
+        if (!empty($encryption)) {
+            $mailer->SMTPSecure = $encryption;
         }
 
         $fromName = SMTP_FROM_NAME ?: APP_NAME;

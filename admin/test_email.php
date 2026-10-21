@@ -5,9 +5,11 @@
  */
 
 require_once '../config/config.php';
+require_once '../helpers/MailService.php';
 
 $message = '';
 $success = false;
+$smtp_debug_log = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $test_email = sanitize_input($_POST['test_email'] ?? '');
@@ -15,50 +17,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($test_email) && filter_var($test_email, FILTER_VALIDATE_EMAIL)) {
         $subject = "Test Email - " . APP_NAME;
         
-        $email_body = "
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-                .success-badge { background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin: 20px 0; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>✓ Email Test Successful</h1>
-                </div>
-                <div class='content'>
-                    <p>Congratulations!</p>
-                    <p>If you're reading this, it means your email configuration is working correctly.</p>
-                    <div class='success-badge'>
-                        Email System Working!
-                    </div>
-                    <p><strong>Server Information:</strong></p>
-                    <ul>
-                        <li>Server Time: " . date('Y-m-d H:i:s') . "</li>
-                        <li>PHP Version: " . phpversion() . "</li>
-                        <li>Application: " . APP_NAME . "</li>
-                    </ul>
-                    <p>You can now use the forgot password feature with confidence.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        ";
+        // Try PHPMailer via MailService first
+        $autoload = APP_PATH . 'vendor/autoload.php';
+        if (file_exists($autoload)) {
+            require_once $autoload;
+            $mailer = new \PHPMailer\PHPMailer\PHPMailer(true);
+            try {
+                $mailer->isSMTP();
+                $mailer->Host = SMTP_HOST;
+                $port = (int)(SMTP_PORT ?: 587);
+                $mailer->Port = $port;
+                $mailer->SMTPAuth = true;
+                $mailer->Username = SMTP_USERNAME;
+                $mailer->Password = SMTP_PASSWORD;
+                $mailer->CharSet = 'UTF-8';
 
-        $headers = "MIME-Version: 1.0" . "\r\n";
-        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-        $headers .= "From: " . APP_NAME . " <noreply@tailoring.com>" . "\r\n";
+                $encryption = strtolower(trim((string)(defined('SMTP_ENCRYPTION') ? SMTP_ENCRYPTION : '')));
+                if ($port === 465 && ($encryption === 'tls' || empty($encryption))) {
+                    $encryption = 'ssl';
+                } elseif ($port === 587 && ($encryption === 'ssl' || empty($encryption))) {
+                    $encryption = 'tls';
+                }
 
-        if (mail($test_email, $subject, $email_body, $headers)) {
-            $success = true;
-            $message = "✓ Test email sent successfully to " . htmlspecialchars($test_email) . ". Please check your inbox (and spam folder).";
+                if (!empty($encryption)) {
+                    $mailer->SMTPSecure = $encryption;
+                }
+
+                $mailer->SMTPDebug = 2;
+                $mailer->Debugoutput = function($str, $level) use (&$smtp_debug_log) {
+                    $smtp_debug_log .= $str . "\n";
+                };
+
+                $fromName = SMTP_FROM_NAME ?: APP_NAME;
+                $fromEmail = SMTP_FROM_EMAIL ?: SMTP_USERNAME;
+                $mailer->setFrom($fromEmail, $fromName);
+                $mailer->addAddress($test_email);
+                $mailer->isHTML(true);
+                $mailer->Subject = $subject;
+                $mailer->Body = "<h2>Email Test Successful</h2><p>Your SMTP configuration is working properly on " . htmlspecialchars($_SERVER['HTTP_HOST'] ?? '') . ".</p>";
+                $mailer->AltBody = "Email Test Successful. Your SMTP configuration is working properly.";
+
+                $mailer->send();
+                $success = true;
+                $message = "✓ Test email sent successfully via SMTP to " . htmlspecialchars($test_email) . ".";
+            } catch (\Exception $e) {
+                $success = false;
+                $message = "✗ SMTP Failed: " . htmlspecialchars($e->getMessage());
+            }
         } else {
-            $message = "✗ Failed to send email. Please check your server's email configuration.";
+            // Fallback to mail()
+            $headers = "MIME-Version: 1.0\r\nContent-type:text/html;charset=UTF-8\r\nFrom: " . (SMTP_FROM_EMAIL ?: 'noreply@' . $_SERVER['HTTP_HOST']) . "\r\n";
+            if (@mail($test_email, $subject, "<h2>Email Test Successful</h2><p>Sent via PHP mail()</p>", $headers)) {
+                $success = true;
+                $message = "✓ Test email sent successfully via mail() to " . htmlspecialchars($test_email) . ".";
+            } else {
+                $message = "✗ Failed to send email via mail(). Please configure SMTP.";
+            }
         }
     } else {
         $message = "Please enter a valid email address.";
@@ -140,6 +154,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php endif; ?>
+
+                        <?php if (!empty($smtp_debug_log)): ?>
+                            <div class="card mb-3">
+                                <div class="card-header bg-dark text-white py-1">
+                                    <small><i class="fas fa-terminal me-1"></i>SMTP Diagnostic Log</small>
+                                </div>
+                                <div class="card-body bg-light p-2">
+                                    <pre style="max-height: 200px; overflow-y: auto; font-size: 11px; margin-bottom: 0;"><?php echo htmlspecialchars($smtp_debug_log); ?></pre>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                         
                         <div class="info-box">
                             <i class="fas fa-info-circle me-2"></i>
@@ -185,12 +210,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         
                         <div class="server-info">
-                            <h6><i class="fas fa-server me-2"></i>Server Information</h6>
+                            <h6><i class="fas fa-server me-2"></i>Email Configuration Status</h6>
                             <small>
                                 <strong>PHP Version:</strong> <?php echo phpversion(); ?><br>
-                                <strong>Mail Function:</strong> <?php echo function_exists('mail') ? '✓ Available' : '✗ Not Available'; ?><br>
-                                <strong>Server Time:</strong> <?php echo date('Y-m-d H:i:s'); ?><br>
-                                <strong>Timezone:</strong> <?php echo date_default_timezone_get(); ?>
+                                <strong>SMTP Host:</strong> <?php echo defined('SMTP_HOST') && SMTP_HOST ? htmlspecialchars(SMTP_HOST) : '<span class="text-danger">Not set</span>'; ?><br>
+                                <strong>SMTP Port:</strong> <?php echo defined('SMTP_PORT') ? htmlspecialchars((string)SMTP_PORT) : '587'; ?><br>
+                                <strong>SMTP Encryption:</strong> <?php echo defined('SMTP_ENCRYPTION') ? htmlspecialchars(SMTP_ENCRYPTION) : 'None'; ?><br>
+                                <strong>SMTP Username:</strong> <?php echo defined('SMTP_USERNAME') && SMTP_USERNAME ? htmlspecialchars(SMTP_USERNAME) : '<span class="text-danger">Not set</span>'; ?><br>
+                                <strong>From Email:</strong> <?php echo defined('SMTP_FROM_EMAIL') && SMTP_FROM_EMAIL ? htmlspecialchars(SMTP_FROM_EMAIL) : '<span class="text-danger">Not set</span>'; ?><br>
+                                <strong>Config File:</strong> <?php echo file_exists(__DIR__ . '/../config/mail.php') ? '<span class="text-success">config/mail.php loaded</span>' : '<span class="text-warning">config/mail.php missing</span>'; ?>
                             </small>
                         </div>
                         

@@ -2,5 +2,19 @@
     "require": {
         "minishlink/web-push": "^11.0",
         "phpmailer/phpmailer": "^7.1"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.29",
+            "ext-curl": "8.2.29",
+            "ext-mbstring": "8.2.29",
+            "ext-openssl": "8.2.29",
+            "ext-json": "8.2.29",
+            "ext-ctype": "8.2.29",
+            "ext-filter": "8.2.29",
+            "ext-hash": "8.2.29"
+        },
+        "platform-check": false
     }
 }
+

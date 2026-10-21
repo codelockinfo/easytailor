@@ -88,6 +88,9 @@ if (isset($_SESSION['login_success'])) {
     $success_message = $_SESSION['login_success'];
     unset($_SESSION['login_success']);
 }
+
+$isVerifyStep = (isset($_GET['step']) && $_GET['step'] === 'verify' && !empty($_GET['email']));
+$verifyEmail = $isVerifyStep ? sanitize_input($_GET['email']) : '';
 ?>
 <?php
 require_once '../helpers/SEOHelper.php';
@@ -248,7 +251,7 @@ $seoOptions = [
                         <div id="otpAlertBox" class="alert d-none mb-3" role="alert"></div>
 
                         <!-- Step 1: Email / Username + Password (default view) -->
-                        <div id="stepPassword">
+                        <div id="stepPassword" style="<?php echo $isVerifyStep ? 'display:none;' : ''; ?>">
                             <form method="POST" action="" id="passwordLoginForm" onsubmit="handlePasswordLogin(event)">
                                 <input type="hidden" name="csrf_token" id="loginCsrfToken" value="<?php echo generate_csrf_token(); ?>">
                                 <input type="hidden" name="auth_method" value="password">
@@ -305,15 +308,15 @@ $seoOptions = [
                         </div>
 
                         <!-- Step 2: OTP — Enter Code -->
-                        <div id="stepOtpVerify" style="display:none;">
+                        <div id="stepOtpVerify" style="<?php echo $isVerifyStep ? 'display:block;' : 'display:none;'; ?>">
                             <div class="p-2 mb-3 rounded-3 text-center" style="background:#f1f5f9;font-size:0.82rem;">
-                                <span>Code sent to <strong id="otpTargetEmailText" class="text-dark"></strong></span>
+                                <span>Code sent to <strong id="otpTargetEmailText" class="text-dark"><?php echo htmlspecialchars($verifyEmail); ?></strong></span>
                                 <button type="button" class="btn btn-link btn-sm text-primary p-0 ms-1" style="font-size:0.8rem;text-decoration:none;" onclick="backToPassword()">Change</button>
                             </div>
 
                             <form id="formVerifyOtp" onsubmit="handleVerifyOtp(event)">
                                 <input type="hidden" id="otpCsrfToken" value="<?php echo generate_csrf_token(); ?>">
-                                <input type="hidden" id="postOtpEmail">
+                                <input type="hidden" id="postOtpEmail" value="<?php echo htmlspecialchars($verifyEmail); ?>">
                                 <input type="hidden" id="postOtpCode">
 
                                 <div class="mb-3">
@@ -377,6 +380,9 @@ $seoOptions = [
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let resendTimer = null;
+        let cooldownSeconds = 60;
+
         document.getElementById('togglePassword').addEventListener('click', function() {
             const password = document.getElementById('password');
             const icon = this.querySelector('i');
@@ -527,9 +533,6 @@ $seoOptions = [
         }
 
         // ── Countdown timer & button helpers ──────────────────────────────────
-        let resendTimer = null;
-        let cooldownSeconds = 60;
-
         function startOtpCountdown(seconds = 60) {
             cooldownSeconds = seconds;
             const resendBtn = document.getElementById('btnResendOtp');
@@ -656,6 +659,6 @@ $seoOptions = [
             });
         })();
 
-=    </script>
+    </script>
 </body>
 </html>

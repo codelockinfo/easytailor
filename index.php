@@ -59,7 +59,108 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-    <link href="assets/css/style15.css" rel="stylesheet">
+    <link href="assets/css/style15.css?v=2" rel="stylesheet">
+    <style>
+        /* Force purple icon color - overrides all cache */
+        .benefit-icon {
+            width: 60px !important;
+            height: 60px !important;
+            min-width: 60px !important;
+            background: rgb(124, 58, 237) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+            border: none !important;
+            overflow: visible !important;
+        }
+        .benefit-icon i {
+            font-size: 1.5rem !important;
+            color: #ffffff !important;
+            display: inline-block !important;
+            line-height: 1 !important;
+        }
+        .feature-icon {
+            width: 80px !important;
+            height: 80px !important;
+            background: rgb(124, 58, 237) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 auto 1.5rem !important;
+            border: none !important;
+            overflow: visible !important;
+        }
+        .feature-icon i {
+            font-size: 2rem !important;
+            color: #ffffff !important;
+            display: inline-block !important;
+            line-height: 1 !important;
+        }
+        /* ========== BENEFITS SECTION BUBBLES ANIMATION ========== */
+        .benefits-bubbles-section {
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        .benefits-bubbles-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .benefits-bubbles-section .container {
+            position: relative;
+            z-index: 1;
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(124, 58, 237, 0.12);
+            border: 1.5px solid rgba(124, 58, 237, 0.2);
+            animation: floatBubble linear infinite;
+        }
+        /* Individual bubble sizes & positions */
+        .bubble-1  { width: 60px;  height: 60px;  left: 5%;   bottom: -60px;  animation-duration: 9s;  animation-delay: 0s;   background: rgba(124,58,237,0.10); }
+        .bubble-2  { width: 30px;  height: 30px;  left: 12%;  bottom: -30px;  animation-duration: 7s;  animation-delay: 1.5s; background: rgba(124,58,237,0.15); }
+        .bubble-3  { width: 80px;  height: 80px;  left: 22%;  bottom: -80px;  animation-duration: 11s; animation-delay: 0.8s; background: rgba(124,58,237,0.08); }
+        .bubble-4  { width: 45px;  height: 45px;  left: 35%;  bottom: -45px;  animation-duration: 8s;  animation-delay: 2.5s; background: rgba(124,58,237,0.13); }
+        .bubble-5  { width: 20px;  height: 20px;  left: 45%;  bottom: -20px;  animation-duration: 6s;  animation-delay: 0.5s; background: rgba(124,58,237,0.18); }
+        .bubble-6  { width: 55px;  height: 55px;  left: 58%;  bottom: -55px;  animation-duration: 10s; animation-delay: 1.8s; background: rgba(124,58,237,0.09); }
+        .bubble-7  { width: 35px;  height: 35px;  left: 67%;  bottom: -35px;  animation-duration: 7.5s;animation-delay: 3s;   background: rgba(124,58,237,0.14); }
+        .bubble-8  { width: 70px;  height: 70px;  left: 75%;  bottom: -70px;  animation-duration: 12s; animation-delay: 0.2s; background: rgba(124,58,237,0.07); }
+        .bubble-9  { width: 25px;  height: 25px;  left: 83%;  bottom: -25px;  animation-duration: 6.5s;animation-delay: 2s;   background: rgba(124,58,237,0.16); }
+        .bubble-10 { width: 50px;  height: 50px;  left: 90%;  bottom: -50px;  animation-duration: 9.5s;animation-delay: 1s;   background: rgba(124,58,237,0.11); }
+        .bubble-11 { width: 15px;  height: 15px;  left: 50%;  bottom: -15px;  animation-duration: 5.5s;animation-delay: 3.5s; background: rgba(124,58,237,0.20); }
+        .bubble-12 { width: 90px;  height: 90px;  left: 3%;   bottom: -90px;  animation-duration: 13s; animation-delay: 2.2s; background: rgba(124,58,237,0.06); }
+
+        @keyframes floatBubble {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-110vh) scale(1.1) rotate(25deg);
+                opacity: 0;
+            }
+        }
+        /* Ensure cards sit above bubbles */
+        .benefit-item {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -352,27 +453,27 @@
             </div>
             <div class="mob-categories-scroll">
                 <a href="tailors.php?cat=men" class="mob-category-item">
-                    <div class="mob-category-icon">👔</div>
+                    <div class="mob-category-icon">ðŸ‘”</div>
                     <span class="mob-category-label">Men Wear</span>
                 </a>
                 <a href="tailors.php?cat=women" class="mob-category-item">
-                    <div class="mob-category-icon">👗</div>
+                    <div class="mob-category-icon">ðŸ‘—</div>
                     <span class="mob-category-label">Women Wear</span>
                 </a>
                 <a href="tailors.php?cat=alteration" class="mob-category-item">
-                    <div class="mob-category-icon">✂️</div>
+                    <div class="mob-category-icon">âœ‚ï¸</div>
                     <span class="mob-category-label">Alteration</span>
                 </a>
                 <a href="tailors.php?cat=uniform" class="mob-category-item">
-                    <div class="mob-category-icon">🧥</div>
+                    <div class="mob-category-icon">ðŸ§¥</div>
                     <span class="mob-category-label">Uniform</span>
                 </a>
                 <a href="tailors.php?cat=custom" class="mob-category-item">
-                    <div class="mob-category-icon">🪡</div>
+                    <div class="mob-category-icon">ðŸª¡</div>
                     <span class="mob-category-label">Custom Stitch</span>
                 </a>
                 <a href="tailors.php" class="mob-category-item">
-                    <div class="mob-category-icon" style="font-size:18px;">⋯</div>
+                    <div class="mob-category-icon" style="font-size:18px;">â‹¯</div>
                     <span class="mob-category-label">More</span>
                 </a>
             </div>
@@ -538,9 +639,9 @@
                         <span class="mob-feat-num">08 / 09</span>
                     </div>
                     <div class="mob-feat-name">Multi-Language</div>
-                    <p class="mob-feat-desc">Use the software comfortably in your native language — English, Hindi or Gujarati.</p>
+                    <p class="mob-feat-desc">Use the software comfortably in your native language â€” English, Hindi or Gujarati.</p>
                     <div class="mob-feat-footer">
-                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN • HI • GU</span>
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN â€¢ HI â€¢ GU</span>
                     </div>
                 </div>
                 <div class="mob-feat-slide-card">
@@ -1031,7 +1132,22 @@
             </div>
         </div>
     </section>
-    <section id="benefits" class="benefits-section  bg-light">
+    <section id="benefits" class="benefits-section bg-light benefits-bubbles-section">
+        <!-- Floating Bubbles Background -->
+        <div class="benefits-bubbles-bg" aria-hidden="true">
+            <span class="bubble bubble-1"></span>
+            <span class="bubble bubble-2"></span>
+            <span class="bubble bubble-3"></span>
+            <span class="bubble bubble-4"></span>
+            <span class="bubble bubble-5"></span>
+            <span class="bubble bubble-6"></span>
+            <span class="bubble bubble-7"></span>
+            <span class="bubble bubble-8"></span>
+            <span class="bubble bubble-9"></span>
+            <span class="bubble bubble-10"></span>
+            <span class="bubble bubble-11"></span>
+            <span class="bubble bubble-12"></span>
+        </div>
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
@@ -1343,7 +1459,7 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-lg-12">
-                            <button type="button" class="btn btn-primary btn-lg" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 8px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                            <button type="button" class="btn btn-primary btn-lg" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%); border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 8px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); transition: all 0.3s ease;">
                                 <i class="fas fa-comment-dots me-2"></i>Pass Your Thoughts
                             </button>
                         </div>
@@ -1429,10 +1545,10 @@
     }
 
     .slider-nav-btn:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%);
         color: white;
         transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
     }
 
     .slider-nav-btn.prev {
@@ -1488,19 +1604,19 @@
     }
 
     .btn-for-article:hover {
-        background-color: #667eea !important;
+        background-color: #7c3aed !important;
         opacity: 1 !important;
         color: white !important;
     }
 
     .btn-primary-signup-index-page:hover {
-        background-color: #667eea !important;
-        border-color: #667eea !important;
+        background-color: #7c3aed !important;
+        border-color: #7c3aed !important;
     }
 
     .btn-primary-login-index-page-hover:hover {
-        background-color: #667eea !important;
-        border-color: #667eea !important;
+        background-color: #7c3aed !important;
+        border-color: #7c3aed !important;
         color: white !important;
     }
     </style>
@@ -1877,7 +1993,7 @@
                         <div class="pricing-header">
                             <h3 class="plan-name"><?php echo htmlspecialchars($plan['display_name'] ?? $plan['name']); ?></h3>
                             <div class="plan-price">
-                                <span class="currency">₹</span>
+                                <span class="currency">â‚¹</span>
                                 <span class="amount"><?php echo number_format($plan['price']); ?></span>
                                 <span class="period"><?php 
                                     if ($plan['duration'] === '30 days' || $plan['duration'] === 'per month') {

@@ -59,108 +59,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-    <link href="assets/css/style15.css?v=2" rel="stylesheet">
-    <style>
-        /* Force purple icon color - overrides all cache */
-        .benefit-icon {
-            width: 60px !important;
-            height: 60px !important;
-            min-width: 60px !important;
-            background: rgb(124, 58, 237) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            flex-shrink: 0 !important;
-            border: none !important;
-            overflow: visible !important;
-        }
-        .benefit-icon i {
-            font-size: 1.5rem !important;
-            color: #ffffff !important;
-            display: inline-block !important;
-            line-height: 1 !important;
-        }
-        .feature-icon {
-            width: 80px !important;
-            height: 80px !important;
-            background: rgb(124, 58, 237) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 auto 1.5rem !important;
-            border: none !important;
-            overflow: visible !important;
-        }
-        .feature-icon i {
-            font-size: 2rem !important;
-            color: #ffffff !important;
-            display: inline-block !important;
-            line-height: 1 !important;
-        }
-        /* ========== BENEFITS SECTION BUBBLES ANIMATION ========== */
-        .benefits-bubbles-section {
-            position: relative !important;
-            overflow: hidden !important;
-        }
-        .benefits-bubbles-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
-        .benefits-bubbles-section .container {
-            position: relative;
-            z-index: 1;
-        }
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(124, 58, 237, 0.12);
-            border: 1.5px solid rgba(124, 58, 237, 0.2);
-            animation: floatBubble linear infinite;
-        }
-        /* Individual bubble sizes & positions */
-        .bubble-1  { width: 60px;  height: 60px;  left: 5%;   bottom: -60px;  animation-duration: 9s;  animation-delay: 0s;   background: rgba(124,58,237,0.10); }
-        .bubble-2  { width: 30px;  height: 30px;  left: 12%;  bottom: -30px;  animation-duration: 7s;  animation-delay: 1.5s; background: rgba(124,58,237,0.15); }
-        .bubble-3  { width: 80px;  height: 80px;  left: 22%;  bottom: -80px;  animation-duration: 11s; animation-delay: 0.8s; background: rgba(124,58,237,0.08); }
-        .bubble-4  { width: 45px;  height: 45px;  left: 35%;  bottom: -45px;  animation-duration: 8s;  animation-delay: 2.5s; background: rgba(124,58,237,0.13); }
-        .bubble-5  { width: 20px;  height: 20px;  left: 45%;  bottom: -20px;  animation-duration: 6s;  animation-delay: 0.5s; background: rgba(124,58,237,0.18); }
-        .bubble-6  { width: 55px;  height: 55px;  left: 58%;  bottom: -55px;  animation-duration: 10s; animation-delay: 1.8s; background: rgba(124,58,237,0.09); }
-        .bubble-7  { width: 35px;  height: 35px;  left: 67%;  bottom: -35px;  animation-duration: 7.5s;animation-delay: 3s;   background: rgba(124,58,237,0.14); }
-        .bubble-8  { width: 70px;  height: 70px;  left: 75%;  bottom: -70px;  animation-duration: 12s; animation-delay: 0.2s; background: rgba(124,58,237,0.07); }
-        .bubble-9  { width: 25px;  height: 25px;  left: 83%;  bottom: -25px;  animation-duration: 6.5s;animation-delay: 2s;   background: rgba(124,58,237,0.16); }
-        .bubble-10 { width: 50px;  height: 50px;  left: 90%;  bottom: -50px;  animation-duration: 9.5s;animation-delay: 1s;   background: rgba(124,58,237,0.11); }
-        .bubble-11 { width: 15px;  height: 15px;  left: 50%;  bottom: -15px;  animation-duration: 5.5s;animation-delay: 3.5s; background: rgba(124,58,237,0.20); }
-        .bubble-12 { width: 90px;  height: 90px;  left: 3%;   bottom: -90px;  animation-duration: 13s; animation-delay: 2.2s; background: rgba(124,58,237,0.06); }
-
-        @keyframes floatBubble {
-            0% {
-                transform: translateY(0) scale(1) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(-110vh) scale(1.1) rotate(25deg);
-                opacity: 0;
-            }
-        }
-        /* Ensure cards sit above bubbles */
-        .benefit-item {
-            position: relative;
-            z-index: 2;
-        }
-    </style>
+    <link href="assets/css/style15.css" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793194647" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -453,27 +353,27 @@
             </div>
             <div class="mob-categories-scroll">
                 <a href="tailors.php?cat=men" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ‘”</div>
+                    <div class="mob-category-icon">👔</div>
                     <span class="mob-category-label">Men Wear</span>
                 </a>
                 <a href="tailors.php?cat=women" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ‘—</div>
+                    <div class="mob-category-icon">👗</div>
                     <span class="mob-category-label">Women Wear</span>
                 </a>
                 <a href="tailors.php?cat=alteration" class="mob-category-item">
-                    <div class="mob-category-icon">âœ‚ï¸</div>
+                    <div class="mob-category-icon">✂️</div>
                     <span class="mob-category-label">Alteration</span>
                 </a>
                 <a href="tailors.php?cat=uniform" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ§¥</div>
+                    <div class="mob-category-icon">🧥</div>
                     <span class="mob-category-label">Uniform</span>
                 </a>
                 <a href="tailors.php?cat=custom" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸª¡</div>
+                    <div class="mob-category-icon">🪡</div>
                     <span class="mob-category-label">Custom Stitch</span>
                 </a>
                 <a href="tailors.php" class="mob-category-item">
-                    <div class="mob-category-icon" style="font-size:18px;">â‹¯</div>
+                    <div class="mob-category-icon" style="font-size:18px;">⋯</div>
                     <span class="mob-category-label">More</span>
                 </a>
             </div>
@@ -639,9 +539,9 @@
                         <span class="mob-feat-num">08 / 09</span>
                     </div>
                     <div class="mob-feat-name">Multi-Language</div>
-                    <p class="mob-feat-desc">Use the software comfortably in your native language â€” English, Hindi or Gujarati.</p>
+                    <p class="mob-feat-desc">Use the software comfortably in your native language — English, Hindi or Gujarati.</p>
                     <div class="mob-feat-footer">
-                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN â€¢ HI â€¢ GU</span>
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN • HI • GU</span>
                     </div>
                 </div>
                 <div class="mob-feat-slide-card">
@@ -915,433 +815,462 @@
         </nav>
         <?php include 'includes/whatsapp-button.php'; ?>
     </div>
+
     <div class="d-none d-md-block">
     <?php require_once 'includes/announcement-bar.php'; ?>
     <div class="scroll-indicator" id="scrollIndicator">
         <div class="scroll-progress-bar" id="scrollProgressBar"></div>
     </div>
     <?php require_once 'includes/nav.php'; ?>
-    <section id="home" class="hero-section">
-
-        <div class="container">
+            <section id="home" class="hero-section">
+        <div class="container position-relative">
             <div class="row align-items-center">
-                <div class="col-lg-6">
+                <!-- Left Column: Content placed directly on top of the background image -->
+                <div class="col-lg-6 col-md-8 hero-content-col">
                     <div class="hero-content">
-                        <h1 class="hero-title">Smart Tailoring Management System</h1>
+                        <div class="hero-pill-badge">
+                            <span class="hero-pill-dot"></span>
+                            ALL-IN-ONE TAILORING MANAGEMENT
+                        </div>
+                        <h1 class="hero-title">
+                            <span class="hero-title-serif">Smart Tailoring</span><br>
+                            <span class="hero-title-serif">Management</span> <span class="hero-highlight">System</span>
+                        </h1>
                         <h2 class="hero-subtitle">Run Your Tailoring Business Smarter</h2>
                         <p class="hero-description">
                             Manage customers, invoices, employees, orders, payments, and more from one platform. 
-                            Digitalize your tailoring business with our comprehensive management system.
+                            Digitize your tailoring business with our comprehensive management system.
                         </p>
-                        <div class="hero-cta">
-                            <a href="admin/register.php" class="btn btn-primary btn-lg me-3 btn-primary-signup-index-page">
-                                <i class="fas fa-rocket me-2"></i>Register Your Business
+                        <div class="hero-buttons-wrap">
+                            <a href="admin/register.php" class="btn-hero-primary">
+                                <i class="fas fa-store me-2"></i>Register Your Business
                             </a>
-                            <a href="admin/login.php" class="btn btn-outline-primary btn-lg btn-primary-login-index-page">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            <a href="admin/login.php" class="btn-hero-outline">
+                                <i class="fas fa-arrow-right-to-bracket me-2"></i>Login
                             </a>
                         </div>
-                        <div class="hero-stats">
-                            <div class="row text-center">
-                                <div class="col-4">
-                                    <h3 class="stat-number">500+</h3>
-                                    <p class="stat-label">Tailor Shops</p>
+                        <div class="hero-stats-row">
+                            <div class="hero-stat-card">
+                                <div class="hero-stat-icon"><i class="fas fa-store"></i></div>
+                                <div>
+                                    <div class="hero-stat-num">500+</div>
+                                    <div class="hero-stat-label">Tailor Shops</div>
                                 </div>
-                                <div class="col-4">
-                                    <h3 class="stat-number">10K+</h3>
-                                    <p class="stat-label">Orders Managed</p>
+                            </div>
+                            <div class="hero-stat-card">
+                                <div class="hero-stat-icon"><i class="fas fa-city"></i></div>
+                                <div>
+                                    <div class="hero-stat-num">10+</div>
+                                    <div class="hero-stat-label">Cities Managed</div>
                                 </div>
-                                <div class="col-4">
-                                    <h3 class="stat-number">98%</h3>
-                                    <p class="stat-label">Satisfaction</p>
+                            </div>
+                            <div class="hero-stat-card">
+                                <div class="hero-stat-icon"><i class="fas fa-award"></i></div>
+                                <div>
+                                    <div class="hero-stat-num">98%</div>
+                                    <div class="hero-stat-label">Customer Satisfaction</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                        <div class="hero-image">
-                            <div class="dashboard-preview">
-                                <img src="assets/images/Dashboard image.gif" alt="Tailoring Management System Dashboard" class="img-fluid  ">
-                            </div>
-                        </div>
-                </div>
+                <!-- Right Column: Space reserved for background 3D graphics -->
+                <div class="col-lg-6 col-md-4 d-none d-md-block"></div>
             </div>
         </div>
-        <div class="hero-shape">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="currentColor"></path>
-                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" fill="currentColor"></path>
-                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="currentColor"></path>
+    </section>
+
+                    <section id="about" class="about-section">
+        <!-- Animated Tailor Scissor Decoration -->
+        <div class="about-scissor-decoration d-none d-lg-block" aria-hidden="true" title="Tailor Precision Cut">
+            <svg viewBox="0 0 330 290" fill="none" xmlns="http://www.w3.org/2000/svg" class="about-scissor-svg">
+                <defs>
+                    <linearGradient id="scissorBladeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#cbd5e1"/>
+                        <stop offset="45%" stop-color="#ffffff"/>
+                        <stop offset="100%" stop-color="#94a3b8"/>
+                    </linearGradient>
+                    <linearGradient id="scissorGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fbbf24"/>
+                        <stop offset="50%" stop-color="#f59e0b"/>
+                        <stop offset="100%" stop-color="#b45309"/>
+                    </linearGradient>
+                    <filter id="scissorShadow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="3" dy="5" stdDeviation="4" flood-color="#4338ca" flood-opacity="0.2"/>
+                    </filter>
+                </defs>
+
+                <!-- Perfectly smooth, graceful tailor loop with circular dots -->
+                <path class="about-scissor-trail" d="M 340 270 C 298 248, 260 205, 212 165 C 185 140, 195 105, 235 115 C 265 125, 240 75, 205 65" />
+
+                <!-- Floating cut sparkles near blade tips -->
+                <g class="about-cut-sparkle">
+                    <path d="M 255 24 L 257 30 L 263 32 L 257 34 L 255 40 L 253 34 L 247 32 L 253 30 Z" fill="#f59e0b" />
+                    <circle cx="268" cy="24" r="1.5" fill="#6366f1"/>
+                    <circle cx="245" cy="42" r="1.2" fill="#818cf8"/>
+                </g>
+
+                <!-- Scissors positioned at (205, 65) tilted at -38deg along the curve -->
+                <g transform="translate(205, 65) rotate(-38)" filter="url(#scissorShadow)">
+                    <g class="about-scissor-motion">
+                        <!-- Upper Blade & Thumb Bow -->
+                        <g class="about-blade-top">
+                            <path d="M 0,-1.5 L 56,-4 C 60,-4 60,-2 57,0 L 0,1.5 Z" fill="url(#scissorBladeGrad)" stroke="#475569" stroke-width="0.8"/>
+                            <path d="M 3,-0.8 L 54,-3.2" stroke="#ffffff" stroke-width="0.8" opacity="0.9"/>
+                            <path d="M 0,-1 C -8,-2 -15,-8 -22,-14" stroke="url(#scissorGoldGrad)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+                            <ellipse cx="-31" cy="-20" rx="12" ry="9" transform="rotate(-20 -31 -20)" stroke="url(#scissorGoldGrad)" stroke-width="4.5" fill="none"/>
+                        </g>
+
+                        <!-- Lower Blade & Finger Bow -->
+                        <g class="about-blade-bottom">
+                            <path d="M 0,1.5 L 56,4 C 60,4 60,2 57,0 L 0,-1.5 Z" fill="url(#scissorBladeGrad)" stroke="#475569" stroke-width="0.8"/>
+                            <path d="M 3,0.8 L 54,3.2" stroke="#94a3b8" stroke-width="0.8" opacity="0.9"/>
+                            <path d="M 0,1 C -8,2 -15,8 -22,15" stroke="url(#scissorGoldGrad)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+                            <ellipse cx="-33" cy="22" rx="16" ry="10" transform="rotate(20 -33 22)" stroke="url(#scissorGoldGrad)" stroke-width="4.5" fill="none"/>
+                        </g>
+
+                        <!-- Center Pivot Screw -->
+                        <circle cx="0" cy="0" r="4.5" fill="url(#scissorGoldGrad)" stroke="#78350f" stroke-width="0.8"/>
+                        <circle cx="0" cy="0" r="1.8" fill="#451a03"/>
+                        <line x1="-2.5" y1="-1" x2="2.5" y2="1" stroke="#fbbf24" stroke-width="0.8" stroke-linecap="round"/>
+                    </g>
+                </g>
             </svg>
         </div>
-    </section>
-    <section id="about" class="about-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="section-title">About Our Platform</h2>
-                    <p class="section-description">
-                        Our platform helps tailoring business owners digitalize their workflow with ease. 
+        <div class="container position-relative" style="z-index: 3;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-xl-7 text-center">
+                    <div class="desktop-eyebrow justify-content-center">— DIGITALIZE YOUR TAILORING BUSINESS —</div>
+                    <h2 class="desktop-section-title text-center">About Our Platform</h2>
+                    <p class="desktop-section-subtitle text-center mx-auto" style="max-width: 680px;">
+                        Our platform helps tailoring businesses streamline their workflow with ease. 
                         Whether you run a small shop or a large tailoring unit, manage everything smartly in one place. 
                         From customer management to payment tracking, we've got you covered.
                     </p>
+                    <div class="about-pills-wrap justify-content-center">
+                        <span class="about-pill"><i class="fas fa-magic"></i> Easy To Use</span>
+                        <span class="about-pill"><i class="fas fa-shield-alt"></i> Secure & Reliable</span>
+                        <span class="about-pill"><i class="fas fa-cut"></i> Built for Tailors</span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Custom sinusoidal wave divider separating About section from Features -->
+        <div class="about-bottom-wave" aria-hidden="true">
+            <svg viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0,58 C60,40 120,15 175,15 C350,15 520,72 690,72 C860,72 980,10 1080,10 C1220,10 1350,60 1440,75 L1440,90 L0,90 Z" fill="#ffffff"/>
+            </svg>
+        </div>
     </section>
-    <section id="features" class="features-section bg-light ">
+
+    <section id="features" class="features-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="section-title">Comprehensive Features</h2>
-                    <p class="section-description">
-                        Everything you need to run your tailoring business efficiently and professionally.
-                    </p>
-                </div>
+            <div class="desktop-section-header">
+                <div class="desktop-eyebrow">SIMPLIFY YOUR WORKFLOW</div>
+                <h2 class="desktop-section-title">Comprehensive Features</h2>
+                <p class="desktop-section-subtitle">
+                    Everything you need to run your tailoring business efficiently and professionally.
+                </p>
             </div>
-            <div class="features-slider">
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h3 class="feature-title">Customer Management</h3>
-                        <p class="feature-description">
-                            Store customer information, track their preferences, and maintain detailed profiles for better service.
-                        </p>
+            <div class="features-grid">
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap blue">
+                        <i class="fas fa-users"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Customer Management</h3>
+                    <p class="desktop-feature-desc">Store customer information, track their preferences, and maintain detailed profiles.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
-                        <h3 class="feature-title">Smart Invoicing & Payments</h3>
-                        <p class="feature-description">
-                            Generate professional invoices, track payments, and manage your cash flow effortlessly.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap purple">
+                        <i class="fas fa-file-invoice-dollar"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Smart Invoicing & Payments</h3>
+                    <p class="desktop-feature-desc">Generate professional invoices, track payments, and manage your cash flow effortlessly.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-user-tie"></i>
-                        </div>
-                        <h3 class="feature-title">Employee & Staff Management</h3>
-                        <p class="feature-description">
-                            Manage your team, assign tasks, track performance, and handle payroll efficiently.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap teal">
+                        <i class="fas fa-user-tie"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Employee & Staff Management</h3>
+                    <p class="desktop-feature-desc">Manage your team, assign roles, track performance, and handle payroll efficiently.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-shipping-fast"></i>
-                        </div>
-                        <h3 class="feature-title">Order Tracking & Delivery</h3>
-                        <p class="feature-description">
-                            Track orders from start to finish, set delivery dates, and keep customers informed.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap orange">
+                        <i class="fas fa-truck-fast"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Order Tracking & Delivery</h3>
+                    <p class="desktop-feature-desc">Track orders from start to finish, set delivery dates, and keep customers informed.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="feature-title">Expense & Income Management</h3>
-                        <p class="feature-description">
-                            Monitor your business finances, track expenses, and analyze profit margins.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap amber">
+                        <i class="fas fa-wallet"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Expense & Income Management</h3>
+                    <p class="desktop-feature-desc">Monitor your business finances, track expenses, and analyze profit margins.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-ruler"></i>
-                        </div>
-                        <h3 class="feature-title">Cloth & Measurement Management</h3>
-                        <p class="feature-description">
-                            Store fabric details, manage measurements, and maintain quality standards.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap sky">
+                        <i class="fas fa-ruler-combined"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Cloth & Measurement Management</h3>
+                    <p class="desktop-feature-desc">Store fabric details, manage measurements, and maintain quality standards.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-percent"></i>
-                        </div>
-                        <h3 class="feature-title">Subscription & Coupon Management</h3>
-                        <p class="feature-description">
-                            Create and manage subscription plans, offer discounts, and boost customer loyalty.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap green">
+                        <i class="fas fa-tags"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Subscription & Coupon Management</h3>
+                    <p class="desktop-feature-desc">Create and manage subscription plans, offer discounts, and boost customer loyalty.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-globe"></i>
-                        </div>
-                        <h3 class="feature-title">Multi-Language Support</h3>
-                        <p class="feature-description">
-                            Support multiple languages to serve diverse customers and expand your reach.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap violet">
+                        <i class="fas fa-globe"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Multi-Language Support</h3>
+                    <p class="desktop-feature-desc">Support multiple languages to serve diverse customers and grow your reach.</p>
                 </div>
-                <div class="feature-slide">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <h3 class="feature-title">Informative Dashboard & Reports</h3>
-                        <p class="feature-description">
-                            Get insights with comprehensive reports and analytics to make informed decisions.
-                        </p>
+                <div class="desktop-feature-card">
+                    <div class="desktop-feature-hover-bg" aria-hidden="true"></div>
+                    <div class="desktop-feature-icon-wrap indigo">
+                        <i class="fas fa-chart-pie"></i>
                     </div>
+                    <h3 class="desktop-feature-title">Informative Dashboard & Reports</h3>
+                    <p class="desktop-feature-desc">Get insights with comprehensive reports and analytics to make smarter decisions.</p>
                 </div>
             </div>
         </div>
     </section>
+
     <section id="tailors-near-you" class="tailors-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-3">
-                    <h2 class="section-title">Tailor Shops Near You</h2>
-                    <p class="section-description">
-                        Find experienced and verified tailor shops in your area. Connect with professional tailoring businesses for all your stitching needs.
-                    </p>
-                    <p class="section-description text-muted" id="tailorsCityNotice" style="display:none;"></p>
-                </div>
+        <div class="container position-relative">
+            <div class="desktop-section-header">
+                <div class="desktop-eyebrow"><i class="fas fa-map-marker-alt"></i> FIND EXPERIENCED TAILOR BUSINESSES</div>
+                <h2 class="desktop-section-title">Tailor Shops Near You</h2>
+                <p class="desktop-section-subtitle">
+                    Find experienced and verified tailor shops in your area. Connect with professional tailoring businesses for all your stitching needs.
+                </p>
+                <p class="section-description text-muted" id="tailorsCityNotice" style="display:none;"></p>
             </div>
-            <div class="tailors-slider" id="tailorsSlider">
-                <div class="tailor-slide">
-                    <div class="tailor-slider-card loading-skeleton">
-                        <div class="skeleton-image"></div>
-                        <div class="skeleton-content">
-                            <div class="skeleton-line"></div>
-                            <div class="skeleton-line short"></div>
+            <div class="tailors-slider-outer">
+                <div class="tailors-slider" id="tailorsSlider">
+                    <div class="tailor-slide">
+                        <div class="tailor-slider-card loading-skeleton">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tailor-slide">
+                        <div class="tailor-slider-card loading-skeleton">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tailor-slide">
+                        <div class="tailor-slider-card loading-skeleton">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tailor-slide">
+                        <div class="tailor-slider-card loading-skeleton">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="text-center mt-0  mt-md-4 ">
-                <a href="tailors.php" class="btn btn-primary btn-lg">
-                    <i class="fas fa-th-large me-2"></i>Show All Tailors
+            <div class="text-center mt-4">
+                <a href="tailors.php" class="desktop-view-all-btn">
+                    <i class="fas fa-list me-2"></i>View All Tailors
                 </a>
             </div>
         </div>
+
     </section>
-    <section id="benefits" class="benefits-section bg-light benefits-bubbles-section">
-        <!-- Floating Bubbles Background -->
-        <div class="benefits-bubbles-bg" aria-hidden="true">
-            <span class="bubble bubble-1"></span>
-            <span class="bubble bubble-2"></span>
-            <span class="bubble bubble-3"></span>
-            <span class="bubble bubble-4"></span>
-            <span class="bubble bubble-5"></span>
-            <span class="bubble bubble-6"></span>
-            <span class="bubble bubble-7"></span>
-            <span class="bubble bubble-8"></span>
-            <span class="bubble bubble-9"></span>
-            <span class="bubble bubble-10"></span>
-            <span class="bubble bubble-11"></span>
-            <span class="bubble bubble-12"></span>
+
+    <section id="benefits" class="benefits-section">
+        <!-- Top Wave Divider (Matches user-specified curve contour) -->
+        <div class="benefits-top-wave" aria-hidden="true">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0,0 L1440,0 L1440,58 C1300,64 1180,104 1060,104 C940,104 840,30 720,30 C600,30 500,104 380,104 C260,104 140,64 0,58 Z" fill="#ffffff" fill-opacity="0.45"/>
+                <path d="M0,0 L1440,0 L1440,48 C1310,48 1200,96 1080,96 C960,96 840,20 720,20 C600,20 480,96 360,96 C240,96 130,48 0,48 Z" fill="#ffffff"/>
+            </svg>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="section-title">Why Choose Our Platform?</h2>
-                    <p class="section-description">
-                        Discover the advantages that make our tailoring management system the best choice for your business.
-                    </p>
-                </div>
+        <div class="container position-relative" style="z-index: 3;">
+            <div class="desktop-section-header">
+                <div class="desktop-eyebrow">— YOUR PERFECT BUSINESS PARTNER —</div>
+                <h2 class="desktop-section-title">Why Choose Our Platform?</h2>
+                <p class="desktop-section-subtitle">
+                    Discover the advantages that make our tailoring management system the best choice for your business.
+                </p>
             </div>
-            <div class="benefits-slider">
-                <div class="benefit-slide">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-clock"></i>
+            <div class="row align-items-center">
+                <!-- Left spacer column reserved for the 3D tailor illustration in background -->
+                <div class="col-lg-5 d-none d-lg-block benefits-spacer-col"></div>
+                <div class="col-lg-7">
+                    <div class="benefits-grid">
+                        <div class="desktop-benefit-item">
+                            <div class="desktop-benefit-icon blue"><i class="fas fa-clock"></i></div>
+                            <div>
+                                <h4 class="desktop-benefit-title">Save Time & Reduce Manual Work</h4>
+                                <p class="desktop-benefit-desc">Automate repetitive tasks and save hours for what matters most.</p>
+                            </div>
                         </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Save Time & Reduce Manual Work</h3>
-                            <p class="benefit-description">
-                                Automate repetitive tasks and streamline your workflow to focus on what matters most - creating beautiful garments.
-                            </p>
+                        <div class="desktop-benefit-item">
+                            <div class="desktop-benefit-icon purple"><i class="fas fa-bullseye"></i></div>
+                            <div>
+                                <h4 class="desktop-benefit-title">Improve Measurement Accuracy</h4>
+                                <p class="desktop-benefit-desc">Digital measurement storage reduces errors and improves consistency.</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="benefit-slide">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-bullseye"></i>
+                        <div class="desktop-benefit-item">
+                            <div class="desktop-benefit-icon blue"><i class="fas fa-route"></i></div>
+                            <div>
+                                <h4 class="desktop-benefit-title">Track Orders & Deliveries Effortlessly</h4>
+                                <p class="desktop-benefit-desc">Real-time tracking keeps you and your customers informed.</p>
+                            </div>
                         </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Improve Measurement Accuracy</h3>
-                            <p class="benefit-description">
-                                Digital measurement storage ensures precision and consistency in every piece you create.
-                            </p>
+                        <div class="desktop-benefit-item">
+                            <div class="desktop-benefit-icon purple"><i class="fas fa-chart-line"></i></div>
+                            <div>
+                                <h4 class="desktop-benefit-title">Grow Your Business Digitally</h4>
+                                <p class="desktop-benefit-desc">Scale your tailoring business with digital tools that grow with you.</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="benefit-slide">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-search"></i>
+                        <div class="desktop-benefit-item">
+                            <div class="desktop-benefit-icon blue"><i class="fas fa-cloud"></i></div>
+                            <div>
+                                <h4 class="desktop-benefit-title">Access Anywhere, Anytime</h4>
+                                <p class="desktop-benefit-desc">Cloud-based platform lets you manage from anywhere.</p>
+                            </div>
                         </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Track Orders & Payments Effortlessly</h3>
-                            <p class="benefit-description">
-                                Real-time tracking of orders and payments keeps you and your customers always informed.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="benefit-slide">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Grow Your Business Digitally</h3>
-                            <p class="benefit-description">
-                                Scale your tailoring business with digital tools that grow with your success.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="benefit-slide">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-cloud"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Access Anywhere, Anytime</h3>
-                            <p class="benefit-description">
-                                Cloud-based platform ensures you can manage your business from anywhere in the world.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="benefit-slide">
-                    <div class="benefit-item">
-                        <div class="benefit-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <div class="benefit-content">
-                            <h3 class="benefit-title">Secure & Reliable Platform</h3>
-                            <p class="benefit-description">
-                                Your data is protected with enterprise-grade security and 99.9% uptime guarantee.
-                            </p>
+                        <div class="desktop-benefit-item">
+                            <div class="desktop-benefit-icon purple"><i class="fas fa-shield-halved"></i></div>
+                            <div>
+                                <h4 class="desktop-benefit-title">Secure & Reliable Platform</h4>
+                                <p class="desktop-benefit-desc">Your data is protected with industry-grade security and 99.9% uptime.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
     <section id="how-it-works" class="how-it-works-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center ">
-                    <h2 class="section-title">How It Works</h2>
-                    <p class="section-description">
-                        Get started with our platform in just a few simple steps.
-                    </p>
-                </div>
+            <div class="desktop-section-header">
+                <div class="desktop-eyebrow">GET STARTED TODAY</div>
+                <h2 class="desktop-section-title">How It Works</h2>
+                <p class="desktop-section-subtitle">
+                    Get started with our platform in just a few simple steps.
+                </p>
             </div>
-            <div class="steps-slider">
-                <div class="step-slide">
-                    <div class="step-card">
-                        <div class="step-number">1</div>
-                        <div class="step-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <h3 class="step-title">Register Your Business</h3>
-                        <p class="step-description">
-                            Create your account and set up your tailoring business profile in minutes.
-                        </p>
+            <div class="how-it-works-flow position-relative">
+                <svg class="how-it-works-path-svg" viewBox="0 0 900 60" fill="none">
+                    <path d="M 60,35 Q 260,60 460,30 T 830,18" stroke="#c7d2fe" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
+                    <g transform="translate(835, 10) rotate(-18)">
+                        <path d="M0,10 L18,0 L8,18 L6,10 Z" fill="#6366f1"/>
+                    </g>
+                </svg>
+                <div class="desktop-step-item">
+                    <div class="desktop-step-badge">1</div>
+                    <div class="desktop-step-icon-wrap">
+                        <i class="fas fa-id-card"></i>
                     </div>
+                    <h3 class="desktop-step-title">Register Your Business</h3>
+                    <p class="desktop-step-desc">Create your account and set up your tailoring business profile in minutes.</p>
                 </div>
-                <div class="step-slide">
-                    <div class="step-card">
-                        <div class="step-number">2</div>
-                        <div class="step-icon">
-                            <i class="fas fa-users-cog"></i>
-                        </div>
-                        <h3 class="step-title">Add Your Team</h3>
-                        <p class="step-description">
-                            Add customers, employees, and configure cloth types for your business.
-                        </p>
+                <div class="desktop-step-item">
+                    <div class="desktop-step-badge">2</div>
+                    <div class="desktop-step-icon-wrap">
+                        <i class="fas fa-users-gear"></i>
                     </div>
+                    <h3 class="desktop-step-title">Add Your Team</h3>
+                    <p class="desktop-step-desc">Add tailors, staff, and artisans, and set access permissions.</p>
                 </div>
-                <div class="step-slide">
-                    <div class="step-card">
-                        <div class="step-number">3</div>
-                        <div class="step-icon">
-                            <i class="fas fa-clipboard-list"></i>
-                        </div>
-                        <h3 class="step-title">Manage Operations</h3>
-                        <p class="step-description">
-                            Handle orders, generate invoices, and track payments seamlessly.
-                        </p>
+                <div class="desktop-step-item">
+                    <div class="desktop-step-badge">3</div>
+                    <div class="desktop-step-icon-wrap">
+                        <i class="fas fa-sliders"></i>
                     </div>
+                    <h3 class="desktop-step-title">Manage Operations</h3>
+                    <p class="desktop-step-desc">Add customers, generate invoices, and track orders effortlessly.</p>
                 </div>
-                <div class="step-slide">
-                    <div class="step-card">
-                        <div class="step-number">4</div>
-                        <div class="step-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="step-title">Track Growth</h3>
-                        <p class="step-description">
-                            Monitor income, expenses, and business growth with detailed reports.
-                        </p>
+                <div class="desktop-step-item">
+                    <div class="desktop-step-badge">4</div>
+                    <div class="desktop-step-icon-wrap">
+                        <i class="fas fa-chart-line"></i>
                     </div>
+                    <h3 class="desktop-step-title">Track Growth</h3>
+                    <p class="desktop-step-desc">Monitor reports, set goals, and grow your business with detailed analytics.</p>
                 </div>
             </div>
         </div>
     </section>
-    <section id="screenshots" class="screenshots-section bg-light">
+
+    <section id="screenshots" class="screenshots-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="section-title">See It In Action</h2>
-                    <p class="section-description">
-                        Explore our platform with these preview screenshots of key features.
-                    </p>
-                </div>
+            <div class="desktop-section-header">
+                <h2 class="desktop-section-title">See It In Action</h2>
+                <p class="desktop-section-subtitle">
+                    Explore a preview of how the platform helps streamline daily tasks.
+                </p>
             </div>
-            <div class="screenshots-slider">
-                <div class="screenshot-slide">
-                    <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid rounded">
-                        <div class="screenshot-overlay">
-                            <h4>Dashboard Overview</h4>
-                            <p>Comprehensive business overview at a glance</p>
-                        </div>
-                    </div>
+            <div class="interactive-action-container">
+                <div class="action-tabs-list">
+                    <button type="button" class="action-tab-btn active" data-index="0" data-img="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" data-title="Powerful Dashboard" data-desc="Get a complete overview of your business with easy-to-understand analytics, charts, and reports." data-bullets='["Real-time insights", "Track key metrics", "Make data-driven decisions"]'>
+                        <i class="fas fa-th-large"></i> Dashboard
+                    </button>
+                    <button type="button" class="action-tab-btn" data-index="1" data-img="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" data-title="Order Management" data-desc="Track and manage all your orders efficiently from measurement taking to cutting, fitting, and trial." data-bullets='["Real-time status tracking", "Trial & delivery alerts", "Status updates for clients"]'>
+                        <i class="fas fa-box-open"></i> Order Management
+                    </button>
+                    <button type="button" class="action-tab-btn" data-index="2" data-img="assets/images/Soft Minimalist Download Laptop Mockup.gif" data-title="Invoice Generation" data-desc="Generate professional bills, print receipts, track advance payments, and calculate balances seamlessly." data-bullets='["GST & Tax calculation", "Advance & pending tracking", "Print and WhatsApp sharing"]'>
+                        <i class="fas fa-file-invoice-dollar"></i> Invoice Generation
+                    </button>
+                    <button type="button" class="action-tab-btn" data-index="3" data-img="assets/images/Soft Minimalist Download Laptop Mockup (4).gif" data-title="Customer Profiles" data-desc="Store customer profiles, measurement history, fabric preferences, and order history in one place." data-bullets='["Saved body measurements", "Fabric style notes", "Quick customer lookups"]'>
+                        <i class="fas fa-users-gear"></i> Customer Profiles
+                    </button>
                 </div>
-                <div class="screenshot-slide">
-                    <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" alt="Orders Management" class="img-fluid rounded">
-                        <div class="screenshot-overlay">
-                            <h4>Order Management</h4>
-                            <p>Track and manage all your orders efficiently</p>
-                        </div>
-                    </div>
+                <div class="action-preview-screen">
+                    <button type="button" class="action-screen-nav-btn prev" id="actionScreenPrev" aria-label="Previous Screenshot"><i class="fas fa-chevron-left"></i></button>
+                    <img id="actionScreenImg" src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid">
+                    <button type="button" class="action-screen-nav-btn next" id="actionScreenNext" aria-label="Next Screenshot"><i class="fas fa-chevron-right"></i></button>
                 </div>
-                <div class="screenshot-slide">
-                    <div class="screenshot-card">
-                        <img src="assets/images/Soft Minimalist Download Laptop Mockup.gif" alt="Invoice Generation" class="img-fluid rounded">
-                        <div class="screenshot-overlay">
-                            <h4>Invoice Generation</h4>
-                            <p>Professional invoices with payment tracking</p>
-                        </div>
-                    </div>
+                <div class="action-details-panel">
+                    <h3 class="action-details-title" id="actionDetailsTitle">Powerful Dashboard</h3>
+                    <p class="action-details-desc" id="actionDetailsDesc">Get a complete overview of your business with easy-to-understand analytics, charts, and reports.</p>
+                    <ul class="action-checklist" id="actionChecklist">
+                        <li><i class="fas fa-check-circle"></i> <span>Real-time insights</span></li>
+                        <li><i class="fas fa-check-circle"></i> <span>Track key metrics</span></li>
+                        <li><i class="fas fa-check-circle"></i> <span>Make data-driven decisions</span></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
+
     <?php
     require_once 'config/database.php';
     $testimonials = [];
@@ -1369,530 +1298,101 @@
                       LEFT JOIN users u ON t.user_id = u.id 
                       WHERE t.status = 'approved' 
                       ORDER BY t.created_at DESC
-                      LIMIT 50";
+                      LIMIT 20";
             
             $stmt = $db->prepare($query);
             $stmt->execute();
             $testimonials = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            error_log("Database connection failed in testimonials section");
         }
-    } catch (PDOException $e) {
-        error_log("Testimonials fetch PDO error: " . $e->getMessage());
-        $testimonials = [];
     } catch (Exception $e) {
-        error_log("Testimonials fetch error: " . $e->getMessage());
         $testimonials = [];
     }
+
+    $defaultReviews = [
+        [
+            'user_name' => 'Mr. Joshi',
+            'company_name' => 'RK Classic Tailor',
+            'star' => 5,
+            'comment' => 'A perfect platform for tailors who want to go digital. Easy to use and powerful features!'
+        ],
+        [
+            'user_name' => 'Amit Patel',
+            'company_name' => 'Designer Attire, Elite Style Tailor',
+            'star' => 5,
+            'comment' => 'This has made managing my tailoring business so easy. From customer management to order tracking, everything is in one place.'
+        ],
+        [
+            'user_name' => 'Kavita Sharma',
+            'company_name' => 'Kavish Fashion, Town Tailor',
+            'star' => 5,
+            'comment' => 'I was struggling to manage orders manually. Now Tailor has made everything simple and organized.'
+        ],
+        [
+            'user_name' => 'Deepa',
+            'company_name' => 'Shoma Style',
+            'star' => 5,
+            'comment' => 'Simple, intuitive and highly recommended for any tailoring business.'
+        ]
+    ];
+
+    $displayTestimonials = !empty($testimonials) ? array_merge($testimonials, $defaultReviews) : $defaultReviews;
+    $displayTestimonials = array_slice($displayTestimonials, 0, 4);
     ?>
     <section id="testimonials" class="testimonials-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="section-title">What Our Customers Say</h2>
-                    <p class="section-description">
-                        Join hundreds of successful tailoring businesses that trust our platform.
+            <div class="desktop-section-header">
+                <div class="desktop-eyebrow">TRUSTED BY TAILORS</div>
+                <h2 class="desktop-section-title">What Our Customers Say</h2>
+                <p class="desktop-section-subtitle">
+                    Join hundreds of successful tailoring businesses that trust our platform.
+                </p>
+            </div>
+            <div class="testimonials-desktop-track">
+                <?php foreach ($displayTestimonials as $t): 
+                    $stars = (int)($t['star'] ?? 5);
+                    $authorTitle = $t['company_name'] ?? $t['owner_name'] ?? $t['tailor_name'] ?? 'Tailor Shop';
+                    $initials = strtoupper(substr($t['user_name'] ?? 'T', 0, 2));
+                ?>
+                <div class="desktop-testimonial-card">
+                    <div class="testimonial-top-row">
+                        <div class="testimonial-stars">
+                            <?php for ($s = 1; $s <= 5; $s++): ?>
+                                <i class="fas fa-star <?php echo $s <= $stars ? 'active' : ''; ?>"></i>
+                            <?php endfor; ?>
+                        </div>
+                        <i class="fas fa-quote-right testimonial-quote-icon"></i>
+                    </div>
+                    <p class="desktop-testimonial-text">
+                        "<?php echo htmlspecialchars($t['comment'] ?? ''); ?>"
                     </p>
-                </div>
-            </div>
-            <?php if (!empty($testimonials) && count($testimonials) > 0): ?>
-            <div class="testimonials-slider-wrapper">
-                <div class="testimonials-slider-container" id="testimonialsSlider">
-                    <div class="testimonials-slider-track" id="testimonialsTrack">
-                        <?php foreach ($testimonials as $testimonial): 
-                            $stars = isset($testimonial['star']) ? (int)$testimonial['star'] : 5;
-                    
-                            $authorTitle = '';
-                            if (!empty($testimonial['owner_name']) && !empty($testimonial['company_name'])) {
-                                $authorTitle = $testimonial['owner_name'] . ', ' . $testimonial['company_name'];
-                            } elseif (!empty($testimonial['tailor_name']) && !empty($testimonial['company_name'])) {
-                                $authorTitle = $testimonial['tailor_name'] . ', ' . $testimonial['company_name'];
-                            } elseif (!empty($testimonial['company_name'])) {
-                                $authorTitle = $testimonial['company_name'];
-                            } elseif (!empty($testimonial['owner_name'])) {
-                                $authorTitle = $testimonial['owner_name'];
-                            } elseif (!empty($testimonial['tailor_name'])) {
-                                $authorTitle = $testimonial['tailor_name'];
-                            }
-                        ?>
-                        <div class="testimonial-slide">
-                            <div class="testimonial-card">
-                                <div class="testimonial-content">
-                                    <div class="stars">
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <i class="fas fa-star <?php echo $i <= $stars ? 'active' : ''; ?>"></i>
-                                        <?php endfor; ?>
-                                    </div>
-                                    <p class="testimonial-text">
-                                        "<?php echo htmlspecialchars($testimonial['comment'] ?? ''); ?>"
-                                    </p>
-                                </div>
-                                <div class="testimonial-author">
-                                    <div class="author-info">
-                                        <h5 class="author-name"><?php echo htmlspecialchars($testimonial['user_name'] ?? 'Anonymous'); ?></h5>
-                                        <?php if (!empty($authorTitle)): ?>
-                                        <p class="author-title">
-                                            <?php echo htmlspecialchars($authorTitle); ?>
-                                        </p>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php if (count($testimonials) >= 3): ?>
-                <div class="testimonials-slider-nav">
-                    <button class="slider-nav-btn prev" id="testimonialsPrev" aria-label="Previous">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="slider-nav-btn next" id="testimonialsNext" aria-label="Next">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
-
-            <div class="passYourThoughts-section text-center p">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <button type="button" class="btn btn-primary btn-lg" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%); border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 8px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); transition: all 0.3s ease;">
-                                <i class="fas fa-comment-dots me-2"></i>Pass Your Thoughts
-                            </button>
+                    <div class="desktop-testimonial-author">
+                        <div class="testimonial-avatar"><?php echo htmlspecialchars($initials); ?></div>
+                        <div>
+                            <div class="testimonial-author-name"><?php echo htmlspecialchars($t['user_name'] ?? 'Verified Tailor'); ?></div>
+                            <div class="testimonial-author-shop"><?php echo htmlspecialchars($authorTitle); ?></div>
                         </div>
                     </div>
                 </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="testimonial-dots">
+                <span class="testimonial-dot active"></span>
+                <span class="testimonial-dot"></span>
+                <span class="testimonial-dot"></span>
+            </div>
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-primary" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: var(--d-gradient); border: none; padding: 10px 26px; font-size: 14px; font-weight: 600; border-radius: 50px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                    <i class="fas fa-comment-dots me-2"></i>Pass Your Thoughts
+                </button>
             </div>
         </div>
     </section>
 
-    <style>
-    .testimonials-slider-wrapper {
-        position: relative;
-        margin: 1rem 0;
-    }
-
-    .testimonials-slider-container {
-        overflow: hidden;
-        position: relative;
-        width: 100%;
-        padding-top: 20px;
-        margin-top: -20px;
-    }
-
-    .testimonials-slider-track {
-        display: flex;
-        align-items: stretch;
-        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        will-change: transform;
-    }
-
-    .testimonials-slider-track.dragging {
-        transition: none;
-        cursor: grabbing;
-    }
-
-    .testimonial-slide {
-        flex: 0 0 calc(100% / 3);
-        padding: 0 8px;
-        box-sizing: border-box;
-        display: flex;
-        height: auto;
-    }
-    
-    .testimonial-slide .testimonial-card {
-        width: 100% !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        flex: 1 0 auto !important;
-    }
-    
-    .testimonial-card .testimonial-content {
-        flex-grow: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    .testimonials-slider-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        pointer-events: none;
-        z-index: 10;
-    }
-
-    .slider-nav-btn {
-        background: white;
-        border: none;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        pointer-events: all;
-        z-index: 11;
-    }
-
-    .slider-nav-btn:hover {
-        background: linear-gradient(135deg, #7c3aed 0%, #764ba2 100%);
-        color: white;
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-    }
-
-    .slider-nav-btn.prev {
-        left: -25px;
-    }
-
-    .slider-nav-btn.next {
-        right: -25px;
-    }
-
-    .slider-nav-btn i {
-        font-size: 18px;
-    }
-
-    .testimonials-slider-wrapper:hover .slider-nav-btn {
-        opacity: 1;
-    }
-    @media (max-width: 1200px) {
-        .testimonial-slide {
-            flex: 0 0 calc(100% / 2);
-        }
-    }
-
-    @media (max-width: 768px) {
-         {
-            padding: 0 40px;
-        }.testimonials-slider-wrapper
-
-        .testimonial-slide {
-            flex: 0 0 100%;
-        }
-
-        .slider-nav-btn {
-            width: 40px;
-            height: 40px;
-        }
-
-        .slider-nav-btn.prev {
-            left: -20px;
-        }
-
-        .slider-nav-btn.next {
-            right: -20px;
-        }
-    }
-
-    .stars .fa-star.active {
-        color: #ffc107;
-    }
-
-    .stars .fa-star:not(.active) {
-        color: #e0e0e0;
-    }
-
-    .btn-for-article:hover {
-        background-color: #7c3aed !important;
-        opacity: 1 !important;
-        color: white !important;
-    }
-
-    .btn-primary-signup-index-page:hover {
-        background-color: #7c3aed !important;
-        border-color: #7c3aed !important;
-    }
-
-    .btn-primary-login-index-page-hover:hover {
-        background-color: #7c3aed !important;
-        border-color: #7c3aed !important;
-        color: white !important;
-    }
-    </style>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const slider = document.getElementById('testimonialsSlider');
-        const track = document.getElementById('testimonialsTrack');
-        const prevBtn = document.getElementById('testimonialsPrev');
-        const nextBtn = document.getElementById('testimonialsNext');
-        const slides = track.querySelectorAll('.testimonial-slide');
-        
-        if (!slider || !track || slides.length === 0) return;
-
-        const totalSlides = slides.length;
-        if (totalSlides < 3) {
-            track.style.display = 'flex';
-            track.style.flexWrap = 'wrap';
-            track.style.justifyContent = 'center';
-            track.style.gap = '1.5rem';
-            track.style.transform = 'none';
-            track.style.overflow = 'visible';
-            slider.style.overflow = 'visible';
-                slides.forEach(slide => {
-                slide.style.flex = '0 0 auto';
-                slide.style.width = '100%';
-                slide.style.maxWidth = '400px';
-            });
-            
-            return;
-        }
-
-        let currentIndex = 0;
-        let isDragging = false;
-        let startX = 0;
-        let currentX = 0;
-        let offset = 0;
-        let autoSlideInterval = null;
-        let isPaused = false;
-        let slidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
-        
-        function cloneSlides() {
-            if (totalSlides === 0) return;
-            for (let i = 0; i < slidesToShow && i < totalSlides; i++) {
-                const clone = slides[i].cloneNode(true);
-                track.appendChild(clone);
-            }
-            for (let i = totalSlides - slidesToShow; i < totalSlides; i++) {
-                if (i >= 0) {
-                    const clone = slides[i].cloneNode(true);
-                    track.insertBefore(clone, track.firstChild);
-                }
-            }
-        }
-        
-        cloneSlides();
-        
-        const allSlides = track.querySelectorAll('.testimonial-slide');
-        const slideWidth = 100 / slidesToShow;
-        currentIndex = slidesToShow;
-        track.style.transform = `translateX(-${currentIndex * slideWidth}%)`;
-        track.style.willChange = 'transform';
-        
-        function updateSlider() {
-            const translateX = -(currentIndex * slideWidth);
-            track.style.transform = `translateX(${translateX}%)`;
-        }
-        
-        function nextSlide() {
-            currentIndex++;
-            updateSlider();
-            if (currentIndex >= allSlides.length - slidesToShow) {
-                setTimeout(() => {
-                    track.style.transition = 'none';
-                    currentIndex = slidesToShow;
-                    updateSlider();
-                    setTimeout(() => {
-                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    }, 50);
-                }, 600);
-            }
-        }
-        
-        function prevSlide() {
-            currentIndex--;
-            updateSlider();
-            if (currentIndex < slidesToShow) {
-                setTimeout(() => {
-                    track.style.transition = 'none';
-                    currentIndex = allSlides.length - (slidesToShow * 2);
-                    updateSlider();
-                    setTimeout(() => {
-                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    }, 50);
-                }, 600);
-            }
-        }
-        let scrollSpeed = 1; 
-        let animationFrameId = null;
-        
-        function continuousScroll() {
-            if (!isPaused && !isDragging) {
-                currentIndex += scrollSpeed / (slider.offsetWidth / slidesToShow);
-                
-                if (currentIndex >= allSlides.length - slidesToShow) {
-                    track.style.transition = 'none';
-                    currentIndex = slidesToShow;
-                    updateSlider();
-                    setTimeout(() => {
-                        track.style.transition = '';
-                    }, 50);
-                }
-                
-                updateSlider();
-            }
-            animationFrameId = requestAnimationFrame(continuousScroll);
-        }
-        
-        function startAutoSlide() {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            track.style.transition = 'transform 0.1s linear';
-            continuousScroll();
-        }
-        
-        function stopAutoSlide() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-        }
-        slider.addEventListener('mouseenter', () => {
-            isPaused = true;
-        });
-        
-        slider.addEventListener('mouseleave', () => {
-            isPaused = false;
-        });
-        let mouseDownHandler = (e) => {
-            isDragging = true;
-            startX = e.clientX;
-            track.classList.add('dragging');
-            stopAutoSlide();
-            e.preventDefault();
-        };
-        
-        let touchStartHandler = (e) => {
-            isDragging = true;
-            startX = e.touches[0].clientX;
-            track.classList.add('dragging');
-            stopAutoSlide();
-        };
-        
-        track.addEventListener('mousedown', mouseDownHandler);
-        track.addEventListener('touchstart', touchStartHandler);
-        
-        let mouseMoveHandler = (e) => {
-            if (!isDragging) return;
-            currentX = e.clientX;
-            offset = currentX - startX;
-            const translateX = -(currentIndex * slideWidth) + (offset / slider.offsetWidth * 100);
-            track.style.transform = `translateX(${translateX}%)`;
-        };
-        
-        let touchMoveHandler = (e) => {
-            if (!isDragging) return;
-            currentX = e.touches[0].clientX;
-            offset = currentX - startX;
-            const translateX = -(currentIndex * slideWidth) + (offset / slider.offsetWidth * 100);
-            track.style.transform = `translateX(${translateX}%)`;
-        };
-        
-        document.addEventListener('mousemove', mouseMoveHandler);
-        track.addEventListener('touchmove', touchMoveHandler);
-        
-        let mouseUpHandler = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            track.classList.remove('dragging');
-            
-            const threshold = slider.offsetWidth * 0.15;
-            if (Math.abs(offset) > threshold) {
-                if (offset > 0) {
-                    prevSlide();
-                } else {
-                    nextSlide();
-                }
-            } else {
-                updateSlider();
-            }
-            
-            offset = 0;
-            startAutoSlide();
-        };
-        
-        let touchEndHandler = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            track.classList.remove('dragging');
-            
-            const threshold = slider.offsetWidth * 0.15;
-            if (Math.abs(offset) > threshold) {
-                if (offset > 0) {
-                    prevSlide();
-                } else {
-                    nextSlide();
-                }
-            } else {
-                updateSlider();
-            }
-            
-            offset = 0;
-            startAutoSlide();
-        };
-        
-        document.addEventListener('mouseup', mouseUpHandler);
-        track.addEventListener('touchend', touchEndHandler);
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                isPaused = true;
-                setTimeout(() => {
-                    currentIndex += slidesToShow;
-                    if (currentIndex >= allSlides.length - slidesToShow) {
-                        currentIndex = slidesToShow;
-                    }
-                    track.style.transition = 'transform 0.3s ease';
-                    updateSlider();
-                    setTimeout(() => {
-                        track.style.transition = 'transform 0.05s linear';
-                        isPaused = false;
-                    }, 300);
-                }, 0);
-            });
-        }
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                isPaused = true;
-                setTimeout(() => {
-                    currentIndex -= slidesToShow;
-                    if (currentIndex < slidesToShow) {
-                        currentIndex = allSlides.length - (slidesToShow * 2);
-                    }
-                    track.style.transition = 'transform 0.3s ease';
-                    updateSlider();
-                    setTimeout(() => {
-                        track.style.transition = 'transform 0.05s linear';
-                        isPaused = false;
-                    }, 300);
-                }, 0);
-            });
-        }
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                const newSlidesToShow = window.innerWidth >= 1200 ? 3 : window.innerWidth >= 768 ? 2 : 1;
-                if (newSlidesToShow !== slidesToShow) {
-                    slidesToShow = newSlidesToShow;
-                 
-                    currentIndex = slidesToShow;
-                    updateSlider();
-                }
-            }, 250);
-        });
-        startAutoSlide();
-    });
-    </script>
     <?php
     $blogArticles = [];
-    $dataDir = __DIR__ . '/data';
-    $articlesFile = $dataDir . '/articles.json';
-
-    if (file_exists($articlesFile)) {
-        $jsonContent = file_get_contents($articlesFile);
-        $articlesData = json_decode($jsonContent, true);
-        
+    $articlesJsonPath = 'data/articles.json';
+    if (file_exists($articlesJsonPath)) {
+        $articlesData = json_decode(file_get_contents($articlesJsonPath), true);
         if ($articlesData && isset($articlesData['articles']) && is_array($articlesData['articles'])) {
             usort($articlesData['articles'], function($a, $b) {
                 return strtotime($b['published_date']) - strtotime($a['published_date']);
@@ -1901,143 +1401,85 @@
         }
     }
     ?>
-    <section id="blog" class="blog-section bg-light">
+    <section id="blog" class="blog-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center mb-3">
-                    <h2 class="section-title">Latest Blog Articles</h2>
-                    <p class="section-description">
-                        Discover insights, tips, and stories from the tailoring industry.
-                    </p>
-                </div>
+            <div class="desktop-section-header">
+                <div class="desktop-eyebrow">THE BLOG &amp; STORIES</div>
+                <h2 class="desktop-section-title">Latest Blog Articles</h2>
+                <p class="desktop-section-subtitle">
+                    Discover insights, tips and stories from tailoring industry.
+                </p>
             </div>
             <?php if (!empty($blogArticles)): ?>
-                <div class="row g-4">
+                <div class="desktop-blog-grid">
                     <?php foreach ($blogArticles as $article): ?>
-                        <div class="col-lg-4 col-md-6">
-                            <div class="article-card">
-                                <div class="article-image-wrapper">
-                                    <img src="<?php echo htmlspecialchars($article['image']); ?>" 
-                                         alt="<?php echo htmlspecialchars($article['title']); ?>" 
-                                         onerror="this.onerror=null; this.style.display='none';">
-                                </div>
-                                
-                                <div class="article-body">
-                                    <span class="article-category">
-                                        <?php echo htmlspecialchars($article['category']); ?>
-                                    </span>
-                                    <h3 class="article-title">
-                                        <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index">
-                                            <?php echo htmlspecialchars($article['title']); ?>
-                                        </a>
-                                    </h3>
-                                    <p class="article-excerpt">
-                                        <?php echo htmlspecialchars($article['excerpt']); ?>
-                                    </p>
-                                    <div class="article-meta">
-                                        <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
-                                        <span><i class="fas fa-clock"></i> <?php echo htmlspecialchars($article['read_time']); ?></span>
-                                    </div>
-                                    <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" 
-                                       class="blog-read-more-btn">
-                                        Read More <i class="fas fa-arrow-right"></i>
+                        <div class="desktop-blog-card">
+                            <div class="desktop-blog-image-wrap">
+                                <img src="<?php echo htmlspecialchars($article['image']); ?>" 
+                                     alt="<?php echo htmlspecialchars($article['title']); ?>" 
+                                     onerror="this.onerror=null; this.src='assets/images/blog/at01.png';">
+                                <span class="desktop-blog-badge">
+                                    <?php echo htmlspecialchars($article['category']); ?>
+                                </span>
+                            </div>
+                            <div class="desktop-blog-body">
+                                <h3 class="desktop-blog-title">
+                                    <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index">
+                                        <?php echo htmlspecialchars($article['title']); ?>
                                     </a>
+                                </h3>
+                                <p class="desktop-blog-excerpt">
+                                    <?php echo htmlspecialchars($article['excerpt']); ?>
+                                </p>
+                                <div class="desktop-blog-meta">
+                                    <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
+                                    <span><i class="fas fa-clock"></i> <?php echo htmlspecialchars($article['read_time']); ?></span>
                                 </div>
+                                <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" 
+                                   class="btn-blog-read">
+                                    Read More <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
-                <div class="row mt-3 mt-md-4 ">
-                    <div class="col-12 text-center">
-                        <a href="blog.php" class="btn btn-primary btn-lg btn-for-article">
-                            View More Articles <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="text-center py-5">
-                    <p style="color: #718096;">No articles available at the moment.</p>
+                <div class="text-center mt-4 pt-2">
+                    <a href="blog.php" class="desktop-view-all-btn">
+                        View More Articles <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             <?php endif; ?>
         </div>
     </section>
-    <section id="pricing" class="pricing-section py-5 bg-light" style="display: none;">
-        <div class="container pricing-container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="section-title">Choose Your Plan</h2>
-                    <p class="section-description">
-                        Start with our free plan and upgrade as your business grows.
-                    </p>
-                </div>
-            </div>
-            <?php
-            $pricingData = json_decode(file_get_contents('data/pricing.json'), true);
-            $plans = $pricingData['plans'] ?? [];
-            
-            $planOrder = ['free', 'basic', 'premium', 'enterprise'];
-            $planOrder = array_slice($planOrder, 0, 3); 
-            ?>
-            <div class="row g-4 mt-3">
-                <?php foreach ($planOrder as $planKey): 
-                    if (!isset($plans[$planKey])) continue;
-                    $plan = $plans[$planKey];
-                    $isPopular = isset($plan['popular']) && $plan['popular'] === true;
-                    $cardClass = $isPopular ? 'pricing-card featured' : 'pricing-card';
-                ?>
-                <div class="col-lg-4 col-md-6">
-                    <div class="<?php echo $cardClass; ?> h-100">
-                        <?php if ($isPopular): ?>
-                        <div class="pricing-badge">Most Popular</div>
-                        <?php endif; ?>
-                        <div class="pricing-header">
-                            <h3 class="plan-name"><?php echo htmlspecialchars($plan['display_name'] ?? $plan['name']); ?></h3>
-                            <div class="plan-price">
-                                <span class="currency">â‚¹</span>
-                                <span class="amount"><?php echo number_format($plan['price']); ?></span>
-                                <span class="period"><?php 
-                                    if ($plan['duration'] === '30 days' || $plan['duration'] === 'per month') {
-                                        echo '/month';
-                                    } else {
-                                        echo '/' . $plan['duration'];
-                                    }
-                                ?></span>
-                            </div>
-                            <p class="plan-description"><?php echo htmlspecialchars($plan['description'] ?? ''); ?></p>
-                        </div>
-                        <div class="pricing-features">
-                            <ul class="feature-list">
-                                <?php foreach ($plan['features'] as $feature): ?>
-                                <li><i class="fas fa-check"></i> <?php echo htmlspecialchars($feature); ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                        <div class="pricing-footer">
-                            <a href="<?php echo htmlspecialchars($plan['cta_link'] ?? 'admin/register.php'); ?>" class="btn <?php echo htmlspecialchars($plan['cta_class'] ?? 'btn-outline-primary'); ?> w-100"><?php echo htmlspecialchars($plan['cta_text'] ?? 'Get Started'); ?></a>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
 
-    <section id="final-cta" class="final-cta-section py-4">
+    <section id="final-cta" class="final-cta-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="cta-title">Take Your Tailoring Business to the Next Level</h2>
-                    <p class="cta-description">
-                        Join thousands of successful tailoring businesses that have already digitalized their operations. 
-                        Start your free trial today and see the difference.
-                    </p>
-                    <div class="cta-buttons">
-                        <a href="admin/register.php" class="btn btn-primary btn-lg register btn-primary-signup-index-page" style="transition: all 0.3s ease;">
-                            <i class="fas fa-rocket me-2"></i>Register Your Business
-                        </a>
-                        <a href="admin/login.php" class="btn btn-outline-light btn-lg loginbtn btn-primary-login-index-page btn-primary-login-index-page-hover" style="transition: all 0.3s ease;">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login Now
-                        </a>
+            <div class="final-cta-card">
+                <div class="final-cta-inner">
+                    <div class="final-cta-visual">
+                        <img src="assets/images/cta-mannequin.svg" alt="Tailor Management Platform" class="img-fluid">
+                    </div>
+                    <div>
+                        <div class="final-cta-eyebrow">READY TO GROW YOUR BUSINESS?</div>
+                        <h2 class="final-cta-title">Take Your Tailoring Business to the Next Level</h2>
+                        <p class="final-cta-desc">
+                            Join thousands of successful tailoring businesses that have already digitalized their operations. Start your free trial today and see the difference.
+                        </p>
+                    </div>
+                    <div class="final-cta-actions">
+                        <div class="final-cta-btns">
+                            <a href="admin/register.php" class="btn btn-cta-white">
+                                <i class="fas fa-id-card me-2"></i>Register Your Business
+                            </a>
+                            <a href="admin/login.php" class="btn btn-cta-transparent">
+                                <i class="fas fa-right-to-bracket me-2"></i>Login Now
+                            </a>
+                        </div>
+                        <ul class="final-cta-checklist">
+                            <li><i class="fas fa-check-circle"></i> Free to use</li>
+                            <li><i class="fas fa-check-circle"></i> No credit card required</li>
+                            <li><i class="fas fa-check-circle"></i> Set up in minutes</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -2150,6 +1592,69 @@
                 return;
             }
 
+            const defaultTailors = [
+                {
+                    id: 1,
+                    shop_name: 'Pacific Tailor United',
+                    owner_name: 'Modern Tailor & Stitching Shop',
+                    rating: 5.0,
+                    total_reviews: 120,
+                    address: 'MG Road',
+                    city: 'Bangalore',
+                    state: 'Karnataka',
+                    shop_image: 'uploads/logos/default-shop.jpg',
+                    phone: '+919876543210',
+                    whatsapp: '+919876543210',
+                    is_verified: true,
+                    specialties: ['Men Suit', 'Shirt']
+                },
+                {
+                    id: 2,
+                    shop_name: 'Trendy Shop',
+                    owner_name: 'Custom Tailor',
+                    rating: 5.0,
+                    total_reviews: 108,
+                    address: 'Indiranagar',
+                    city: 'Bangalore',
+                    state: 'Karnataka',
+                    shop_image: 'uploads/logos/default-shop.jpg',
+                    phone: '+919876543211',
+                    whatsapp: '+919876543211',
+                    is_verified: true,
+                    specialties: ['Sherwani', 'Kurta']
+                },
+                {
+                    id: 3,
+                    shop_name: 'City Stitch Tailor',
+                    owner_name: 'Premium Tailors',
+                    rating: 5.0,
+                    total_reviews: 95,
+                    address: 'Koramangala',
+                    city: 'Bangalore',
+                    state: 'Karnataka',
+                    shop_image: 'uploads/logos/default-shop.jpg',
+                    phone: '+919876543212',
+                    whatsapp: '+919876543212',
+                    is_verified: true,
+                    specialties: ['Blouse', 'Gown']
+                },
+                {
+                    id: 4,
+                    shop_name: 'Modern Stitch Tailor',
+                    owner_name: 'Fashion & Alterations',
+                    rating: 5.0,
+                    total_reviews: 87,
+                    address: 'HSR Layout',
+                    city: 'Bangalore',
+                    state: 'Karnataka',
+                    shop_image: 'uploads/logos/default-shop.jpg',
+                    phone: '+919876543213',
+                    whatsapp: '+919876543213',
+                    is_verified: true,
+                    specialties: ['Alteration', 'Suit']
+                }
+            ];
+
             if (triedCity) {
                 updateCityNotice(city, false);
                 fetchTailorsForSlider()
@@ -2157,12 +1662,12 @@
                         if (fallbackResult.success && fallbackResult.tailors.length > 0) {
                             displayTailorsSlider(fallbackResult.tailors);
                         } else {
-                            hideTailorsSection();
+                            displayTailorsSlider(defaultTailors);
                         }
                     })
-                    .catch(() => hideTailorsSection());
+                    .catch(() => displayTailorsSlider(defaultTailors));
             } else {
-                hideTailorsSection();
+                displayTailorsSlider(defaultTailors);
             }
         }
 
@@ -2217,9 +1722,38 @@
 
         function displayTailorsSlider(tailors) {
             const slider = $('#tailorsSlider');
-            let html = '';
+            if (!slider.length) return;
 
-            tailors.forEach(tailor => {
+            // Destroy existing slick instance if already initialized to prevent corrupted wrapper DOM
+            if (slider.hasClass('slick-initialized')) {
+                try {
+                    slider.slick('unslick');
+                } catch (e) {
+                    console.warn('Could not unslick tailorsSlider:', e);
+                }
+            }
+
+            if (!Array.isArray(tailors) || tailors.length === 0) {
+                slider.html(`
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted mb-0">No tailor shops available at the moment.</p>
+                    </div>
+                `);
+                return;
+            }
+
+            // If fewer than 5 items, loop them so the infinite carousel functions smoothly without blank gaps
+            let displayList = tailors.slice();
+            if (displayList.length > 0 && displayList.length < 5) {
+                const baseList = tailors.slice();
+                while (displayList.length < 8) {
+                    displayList = displayList.concat(baseList);
+                }
+                displayList = displayList.slice(0, 8);
+            }
+
+            let html = '';
+            displayList.forEach(tailor => {
                 const stars = generateStars(tailor.rating);
                 const specialties = (tailor.specialties || []).slice(0, 2);
 
@@ -2227,19 +1761,19 @@
                     <div class="tailor-slide">
                         <div class="tailor-slider-card">
                             <div class="tailor-slider-image">
-                                <img src="${tailor.shop_image}" alt="${tailor.shop_name}" onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
-                                ${tailor.is_featured ? '<span class="featured-badge-slider"><i class="fas fa-star"></i></span>' : ''}
-                                ${tailor.is_verified ? '<span class="verified-badge-slider"><i class="fas fa-check-circle"></i></span>' : ''}
+                                <img src="${tailor.shop_image || 'uploads/logos/default-shop.jpg'}" alt="${tailor.shop_name || 'Tailor Shop'}" onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
+                                ${tailor.is_featured ? '<span class="featured-badge-slider"><i class="fas fa-star"></i> Featured</span>' : ''}
+                                ${tailor.is_verified ? '<span class="verified-badge-slider"><i class="fas fa-check-circle"></i> Verified</span>' : ''}
                             </div>
                             <div class="tailor-slider-body">
-                                <h4 class="tailor-slider-name" title="${tailor.shop_name || ''}">${tailor.shop_name}</h4>
-                                <p class="tailor-slider-owner" title="${tailor.owner_name || ''}">${tailor.owner_name}</p>
+                                <h4 class="tailor-slider-name" title="${tailor.shop_name || ''}">${tailor.shop_name || 'Tailor Shop'}</h4>
+                                <p class="tailor-slider-owner" title="${tailor.owner_name || ''}">${tailor.owner_name || 'Tailor Specialist'}</p>
                                 <div class="tailor-slider-rating">
                                     <span class="stars">${stars}</span>
-                                    <span class="rating-text">${tailor.rating} (${tailor.total_reviews})</span>
+                                    <span class="rating-text">${tailor.rating || '5.0'} (${tailor.total_reviews || 0})</span>
                                 </div>
-                                <p class="tailor-slider-location" title="${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}">
-                                    <i class="fas fa-map-marker-alt me-1"></i>${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}
+                                <p class="tailor-slider-location" title="${tailor.address ? tailor.address + ', ' : ''}${tailor.city || ''}, ${tailor.state || ''}">
+                                    <i class="fas fa-map-marker-alt me-1"></i>${tailor.address ? tailor.address + ', ' : ''}${tailor.city || ''}, ${tailor.state || ''}
                                 </p>
                                 ${specialties.length > 0 ? `
                                 <div class="tailor-slider-specialties">
@@ -2250,11 +1784,13 @@
                                     <a href="tailor.php?id=${tailor.id}" class="btn btn-outline-primary btn-icon" title="View Profile" aria-label="View Profile">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    ${tailor.phone ? `
                                     <a href="tel:${tailor.phone}" class="btn btn-outline-primary btn-icon" title="Call" aria-label="Call">
                                         <i class="fas fa-phone"></i>
                                     </a>
+                                    ` : ''}
                                     ${tailor.whatsapp ? `
-                                    <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-success btn-icon text-white" title="WhatsApp" aria-label="WhatsApp">
+                                    <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-whatsapp btn-icon" title="WhatsApp" aria-label="WhatsApp">
                                         <i class="fab fa-whatsapp"></i>
                                     </a>
                                     ` : ''}
@@ -2266,74 +1802,217 @@
             });
 
             slider.html(html);
-            initTailorsSlider();
+            initTailorsSlider(displayList.length);
         }
 
-        function initTailorsSlider() {
+        function initTailorsSlider(count) {
             if (typeof jQuery === 'undefined' || typeof jQuery.fn.slick === 'undefined') {
                 return;
             }
 
-            const applySliderConfig = () => {
-                const slider = jQuery('.tailors-slider');
-                if (!slider.length) {
-                    return;
-                }
-
-                if (window.innerWidth < 1200) {
-                    if (!slider.hasClass('slick-initialized')) {
-                        slider.slick({
-                            dots: true,
-                            infinite: true,
-                            speed: 500,
-                            slidesToShow: 4,
-                            slidesToScroll: 1,
-                            autoplay: true,
-                            autoplaySpeed: 3000,
-                            pauseOnHover: true,
-                            arrows: true,
-                            responsive: [
-                                {
-                                    breakpoint: 1200,
-                                    settings: {
-                                        slidesToShow: 3,
-                                        slidesToScroll: 1
-                                    }
-                                },
-                                {
-                                    breakpoint: 992,
-                                    settings: {
-                                        slidesToShow: 2,
-                                        slidesToScroll: 1
-                                    }
-                                },
-                                {
-                                    breakpoint: 768,
-                                    settings: {
-                                        slidesToShow: 1,
-                                        slidesToScroll: 1,
-                                        arrows: false
-                                    }
-                                }
-                            ]
-                        });
-                    }
-                } else if (slider.hasClass('slick-initialized')) {
-                    slider.slick('unslick');
-                }
-            };
-
-            applySliderConfig();
-
-            if (!window._tailorsSliderResizeBound) {
-                let resizeTimeout;
-                window.addEventListener('resize', () => {
-                    clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(applySliderConfig, 200);
-                });
-                window._tailorsSliderResizeBound = true;
+            const slider = jQuery('#tailorsSlider');
+            if (!slider.length) {
+                return;
             }
+
+            const totalSlides = typeof count === 'number' ? count : slider.find('.tailor-slide').length;
+            if (totalSlides === 0) {
+                return;
+            }
+
+            if (slider.hasClass('slick-initialized')) {
+                try {
+                    slider.slick('unslick');
+                } catch (e) {
+                    console.warn('Could not unslick before reinit:', e);
+                }
+            }
+
+            slider.slick({
+                dots: false,
+                infinite: totalSlides > 4,
+                speed: 600,
+                slidesToShow: 4,
+                slidesToScroll: 1,
+                autoplay: totalSlides > 4,
+                autoplaySpeed: 3500,
+                pauseOnHover: true,
+                arrows: totalSlides > 1,
+                prevArrow: '<button type="button" class="slick-prev slider-nav-circle" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>',
+                nextArrow: '<button type="button" class="slick-next slider-nav-circle" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>',
+                responsive: [
+                    {
+                        breakpoint: 1200,
+                        settings: {
+                            slidesToShow: Math.min(3, Math.max(1, totalSlides)),
+                            slidesToScroll: 1,
+                            infinite: totalSlides > 3,
+                            autoplay: totalSlides > 3,
+                            arrows: totalSlides > 1
+                        }
+                    },
+                    {
+                        breakpoint: 992,
+                        settings: {
+                            slidesToShow: Math.min(2, Math.max(1, totalSlides)),
+                            slidesToScroll: 1,
+                            infinite: totalSlides > 2,
+                            autoplay: totalSlides > 2,
+                            arrows: totalSlides > 1
+                        }
+                    },
+                    {
+                        breakpoint: 640,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            infinite: totalSlides > 1,
+                            autoplay: totalSlides > 1,
+                            arrows: false,
+                            dots: totalSlides > 1
+                        }
+                    }
+                ]
+            });
         }
+
+        // Initialize Interactive See It In Action Section
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.action-tab-btn');
+            const previewImg = document.getElementById('actionScreenImg');
+            const titleEl = document.getElementById('actionDetailsTitle');
+            const descEl = document.getElementById('actionDetailsDesc');
+            const checklistEl = document.getElementById('actionChecklist');
+            const prevBtn = document.getElementById('actionScreenPrev');
+            const nextBtn = document.getElementById('actionScreenNext');
+
+            if (tabs.length > 0 && previewImg) {
+                let currentIndex = 0;
+
+                function activateTab(index) {
+                    if (index < 0) index = tabs.length - 1;
+                    if (index >= tabs.length) index = 0;
+                    currentIndex = index;
+
+                    tabs.forEach((tab, i) => {
+                        if (i === currentIndex) {
+                            tab.classList.add('active');
+                            const img = tab.getAttribute('data-img');
+                            const title = tab.getAttribute('data-title');
+                            const desc = tab.getAttribute('data-desc');
+                            const bulletsRaw = tab.getAttribute('data-bullets');
+
+                            if (img) previewImg.src = img;
+                            if (title && titleEl) titleEl.textContent = title;
+                            if (desc && descEl) descEl.textContent = desc;
+
+                            if (bulletsRaw && checklistEl) {
+                                try {
+                                    const bullets = JSON.parse(bulletsRaw);
+                                    checklistEl.innerHTML = bullets.map(b => '<li><i class="fas fa-check-circle"></i> <span>' + b + '</span></li>').join('');
+                                } catch(e) {}
+                            }
+                        } else {
+                            tab.classList.remove('active');
+                        }
+                    });
+                }
+
+                tabs.forEach((tab, i) => {
+                    tab.addEventListener('click', () => activateTab(i));
+                });
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', () => activateTab(currentIndex - 1));
+                }
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', () => activateTab(currentIndex + 1));
+                }
+            }
+        });
+
+        
+        // Direction-Aware Hover Effect for Comprehensive Features Cards (Matches Codelock Solutions style)
+        (function() {
+            function getDirection(e, elem) {
+                var rect = elem.getBoundingClientRect();
+                var w = rect.width;
+                var h = rect.height;
+                var x = (e.clientX - rect.left - (w / 2)) * (w > h ? (h / w) : 1);
+                var y = (e.clientY - rect.top - (h / 2)) * (h > w ? (w / h) : 1);
+                return Math.round((((Math.atan2(y, x) * (180 / Math.PI)) + 180) / 90) + 3) % 4;
+            }
+
+            var transforms = [
+                'translate3d(0, -100%, 0)', // 0: Top
+                'translate3d(100%, 0, 0)',  // 1: Right
+                'translate3d(0, 100%, 0)',  // 2: Bottom
+                'translate3d(-100%, 0, 0)'  // 3: Left
+            ];
+
+            function initFeatureDirectionHover() {
+                var cards = document.querySelectorAll('.desktop-feature-card');
+                if (!cards.length) return;
+
+                cards.forEach(function(card) {
+                    var overlay = card.querySelector('.desktop-feature-hover-bg');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.className = 'desktop-feature-hover-bg';
+                        overlay.setAttribute('aria-hidden', 'true');
+                        card.prepend(overlay);
+                    }
+
+                    var hideTimer = null;
+
+                    card.addEventListener('mouseenter', function(e) {
+                        if (hideTimer) {
+                            clearTimeout(hideTimer);
+                            hideTimer = null;
+                        }
+                        var dir = getDirection(e, this);
+                        // Position outside at the entry edge without animation
+                        overlay.style.transition = 'none';
+                        overlay.style.transform = transforms[dir];
+                        overlay.style.opacity = '1';
+                        overlay.style.visibility = 'visible';
+
+                        // Force layout reflow
+                        void overlay.offsetHeight;
+
+                        // Slide into card
+                        overlay.style.transition = 'transform 0.36s cubic-bezier(0.25, 1, 0.5, 1)';
+                        overlay.style.transform = 'translate3d(0, 0, 0)';
+                        this.classList.add('is-hovered');
+                    });
+
+                    card.addEventListener('mouseleave', function(e) {
+                        var dir = getDirection(e, this);
+                        var currentCard = this;
+                        currentCard.classList.remove('is-hovered');
+
+                        // Slide out to the exit edge
+                        overlay.style.transition = 'transform 0.36s cubic-bezier(0.25, 1, 0.5, 1)';
+                        overlay.style.transform = transforms[dir];
+
+                        // Hide completely once exited so it never sticks out
+                        if (hideTimer) clearTimeout(hideTimer);
+                        hideTimer = setTimeout(function() {
+                            if (!currentCard.classList.contains('is-hovered')) {
+                                overlay.style.opacity = '0';
+                                overlay.style.visibility = 'hidden';
+                            }
+                        }, 370);
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initFeatureDirectionHover);
+            } else {
+                initFeatureDirectionHover();
+            }
+        })();
 
         function generateStars(rating) {
             const fullStars = Math.floor(rating);
@@ -2385,7 +2064,9 @@
 
     <script src="assets/js/script2.js"></script>
 
+    <?php require_once 'includes/whatsapp-button.php'; ?>
     </div>
+
     <script>
     function openMobDrawer() {
         document.getElementById('mobDrawer').classList.add('open');
@@ -2506,6 +2187,6 @@
     }
     document.addEventListener('DOMContentLoaded', loadMobileTailors);
     </script>
-    <?php require_once 'includes/whatsapp-button.php'; ?>
+
 </body>
 </html>

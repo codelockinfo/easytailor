@@ -4,23 +4,26 @@ require_once __DIR__ . '/../models/Company.php';
 
 $database = new Database();
 $db = $database->getConnection();
-$companyModel = new Company($db);
 
 $companies = [];
-try {
-    $companies = $companyModel->getActiveCompanies();
-} catch (Exception $e) {
-    $companies = [];
-}
-
 $tailors = [];
-try {
-    $tailorQuery = "SELECT id, full_name FROM users WHERE role = 'tailor' AND status = 'active' ORDER BY full_name ASC";
-    $tailorStmt = $db->prepare($tailorQuery);
-    $tailorStmt->execute();
-    $tailors = $tailorStmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (Exception $e) {
-    $tailors = [];
+
+if ($db) {
+    try {
+        $companyModel = new Company($db);
+        $companies = $companyModel->getActiveCompanies();
+    } catch (Throwable $e) {
+        $companies = [];
+    }
+
+    try {
+        $tailorQuery = "SELECT id, full_name FROM users WHERE role = 'tailor' AND status = 'active' ORDER BY full_name ASC";
+        $tailorStmt = $db->prepare($tailorQuery);
+        $tailorStmt->execute();
+        $tailors = $tailorStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        $tailors = [];
+    }
 }
 ?>
 <div id="testimonialPopup" class="testimonial-popup-overlay" style="display: none;">

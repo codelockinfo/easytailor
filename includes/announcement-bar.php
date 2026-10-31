@@ -1,10 +1,10 @@
 <?php
 $announcement = [
-    'message' => 'FREE TO USE, FREE REGISTRATION',
+    'message' => 'FREE TO USE, FREE FOR STITCHING EXPERTS — Find out and all tailors already joined us with Tailor',
     'link' => null,
     'link_text' => 'Register Now',
     'show_close_button' => true,
-    'bg_color' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'bg_color' => 'linear-gradient(90deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%)',
     'text_color' => '#ffffff',
     'icon' => 'fa-gift',
     'enabled' => true

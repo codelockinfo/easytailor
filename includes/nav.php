@@ -15,77 +15,62 @@ $faviconLinks = '
 
 $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';
 ?>
-<div class="mob-drawer-overlay" id="mobDrawerOverlay" onclick="closeMobDrawer()"></div>
-
-<div class="mob-drawer" id="mobDrawer">
-    <div class="mob-drawer-header">
-        <div class="mob-drawer-avatar"><i class="fas fa-user"></i></div>
-        <div class="mob-drawer-user">
-            <div class="mob-drawer-username">Welcome!</div>
-            <div class="mob-drawer-action">Tailoring Management</div>
-        </div>
-        <button class="mob-drawer-close" onclick="closeMobDrawer()" aria-label="Close menu"><i class="fas fa-times"></i></button>
+<!-- Mobile / Offcanvas Navigation Drawer -->
+<div class="site-drawer-overlay" id="siteDrawerOverlay" onclick="closeSiteDrawer()"></div>
+<div class="site-drawer" id="siteDrawer">
+    <div class="site-drawer-header">
+        <a class="desktop-nav-brand" href="<?php echo $basePath; ?>./" style="text-decoration:none;">
+            <i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span>
+        </a>
+        <button class="site-drawer-close" onclick="closeSiteDrawer()" aria-label="Close menu">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
-    <div class="mob-drawer-links">
-        <a href="<?php echo $basePath; ?>./" class="mob-drawer-link"><i class="fas fa-home"></i> Home</a>
-        <a href="<?php echo $basePath; ?>tailors.php" class="mob-drawer-link"><i class="fas fa-map-marker-alt"></i> Tailors Near You</a>
-        <a href="<?php echo $basePath; ?>tailors.php?cat=men" class="mob-drawer-link"><i class="fas fa-tshirt"></i> Categories</a>
-        <a href="<?php echo ($currentPage === 'index.php') ? '#how-it-works' : $basePath . './#how-it-works'; ?>" class="mob-drawer-link"><i class="fas fa-question-circle"></i> How It Works</a>
-        <a href="<?php echo $basePath; ?>admin/login.php" class="mob-drawer-link"><i class="fas fa-sign-in-alt"></i> Login</a>
-        <a href="<?php echo $basePath; ?>admin/register.php" class="mob-drawer-link"><i class="fas fa-user-plus"></i> Register Business</a>
-        <a href="<?php echo $basePath; ?>contact.php" class="mob-drawer-link"><i class="fas fa-envelope"></i> Contact Us</a>
-        <a href="<?php echo $basePath; ?>about.php" class="mob-drawer-link"><i class="fas fa-info-circle"></i> About Us</a>
-        <a href="<?php echo $basePath; ?>blog.php" class="mob-drawer-link"><i class="fas fa-newspaper"></i> Blog</a>
+    <div class="site-drawer-links">
+        <a href="<?php echo ($currentPage === 'index.php') ? '#home' : $basePath . './#home'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-home"></i> Home</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#about' : $basePath . './#about'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-info-circle"></i> About</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#features' : $basePath . './#features'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-th-large"></i> Features</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#tailors-near-you' : $basePath . './#tailors-near-you'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-map-marker-alt"></i> Tailor Shops</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#benefits' : $basePath . './#benefits'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-star"></i> Benefits</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#how-it-works' : $basePath . './#how-it-works'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-question-circle"></i> How It Works</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#screenshots' : $basePath . './#screenshots'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-laptop"></i> See It In Action</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#testimonials' : $basePath . './#testimonials'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-comment-dots"></i> Testimonials</a>
+        <a href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="<?php echo $basePath; ?>blog.php" class="site-drawer-link" onclick="closeSiteDrawer()"><i class="fas fa-newspaper"></i> Blog</a>
+    </div>
+    <div class="site-drawer-actions">
+        <a href="<?php echo $basePath; ?>admin/login.php" class="desktop-btn-login w-100 text-center">Login</a>
+        <a href="<?php echo $basePath; ?>admin/register.php" class="desktop-btn-register w-100 text-center">Register</a>
     </div>
 </div>
 
-<header class="mob-header">
-    <div class="mob-header-left">
-        <button class="mob-hamburger" onclick="openMobDrawer()" aria-label="Open menu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <a href="<?php echo $basePath; ?>./" style="text-decoration:none;">
-            <img src="<?php echo $basePath; ?>uploads/logos/main-logo.png" alt="TailorPro" class="mob-logo"
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-            <span class="mob-logo-text" style="display:none;"><i class="fas fa-cut" style="font-size:18px;"></i> Tai<span>lo</span>r</span>
-        </a>
-    </div>
-    <div class="mob-header-right">
-        <a href="<?php echo $basePath; ?>tailors.php?city=Surat" class="mob-location-chip" style="text-decoration:none;">
-            <i class="fas fa-map-marker-alt"></i> Surat, Gujarat <i class="fas fa-chevron-down"></i>
-        </a>
-        <a href="<?php echo $basePath; ?>admin/login.php" class="mob-avatar" aria-label="Profile">
-            <i class="fas fa-user"></i>
-        </a>
-    </div>
-</header>
-<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm d-none d-md-block">
+<!-- Main Top Navbar (Responsive for Desktop, Tablet, and Mobile) -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./">
-            <img src="<?php echo $basePath; ?>uploads/logos/main-logo.png" alt="TailorPro" class="navbar-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-            <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
+        <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
+            <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
         </a>
         
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center d-lg-none gap-2">
+            <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn px-2 py-1" style="font-size:12px;">Login</a>
+            <button class="navbar-toggler border-0 p-1" type="button" onclick="openSiteDrawer()" aria-label="Toggle navigation" style="box-shadow:none;">
+                <i class="fas fa-bars" style="font-size:20px; color:#4f46e5;"></i>
+            </button>
+        </div>
         
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+        <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item">
-                    <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#features' : $basePath . './#features'; ?>">Features</a>
+                    <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#features' : $basePath . './#features'; ?>">Features</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#benefits' : $basePath . './#benefits'; ?>">Benefits</a>
+                    <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#benefits' : $basePath . './#benefits'; ?>">Benefits</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" style="display: none;" href="<?php echo ($currentPage === 'index.php') ? '#pricing' : $basePath . './#pricing'; ?>">Pricing</a>
+                    <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>">Contact</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>">Contact</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="<?php echo $basePath; ?>blog.php">Blog</a>
+                    <a class="nav-link" href="<?php echo $basePath; ?>blog.php">Blog</a>
                 </li>
                 <li class="nav-item ms-3">
                     <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn">Login</a>
@@ -98,3 +83,19 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     </div>
 </nav>
 
+<script>
+function openSiteDrawer() {
+    var drawer = document.getElementById('siteDrawer');
+    var overlay = document.getElementById('siteDrawerOverlay');
+    if (drawer) drawer.classList.add('open');
+    if (overlay) overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeSiteDrawer() {
+    var drawer = document.getElementById('siteDrawer');
+    var overlay = document.getElementById('siteDrawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
+}
+</script>

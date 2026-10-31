@@ -96,6 +96,16 @@ $currentYear = date('Y');
                             <i class="fas fa-map-marker-alt me-2"></i>
                             <span>Silver business point, near vip circle, utran, Surat - 394105</span>
                         </div>
+                        <div class="mt-3">
+                            <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Follow Us:</div>
+                            <div class="footer-social-icons">
+                                <a href="https://www.facebook.com/" target="_blank" class="footer-social-btn fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.youtube.com/" target="_blank" class="footer-social-btn yt" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                                <a href="https://www.linkedin.com/" target="_blank" class="footer-social-btn li" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="https://www.instagram.com/" target="_blank" class="footer-social-btn ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                                <a href="https://wa.me/917600464414" target="_blank" class="footer-social-btn wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -117,6 +127,7 @@ $currentYear = date('Y');
             </div>
         </div>
     </div>
+<a href="<?php echo $basePath; ?>admin/register.php" class="floating-get-channel d-none d-md-flex"><i class="fas fa-paper-plane"></i> Get Started</a>
 </footer>
 <meta name="google-adsense-account" content="ca-pub-2821959013351742">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>

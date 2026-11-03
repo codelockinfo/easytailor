@@ -31,13 +31,23 @@ if (!empty($company['working_hours'])) {
 function escape($value) {
     return htmlspecialchars(htmlspecialchars_decode($value ?? '', ENT_QUOTES), ENT_QUOTES, 'UTF-8');
 }
+
+function getSpecialtyIcon($name) {
+    $lower = strtolower($name);
+    if (strpos($lower, 'suit') !== false) return 'fa-user-tie';
+    if (strpos($lower, 'shirt') !== false) return 'fa-tshirt';
+    if (strpos($lower, 'kurta') !== false || strpos($lower, 'pajama') !== false) return 'fa-shopping-bag';
+    if (strpos($lower, 'alter') !== false) return 'fa-cut';
+    if (strpos($lower, 'blouse') !== false || strpos($lower, 'gown') !== false || strpos($lower, 'lehenga') !== false || strpos($lower, 'saree') !== false) return 'fa-female';
+    return 'fa-check';
+}
 ?>
 <?php
 require_once 'helpers/SEOHelper.php';
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 $companyName = escape($company['company_name']);
 $companyDesc = !empty($company['description']) ? escape($company['description']) : ($companyName . ' - Professional tailor shop offering quality tailoring services. ' . (!empty($company['city']) ? 'Located in ' . escape($company['city']) : ''));
-$companyImage = !empty($company['logo']) ? $baseUrl . '/' . ltrim($company['logo'], '/') : $baseUrl . '/assets/images/og-image.jpg';
+$companyImage = !empty($company['logo']) ? $baseUrl . '/' . ltrim(str_replace(['../', './'], '', $company['logo']), '/') : $baseUrl . '/assets/images/og-image.jpg';
 $canonicalUrl = $baseUrl . '/tailor.php?id=' . $company['id'];
 $seoOptions = [
     'title' => $companyName . ' - Tailor Profile | ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
@@ -70,157 +80,724 @@ $seoOptions = [
         body {
             font-family: 'Inter', sans-serif;
             background: #f8f9fa;
+            color: #334155;
+            overflow-x: hidden;
         }
-        .navbar-logo {
-            width: 120px;
-            height: 70px;
-            transition: var(--transition);
-        }
-        .btn {
-            font-weight: 600;
-            padding: 0.75rem 2rem;
-            transition: var(--transition);
-        }
-        .btn-outline-light:hover {
-            color: #667eea;
-        }
+
+        /* ==========================================================================
+           DESKTOP HERO SECTION (MATCHES REFERENCE DESIGN EXACTLY)
+           ========================================================================== */
         .profile-hero {
-            background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
-            color: #fff;
-            padding: 90px 0 30px;
+            position: relative;
+            background-color: #5b21b6;
+            background-image: url('assets/images/tailor-hero-bg.png') !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            color: #ffffff;
+            padding: 55px 0 65px;
+            overflow: hidden;
         }
-        @media (max-width: 767px) {
-            .profile-hero {
-                padding: 24px 0 20px;
-            }
+
+        .profile-shop-img-box {
+            position: relative;
+            display: inline-block;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(12px);
+            border: 3px solid rgba(255, 255, 255, 0.55);
+            border-radius: 24px;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+            transition: transform 0.3s ease;
+            max-width: 100%;
         }
-        .profile-rating {
+        .profile-shop-img-box:hover {
+            transform: translateY(-3px);
+        }
+        .profile-shop-img {
+            width: 410px;
+            height: 285px;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 18px;
+            display: block;
+        }
+
+        .profile-shop-title {
+            font-size: 38px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-shop-desc {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 16px;
+            line-height: 1.55;
+            max-width: 780px;
+        }
+
+        .profile-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 5px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .profile-badge-verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #16a34a;
+            border-radius: 50px;
+            padding: 5px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+        }
+
+        .profile-address-line {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 14px 0 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-profile-call,
+        .btn-profile-email {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            color: #ffffff !important;
+            border-radius: 50px;
+            padding: 8px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            backdrop-filter: blur(6px);
+            transition: all 0.2s ease;
+        }
+        .btn-profile-call:hover,
+        .btn-profile-email:hover {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-profile-whatsapp {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #22c55e;
+            border: 1.5px solid #22c55e;
+            color: #ffffff !important;
+            border-radius: 50px;
+            padding: 8px 26px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-profile-whatsapp:hover {
+            background: #16a34a;
+            border-color: #16a34a;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* ==========================================================================
+           MAIN BODY SECTION & CARDS
+           ========================================================================== */
+        .profile-body-wrap {
+            padding: 42px 0 70px;
+            position: relative;
+        }
+
+        .profile-card {
+            background: #ffffff;
+            border: 1px solid #ede9fe;
+            border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(124, 58, 237, 0.05);
+            padding: 28px;
+            transition: box-shadow 0.25s ease;
+            position: relative;
+        }
+        .profile-card:hover {
+            box-shadow: 0 12px 34px rgba(124, 58, 237, 0.09);
+        }
+
+        .profile-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .profile-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #6366f1;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .profile-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .profile-about-address {
+            font-size: 14.5px;
+            color: #475569;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .profile-about-text {
+            font-size: 14.5px;
+            color: #475569;
+            line-height: 1.65;
+        }
+
+        .profile-subheading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin-bottom: 12px;
+        }
+
+        /* Specialties Pills */
+        .specialty-pill {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 999px;
-        }
-        .review-card {
-            border: 1px solid #edf2f7;
+            background: #f5f3ff;
+            border: 1.5px solid #ddd6fe;
+            color: #4f46e5;
             border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: #fff;
+            padding: 7px 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
-        .review-card img {
-            max-height: 160px;
+        .specialty-pill:hover {
+            background: #ede9fe;
+            color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .specialty-pill i {
+            color: #6366f1;
+            font-size: 13px;
+        }
+
+        /* Working Hours Card Layout */
+        .wh-card-layout {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            background: #faf8ff;
+            border: 1.5px solid #f1edff;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-top: 14px;
+        }
+
+        .wh-icon-box {
+            width: 72px;
+            height: 72px;
+            background: #ede9fe;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #6366f1;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.18);
+        }
+
+        .wh-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 32px;
+            flex: 1;
+        }
+
+        .wh-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13.5px;
+            gap: 10px;
+        }
+        .wh-day {
+            color: #475569;
+            font-weight: 500;
+            min-width: 82px;
+        }
+        .wh-time {
+            color: #1e1b4b;
+            font-weight: 600;
+        }
+        .wh-time.closed {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        /* Rating Breakdown Bars */
+        .rating-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+        .rating-star-label {
+            width: 38px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e1b4b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .rating-bar-track {
+            flex: 1;
+            height: 12px;
+            background: #eef2ff;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .rating-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+        .rating-count-label {
+            width: 24px;
+            text-align: right;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        /* Contact Card */
+        .contact-card-relative {
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-info-item {
+            display: flex;
+            align-items: center;
+            font-size: 14.5px;
+            color: #334155;
+        }
+        .contact-info-item i {
+            color: #6366f1 !important;
+            font-size: 16px;
+            width: 22px;
+        }
+        .contact-link {
+            color: #1e1b4b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .contact-link:hover {
+            color: #4f46e5;
+        }
+        .contact-card-envelope-decor {
+            position: absolute;
+            right: 18px;
+            bottom: 14px;
+            opacity: 0.9;
+            pointer-events: none;
+            transform: rotate(-6deg);
+        }
+
+        /* Customer Reviews Decorative Laurel Wreath */
+        .reviews-laurel-decor {
+            opacity: 0.95;
+            flex-shrink: 0;
+        }
+
+        /* Review Item Card (when reviews exist) */
+        .review-item-card {
+            background: #faf8ff;
+            border: 1px solid #ede9fe;
+            border-radius: 14px;
+            padding: 16px 20px;
+        }
+        .review-author {
+            color: #1e1b4b;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .review-item-text {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .review-item-img {
+            max-height: 120px;
+            border-radius: 8px;
             object-fit: cover;
-            border-radius: 10px;
         }
-        .star-rating-input {
+
+        /* Share Your Experience Form */
+        .profile-experience-card {
+            border: 1.5px solid #d8b4fe !important;
+            border-radius: 22px !important;
+            padding: 18px 26px 20px !important;
+            background: #ffffff;
+            box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.08), 0 0 0 1px rgba(196, 181, 253, 0.25) !important;
+            transition: all 0.3s ease;
+        }
+        .profile-experience-card:hover {
+            box-shadow: 0 14px 38px -5px rgba(124, 58, 237, 0.13), 0 0 0 1px rgba(167, 139, 250, 0.45) !important;
+        }
+        .profile-experience-card .profile-card-header {
+            margin-bottom: 8px;
+            padding-bottom: 0;
+        }
+        .profile-experience-card .profile-card-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        .clipboard-illustration-wrap {
+            width: 100%;
+            max-width: 270px;
+            min-height: 235px;
+            background: radial-gradient(circle at 50% 50%, rgba(238, 242, 255, 0.95) 0%, rgba(245, 243, 255, 0.5) 55%, transparent 75%);
+            border-radius: 24px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 0 24px rgba(196, 181, 253, 0.2);
+            overflow: visible;
+        }
+
+        .clipboard-3d-stage {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .clipboard-floating-img {
+            transform-origin: 50% 60%;
+            animation: floatClipboardTilt 3.6s ease-in-out infinite;
+            filter: drop-shadow(0 14px 26px rgba(99, 102, 241, 0.32));
+            transition: transform 0.3s ease, filter 0.3s ease;
+            cursor: pointer;
+            display: block;
+        }
+
+        .clipboard-floating-img:hover {
+            transform: rotate(-6deg) translateY(-8px) scale(1.05);
+            filter: drop-shadow(0 18px 32px rgba(99, 102, 241, 0.42));
+        }
+
+        .clipboard-ground-shadow {
+            width: 145px;
+            height: 14px;
+            background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.32) 0%, rgba(124, 58, 237, 0.08) 60%, transparent 80%);
+            border-radius: 50%;
+            margin-top: -6px;
+            animation: floatShadowPulse 3.6s ease-in-out infinite;
+        }
+            margin-top: -10px;
+            animation: floatShadowPulse 3.6s ease-in-out infinite;
+        }
+
+        @keyframes floatClipboardTilt {
+            0%, 100% {
+                transform: rotate(-10deg) translateY(0px);
+            }
+            50% {
+                transform: rotate(-6deg) translateY(-10px);
+            }
+        }
+
+        @keyframes floatShadowPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.9;
+            }
+            50% {
+                transform: scale(0.82);
+                opacity: 0.5;
+            }
+        }
+
+        .form-label-styled {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e1b4b;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .input-with-icon-wrap {
+            position: relative;
+        }
+        .input-with-icon-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 13.5px;
+            transition: color 0.2s ease;
+        }
+        .form-control-styled {
+            width: 100%;
+            padding: 8px 14px 8px 36px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13.5px;
+            color: #1e1b4b;
+            background: #fbfaff;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+        .form-control-styled::placeholder {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .form-control-styled:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+        }
+        .input-with-icon-wrap:focus-within i {
+            color: #7c3aed;
+        }
+        textarea.form-control-styled {
+            padding: 8px 14px;
+            min-height: 64px;
+            height: 64px;
+            resize: vertical;
+        }
+
+        /* Star Rating Custom */
+        .star-rating-custom {
             display: inline-flex;
             flex-direction: row-reverse;
             gap: 6px;
+            align-items: center;
         }
-        .star-rating-input input {
+        .star-rating-custom input {
             display: none;
         }
-        .star-rating-input label {
-            font-size: 2rem;
-            color: #e2e8f0;
+        .star-rating-custom label {
+            font-size: 20px;
+            color: #cbd5e1;
             cursor: pointer;
-            transition: color 0.2s ease;
+            transition: color 0.15s ease, transform 0.15s ease;
+            line-height: 1;
         }
-        .star-rating-input input:checked ~ label,
-        .star-rating-input label:hover,
-        .star-rating-input label:hover ~ label {
+        .star-rating-custom label:hover,
+        .star-rating-custom label:hover ~ label,
+        .star-rating-custom input:checked ~ label {
             color: #f59e0b;
+            text-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
         }
-        .container.py-5 {
-            padding-top: 2rem !important;
-            padding-bottom: 2rem !important;
+        .star-rating-custom label:hover {
+            transform: scale(1.18);
         }
 
-        @media (max-width: 767px) {
-            .navbar .container {
-                flex-direction: column;
-                max-width: 100%;
+        /* File Upload & Submit Button */
+        .review-file-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #fbfaff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 4px 14px 4px 5px;
+            transition: all 0.2s ease;
+        }
+        .review-file-bar:hover {
+            border-color: #c4b5fd;
+            background: #ffffff;
+        }
+        .file-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ede9fe;
+            border: none;
+            border-radius: 7px;
+            padding: 5px 14px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6366f1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .file-upload-btn:hover {
+            background: #ddd6fe;
+            color: #4f46e5;
+        }
+        .file-bar-name {
+            font-size: 12.5px;
+            color: #64748b;
+        }
+        .file-bar-limit {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-left: 8px;
+        }
+
+        .btn-submit-review {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            padding: 9px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-submit-review:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 22px rgba(124, 58, 237, 0.45);
+            color: #ffffff;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 991px) {
+            .profile-hero {
+                padding: 40px 0 45px;
             }
-            .navbar .ms-auto {
-                flex-direction: column;
+            .profile-shop-img {
                 width: 100%;
+                max-width: 280px;
+                height: 180px;
+                margin: 0 auto;
             }
-            .display-5.mb-2 {
-                font-size: 24px;
+            .profile-shop-title {
+                font-size: 28px;
             }
-            .lead.mb-3 {
-                font-size: 16px;
+            .wh-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
             }
-            .card-title {
-                font-size: 18px;
-            }
-        }
-        @media (max-width: 576px) {
-            .display-5.mb-2 {
-                font-size: 24px;
-            }
-            .lead.mb-3 {
-                font-size: 16px;
-            }
-            .card-title {
-                font-size: 18px;
-            }
-            .contact-buttons {
+            .wh-card-layout {
                 flex-direction: column;
-            }
-        }
-        @media (max-width: 422px) {
-            .review-stats {
-                flex-direction: column;
-                align-items: flex-start !important;
+                align-items: flex-start;
             }
         }
     </style>
 </head>
 <body>
     <?php require_once 'includes/nav.php'; ?>
-    <div class="profile-hero">
+
+    <!-- HERO SECTION -->
+    <section class="profile-hero">
         <div class="container">
             <div class="row align-items-center g-4">
-                <div class="col-md-4 text-center">
-                    <img src="<?php echo escape($company['logo'] ? ltrim(str_replace(['../', './'], '', $company['logo']), '/') : 'uploads/logos/default-shop.jpg'); ?>" alt="<?php echo escape($company['company_name']); ?>" class="img-fluid rounded shadow" style="max-height:370px; object-fit:cover;">
+                <div class="col-xl-4 col-lg-5 col-md-5 text-center text-md-start">
+                    <div class="profile-shop-img-box">
+                        <img src="<?php echo escape($company['logo'] ? ltrim(str_replace(['../', './'], '', $company['logo']), '/') : 'uploads/logos/default-shop.jpg'); ?>" 
+                             alt="<?php echo $companyName; ?>" 
+                             class="profile-shop-img"
+                             onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
+                    </div>
                 </div>
-                <div class="col-md-8">
-                    <h1 class="display-5 mb-2"><?php echo escape($company['company_name']); ?></h1>
-                    <p class="lead mb-3"><?php echo escape($company['description'] ?? ''); ?></p>
-                    <div class="d-flex flex-wrap align-items-center gap-3 review-stats">
-                        <div class="profile-rating">
+                <div class="col-xl-8 col-lg-7 col-md-7">
+                    <h1 class="profile-shop-title"><?php echo $companyName; ?></h1>
+                    <?php if (!empty($company['description'])): ?>
+                        <p class="profile-shop-desc"><?php echo escape($company['description']); ?></p>
+                    <?php endif; ?>
+                    
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <div class="profile-badge-pill">
                             <i class="fas fa-star text-warning"></i>
                             <strong><?php echo number_format($stats['average_rating'], 1); ?></strong>
-                            <span class="text-white-50"><?php echo (int)$stats['review_count']; ?> reviews</span>
+                            <span class="text-white-50 ms-1"><?php echo (int)$stats['review_count']; ?> reviews</span>
                         </div>
                         <?php if (!empty($company['years_experience'])): ?>
-                            <span><?php echo (int)$company['years_experience']; ?>+ yrs experience</span>
+                            <div class="profile-badge-pill">
+                                <span><?php echo (int)$company['years_experience']; ?>+ yrs experience</span>
+                            </div>
                         <?php endif; ?>
                         <?php if (!empty($company['is_verified'])): ?>
-                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
+                            <div class="profile-badge-verified">
+                                <i class="fas fa-check-circle me-1"></i>Verified
+                            </div>
                         <?php endif; ?>
                     </div>
+
                     <?php 
                     $fullAddressParts = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
                     if (!empty($fullAddressParts)): ?>
-                        <div class="mt-2 text-white-50" style="font-size: 0.95rem;">
-                            <i class="fas fa-map-marker-alt me-1 text-warning"></i><?php echo escape(implode(', ', $fullAddressParts)); ?>
+                        <div class="profile-address-line">
+                            <i class="fas fa-map-marker-alt text-warning me-2"></i><?php echo escape(implode(', ', $fullAddressParts)); ?>
                         </div>
                     <?php endif; ?>
-                    <div class="mt-3 d-flex flex-wrap gap-2 contact-buttons">
-                        <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $company['business_phone']); ?>" class="btn btn-outline-light">
+
+                    <div class="profile-actions-row">
+                        <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $company['business_phone']); ?>" class="btn-profile-call">
                             <i class="fas fa-phone me-2"></i>Call
                         </a>
-                        <?php if (!empty($company['whatsapp'])): ?>
-                            <a href="https://wa.me/<?php echo preg_replace('/[^0-9]/', '', $company['whatsapp']); ?>" target="_blank" class="btn btn-success">
+                        <?php 
+                        $waNumber = !empty($company['whatsapp']) ? $company['whatsapp'] : $company['business_phone'];
+                        if (!empty($waNumber)): ?>
+                            <a href="https://wa.me/<?php echo preg_replace('/[^0-9]/', '', $waNumber); ?>" target="_blank" class="btn-profile-whatsapp">
                                 <i class="fab fa-whatsapp me-2"></i>WhatsApp
                             </a>
                         <?php endif; ?>
                         <?php if (!empty($company['business_email'])): ?>
-                            <a href="mailto:<?php echo escape($company['business_email']); ?>" class="btn btn-outline-light">
+                            <a href="mailto:<?php echo escape($company['business_email']); ?>" class="btn-profile-email">
                                 <i class="fas fa-envelope me-2"></i>Email
                             </a>
                         <?php endif; ?>
@@ -228,150 +805,334 @@ $seoOptions = [
                 </div>
             </div>
         </div>
-    </div>
-    <div class="container py-5">
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h4 class="card-title mb-3">About</h4>
-                        <?php 
-                        $fullAboutAddress = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
-                        if (!empty($fullAboutAddress)): ?>
-                            <p><i class="fas fa-map-marker-alt text-primary me-2"></i><?php echo escape(implode(', ', $fullAboutAddress)); ?></p>
-                        <?php endif; ?>
-                        <?php if ($specialties): ?>
-                            <h6>Specialties</h6>
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <?php foreach ($specialties as $specialty): ?>
-                                    <span class="badge bg-light text-dark"><?php echo escape($specialty); ?></span>
+    </section>
+
+    <!-- MAIN BODY SECTION -->
+    <section class="profile-body-wrap">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Left Column: About Card -->
+                <div class="col-lg-7">
+                    <div class="profile-card h-100 mb-0">
+                        <div class="profile-card-header">
+                            <span class="profile-card-icon"><i class="fas fa-info"></i></span>
+                            <h3 class="profile-card-title">About</h3>
+                        </div>
+                        <div class="profile-card-body">
+                            <?php 
+                            $fullAboutAddress = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
+                            if (!empty($fullAboutAddress)): ?>
+                                <div class="profile-about-address mb-3">
+                                    <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
+                                    <span><?php echo escape(implode(', ', $fullAboutAddress)); ?></span>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($company['description'])): ?>
+                                <p class="profile-about-text mb-4"><?php echo escape($company['description']); ?></p>
+                            <?php endif; ?>
+
+                            <?php if (!empty($specialties)): ?>
+                                <div class="profile-subheading">
+                                    <i class="fas fa-tag text-primary"></i>
+                                    <span>Specialties</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    <?php foreach ($specialties as $specialty): ?>
+                                        <span class="specialty-pill">
+                                            <i class="fas <?php echo getSpecialtyIcon($specialty); ?>"></i>
+                                            <?php echo escape($specialty); ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($workingHours)): ?>
+                                <div class="profile-subheading">
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    <span>Working Hours</span>
+                                </div>
+                                <div class="wh-card-layout">
+                                    <div class="wh-icon-box">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <div class="wh-grid">
+                                        <?php 
+                                        $whKeys = array_keys($workingHours);
+                                        $halfCount = (int)ceil(count($whKeys) / 2);
+                                        $col1Keys = array_slice($whKeys, 0, $halfCount);
+                                        $col2Keys = array_slice($whKeys, $halfCount);
+                                        ?>
+                                        <div class="wh-col">
+                                            <?php foreach ($col1Keys as $day): 
+                                                $hrs = $workingHours[$day] ?? '';
+                                                $isClosed = (stripos($hrs, 'closed') !== false);
+                                            ?>
+                                                <div class="wh-item mb-2">
+                                                    <span class="wh-day"><?php echo escape(ucfirst($day)); ?></span>
+                                                    <span class="wh-time <?php echo $isClosed ? 'closed' : ''; ?>"><?php echo escape($hrs); ?></span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <div class="wh-col">
+                                            <?php foreach ($col2Keys as $day): 
+                                                $hrs = $workingHours[$day] ?? '';
+                                                $isClosed = (stripos($hrs, 'closed') !== false);
+                                            ?>
+                                                <div class="wh-item mb-2">
+                                                    <span class="wh-day"><?php echo escape(ucfirst($day)); ?></span>
+                                                    <span class="wh-time <?php echo $isClosed ? 'closed' : ''; ?>"><?php echo escape($hrs); ?></span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Rating Breakdown & Contact Cards -->
+                <div class="col-lg-5 d-flex flex-column gap-4">
+                    <!-- Rating Breakdown Card -->
+                    <div class="profile-card mb-0">
+                        <div class="profile-card-header">
+                            <span class="profile-card-icon"><i class="fas fa-star"></i></span>
+                            <h3 class="profile-card-title">Rating Breakdown</h3>
+                        </div>
+                        <div class="profile-card-body">
+                            <?php for ($i = 5; $i >= 1; $i--) :
+                                $count = $breakdown[$i] ?? 0;
+                                $percent = $stats['review_count'] ? round(($count / $stats['review_count']) * 100) : 0;
+                            ?>
+                                <div class="rating-bar-row">
+                                    <span class="rating-star-label"><?php echo $i; ?> <i class="fas fa-star" style="font-size:11px; color:#fbbf24;"></i></span>
+                                    <div class="rating-bar-track">
+                                        <div class="rating-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
+                                    </div>
+                                    <span class="rating-count-label"><?php echo $count; ?></span>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+
+                    <!-- Contact Card -->
+                    <div class="profile-card contact-card-relative mb-0 flex-grow-1">
+                        <div class="profile-card-header">
+                            <span class="profile-card-icon"><i class="fas fa-phone"></i></span>
+                            <h3 class="profile-card-title">Contact</h3>
+                        </div>
+                        <div class="profile-card-body">
+                            <div class="contact-info-item mb-3">
+                                <i class="fas fa-phone text-primary me-3"></i>
+                                <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $company['business_phone']); ?>" class="contact-link">
+                                    <?php echo escape($company['business_phone']); ?>
+                                </a>
+                            </div>
+                            <?php if (!empty($company['business_email'])): ?>
+                                <div class="contact-info-item mb-2">
+                                    <i class="fas fa-envelope text-primary me-3"></i>
+                                    <a href="mailto:<?php echo escape($company['business_email']); ?>" class="contact-link">
+                                        <?php echo escape($company['business_email']); ?>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <!-- 3D Decorative Envelope Icon on Bottom Right -->
+                        <div class="contact-card-envelope-decor" aria-hidden="true">
+                            <svg width="78" height="62" viewBox="0 0 78 62" fill="none">
+                                <g filter="drop-shadow(0 6px 14px rgba(124, 58, 237, 0.2))">
+                                    <rect x="5" y="6" width="68" height="48" rx="14" fill="#ede9fe"/>
+                                    <path d="M8 11L39 34L70 11" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8 50L29 30" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round"/>
+                                    <path d="M70 50L49 30" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round"/>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Reviews Card (Full Width) -->
+                <div class="col-12">
+                    <div class="profile-card mb-0">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="profile-card-icon"><i class="fas fa-comment-dots"></i></span>
+                                    <h3 class="profile-card-title mb-0">Customer Reviews</h3>
+                                </div>
+                                <?php if (empty($reviews)): ?>
+                                    <p class="text-muted mb-0 ms-0 ms-md-5 ps-0 ps-md-1">No reviews yet. Be the first to share your experience!</p>
+                                <?php else: ?>
+                                    <p class="text-muted mb-0 ms-0 ms-md-5 ps-0 ps-md-1">Showing <?php echo count($reviews); ?> approved customer reviews.</p>
+                                <?php endif; ?>
+                            </div>
+                           
+                        </div>
+
+                        <?php if (!empty($reviews)): ?>
+                            <div class="row g-3 mt-3">
+                                <?php foreach ($reviews as $review): ?>
+                                    <div class="col-md-6">
+                                        <div class="review-item-card">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong class="review-author"><?php echo escape($review['reviewer_name']); ?></strong>
+                                                    <div class="small text-muted"><?php echo date('M d, Y', strtotime($review['created_at'])); ?></div>
+                                                </div>
+                                                <div class="text-warning">
+                                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                        <i class="<?php echo $i <= (int)$review['rating'] ? 'fas' : 'far'; ?> fa-star"></i>
+                                                    <?php endfor; ?>
+                                                </div>
+                                            </div>
+                                            <?php if (!empty($review['review_text'])): ?>
+                                                <p class="review-item-text mb-0"><?php echo escape($review['review_text']); ?></p>
+                                            <?php endif; ?>
+                                            <?php if (!empty($review['review_image'])): ?>
+                                                <img src="<?php echo escape($review['review_image']); ?>" alt="Review photo" class="review-item-img mt-2">
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
-                        <?php if ($workingHours): ?>
-                            <h6>Working Hours</h6>
-                            <?php foreach ($workingHours as $day => $hours): ?>
-                                <div class="d-flex justify-content-between small">
-                                    <span class="text-muted"><?php echo escape($day); ?></span>
-                                    <span><?php echo escape($hours); ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
                     </div>
                 </div>
 
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h4 class="card-title mb-3">Customer Reviews</h4>
-                        <?php if (empty($reviews)): ?>
-                            <p class="text-muted">No reviews yet. Be the first to share your experience!</p>
-                        <?php else: ?>
-                            <?php foreach ($reviews as $review): ?>
-                                <div class="review-card">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <strong><?php echo escape($review['reviewer_name']); ?></strong>
-                                            <div class="small text-muted"><?php echo date('M d, Y', strtotime($review['created_at'])); ?></div>
+                <!-- Share Your Experience Card (Full Width) -->
+                <div class="col-12">
+                    <div class="profile-card profile-experience-card mb-0">
+                        <div class="profile-card-header">
+                            <span class="profile-card-icon"><i class="fas fa-edit"></i></span>
+                            <h3 class="profile-card-title">Share Your Experience</h3>
+                        </div>
+
+                        <div class="row align-items-start g-4">
+                            <!-- Left 3D Vector Illustration (Desktop) -->
+                            <div class="col-lg-3 d-none d-lg-flex align-items-center justify-content-center">
+                                <div class="clipboard-illustration-wrap">
+                                    <div class="clipboard-3d-stage">
+                                        <svg class="clipboard-floating-img" width="235" height="260" viewBox="15 8 152 192" fill="none">
+                                            <rect x="25" y="24" width="130" height="170" rx="20" fill="url(#clipboardGrad)" filter="drop-shadow(0 10px 20px rgba(99, 102, 241, 0.28))"/>
+                                            <rect x="36" y="38" width="108" height="144" rx="12" fill="#ffffff"/>
+                                            <rect x="62" y="14" width="56" height="22" rx="8" fill="#e0e7ff"/>
+                                            <rect x="74" y="18" width="32" height="8" rx="4" fill="#6366f1"/>
+                                            <path d="M54 58L55.5 61.5L59 62L56.5 64.5L57.2 68L54 66.2L50.8 68L51.5 64.5L49 62L52.5 61.5L54 58Z" fill="#fbbf24"/>
+                                            <path d="M68 58L69.5 61.5L73 62L70.5 64.5L71.2 68L68 66.2L64.8 68L65.5 64.5L63 62L66.5 61.5L68 58Z" fill="#fbbf24"/>
+                                            <path d="M82 58L83.5 61.5L87 62L84.5 64.5L85.2 68L82 66.2L78.8 68L79.5 64.5L77 62L80.5 61.5L82 58Z" fill="#fbbf24"/>
+                                            <rect x="48" y="80" width="16" height="16" rx="4" fill="#ede9fe"/>
+                                            <path d="M52 88L55 91L60 84" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <line x1="70" y1="88" x2="124" y2="88" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+                                            <rect x="48" y="106" width="16" height="16" rx="4" fill="#ede9fe"/>
+                                            <path d="M52 114L55 117L60 110" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <line x1="70" y1="114" x2="116" y2="114" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+                                            <rect x="48" y="132" width="16" height="16" rx="4" fill="#ede9fe"/>
+                                            <path d="M52 140L55 143L60 136" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <line x1="70" y1="140" x2="120" y2="140" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+                                            <g transform="rotate(32 145 125)">
+                                                <rect x="135" y="60" width="10" height="90" rx="5" fill="#4f46e5"/>
+                                                <path d="M135 150L140 162L145 150Z" fill="#f59e0b"/>
+                                                <rect x="136" y="62" width="8" height="12" rx="2" fill="#c7d2fe"/>
+                                            </g>
+                                            <defs>
+                                                <linearGradient id="clipboardGrad" x1="25" y1="24" x2="155" y2="194" gradientUnits="userSpaceOnUse">
+                                                    <stop stop-color="#818cf8"/>
+                                                    <stop offset="1" stop-color="#6366f1"/>
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        <div class="clipboard-ground-shadow"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Form -->
+                            <div class="col-lg-9">
+                                <form method="POST" action="ajax/submit_tailor_review.php" id="profileReviewForm" enctype="multipart/form-data">
+                                    <input type="hidden" name="company_id" value="<?php echo (int)$companyId; ?>">
+                                    
+                                    <div class="row g-3 mb-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label-styled">Your Name *</label>
+                                            <div class="input-with-icon-wrap">
+                                                <i class="fas fa-user"></i>
+                                                <input type="text" name="reviewer_name" class="form-control-styled" placeholder="Enter your name" required>
+                                            </div>
                                         </div>
-                                        <div class="text-warning">
-                                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                <i class="<?php echo $i <= (int)$review['rating'] ? 'fas' : 'far'; ?> fa-star"></i>
-                                            <?php endfor; ?>
+                                        <div class="col-md-6">
+                                            <label class="form-label-styled">Email (optional)</label>
+                                            <div class="input-with-icon-wrap">
+                                                <i class="fas fa-envelope"></i>
+                                                <input type="email" name="reviewer_email" class="form-control-styled" placeholder="Enter your email">
+                                            </div>
                                         </div>
                                     </div>
-                                    <?php if (!empty($review['review_text'])): ?>
-                                        <p class="mt-2 mb-0"><?php echo escape($review['review_text']); ?></p>
-                                    <?php endif; ?>
-                                    <?php if (!empty($review['review_image'])): ?>
-                                        <img src="<?php echo escape($review['review_image']); ?>" alt="Review" class="mt-3">
-                                    <?php endif; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
 
-                <div class="card shadow-sm mt-4">
-                    <div class="card-body">
-                        <h4 class="card-title mb-3">Share Your Experience</h4>
-                        <form method="POST" action="ajax/submit_tailor_review.php" id="profileReviewForm" enctype="multipart/form-data">
-                            <input type="hidden" name="company_id" value="<?php echo (int)$companyId; ?>">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Your Name *</label>
-                                    <input type="text" name="reviewer_name" class="form-control" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email (optional)</label>
-                                    <input type="email" name="reviewer_email" class="form-control">
-                                </div>
+                                    <div class="mb-2">
+                                        <label class="form-label-styled">Rating *</label>
+                                        <div class="star-rating-custom">
+                                            <input type="radio" id="profileRating5" name="rating" value="5" required>
+                                            <label for="profileRating5" title="5 stars"><i class="fas fa-star"></i></label>
+                                            <input type="radio" id="profileRating4" name="rating" value="4">
+                                            <label for="profileRating4" title="4 stars"><i class="fas fa-star"></i></label>
+                                            <input type="radio" id="profileRating3" name="rating" value="3">
+                                            <label for="profileRating3" title="3 stars"><i class="fas fa-star"></i></label>
+                                            <input type="radio" id="profileRating2" name="rating" value="2">
+                                            <label for="profileRating2" title="2 stars"><i class="fas fa-star"></i></label>
+                                            <input type="radio" id="profileRating1" name="rating" value="1">
+                                            <label for="profileRating1" title="1 star"><i class="fas fa-star"></i></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label-styled">Review</label>
+                                        <textarea name="review_text" class="form-control-styled" rows="2" placeholder="Share details about your experience (optional)"></textarea>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-2 pt-1">
+                                        <div>
+                                            <label class="form-label-styled mb-1">Upload Image (optional)</label>
+                                            <div class="review-file-bar">
+                                                <label class="file-upload-btn mb-0" for="reviewImageInput">
+                                                    <i class="fas fa-paperclip"></i>
+                                                    <span>Choose File</span>
+                                                </label>
+                                                <input type="file" name="review_image" id="reviewImageInput" accept="image/*" style="display:none;">
+                                                <span id="fileNameDisplay" class="file-bar-name">No file chosen</span>
+                                                <span class="file-bar-limit">Maximum size 3MB.</span>
+                                            </div>
+                                        </div>
+                                        <div class="pt-2 pt-sm-0">
+                                            <button type="submit" class="btn-submit-review">
+                                                <i class="fas fa-paper-plane me-2"></i> Submit Review
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p id="profileReviewMessage" class="small mt-2 mb-0"></p>
+                                </form>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Rating *</label>
-                                <div class="star-rating-input">
-                                    <input type="radio" id="profileRating5" name="rating" value="5">
-                                    <label for="profileRating5"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="profileRating4" name="rating" value="4">
-                                    <label for="profileRating4"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="profileRating3" name="rating" value="3">
-                                    <label for="profileRating3"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="profileRating2" name="rating" value="2">
-                                    <label for="profileRating2"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="profileRating1" name="rating" value="1">
-                                    <label for="profileRating1"><i class="fas fa-star"></i></label>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Review</label>
-                                <textarea name="review_text" class="form-control" rows="3" placeholder="Share details about your experience (optional)"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Upload Image (optional)</label>
-                                <input type="file" name="review_image" class="form-control" accept="image/*">
-                                <div class="form-text">Maximum size 3MB.</div>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Review</button>
-                            <p id="profileReviewMessage" class="small mt-3"></p>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Rating Breakdown</h5>
-                        <?php for ($i = 5; $i >= 1; $i--) :
-                            $count = $breakdown[$i] ?? 0;
-                            $percent = $stats['review_count'] ? round(($count / $stats['review_count']) * 100) : 0;
-                        ?>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <span style="width:40px;"><?php echo $i; ?> ★</span>
-                                <div class="progress flex-grow-1">
-                                    <div class="progress-bar bg-warning" style="width: <?php echo $percent; ?>%;"></div>
-                                </div>
-                                <span style="width:30px;" class="text-muted text-end"><?php echo $count; ?></span>
-                            </div>
-                        <?php endfor; ?>
-                    </div>
-                </div>
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Contact</h5>
-                        <p><i class="fas fa-phone me-2 text-primary"></i><?php echo escape($company['business_phone']); ?></p>
-                        <?php if (!empty($company['business_email'])): ?>
-                            <p><i class="fas fa-envelope me-2 text-primary"></i><?php echo escape($company['business_email']); ?></p>
-                        <?php endif; ?>
-                        <?php if (!empty($company['website'])): ?>
-                            <p><i class="fas fa-globe me-2 text-primary"></i><a href="<?php echo escape($company['website']); ?>" target="_blank">Website</a></p>
-                        <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
     <?php require_once 'includes/footer.php'; ?>
 
     <script>
+    // File input label update
+    const fileInput = document.getElementById('reviewImageInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const fileName = e.target.files && e.target.files[0] ? e.target.files[0].name : 'No file chosen';
+            document.getElementById('fileNameDisplay').textContent = fileName;
+        });
+    }
+
+    // Submit review form via AJAX
     document.getElementById('profileReviewForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const form = e.target;
@@ -393,6 +1154,7 @@ $seoOptions = [
                 messageEl.textContent = data.message;
                 messageEl.className = 'small text-success';
                 form.reset();
+                document.getElementById('fileNameDisplay').textContent = 'No file chosen';
                 setTimeout(() => window.location.reload(), 1200);
             })
             .catch(error => {
@@ -400,6 +1162,7 @@ $seoOptions = [
                 messageEl.className = 'small text-danger';
             });
     });
+
     <?php
     require_once 'helpers/GA4Helper.php';
     $pageTitle = $companyName . ' - Tailor Profile';
@@ -432,7 +1195,7 @@ $seoOptions = [
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <?php require_once 'includes/whatsapp-button.php'; ?>
-<script src="assets/js/script2.js"></script>
-<?php require_once 'includes/go-to-top-button.php'; ?>
+    <script src="assets/js/script2.js"></script>
+    <?php require_once 'includes/go-to-top-button.php'; ?>
 </body>
 </html>

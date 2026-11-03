@@ -241,6 +241,25 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     flex-direction: column;
     gap: 10px;
 }
+
+/* Container Width Override - Matches Homepage 1700px */
+.container,
+.container-fluid,
+.container-xl,
+.container-xxl {
+    max-width: 1700px !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+}
+@media (max-width: 768px) {
+    .container,
+    .container-fluid,
+    .container-xl,
+    .container-xxl {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+}
 </style>
 
 <?php require_once __DIR__ . '/announcement-bar.php'; ?>

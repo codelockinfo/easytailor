@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793687746" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793689895" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1129,44 +1129,88 @@
                 <!-- Left spacer column reserved for the 3D tailor illustration in background -->
                
 <div class="col-lg-5 d-none d-lg-flex benefits-spacer-col">
-    <div class="tailor-visual">
+    <div class="tailor-visual" id="tailorVisual">
 
-        <!-- Decorative Circles -->
+        <!-- Ambient Sonar Glow Rings -->
+        <div class="orbit-glow-ring ring-1"></div>
+        <div class="orbit-glow-ring ring-2"></div>
+
+        <!-- Decorative Orbit Circles -->
         <div class="orbit orbit-one"></div>
         <div class="orbit orbit-two"></div>
 
-        <!-- Center Person -->
-        <div class="tailor-person">
-            <img src="assets/images/person.png" alt="Professional Tailor">
+        <!-- Center Person with Glowing Aura Frame -->
+        <div class="tailor-person-wrap">
+            <div class="tailor-aura-ring"></div>
+            <div class="tailor-person">
+                <img src="assets/images/person.png" alt="Professional Tailor">
+            </div>
         </div>
 
-        <!-- Floating Icons -->
-        <div class="floating-icon icon-one">
-            <i class="fas fa-stopwatch"></i>
-        </div>
+        <!-- Revolving Planetary Orbit Track (Icons rotate in a circle around tailor) -->
+        <div class="orbit-carousel-track" id="orbitCarouselTrack">
+            <div class="orbit-item" style="--angle: 0deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-one" data-benefit="benefit-time" role="button" aria-label="Save Time & Reduce Manual Work">
+                        <i class="fas fa-stopwatch"></i>
+                        <span class="icon-tooltip">Save Time</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="floating-icon icon-two">
-            <i class="fas fa-clipboard-check"></i>
-        </div>
+            <div class="orbit-item" style="--angle: 51.4deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-two" data-benefit="benefit-orders" role="button" aria-label="Track Orders & Deliveries Effortlessly">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span class="icon-tooltip">Digital Orders</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="floating-icon icon-three">
-            <i class="fas fa-chart-line"></i>
-        </div>
+            <div class="orbit-item" style="--angle: 102.9deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-three" data-benefit="benefit-growth" role="button" aria-label="Grow Your Business Digitally">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="icon-tooltip">Business Growth</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="floating-icon icon-four">
-            <i class="fas fa-shield-alt"></i>
-        </div>
+            <div class="orbit-item" style="--angle: 154.3deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-four" data-benefit="benefit-security" role="button" aria-label="Secure & Reliable Platform">
+                        <i class="fas fa-shield-alt"></i>
+                        <span class="icon-tooltip">Data Security</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="floating-icon icon-five">
-            <i class="fas fa-cloud-upload-alt"></i>
-        </div>
+            <div class="orbit-item" style="--angle: 205.7deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-five" data-benefit="benefit-cloud" role="button" aria-label="Access Anywhere, Anytime">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span class="icon-tooltip">Cloud Access</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="floating-icon icon-six">
-            <i class="fas fa-ruler-combined"></i>
-        </div>
+            <div class="orbit-item" style="--angle: 257.1deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-six" data-benefit="benefit-accuracy" role="button" aria-label="Improve Measurement Accuracy">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span class="icon-tooltip">Precision Fit</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="floating-icon icon-seven">
-            <i class="fas fa-cut"></i>
+            <div class="orbit-item" style="--angle: 308.6deg;">
+                <div class="orbit-counter-rotate">
+                    <div class="floating-icon icon-seven" data-benefit="benefit-all" role="button" aria-label="Tailor Pro Tools">
+                        <i class="fas fa-cut"></i>
+                        <span class="icon-tooltip">Tailor Pro Tools</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Decorative Dots -->
@@ -1177,45 +1221,57 @@
 
                 <div class="col-lg-7">
                     <div class="benefits-grid">
-                        <div class="desktop-benefit-item">
+                        <div class="desktop-benefit-item" data-benefit="benefit-time" role="button" aria-label="Save Time & Reduce Manual Work">
+                            <div class="holo-foil" aria-hidden="true"></div>
+                            <div class="holo-glare" aria-hidden="true"></div>
                             <div class="desktop-benefit-icon blue"><i class="fas fa-clock"></i></div>
-                            <div>
-                                <h4 class="desktop-benefit-title">Save Time & Reduce Manual Work</h4>
+                            <div class="desktop-benefit-content">
+                                <h4 class="desktop-benefit-title">Save Time &amp; Reduce Manual Work</h4>
                                 <p class="desktop-benefit-desc">Automate repetitive tasks and save hours for what matters most.</p>
                             </div>
                         </div>
-                        <div class="desktop-benefit-item">
-                            <div class="desktop-benefit-icon purple"><i class="fas fa-bullseye"></i></div>
-                            <div>
+                        <div class="desktop-benefit-item" data-benefit="benefit-accuracy" role="button" aria-label="Improve Measurement Accuracy">
+                            <div class="holo-foil" aria-hidden="true"></div>
+                            <div class="holo-glare" aria-hidden="true"></div>
+                            <div class="desktop-benefit-icon purple"><i class="fas fa-ruler-combined"></i></div>
+                            <div class="desktop-benefit-content">
                                 <h4 class="desktop-benefit-title">Improve Measurement Accuracy</h4>
                                 <p class="desktop-benefit-desc">Digital measurement storage reduces errors and improves consistency.</p>
                             </div>
                         </div>
-                        <div class="desktop-benefit-item">
-                            <div class="desktop-benefit-icon blue"><i class="fas fa-route"></i></div>
-                            <div>
-                                <h4 class="desktop-benefit-title">Track Orders & Deliveries Effortlessly</h4>
+                        <div class="desktop-benefit-item" data-benefit="benefit-orders" role="button" aria-label="Track Orders & Deliveries Effortlessly">
+                            <div class="holo-foil" aria-hidden="true"></div>
+                            <div class="holo-glare" aria-hidden="true"></div>
+                            <div class="desktop-benefit-icon blue"><i class="fas fa-clipboard-check"></i></div>
+                            <div class="desktop-benefit-content">
+                                <h4 class="desktop-benefit-title">Track Orders &amp; Deliveries Effortlessly</h4>
                                 <p class="desktop-benefit-desc">Real-time tracking keeps you and your customers informed.</p>
                             </div>
                         </div>
-                        <div class="desktop-benefit-item">
+                        <div class="desktop-benefit-item" data-benefit="benefit-growth" role="button" aria-label="Grow Your Business Digitally">
+                            <div class="holo-foil" aria-hidden="true"></div>
+                            <div class="holo-glare" aria-hidden="true"></div>
                             <div class="desktop-benefit-icon purple"><i class="fas fa-chart-line"></i></div>
-                            <div>
+                            <div class="desktop-benefit-content">
                                 <h4 class="desktop-benefit-title">Grow Your Business Digitally</h4>
                                 <p class="desktop-benefit-desc">Scale your tailoring business with digital tools that grow with you.</p>
                             </div>
                         </div>
-                        <div class="desktop-benefit-item">
-                            <div class="desktop-benefit-icon blue"><i class="fas fa-cloud"></i></div>
-                            <div>
+                        <div class="desktop-benefit-item" data-benefit="benefit-cloud" role="button" aria-label="Access Anywhere, Anytime">
+                            <div class="holo-foil" aria-hidden="true"></div>
+                            <div class="holo-glare" aria-hidden="true"></div>
+                            <div class="desktop-benefit-icon blue"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <div class="desktop-benefit-content">
                                 <h4 class="desktop-benefit-title">Access Anywhere, Anytime</h4>
                                 <p class="desktop-benefit-desc">Cloud-based platform lets you manage from anywhere.</p>
                             </div>
                         </div>
-                        <div class="desktop-benefit-item">
+                        <div class="desktop-benefit-item" data-benefit="benefit-security" role="button" aria-label="Secure & Reliable Platform">
+                            <div class="holo-foil" aria-hidden="true"></div>
+                            <div class="holo-glare" aria-hidden="true"></div>
                             <div class="desktop-benefit-icon purple"><i class="fas fa-shield-alt"></i></div>
-                            <div>
-                                <h4 class="desktop-benefit-title">Secure & Reliable Platform</h4>
+                            <div class="desktop-benefit-content">
+                                <h4 class="desktop-benefit-title">Secure &amp; Reliable Platform</h4>
                                 <p class="desktop-benefit-desc">Your data is protected with industry-grade security and 99.9% uptime.</p>
                             </div>
                         </div>
@@ -1401,7 +1457,7 @@
     ];
 
     $displayTestimonials = !empty($testimonials) ? array_merge($testimonials, $defaultReviews) : $defaultReviews;
-    $displayTestimonials = array_slice($displayTestimonials, 0, 4);
+    $displayTestimonials = array_slice($displayTestimonials, 0, 12);
     ?>
     <section id="testimonials" class="testimonials-section">
         <div class="container">
@@ -1412,7 +1468,12 @@
                     Join hundreds of successful tailoring businesses that trust our platform.
                 </p>
             </div>
-            <div class="testimonials-desktop-track">
+            <div class="testimonials-slider-container">
+                <button type="button" class="testimonial-nav-btn prev" id="testimonialPrev" aria-label="Previous testimonials">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="testimonials-slider-wrapper" id="testimonialsSliderWrapper">
+                    <div class="testimonials-desktop-track" id="testimonialsDesktopTrack">
                 <?php foreach ($displayTestimonials as $t): 
                     $stars = (int)($t['star'] ?? 5);
                     $authorTitle = $t['company_name'] ?? $t['owner_name'] ?? $t['tailor_name'] ?? 'Tailor Shop';
@@ -1439,12 +1500,13 @@
                     </div>
                 </div>
                 <?php endforeach; ?>
+                    </div>
+                </div>
+                <button type="button" class="testimonial-nav-btn next" id="testimonialNext" aria-label="Next testimonials">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
-            <div class="testimonial-dots">
-                <span class="testimonial-dot active"></span>
-                <span class="testimonial-dot"></span>
-                <span class="testimonial-dot"></span>
-            </div>
+            <div class="testimonial-dots" id="testimonialDots"></div>
             <div class="text-center mt-3">
                 <button type="button" class="btn btn-primary" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: var(--d-gradient); border: none; padding: 10px 26px; font-size: 14px; font-weight: 600; border-radius: 50px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
                     <i class="fas fa-comment-dots me-2"></i>Pass Your Thoughts
@@ -2069,8 +2131,266 @@
                 }
             });
 
-            // Tab click handling
-            tabs.forEach((tab, i) => {
+            // =========================================================================
+        // TESTIMONIALS SLIDER - SILKY SMOOTH AUTO-SLIDER, DOTS & TOUCH SWIPE
+        // =========================================================================
+        (function() {
+            function initTestimonialsSlider() {
+                const track = document.getElementById('testimonialsDesktopTrack');
+                const wrapper = document.getElementById('testimonialsSliderWrapper');
+                const dotsContainer = document.getElementById('testimonialDots');
+                const prevBtn = document.getElementById('testimonialPrev');
+                const nextBtn = document.getElementById('testimonialNext');
+                if (!track || !wrapper || !dotsContainer) return;
+
+                const cards = Array.from(track.querySelectorAll('.desktop-testimonial-card'));
+                if (cards.length === 0) return;
+
+                let currentIndex = 0;
+                let autoSlideTimer = null;
+                let isPaused = false;
+
+                function getVisibleCards() {
+                    const w = window.innerWidth;
+                    if (w <= 600) return 1;
+                    if (w <= 991) return 2;
+                    if (w <= 1199) return 3;
+                    return 4;
+                }
+
+                function getGap() {
+                    return window.innerWidth <= 600 ? 16 : 20;
+                }
+
+                function getMaxIndex() {
+                    const visible = getVisibleCards();
+                    return Math.max(0, cards.length - visible);
+                }
+
+                function getPagesCount() {
+                    const visible = getVisibleCards();
+                    return Math.max(1, Math.ceil(cards.length / visible));
+                }
+
+                function getActivePage() {
+                    const visible = getVisibleCards();
+                    const pages = getPagesCount();
+                    return Math.min(pages - 1, Math.round(currentIndex / visible));
+                }
+
+                function renderDots() {
+                    dotsContainer.innerHTML = '';
+                    const pages = getPagesCount();
+                    if (pages <= 1) {
+                        dotsContainer.style.display = 'none';
+                        if (prevBtn) prevBtn.style.display = 'none';
+                        if (nextBtn) nextBtn.style.display = 'none';
+                        return;
+                    }
+                    dotsContainer.style.display = 'flex';
+                    if (prevBtn) prevBtn.style.display = 'flex';
+                    if (nextBtn) nextBtn.style.display = 'flex';
+
+                    const activePage = getActivePage();
+                    for (let i = 0; i < pages; i++) {
+                        const dot = document.createElement('span');
+                        dot.className = 'testimonial-dot' + (i === activePage ? ' active' : '');
+                        dot.setAttribute('data-page', i);
+                        dot.setAttribute('role', 'button');
+                        dot.setAttribute('aria-label', 'Go to testimonial page ' + (i + 1));
+                        dot.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            goToPage(i);
+                            resetAutoSlide();
+                        });
+                        dotsContainer.appendChild(dot);
+                    }
+                }
+
+                function updateDots() {
+                    const activePage = getActivePage();
+                    const dots = dotsContainer.querySelectorAll('.testimonial-dot');
+                    dots.forEach((dot, idx) => {
+                        if (idx === activePage) {
+                            dot.classList.add('active');
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+                }
+
+                function updateSliderPosition(animate) {
+                    if (animate === false) {
+                        track.style.transition = 'none';
+                    } else {
+                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                    }
+
+                    const visible = getVisibleCards();
+                    const gap = getGap();
+                    const wrapperWidth = wrapper.clientWidth;
+                    const cardWidth = (wrapperWidth - (gap * (visible - 1))) / visible;
+                    const shift = currentIndex * (cardWidth + gap);
+
+                    track.style.transform = 'translate3d(-' + shift + 'px, 0, 0)';
+
+                    if (animate === false) {
+                        void track.offsetHeight;
+                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                    }
+
+                    updateDots();
+                }
+
+                function goToPage(pageIndex) {
+                    const visible = getVisibleCards();
+                    const maxIdx = getMaxIndex();
+                    currentIndex = Math.min(pageIndex * visible, maxIdx);
+                    updateSliderPosition(true);
+                }
+
+                function nextSlide() {
+                    const visible = getVisibleCards();
+                    const maxIdx = getMaxIndex();
+                    if (currentIndex >= maxIdx) {
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = Math.min(currentIndex + visible, maxIdx);
+                    }
+                    updateSliderPosition(true);
+                }
+
+                function prevSlide() {
+                    const visible = getVisibleCards();
+                    const maxIdx = getMaxIndex();
+                    if (currentIndex <= 0) {
+                        currentIndex = maxIdx;
+                    } else {
+                        currentIndex = Math.max(currentIndex - visible, 0);
+                    }
+                    updateSliderPosition(true);
+                }
+
+                function startAutoSlide() {
+                    stopAutoSlide();
+                    if (cards.length <= getVisibleCards()) return;
+                    autoSlideTimer = setInterval(function() {
+                        if (!isPaused) {
+                            nextSlide();
+                        }
+                    }, 4000);
+                }
+
+                function stopAutoSlide() {
+                    if (autoSlideTimer) {
+                        clearInterval(autoSlideTimer);
+                        autoSlideTimer = null;
+                    }
+                }
+
+                function resetAutoSlide() {
+                    stopAutoSlide();
+                    startAutoSlide();
+                }
+
+                // Hover pause
+                wrapper.addEventListener('mouseenter', function() { isPaused = true; });
+                wrapper.addEventListener('mouseleave', function() { isPaused = false; });
+                dotsContainer.addEventListener('mouseenter', function() { isPaused = true; });
+                dotsContainer.addEventListener('mouseleave', function() { isPaused = false; });
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        prevSlide();
+                        resetAutoSlide();
+                    });
+                    prevBtn.addEventListener('mouseenter', function() { isPaused = true; });
+                    prevBtn.addEventListener('mouseleave', function() { isPaused = false; });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        nextSlide();
+                        resetAutoSlide();
+                    });
+                    nextBtn.addEventListener('mouseenter', function() { isPaused = true; });
+                    nextBtn.addEventListener('mouseleave', function() { isPaused = false; });
+                }
+
+                // Touch & Swipe Support
+                let startX = 0;
+                let currentX = 0;
+                let isTouching = false;
+
+                wrapper.addEventListener('touchstart', function(e) {
+                    if (e.touches && e.touches[0]) {
+                        isPaused = true;
+                        isTouching = true;
+                        startX = e.touches[0].clientX;
+                        currentX = startX;
+                    }
+                }, { passive: true });
+
+                wrapper.addEventListener('touchmove', function(e) {
+                    if (isTouching && e.touches && e.touches[0]) {
+                        currentX = e.touches[0].clientX;
+                    }
+                }, { passive: true });
+
+                wrapper.addEventListener('touchend', function() {
+                    if (isTouching) {
+                        isTouching = false;
+                        const diff = startX - currentX;
+                        if (Math.abs(diff) > 40) {
+                            if (diff > 0) {
+                                nextSlide();
+                            } else {
+                                prevSlide();
+                            }
+                            resetAutoSlide();
+                        }
+                        setTimeout(function() { isPaused = false; }, 1000);
+                    }
+                });
+
+                // Tab visibility change
+                document.addEventListener('visibilitychange', function() {
+                    if (document.hidden) {
+                        isPaused = true;
+                    } else {
+                        isPaused = false;
+                    }
+                });
+
+                // Window Resize
+                let resizeTimer = null;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        const maxIdx = getMaxIndex();
+                        if (currentIndex > maxIdx) currentIndex = maxIdx;
+                        renderDots();
+                        updateSliderPosition(false);
+                    }, 120);
+                });
+
+                // Initial run
+                renderDots();
+                updateSliderPosition(false);
+                startAutoSlide();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTestimonialsSlider);
+            } else {
+                initTestimonialsSlider();
+            }
+        })();
+
+        // Tab click handling
+        tabs.forEach((tab, i) => {
                 tab.addEventListener('click', function() {
                     activateTab(i, true);
                 });
@@ -2117,6 +2437,210 @@
                 }, { passive: true });
             }
         });
+
+        // =========================================================================
+        // HOLOGRAPHIC 3D INTERACTIVE CARDS (Trading Card Depth & Iridescent Foil)
+        // =========================================================================
+        (function() {
+            function initHolo3DCards() {
+                const cards = document.querySelectorAll('.desktop-benefit-item');
+                if (!cards.length) return;
+
+                cards.forEach(card => {
+                    let rafId = null;
+                    let bounds = null;
+
+                    function updateTilt(clientX, clientY) {
+                        if (!bounds) bounds = card.getBoundingClientRect();
+                        const x = clientX - bounds.left;
+                        const y = clientY - bounds.top;
+
+                        const centerX = bounds.width / 2;
+                        const centerY = bounds.height / 2;
+
+                        // Calculate tilt angle (-12deg to +12deg)
+                        const rotateX = ((centerY - y) / centerY) * 12;
+                        const rotateY = ((x - centerX) / centerX) * 12;
+
+                        const percentX = Math.min(100, Math.max(0, (x / bounds.width) * 100));
+                        const percentY = Math.min(100, Math.max(0, (y / bounds.height) * 100));
+
+                        card.style.setProperty('--rx', rotateX.toFixed(2) + 'deg');
+                        card.style.setProperty('--ry', rotateY.toFixed(2) + 'deg');
+                        card.style.setProperty('--mx', percentX.toFixed(1) + '%');
+                        card.style.setProperty('--my', percentY.toFixed(1) + '%');
+                        card.style.setProperty('--foil-pos-x', (100 - percentX).toFixed(1) + '%');
+                        card.style.setProperty('--foil-pos-y', (100 - percentY).toFixed(1) + '%');
+                    }
+
+                    card.addEventListener('mouseenter', function(e) {
+                        bounds = card.getBoundingClientRect();
+                        card.classList.add('is-tilting');
+                        updateTilt(e.clientX, e.clientY);
+                    });
+
+                    card.addEventListener('mousemove', function(e) {
+                        if (rafId) cancelAnimationFrame(rafId);
+                        rafId = requestAnimationFrame(function() {
+                            updateTilt(e.clientX, e.clientY);
+                        });
+                    });
+
+                    card.addEventListener('mouseleave', function() {
+                        if (rafId) cancelAnimationFrame(rafId);
+                        card.classList.remove('is-tilting');
+                        bounds = null;
+                        card.style.setProperty('--rx', '0deg');
+                        card.style.setProperty('--ry', '0deg');
+                        card.style.setProperty('--mx', '50%');
+                        card.style.setProperty('--my', '50%');
+                        card.style.setProperty('--foil-pos-x', '50%');
+                        card.style.setProperty('--foil-pos-y', '50%');
+                    });
+
+                    // Touch support for Mobile/Tablet
+                    card.addEventListener('touchstart', function(e) {
+                        if (e.touches && e.touches[0]) {
+                            bounds = card.getBoundingClientRect();
+                            card.classList.add('is-tilting');
+                            updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+                        }
+                    }, { passive: true });
+
+                    card.addEventListener('touchmove', function(e) {
+                        if (e.touches && e.touches[0]) {
+                            updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+                        }
+                    }, { passive: true });
+
+                    card.addEventListener('touchend', function() {
+                        card.classList.remove('is-tilting');
+                        bounds = null;
+                        card.style.setProperty('--rx', '0deg');
+                        card.style.setProperty('--ry', '0deg');
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initHolo3DCards);
+            } else {
+                initHolo3DCards();
+            }
+        })();
+
+        // =========================================================================
+        // INTERACTIVE BENEFIT LINK: ORBIT ICON CLICK -> ZOOM CORRESPONDING CARD
+        // =========================================================================
+        (function() {
+            function initBenefitIconCardLink() {
+                const icons = document.querySelectorAll('.floating-icon[data-benefit]');
+                const cards = document.querySelectorAll('.desktop-benefit-item[data-benefit]');
+                const grid = document.querySelector('.benefits-grid');
+                const visual = document.getElementById('tailorVisual');
+                if (!icons.length || !cards.length || !grid) return;
+
+                let activeKey = null;
+
+                function selectBenefit(key, shouldScroll) {
+                    if (activeKey === key) {
+                        clearSelection();
+                        return;
+                    }
+
+                    activeKey = key;
+                    grid.classList.add('has-active-selection');
+                    if (visual) visual.classList.add('orbit-paused');
+
+                    // If Scissors (Tailor Pro Suite) clicked -> celebrate all cards
+                    if (key === 'benefit-all') {
+                        cards.forEach(function(card) {
+                            card.classList.add('is-selected');
+                        });
+                        icons.forEach(function(ic) {
+                            if (ic.getAttribute('data-benefit') === 'benefit-all') {
+                                ic.classList.add('is-active-icon');
+                            } else {
+                                ic.classList.remove('is-active-icon');
+                            }
+                        });
+                        return;
+                    }
+
+                    // Spotlight single matching card
+                    let matchedCard = null;
+                    cards.forEach(function(card) {
+                        if (card.getAttribute('data-benefit') === key) {
+                            card.classList.add('is-selected');
+                            matchedCard = card;
+                        } else {
+                            card.classList.remove('is-selected');
+                        }
+                    });
+
+                    // Activate corresponding orbit icon
+                    icons.forEach(function(ic) {
+                        if (ic.getAttribute('data-benefit') === key) {
+                            ic.classList.add('is-active-icon');
+                        } else {
+                            ic.classList.remove('is-active-icon');
+                        }
+                    });
+
+                    // On smaller viewports, smooth-scroll to the card
+                    if (shouldScroll && matchedCard && window.innerWidth <= 991) {
+                        matchedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+
+                function clearSelection() {
+                    activeKey = null;
+                    grid.classList.remove('has-active-selection');
+                    if (visual) visual.classList.remove('orbit-paused');
+                    cards.forEach(function(card) {
+                        card.classList.remove('is-selected');
+                    });
+                    icons.forEach(function(ic) {
+                        ic.classList.remove('is-active-icon');
+                    });
+                }
+
+                // Click on Orbit Icon
+                icons.forEach(function(icon) {
+                    icon.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const key = this.getAttribute('data-benefit');
+                        if (key) {
+                            selectBenefit(key, true);
+                        }
+                    });
+                });
+
+                // Click on Benefit Card
+                cards.forEach(function(card) {
+                    card.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const key = this.getAttribute('data-benefit');
+                        if (key) {
+                            selectBenefit(key, false);
+                        }
+                    });
+                });
+
+                // Click outside to reset selection
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.benefits-spacer-col') && !e.target.closest('.benefits-grid')) {
+                        clearSelection();
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBenefitIconCardLink);
+            } else {
+                initBenefitIconCardLink();
+            }
+        })();
 
         // Direction-Aware Hover Effect for Comprehensive Features Cards (Matches Codelock Solutions style)
         (function() {

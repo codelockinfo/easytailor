@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793607500" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793684860" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1296,32 +1296,26 @@
             <div class="interactive-action-container">
                 <div class="action-tabs-list">
                     <button type="button" class="action-tab-btn active" data-index="0" data-img="assets/images/dashboard-screen.png?v=2" data-url="app.easytailor.com/dashboard" data-title="Powerful Dashboard" data-desc="Get a complete real-time overview of your tailoring business with revenue charts, order status tracking, and quick actions." data-bullets='["Real-time revenue & order analytics", "Quick action shortcuts for orders & bills", "Track pending & completed deliveries"]'>
-                        <i class="fas fa-th-large"></i> Dashboard
+                        <span class="tab-btn-content"><i class="fas fa-th-large"></i> <span>Dashboard</span></span>
+                        <span class="tab-progress-line"></span>
                     </button>
                     <button type="button" class="action-tab-btn" data-index="1" data-img="assets/images/orders-screen.png?v=2" data-url="app.easytailor.com/orders" data-title="Order Management" data-desc="Track, manage and update customer tailoring orders with due dates, cloth types, and tailor assignments." data-bullets='["Real-time status tracking (Pending, In Progress, Delivered)", "Track due dates, cloth types & pricing", "Assign orders to specific tailors"]'>
-                        <i class="fas fa-box-open"></i> Order Management
+                        <span class="tab-btn-content"><i class="fas fa-box-open"></i> <span>Order Management</span></span>
+                        <span class="tab-progress-line"></span>
                     </button>
                     <button type="button" class="action-tab-btn" data-index="2" data-img="assets/images/invoices-screen.png?v=2" data-url="app.easytailor.com/invoices" data-title="Invoice Generation" data-desc="Track customer billings, payment balances, tax calculation, and financial receipts seamlessly." data-bullets='["Track total, paid & pending invoice amounts", "Automated GST/tax & balance calculation", "Generate print receipts & WhatsApp sharing"]'>
-                        <i class="fas fa-file-invoice-dollar"></i> Invoice Generation
+                        <span class="tab-btn-content"><i class="fas fa-file-invoice-dollar"></i> <span>Invoice Generation</span></span>
+                        <span class="tab-progress-line"></span>
                     </button>
                     <button type="button" class="action-tab-btn" data-index="3" data-img="assets/images/customers-screen.png?v=2" data-url="app.easytailor.com/customers" data-title="Customer Profiles" data-desc="Manage your client relationships, phone contacts, location history, and linked garment orders in one place." data-bullets='["Store client phone numbers, emails & addresses", "Track total & active order count per client", "Quick customer search by code or mobile"]'>
-                        <i class="fas fa-users-gear"></i> Customer Profiles
+                        <span class="tab-btn-content"><i class="fas fa-users-gear"></i> <span>Customer Profiles</span></span>
+                        <span class="tab-progress-line"></span>
                     </button>
                 </div>
                 <div class="action-preview-wrapper position-relative">
                     <button type="button" class="action-screen-nav-btn prev" id="actionScreenPrev" aria-label="Previous Screenshot"><i class="fas fa-chevron-left"></i></button>
-                    <div class="action-preview-screen">
-                        <!-- Browser Mockup Header -->
-                        <div class="action-mockup-header" aria-hidden="true">
-                            <div class="mockup-dots">
-                                <span class="mockup-dot dot-red"></span>
-                                <span class="mockup-dot dot-yellow"></span>
-                                <span class="mockup-dot dot-green"></span>
-                            </div>
-                            <div class="mockup-url-bar" id="actionMockupUrl">
-                                <i class="fas fa-lock"></i> app.easytailor.com/dashboard
-                            </div>
-                        </div>
+                    <div class="action-preview-screen" id="actionPreviewScreen">
+                    
                         <!-- Browser Body with Image -->
                         <div class="action-mockup-body">
                             <img id="actionScreenImg" src="assets/images/dashboard-screen.png?v=2" alt="Dashboard Preview" class="img-fluid">
@@ -1329,7 +1323,7 @@
                     </div>
                     <button type="button" class="action-screen-nav-btn next" id="actionScreenNext" aria-label="Next Screenshot"><i class="fas fa-chevron-right"></i></button>
                 </div>
-                <div class="action-details-panel">
+                <div class="action-details-panel" id="actionDetailsPanel">
                     <h3 class="action-details-title" id="actionDetailsTitle">Powerful Dashboard</h3>
                     <p class="action-details-desc" id="actionDetailsDesc">Get a complete real-time overview of your tailoring business with revenue charts, order status tracking, and quick actions.</p>
                     <ul class="action-checklist" id="actionChecklist">
@@ -1878,65 +1872,238 @@
             });
         }
 
-        // Initialize Interactive See It In Action Section
+        // Initialize Interactive See It In Action Section with Smooth Animations & Auto-Slider
         document.addEventListener('DOMContentLoaded', function() {
+            const section = document.getElementById('screenshots');
+            const container = document.querySelector('.interactive-action-container');
             const tabs = document.querySelectorAll('.action-tab-btn');
+            const previewWrapper = document.querySelector('.action-preview-wrapper');
+            const previewScreen = document.getElementById('actionPreviewScreen') || document.querySelector('.action-preview-screen');
             const previewImg = document.getElementById('actionScreenImg');
             const titleEl = document.getElementById('actionDetailsTitle');
             const descEl = document.getElementById('actionDetailsDesc');
             const checklistEl = document.getElementById('actionChecklist');
+            const urlEl = document.getElementById('actionMockupUrl');
             const prevBtn = document.getElementById('actionScreenPrev');
             const nextBtn = document.getElementById('actionScreenNext');
 
-            if (tabs.length > 0 && previewImg) {
-                let currentIndex = 0;
+            if (!tabs.length || !previewImg) return;
 
-                function activateTab(index) {
-                    if (index < 0) index = tabs.length - 1;
-                    if (index >= tabs.length) index = 0;
-                    currentIndex = index;
-
-                    tabs.forEach((tab, i) => {
-                        if (i === currentIndex) {
-                            tab.classList.add('active');
-                            const img = tab.getAttribute('data-img');
-                            const title = tab.getAttribute('data-title');
-                            const desc = tab.getAttribute('data-desc');
-                            const bulletsRaw = tab.getAttribute('data-bullets');
-
-                            if (img) previewImg.src = img;
-                            if (title && titleEl) titleEl.textContent = title;
-                            if (desc && descEl) descEl.textContent = desc;
-                            const url = tab.getAttribute('data-url');
-                            const urlEl = document.getElementById('actionMockupUrl');
-                            if (url && urlEl) { urlEl.innerHTML = '<i class="fas fa-lock"></i> ' + url; }
-
-                            if (bulletsRaw && checklistEl) {
-                                try {
-                                    const bullets = JSON.parse(bulletsRaw);
-                                    checklistEl.innerHTML = bullets.map(b => '<li><i class="fas fa-check-circle"></i> <span>' + b + '</span></li>').join('');
-                                } catch(e) {}
-                            }
-                        } else {
-                            tab.classList.remove('active');
-                        }
-                    });
+            // Preload all screenshot images for seamless instantaneous switches
+            tabs.forEach(tab => {
+                const imgUrl = tab.getAttribute('data-img');
+                if (imgUrl) {
+                    const preloadImg = new Image();
+                    preloadImg.src = imgUrl;
                 }
+            });
 
+            let currentIndex = 0;
+            const SLIDE_DURATION = 4500; // 4.5 seconds per slide
+            let isPaused = false;
+            let progress = 0;
+            let lastTimestamp = null;
+            let rafId = null;
+
+            // Ensure progress line exists in all tabs
+            tabs.forEach(tab => {
+                if (!tab.querySelector('.tab-progress-line')) {
+                    const line = document.createElement('span');
+                    line.className = 'tab-progress-line';
+                    tab.appendChild(line);
+                }
+            });
+
+            function updateProgressBar(pct) {
+                const activeTab = tabs[currentIndex];
+                if (!activeTab) return;
+                const line = activeTab.querySelector('.tab-progress-line');
+                if (line) {
+                    line.style.width = Math.min(100, Math.max(0, pct)) + '%';
+                }
+            }
+
+            function resetAllProgressBars() {
+                tabs.forEach(tab => {
+                    const line = tab.querySelector('.tab-progress-line');
+                    if (line) line.style.width = '0%';
+                });
+            }
+
+            function activateTab(index, isUserAction = false) {
+                if (index < 0) index = tabs.length - 1;
+                if (index >= tabs.length) index = 0;
+
+                if (index === currentIndex && !isUserAction) return;
+
+                currentIndex = index;
+                progress = 0;
+                resetAllProgressBars();
+
+                // 1. Update Tabs Active State
                 tabs.forEach((tab, i) => {
-                    tab.addEventListener('click', () => activateTab(i));
+                    if (i === currentIndex) {
+                        tab.classList.add('active');
+                        if (window.innerWidth <= 991) {
+                            tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        }
+                    } else {
+                        tab.classList.remove('active');
+                    }
                 });
 
-                if (prevBtn) {
-                    prevBtn.addEventListener('click', () => activateTab(currentIndex - 1));
+                const activeTab = tabs[currentIndex];
+                const newImg = activeTab.getAttribute('data-img');
+                const newTitle = activeTab.getAttribute('data-title');
+                const newDesc = activeTab.getAttribute('data-desc');
+                const newUrl = activeTab.getAttribute('data-url');
+                const bulletsRaw = activeTab.getAttribute('data-bullets');
+
+                // 2. Animate Image Swap smoothly (fade-out -> swap -> fade-in)
+                previewImg.classList.remove('fade-in');
+                previewImg.classList.add('fade-out');
+
+                // Trigger light shimmer reflection on mockup screen
+                if (previewScreen) {
+                    previewScreen.classList.remove('shimmer');
+                    void previewScreen.offsetWidth; // Reflow to re-trigger
+                    previewScreen.classList.add('shimmer');
                 }
-                if (nextBtn) {
-                    nextBtn.addEventListener('click', () => activateTab(currentIndex + 1));
+
+                setTimeout(() => {
+                    if (newImg) {
+                        previewImg.src = newImg;
+                        previewImg.alt = (newTitle || 'Screen') + ' Preview';
+                    }
+                    previewImg.classList.remove('fade-out');
+                    previewImg.classList.add('fade-in');
+                }, 150);
+
+                // 3. Animate URL Bar navigation pulse
+                if (urlEl && newUrl) {
+                    urlEl.classList.remove('navigating');
+                    void urlEl.offsetWidth;
+                    urlEl.innerHTML = '<i class="fas fa-lock"></i> ' + newUrl;
+                    urlEl.classList.add('navigating');
                 }
+
+                // 4. Animate Details Panel Content with slide-up
+                if (titleEl && newTitle) {
+                    titleEl.classList.remove('animate-in');
+                    void titleEl.offsetWidth;
+                    titleEl.textContent = newTitle;
+                    titleEl.classList.add('animate-in');
+                }
+
+                if (descEl && newDesc) {
+                    descEl.classList.remove('animate-in');
+                    void descEl.offsetWidth;
+                    descEl.textContent = newDesc;
+                    descEl.classList.add('animate-in');
+                }
+
+                // 5. Animate Checklist Items with staggered slide-in
+                if (checklistEl && bulletsRaw) {
+                    try {
+                        const bullets = JSON.parse(bulletsRaw);
+                        checklistEl.innerHTML = bullets.map(b => '<li><i class="fas fa-check-circle"></i> <span>' + b + '</span></li>').join('');
+                    } catch(e) {}
+                }
+            }
+
+            // Auto-slider animation loop using requestAnimationFrame
+            function autoSliderLoop(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+                const delta = timestamp - lastTimestamp;
+                lastTimestamp = timestamp;
+
+                if (!isPaused) {
+                    progress += delta;
+                    const pct = (progress / SLIDE_DURATION) * 100;
+                    updateProgressBar(pct);
+
+                    if (progress >= SLIDE_DURATION) {
+                        progress = 0;
+                        activateTab((currentIndex + 1) % tabs.length);
+                    }
+                }
+
+                rafId = requestAnimationFrame(autoSliderLoop);
+            }
+
+            // Start auto slider loop
+            rafId = requestAnimationFrame(autoSliderLoop);
+
+            // Pause auto-slider on hover over container
+            if (container) {
+                container.addEventListener('mouseenter', function() {
+                    isPaused = true;
+                });
+                container.addEventListener('mouseleave', function() {
+                    isPaused = false;
+                    lastTimestamp = performance.now();
+                });
+            }
+
+            // Pause auto-slider when user switches browser tab or minimizes
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    isPaused = true;
+                } else {
+                    isPaused = false;
+                    lastTimestamp = performance.now();
+                }
+            });
+
+            // Tab click handling
+            tabs.forEach((tab, i) => {
+                tab.addEventListener('click', function() {
+                    activateTab(i, true);
+                });
+            });
+
+            // Arrow navigation handling
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    activateTab(currentIndex - 1, true);
+                });
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    activateTab(currentIndex + 1, true);
+                });
+            }
+
+            // Touch Swipe support for Mobile devices
+            if (previewWrapper) {
+                let touchStartX = 0;
+                let touchStartY = 0;
+
+                previewWrapper.addEventListener('touchstart', function(e) {
+                    if (e.changedTouches && e.changedTouches[0]) {
+                        touchStartX = e.changedTouches[0].clientX;
+                        touchStartY = e.changedTouches[0].clientY;
+                    }
+                }, { passive: true });
+
+                previewWrapper.addEventListener('touchend', function(e) {
+                    if (e.changedTouches && e.changedTouches[0]) {
+                        const diffX = touchStartX - e.changedTouches[0].clientX;
+                        const diffY = touchStartY - e.changedTouches[0].clientY;
+                        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+                            if (diffX > 0) {
+                                activateTab(currentIndex + 1, true);
+                            } else {
+                                activateTab(currentIndex - 1, true);
+                            }
+                        }
+                    }
+                }, { passive: true });
             }
         });
 
-        
         // Direction-Aware Hover Effect for Comprehensive Features Cards (Matches Codelock Solutions style)
         (function() {
             function getDirection(e, elem) {

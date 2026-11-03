@@ -1642,32 +1642,31 @@
         });
 
         function loadFeaturedTailors() {
-            const fallback = () => {
-                fetchTailorsForSlider().then(result => handleTailorResults(result, false));
-            };
+            // 1. Instantly fetch and display all available tailor shops from DB without any delay
+            fetchTailorsForSlider().then(result => {
+                if (result.success && result.tailors.length > 0) {
+                    displayTailorsSlider(result.tailors);
+                }
+            });
 
-            if (!('geolocation' in navigator)) {
-                fallback();
-                return;
+            // 2. In parallel, if geolocation is supported, detect city to prioritize local shops
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        resolveCity(position.coords.latitude, position.coords.longitude)
+                            .then(city => {
+                                if (city) {
+                                    fetchTailorsForSlider(city).then(result => {
+                                        handleTailorResults(result, true);
+                                    });
+                                }
+                            })
+                            .catch(() => {});
+                    },
+                    () => {},
+                    { timeout: 4000 }
+                );
             }
-
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    resolveCity(position.coords.latitude, position.coords.longitude)
-                        .then(city => {
-                            if (city) {
-                                fetchTailorsForSlider(city)
-                                    .then(result => handleTailorResults(result, true))
-                                    .catch(() => fallback());
-                            } else {
-                                fallback();
-                            }
-                        })
-                        .catch(() => fallback());
-                },
-                () => fallback(),
-                { timeout: 7000 }
-            );
         }
 
         function resolveCity(lat, lon) {

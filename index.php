@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793689895" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793691650" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1948,190 +1948,282 @@
             });
         }
 
-        // Initialize Interactive See It In Action Section with Smooth Animations & Auto-Slider
-        document.addEventListener('DOMContentLoaded', function() {
-            const section = document.getElementById('screenshots');
-            const container = document.querySelector('.interactive-action-container');
-            const tabs = document.querySelectorAll('.action-tab-btn');
-            const previewWrapper = document.querySelector('.action-preview-wrapper');
-            const previewScreen = document.getElementById('actionPreviewScreen') || document.querySelector('.action-preview-screen');
-            const previewImg = document.getElementById('actionScreenImg');
-            const titleEl = document.getElementById('actionDetailsTitle');
-            const descEl = document.getElementById('actionDetailsDesc');
-            const checklistEl = document.getElementById('actionChecklist');
-            const urlEl = document.getElementById('actionMockupUrl');
-            const prevBtn = document.getElementById('actionScreenPrev');
-            const nextBtn = document.getElementById('actionScreenNext');
+        // =========================================================================
+        // PREVIEW OUR SOFTWARE ("See It In Action") - ROCK-SOLID AUTO-SLIDER & TABS
+        // =========================================================================
+        (function() {
+            function initScreenshotsPreview() {
+                const section = document.getElementById('screenshots');
+                const container = document.querySelector('.interactive-action-container');
+                const tabs = Array.from(document.querySelectorAll('.action-tab-btn'));
+                const previewWrapper = document.querySelector('.action-preview-wrapper');
+                const previewScreen = document.getElementById('actionPreviewScreen') || document.querySelector('.action-preview-screen');
+                const previewImg = document.getElementById('actionScreenImg');
+                const titleEl = document.getElementById('actionDetailsTitle');
+                const descEl = document.getElementById('actionDetailsDesc');
+                const checklistEl = document.getElementById('actionChecklist');
+                const urlEl = document.getElementById('actionMockupUrl');
+                const prevBtn = document.getElementById('actionScreenPrev');
+                const nextBtn = document.getElementById('actionScreenNext');
 
-            if (!tabs.length || !previewImg) return;
+                if (!tabs.length || !previewImg) return;
 
-            // Preload all screenshot images for seamless instantaneous switches
-            tabs.forEach(tab => {
-                const imgUrl = tab.getAttribute('data-img');
-                if (imgUrl) {
-                    const preloadImg = new Image();
-                    preloadImg.src = imgUrl;
-                }
-            });
-
-            let currentIndex = 0;
-            const SLIDE_DURATION = 4500; // 4.5 seconds per slide
-            let isPaused = false;
-            let progress = 0;
-            let lastTimestamp = null;
-            let rafId = null;
-
-            // Ensure progress line exists in all tabs
-            tabs.forEach(tab => {
-                if (!tab.querySelector('.tab-progress-line')) {
-                    const line = document.createElement('span');
-                    line.className = 'tab-progress-line';
-                    tab.appendChild(line);
-                }
-            });
-
-            function updateProgressBar(pct) {
-                const activeTab = tabs[currentIndex];
-                if (!activeTab) return;
-                const line = activeTab.querySelector('.tab-progress-line');
-                if (line) {
-                    line.style.width = Math.min(100, Math.max(0, pct)) + '%';
-                }
-            }
-
-            function resetAllProgressBars() {
+                // Preload all screenshot images for instantaneous switches
                 tabs.forEach(tab => {
-                    const line = tab.querySelector('.tab-progress-line');
-                    if (line) line.style.width = '0%';
+                    const imgUrl = tab.getAttribute('data-img');
+                    if (imgUrl) {
+                        const preloadImg = new Image();
+                        preloadImg.src = imgUrl;
+                    }
                 });
-            }
 
-            function activateTab(index, isUserAction = false) {
-                if (index < 0) index = tabs.length - 1;
-                if (index >= tabs.length) index = 0;
+                let currentIndex = 0;
+                const SLIDE_DURATION = 4500; // 4.5 seconds per slide
+                let progress = 0;
+                let lastTimestamp = null;
+                let rafId = null;
+                let isUserInteracting = false;
+                let userInteractTimeout = null;
+                let isSectionVisible = true;
 
-                if (index === currentIndex && !isUserAction) return;
+                // Ensure progress line exists in all tabs
+                tabs.forEach(tab => {
+                    if (!tab.querySelector('.tab-progress-line')) {
+                        const line = document.createElement('span');
+                        line.className = 'tab-progress-line';
+                        tab.appendChild(line);
+                    }
+                });
 
-                currentIndex = index;
-                progress = 0;
-                resetAllProgressBars();
+                function updateProgressBar(pct) {
+                    const activeTab = tabs[currentIndex];
+                    if (!activeTab) return;
+                    const line = activeTab.querySelector('.tab-progress-line');
+                    if (line) {
+                        line.style.width = Math.min(100, Math.max(0, pct)) + '%';
+                    }
+                }
 
-                // 1. Update Tabs Active State
-                tabs.forEach((tab, i) => {
-                    if (i === currentIndex) {
-                        tab.classList.add('active');
-                        if (window.innerWidth <= 991) {
-                            tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                function resetAllProgressBars() {
+                    tabs.forEach(tab => {
+                        const line = tab.querySelector('.tab-progress-line');
+                        if (line) line.style.width = '0%';
+                    });
+                }
+
+                function activateTab(index, isUserAction = false) {
+                    if (index < 0) index = tabs.length - 1;
+                    if (index >= tabs.length) index = 0;
+
+                    if (index === currentIndex && !isUserAction) return;
+
+                    currentIndex = index;
+                    progress = 0;
+                    resetAllProgressBars();
+
+                    if (isUserAction) {
+                        // Pause auto-sliding briefly so user can read what they clicked
+                        isUserInteracting = true;
+                        clearTimeout(userInteractTimeout);
+                        userInteractTimeout = setTimeout(() => {
+                            isUserInteracting = false;
+                            lastTimestamp = performance.now();
+                        }, 5000);
+                    }
+
+                    // 1. Update Tabs Active State
+                    tabs.forEach((tab, i) => {
+                        if (i === currentIndex) {
+                            tab.classList.add('active');
+                            if (window.innerWidth <= 991) {
+                                tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                            }
+                        } else {
+                            tab.classList.remove('active');
                         }
-                    } else {
-                        tab.classList.remove('active');
+                    });
+
+                    const activeTab = tabs[currentIndex];
+                    const newImg = activeTab.getAttribute('data-img');
+                    const newTitle = activeTab.getAttribute('data-title');
+                    const newDesc = activeTab.getAttribute('data-desc');
+                    const newUrl = activeTab.getAttribute('data-url');
+                    const bulletsRaw = activeTab.getAttribute('data-bullets');
+
+                    // 2. Animate Image Swap smoothly (fade-out -> swap -> fade-in)
+                    previewImg.classList.remove('fade-in');
+                    previewImg.classList.add('fade-out');
+
+                    // Trigger light shimmer reflection on mockup screen
+                    if (previewScreen) {
+                        previewScreen.classList.remove('shimmer');
+                        void previewScreen.offsetWidth; // Reflow to re-trigger
+                        previewScreen.classList.add('shimmer');
                     }
-                });
 
-                const activeTab = tabs[currentIndex];
-                const newImg = activeTab.getAttribute('data-img');
-                const newTitle = activeTab.getAttribute('data-title');
-                const newDesc = activeTab.getAttribute('data-desc');
-                const newUrl = activeTab.getAttribute('data-url');
-                const bulletsRaw = activeTab.getAttribute('data-bullets');
+                    setTimeout(() => {
+                        if (newImg) {
+                            previewImg.src = newImg;
+                            previewImg.alt = (newTitle || 'Screen') + ' Preview';
+                        }
+                        previewImg.classList.remove('fade-out');
+                        previewImg.classList.add('fade-in');
+                    }, 150);
 
-                // 2. Animate Image Swap smoothly (fade-out -> swap -> fade-in)
-                previewImg.classList.remove('fade-in');
-                previewImg.classList.add('fade-out');
-
-                // Trigger light shimmer reflection on mockup screen
-                if (previewScreen) {
-                    previewScreen.classList.remove('shimmer');
-                    void previewScreen.offsetWidth; // Reflow to re-trigger
-                    previewScreen.classList.add('shimmer');
-                }
-
-                setTimeout(() => {
-                    if (newImg) {
-                        previewImg.src = newImg;
-                        previewImg.alt = (newTitle || 'Screen') + ' Preview';
+                    // 3. Animate URL Bar navigation pulse
+                    if (urlEl && newUrl) {
+                        urlEl.classList.remove('navigating');
+                        void urlEl.offsetWidth;
+                        urlEl.innerHTML = '<i class="fas fa-lock"></i> ' + newUrl;
+                        urlEl.classList.add('navigating');
                     }
-                    previewImg.classList.remove('fade-out');
-                    previewImg.classList.add('fade-in');
-                }, 150);
 
-                // 3. Animate URL Bar navigation pulse
-                if (urlEl && newUrl) {
-                    urlEl.classList.remove('navigating');
-                    void urlEl.offsetWidth;
-                    urlEl.innerHTML = '<i class="fas fa-lock"></i> ' + newUrl;
-                    urlEl.classList.add('navigating');
+                    // 4. Animate Details Panel Content with slide-up
+                    if (titleEl && newTitle) {
+                        titleEl.classList.remove('animate-in');
+                        void titleEl.offsetWidth;
+                        titleEl.textContent = newTitle;
+                        titleEl.classList.add('animate-in');
+                    }
+
+                    if (descEl && newDesc) {
+                        descEl.classList.remove('animate-in');
+                        void descEl.offsetWidth;
+                        descEl.textContent = newDesc;
+                        descEl.classList.add('animate-in');
+                    }
+
+                    // 5. Animate Checklist Items with staggered slide-in
+                    if (checklistEl && bulletsRaw) {
+                        try {
+                            const bullets = JSON.parse(bulletsRaw);
+                            checklistEl.innerHTML = bullets.map(b => '<li><i class="fas fa-check-circle"></i> <span>' + b + '</span></li>').join('');
+                        } catch(e) {}
+                    }
                 }
 
-                // 4. Animate Details Panel Content with slide-up
-                if (titleEl && newTitle) {
-                    titleEl.classList.remove('animate-in');
-                    void titleEl.offsetWidth;
-                    titleEl.textContent = newTitle;
-                    titleEl.classList.add('animate-in');
-                }
-
-                if (descEl && newDesc) {
-                    descEl.classList.remove('animate-in');
-                    void descEl.offsetWidth;
-                    descEl.textContent = newDesc;
-                    descEl.classList.add('animate-in');
-                }
-
-                // 5. Animate Checklist Items with staggered slide-in
-                if (checklistEl && bulletsRaw) {
+                // Check if container is genuinely hovered (evaluates live CSS :hover state, immune to scroll-freeze)
+                function isCurrentlyHovered() {
                     try {
-                        const bullets = JSON.parse(bulletsRaw);
-                        checklistEl.innerHTML = bullets.map(b => '<li><i class="fas fa-check-circle"></i> <span>' + b + '</span></li>').join('');
-                    } catch(e) {}
-                }
-            }
-
-            // Auto-slider animation loop using requestAnimationFrame
-            function autoSliderLoop(timestamp) {
-                if (!lastTimestamp) lastTimestamp = timestamp;
-                const delta = timestamp - lastTimestamp;
-                lastTimestamp = timestamp;
-
-                if (!isPaused) {
-                    progress += delta;
-                    const pct = (progress / SLIDE_DURATION) * 100;
-                    updateProgressBar(pct);
-
-                    if (progress >= SLIDE_DURATION) {
-                        progress = 0;
-                        activateTab((currentIndex + 1) % tabs.length);
+                        return container ? container.matches(':hover') : false;
+                    } catch(e) {
+                        return false;
                     }
                 }
 
-                rafId = requestAnimationFrame(autoSliderLoop);
-            }
+                // Auto-slider animation loop using requestAnimationFrame
+                function autoSliderLoop(timestamp) {
+                    if (!lastTimestamp) lastTimestamp = timestamp;
+                    let delta = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
 
-            // Start auto slider loop
-            rafId = requestAnimationFrame(autoSliderLoop);
+                    // Clamp delta to prevent sudden leaps after backgrounding or scroll lags
+                    if (delta < 0 || isNaN(delta)) delta = 0;
+                    if (delta > 200) delta = 200;
 
-            // Pause auto-slider on hover over container
-            if (container) {
-                container.addEventListener('mouseenter', function() {
-                    isPaused = true;
-                });
-                container.addEventListener('mouseleave', function() {
-                    isPaused = false;
-                    lastTimestamp = performance.now();
-                });
-            }
+                    const isHovered = isCurrentlyHovered();
+                    const shouldPause = isHovered || isUserInteracting || !isSectionVisible || document.hidden;
 
-            // Pause auto-slider when user switches browser tab or minimizes
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    isPaused = true;
-                } else {
-                    isPaused = false;
-                    lastTimestamp = performance.now();
+                    if (!shouldPause) {
+                        progress += delta;
+                        const pct = (progress / SLIDE_DURATION) * 100;
+                        updateProgressBar(pct);
+
+                        if (progress >= SLIDE_DURATION) {
+                            progress = 0;
+                            activateTab((currentIndex + 1) % tabs.length, false);
+                        }
+                    }
+
+                    rafId = requestAnimationFrame(autoSliderLoop);
                 }
-            });
 
-            // =========================================================================
+                // Start loop
+                rafId = requestAnimationFrame(autoSliderLoop);
+
+                // Viewport Visibility tracking: pauses when scrolled out of view, instantly resumes when in view!
+                if ('IntersectionObserver' in window && section) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            isSectionVisible = entry.isIntersecting;
+                            if (isSectionVisible) {
+                                lastTimestamp = performance.now();
+                            }
+                        });
+                    }, { threshold: 0.08 });
+                    observer.observe(section);
+                }
+
+                // Reset timestamp whenever page is scrolled so there's never a freeze or time delta glitch
+                window.addEventListener('scroll', function() {
+                    lastTimestamp = performance.now();
+                }, { passive: true });
+
+                // Pause when browser tab is inactive, resume immediately on focus
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        lastTimestamp = performance.now();
+                    }
+                });
+
+                // Tab click handling
+                tabs.forEach((tab, i) => {
+                    tab.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        activateTab(i, true);
+                    });
+                });
+
+                // Arrow navigation handling
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        activateTab(currentIndex - 1, true);
+                    });
+                }
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        activateTab(currentIndex + 1, true);
+                    });
+                }
+
+                // Touch Swipe support for Mobile / Touch screens
+                if (previewWrapper) {
+                    let touchStartX = 0;
+                    let touchStartY = 0;
+
+                    previewWrapper.addEventListener('touchstart', function(e) {
+                        if (e.changedTouches && e.changedTouches[0]) {
+                            touchStartX = e.changedTouches[0].clientX;
+                            touchStartY = e.changedTouches[0].clientY;
+                        }
+                    }, { passive: true });
+
+                    previewWrapper.addEventListener('touchend', function(e) {
+                        if (e.changedTouches && e.changedTouches[0]) {
+                            const diffX = touchStartX - e.changedTouches[0].clientX;
+                            const diffY = touchStartY - e.changedTouches[0].clientY;
+                            if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+                                if (diffX > 0) {
+                                    activateTab(currentIndex + 1, true);
+                                } else {
+                                    activateTab(currentIndex - 1, true);
+                                }
+                            }
+                        }
+                    }, { passive: true });
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initScreenshotsPreview);
+            } else {
+                initScreenshotsPreview();
+            }
+        })();
+
+        // =========================================================================
         // TESTIMONIALS SLIDER - SILKY SMOOTH AUTO-SLIDER, DOTS & TOUCH SWIPE
         // =========================================================================
         (function() {
@@ -2271,11 +2363,15 @@
                     updateSliderPosition(true);
                 }
 
+                function isTestimonialsHovered() {
+                    return (wrapper && wrapper.matches(':hover')) || (dotsContainer && dotsContainer.matches(':hover'));
+                }
+
                 function startAutoSlide() {
                     stopAutoSlide();
                     if (cards.length <= getVisibleCards()) return;
                     autoSlideTimer = setInterval(function() {
-                        if (!isPaused) {
+                        if (!isPaused && !isTestimonialsHovered() && !document.hidden) {
                             nextSlide();
                         }
                     }, 4000);
@@ -2293,7 +2389,7 @@
                     startAutoSlide();
                 }
 
-                // Hover pause
+                // Hover pause (using events + fallback check)
                 wrapper.addEventListener('mouseenter', function() { isPaused = true; });
                 wrapper.addEventListener('mouseleave', function() { isPaused = false; });
                 dotsContainer.addEventListener('mouseenter', function() { isPaused = true; });
@@ -2388,55 +2484,6 @@
                 initTestimonialsSlider();
             }
         })();
-
-        // Tab click handling
-        tabs.forEach((tab, i) => {
-                tab.addEventListener('click', function() {
-                    activateTab(i, true);
-                });
-            });
-
-            // Arrow navigation handling
-            if (prevBtn) {
-                prevBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    activateTab(currentIndex - 1, true);
-                });
-            }
-            if (nextBtn) {
-                nextBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    activateTab(currentIndex + 1, true);
-                });
-            }
-
-            // Touch Swipe support for Mobile devices
-            if (previewWrapper) {
-                let touchStartX = 0;
-                let touchStartY = 0;
-
-                previewWrapper.addEventListener('touchstart', function(e) {
-                    if (e.changedTouches && e.changedTouches[0]) {
-                        touchStartX = e.changedTouches[0].clientX;
-                        touchStartY = e.changedTouches[0].clientY;
-                    }
-                }, { passive: true });
-
-                previewWrapper.addEventListener('touchend', function(e) {
-                    if (e.changedTouches && e.changedTouches[0]) {
-                        const diffX = touchStartX - e.changedTouches[0].clientX;
-                        const diffY = touchStartY - e.changedTouches[0].clientY;
-                        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
-                            if (diffX > 0) {
-                                activateTab(currentIndex + 1, true);
-                            } else {
-                                activateTab(currentIndex - 1, true);
-                            }
-                        }
-                    }
-                }, { passive: true });
-            }
-        });
 
         // =========================================================================
         // HOLOGRAPHIC 3D INTERACTIVE CARDS (Trading Card Depth & Iridescent Foil)

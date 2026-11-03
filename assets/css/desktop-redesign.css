@@ -2981,83 +2981,108 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     max-width: 150px;
 }
 
-.testimonial-nav-btn {
-    position: absolute;
-    top: calc(50% - 10px);
-    transform: translateY(-50%);
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 1.5px solid #edf2f7;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    color: #475569;
-    font-size: 13px;
+/* --- Testimonials Navigation & Dots (Modern Minimalist Pill Design) --- */
+.testimonials-nav-control-group {
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    gap: 18px;
+    margin-top: 28px;
+    margin-bottom: 22px;
+    position: relative;
     z-index: 10;
-    transition: all 0.25s ease;
+}
+
+.testimonial-nav-btn {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1.5px solid rgba(124, 58, 237, 0.14);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    color: #1e293b;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    user-select: none;
+    padding: 0;
+}
+
+.testimonial-nav-btn i {
+    transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .testimonial-nav-btn:hover {
-    background: var(--d-primary);
-    color: #ffffff;
-    border-color: var(--d-primary);
-    transform: translateY(-50%) scale(1.08);
-    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.28);
+    background: #ffffff;
+    color: var(--d-primary, #7c3aed);
+    border-color: rgba(124, 58, 237, 0.45);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.2), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.testimonial-nav-btn.prev {
-    left: -18px;
+.testimonial-nav-btn.prev:hover i {
+    transform: translateX(-1.5px);
 }
 
-.testimonial-nav-btn.next {
-    right: -18px;
+.testimonial-nav-btn.next:hover i {
+    transform: translateX(1.5px);
+}
+
+.testimonial-nav-btn:active {
+    transform: translateY(0) scale(0.96);
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
 }
 
 .testimonial-dots {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin: 1rem 0 1.75rem 0;
+    gap: 9px;
+    margin: 0 4px;
 }
 
 .testimonial-dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: #e2e8f0;
+    background: #cbd5e1;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    padding: 0;
+    outline: none;
+    flex-shrink: 0;
 }
 
-.testimonial-dot:hover {
-    background: #cbd5e1;
+.testimonial-dot:hover:not(.active) {
+    background: #94a3b8;
+    transform: scale(1.22);
 }
 
 .testimonial-dot.active {
-    width: 26px;
-    border-radius: 50px;
-    background: var(--d-primary);
+    width: 32px;
+    height: 9px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.45);
+    transform: scale(1);
 }
 
 @media (max-width: 1199px) {
     .testimonials-slider-wrapper {
         --visible-cards: 3;
     }
-    .testimonial-nav-btn.prev { left: -8px; }
-    .testimonial-nav-btn.next { right: -8px; }
 }
 
 @media (max-width: 991px) {
     .testimonials-slider-wrapper {
         --visible-cards: 2;
     }
-    .testimonial-nav-btn.prev { left: 4px; }
-    .testimonial-nav-btn.next { right: 4px; }
 }
 
 @media (max-width: 600px) {
@@ -3065,13 +3090,24 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
         --visible-cards: 1;
         --gap: 16px;
     }
-    .testimonial-nav-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 11px;
+    .testimonials-nav-control-group {
+        gap: 12px;
+        margin-top: 20px;
+        margin-bottom: 16px;
     }
-    .testimonial-nav-btn.prev { left: 0px; }
-    .testimonial-nav-btn.next { right: 0px; }
+    .testimonial-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 13px;
+    }
+    .testimonial-dot {
+        width: 8px;
+        height: 8px;
+    }
+    .testimonial-dot.active {
+        width: 26px;
+        height: 8px;
+    }
 }
 
 /* --- 11. LATEST BLOG ARTICLES SECTION (#blog) --- */

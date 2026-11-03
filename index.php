@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793693400" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793693838" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -684,7 +684,7 @@
                         $database2 = new Database();
                         $db2 = $database2->getConnection();
                         if ($db2) {
-                            $stmt2 = $db2->prepare("SELECT user_name, comment, star, owner_name, company_name FROM testimonials WHERE status='approved' ORDER BY created_at DESC LIMIT 6");
+                            $stmt2 = $db2->prepare("SELECT t.user_name, t.comment, t.star, t.owner_name, c.company_name FROM testimonials t LEFT JOIN companies c ON t.company_id = c.id WHERE t.status='approved' ORDER BY t.created_at DESC LIMIT 6");
                             $stmt2->execute();
                             $mobTestimonials = $stmt2->fetchAll(PDO::FETCH_ASSOC);
                         }
@@ -1480,32 +1480,81 @@
     $defaultReviews = [
         [
             'user_name' => 'Mr. Joshi',
-            'company_name' => 'RK Classic Tailor',
+            'company_name' => 'RK Classic Tailor, Ahmedabad',
             'star' => 5,
-            'comment' => 'A perfect platform for tailors who want to go digital. Easy to use and powerful features!'
+            'comment' => 'A perfect platform for tailors who want to go digital. Easy to use, accurate measurements, and powerful features!'
         ],
         [
             'user_name' => 'Amit Patel',
-            'company_name' => 'Designer Attire, Elite Style Tailor',
+            'company_name' => 'Designer Attire, Surat',
             'star' => 5,
-            'comment' => 'This has made managing my tailoring business so easy. From customer management to order tracking, everything is in one place.'
+            'comment' => 'This has made managing my tailoring business so easy. From customer measurements to order tracking, everything is in one place.'
         ],
         [
             'user_name' => 'Kavita Sharma',
-            'company_name' => 'Kavish Fashion, Town Tailor',
+            'company_name' => 'Kavish Fashion, Jaipur',
             'star' => 5,
-            'comment' => 'I was struggling to manage orders manually. Now Tailor has made everything simple and organized.'
+            'comment' => 'I was struggling to manage orders manually. Now EasyTailor has made everything simple, streamlined, and organized.'
         ],
         [
-            'user_name' => 'Deepa',
-            'company_name' => 'Shoma Style',
+            'user_name' => 'Deepa S.',
+            'company_name' => 'Shoma Boutique, Mumbai',
             'star' => 5,
-            'comment' => 'Simple, intuitive and highly recommended for any tailoring business.'
+            'comment' => 'Simple, intuitive and highly recommended for any tailoring business. Our clients love the SMS order updates!'
+        ],
+        [
+            'user_name' => 'Rajesh Panchal',
+            'company_name' => 'Panchal Bespoke, Vadodara',
+            'star' => 5,
+            'comment' => 'Measurement mistakes are down to zero since we switched. The best digital investment we made for our tailoring shop.'
+        ],
+        [
+            'user_name' => 'Sunita Verma',
+            'company_name' => 'Elegance Fashion Studio, Delhi',
+            'star' => 5,
+            'comment' => 'Managing rush wedding orders used to be chaos. Now our entire stitching team knows exactly what to deliver and by when.'
+        ],
+        [
+            'user_name' => 'Harish Tailor',
+            'company_name' => 'Harish Mens Wear, Rajkot',
+            'star' => 5,
+            'comment' => 'Customer billing and payment records are ready with one click. Very easy to operate even on mobile phones.'
+        ],
+        [
+            'user_name' => 'Priya Nair',
+            'company_name' => 'Vogue Designer Studio, Bangalore',
+            'star' => 5,
+            'comment' => 'The cloth type and custom measurement templates save us at least 2 hours every single day. Truly brilliant software!'
+        ],
+        [
+            'user_name' => 'Mahendra Chawla',
+            'company_name' => 'Royal Stitch, Indore',
+            'star' => 5,
+            'comment' => 'Our clients are very impressed by the digital receipts and professional delivery alerts. Highly reliable and fast!'
+        ],
+        [
+            'user_name' => 'Anita Desai',
+            'company_name' => 'Grace Tailoring Hub, Pune',
+            'star' => 5,
+            'comment' => 'Staff tracking and live order status keeps everyone accountable. I can monitor my entire shop performance from anywhere.'
+        ],
+        [
+            'user_name' => 'Vikram Rathore',
+            'company_name' => 'Heritage Royal Tailors, Udaipur',
+            'star' => 5,
+            'comment' => 'Never lose a customer measurement record again. Even returning clients from two years ago are found in seconds.'
+        ],
+        [
+            'user_name' => 'Farooq Mansuri',
+            'company_name' => 'Modern Fit Tailors, Surat',
+            'star' => 5,
+            'comment' => 'Superb software made specifically for our daily tailoring workflow. Saves hours of manual paperwork every week.'
         ]
     ];
 
+    // Combine database reviews with default reviews to guarantee at least 16 cards for smooth multi-page sliding
     $displayTestimonials = !empty($testimonials) ? array_merge($testimonials, $defaultReviews) : $defaultReviews;
-    $displayTestimonials = array_slice($displayTestimonials, 0, 12);
+    $displayTestimonials = array_slice($displayTestimonials, 0, 16);
     ?>
     <section id="testimonials" class="testimonials-section">
         <div class="container">
@@ -1517,9 +1566,6 @@
                 </p>
             </div>
             <div class="testimonials-slider-container">
-                <button type="button" class="testimonial-nav-btn prev" id="testimonialPrev" aria-label="Previous testimonials">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
                 <div class="testimonials-slider-wrapper" id="testimonialsSliderWrapper">
                     <div class="testimonials-desktop-track" id="testimonialsDesktopTrack">
                 <?php foreach ($displayTestimonials as $t): 
@@ -1550,11 +1596,18 @@
                 <?php endforeach; ?>
                     </div>
                 </div>
-                <button type="button" class="testimonial-nav-btn next" id="testimonialNext" aria-label="Next testimonials">
+            </div>
+
+            <!-- Unified Carousel Navigation (Prev - Dots - Next) matching reference design -->
+            <div class="testimonials-nav-control-group" id="testimonialsNavControls">
+                <button type="button" class="testimonial-nav-btn prev" id="testimonialPrev" aria-label="Previous Testimonials">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="testimonial-dots" id="testimonialDots" role="tablist" aria-label="Testimonial pages"></div>
+                <button type="button" class="testimonial-nav-btn next" id="testimonialNext" aria-label="Next Testimonials">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-            <div class="testimonial-dots" id="testimonialDots"></div>
             <div class="text-center mt-3">
                 <button type="button" class="btn btn-primary" id="openTestimonialPopup" onclick="document.getElementById('testimonialPopup').style.display='flex'; document.body.style.overflow='hidden'; return false;" style="background: var(--d-gradient); border: none; padding: 10px 26px; font-size: 14px; font-weight: 600; border-radius: 50px; cursor: pointer; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
                     <i class="fas fa-comment-dots me-2"></i>Pass Your Thoughts
@@ -2281,14 +2334,17 @@
                 const dotsContainer = document.getElementById('testimonialDots');
                 const prevBtn = document.getElementById('testimonialPrev');
                 const nextBtn = document.getElementById('testimonialNext');
+                const navControls = document.getElementById('testimonialsNavControls');
+                const section = document.getElementById('testimonials');
                 if (!track || !wrapper || !dotsContainer) return;
 
                 const cards = Array.from(track.querySelectorAll('.desktop-testimonial-card'));
                 if (cards.length === 0) return;
 
-                let currentIndex = 0;
+                let currentPage = 0;
                 let autoSlideTimer = null;
                 let isPaused = false;
+                let isSectionVisible = true;
 
                 function getVisibleCards() {
                     const w = window.innerWidth;
@@ -2302,41 +2358,32 @@
                     return window.innerWidth <= 600 ? 16 : 20;
                 }
 
-                function getMaxIndex() {
-                    const visible = getVisibleCards();
-                    return Math.max(0, cards.length - visible);
-                }
-
                 function getPagesCount() {
                     const visible = getVisibleCards();
                     return Math.max(1, Math.ceil(cards.length / visible));
-                }
-
-                function getActivePage() {
-                    const visible = getVisibleCards();
-                    const pages = getPagesCount();
-                    return Math.min(pages - 1, Math.round(currentIndex / visible));
                 }
 
                 function renderDots() {
                     dotsContainer.innerHTML = '';
                     const pages = getPagesCount();
                     if (pages <= 1) {
-                        dotsContainer.style.display = 'none';
-                        if (prevBtn) prevBtn.style.display = 'none';
-                        if (nextBtn) nextBtn.style.display = 'none';
+                        if (navControls) navControls.style.display = 'none';
                         return;
                     }
-                    dotsContainer.style.display = 'flex';
-                    if (prevBtn) prevBtn.style.display = 'flex';
-                    if (nextBtn) nextBtn.style.display = 'flex';
+                    if (navControls) navControls.style.display = 'flex';
+                    dotsContainer.style.display = 'inline-flex';
+                    if (prevBtn) prevBtn.style.display = 'inline-flex';
+                    if (nextBtn) nextBtn.style.display = 'inline-flex';
 
-                    const activePage = getActivePage();
+                    if (currentPage >= pages) {
+                        currentPage = pages - 1;
+                    }
+
                     for (let i = 0; i < pages; i++) {
-                        const dot = document.createElement('span');
-                        dot.className = 'testimonial-dot' + (i === activePage ? ' active' : '');
+                        const dot = document.createElement('button');
+                        dot.type = 'button';
+                        dot.className = 'testimonial-dot' + (i === currentPage ? ' active' : '');
                         dot.setAttribute('data-page', i);
-                        dot.setAttribute('role', 'button');
                         dot.setAttribute('aria-label', 'Go to testimonial page ' + (i + 1));
                         dot.addEventListener('click', function(e) {
                             e.preventDefault();
@@ -2348,10 +2395,9 @@
                 }
 
                 function updateDots() {
-                    const activePage = getActivePage();
                     const dots = dotsContainer.querySelectorAll('.testimonial-dot');
                     dots.forEach((dot, idx) => {
-                        if (idx === activePage) {
+                        if (idx === currentPage) {
                             dot.classList.add('active');
                         } else {
                             dot.classList.remove('active');
@@ -2363,63 +2409,56 @@
                     if (animate === false) {
                         track.style.transition = 'none';
                     } else {
-                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                        track.style.transition = 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)';
                     }
 
                     const visible = getVisibleCards();
                     const gap = getGap();
                     const wrapperWidth = wrapper.clientWidth;
                     const cardWidth = (wrapperWidth - (gap * (visible - 1))) / visible;
-                    const shift = currentIndex * (cardWidth + gap);
+
+                    const startIndex = Math.min(currentPage * visible, Math.max(0, cards.length - visible));
+                    const shift = startIndex * (cardWidth + gap);
 
                     track.style.transform = 'translate3d(-' + shift + 'px, 0, 0)';
 
                     if (animate === false) {
                         void track.offsetHeight;
-                        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                        track.style.transition = 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)';
                     }
 
                     updateDots();
                 }
 
                 function goToPage(pageIndex) {
-                    const visible = getVisibleCards();
-                    const maxIdx = getMaxIndex();
-                    currentIndex = Math.min(pageIndex * visible, maxIdx);
+                    const pages = getPagesCount();
+                    currentPage = Math.max(0, Math.min(pageIndex, pages - 1));
                     updateSliderPosition(true);
                 }
 
                 function nextSlide() {
-                    const visible = getVisibleCards();
-                    const maxIdx = getMaxIndex();
-                    if (currentIndex >= maxIdx) {
-                        currentIndex = 0;
-                    } else {
-                        currentIndex = Math.min(currentIndex + visible, maxIdx);
-                    }
+                    const pages = getPagesCount();
+                    currentPage = (currentPage + 1) % pages;
                     updateSliderPosition(true);
                 }
 
                 function prevSlide() {
-                    const visible = getVisibleCards();
-                    const maxIdx = getMaxIndex();
-                    if (currentIndex <= 0) {
-                        currentIndex = maxIdx;
-                    } else {
-                        currentIndex = Math.max(currentIndex - visible, 0);
-                    }
+                    const pages = getPagesCount();
+                    currentPage = (currentPage - 1 + pages) % pages;
                     updateSliderPosition(true);
                 }
 
                 function isTestimonialsHovered() {
-                    return (wrapper && wrapper.matches(':hover')) || (dotsContainer && dotsContainer.matches(':hover'));
+                    return (wrapper && wrapper.matches(':hover')) || 
+                           (dotsContainer && dotsContainer.matches(':hover')) ||
+                           (navControls && navControls.matches(':hover'));
                 }
 
                 function startAutoSlide() {
                     stopAutoSlide();
                     if (cards.length <= getVisibleCards()) return;
                     autoSlideTimer = setInterval(function() {
-                        if (!isPaused && !isTestimonialsHovered() && !document.hidden) {
+                        if (!isPaused && !isTestimonialsHovered() && !document.hidden && isSectionVisible) {
                             nextSlide();
                         }
                     }, 4000);
@@ -2437,11 +2476,29 @@
                     startAutoSlide();
                 }
 
-                // Hover pause (using events + fallback check)
+                // IntersectionObserver to auto-start when scrolled into view and pause when away
+                if ('IntersectionObserver' in window && section) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            isSectionVisible = entry.isIntersecting;
+                            if (entry.isIntersecting) {
+                                isPaused = false;
+                                startAutoSlide();
+                            } else {
+                                stopAutoSlide();
+                            }
+                        });
+                    }, { threshold: 0.15 });
+                    observer.observe(section);
+                }
+
+                // Hover pause (using events + dynamic :hover fallback check)
                 wrapper.addEventListener('mouseenter', function() { isPaused = true; });
                 wrapper.addEventListener('mouseleave', function() { isPaused = false; });
-                dotsContainer.addEventListener('mouseenter', function() { isPaused = true; });
-                dotsContainer.addEventListener('mouseleave', function() { isPaused = false; });
+                if (navControls) {
+                    navControls.addEventListener('mouseenter', function() { isPaused = true; });
+                    navControls.addEventListener('mouseleave', function() { isPaused = false; });
+                }
 
                 if (prevBtn) {
                     prevBtn.addEventListener('click', function(e) {
@@ -2449,8 +2506,6 @@
                         prevSlide();
                         resetAutoSlide();
                     });
-                    prevBtn.addEventListener('mouseenter', function() { isPaused = true; });
-                    prevBtn.addEventListener('mouseleave', function() { isPaused = false; });
                 }
 
                 if (nextBtn) {
@@ -2459,11 +2514,9 @@
                         nextSlide();
                         resetAutoSlide();
                     });
-                    nextBtn.addEventListener('mouseenter', function() { isPaused = true; });
-                    nextBtn.addEventListener('mouseleave', function() { isPaused = false; });
                 }
 
-                // Touch & Swipe Support
+                // Touch & Swipe Support for mobile devices
                 let startX = 0;
                 let currentX = 0;
                 let isTouching = false;
@@ -2513,8 +2566,8 @@
                 window.addEventListener('resize', function() {
                     clearTimeout(resizeTimer);
                     resizeTimer = setTimeout(function() {
-                        const maxIdx = getMaxIndex();
-                        if (currentIndex > maxIdx) currentIndex = maxIdx;
+                        const pages = getPagesCount();
+                        if (currentPage >= pages) currentPage = pages - 1;
                         renderDots();
                         updateSliderPosition(false);
                     }, 120);

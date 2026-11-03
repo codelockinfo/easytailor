@@ -1601,7 +1601,7 @@
         }
 
         function resolveCity(lat, lon) {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lon}`;
             return fetch(url, { headers: { 'Accept': 'application/json' } })
                 .then(response => response.json())
                 .then(data => {
@@ -1663,68 +1663,7 @@
                 return;
             }
 
-            const defaultTailors = [
-                {
-                    id: 1,
-                    shop_name: 'Pacific Tailor United',
-                    owner_name: 'Modern Tailor & Stitching Shop',
-                    rating: 5.0,
-                    total_reviews: 120,
-                    address: 'MG Road',
-                    city: 'Bangalore',
-                    state: 'Karnataka',
-                    shop_image: 'uploads/logos/default-shop.jpg',
-                    phone: '+919876543210',
-                    whatsapp: '+919876543210',
-                    is_verified: true,
-                    specialties: ['Men Suit', 'Shirt']
-                },
-                {
-                    id: 2,
-                    shop_name: 'Trendy Shop',
-                    owner_name: 'Custom Tailor',
-                    rating: 5.0,
-                    total_reviews: 108,
-                    address: 'Indiranagar',
-                    city: 'Bangalore',
-                    state: 'Karnataka',
-                    shop_image: 'uploads/logos/default-shop.jpg',
-                    phone: '+919876543211',
-                    whatsapp: '+919876543211',
-                    is_verified: true,
-                    specialties: ['Sherwani', 'Kurta']
-                },
-                {
-                    id: 3,
-                    shop_name: 'City Stitch Tailor',
-                    owner_name: 'Premium Tailors',
-                    rating: 5.0,
-                    total_reviews: 95,
-                    address: 'Koramangala',
-                    city: 'Bangalore',
-                    state: 'Karnataka',
-                    shop_image: 'uploads/logos/default-shop.jpg',
-                    phone: '+919876543212',
-                    whatsapp: '+919876543212',
-                    is_verified: true,
-                    specialties: ['Blouse', 'Gown']
-                },
-                {
-                    id: 4,
-                    shop_name: 'Modern Stitch Tailor',
-                    owner_name: 'Fashion & Alterations',
-                    rating: 5.0,
-                    total_reviews: 87,
-                    address: 'HSR Layout',
-                    city: 'Bangalore',
-                    state: 'Karnataka',
-                    shop_image: 'uploads/logos/default-shop.jpg',
-                    phone: '+919876543213',
-                    whatsapp: '+919876543213',
-                    is_verified: true,
-                    specialties: ['Alteration', 'Suit']
-                }
-            ];
+            const defaultTailors = [];
 
             if (triedCity) {
                 updateCityNotice(city, false);
@@ -1813,15 +1752,7 @@
                 return;
             }
 
-            // If fewer than 5 items, loop them so the infinite carousel functions smoothly without blank gaps
             let displayList = tailors.slice();
-            if (displayList.length > 0 && displayList.length < 5) {
-                const baseList = tailors.slice();
-                while (displayList.length < 8) {
-                    displayList = displayList.concat(baseList);
-                }
-                displayList = displayList.slice(0, 8);
-            }
 
             let html = '';
             displayList.forEach(tailor => {
@@ -1903,7 +1834,7 @@
                 dots: false,
                 infinite: totalSlides > 4,
                 speed: 600,
-                slidesToShow: 4,
+                slidesToShow: Math.min(4, Math.max(1, totalSlides)),
                 slidesToScroll: 1,
                 autoplay: totalSlides > 4,
                 autoplaySpeed: 3500,

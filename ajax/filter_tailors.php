@@ -33,7 +33,21 @@ try {
     
     $filters = [
         'keyword' => $_GET['keyword'] ?? '',
-        'city' => $_GET['city'] ?? '',
+        'city' => (function() {
+        $c = trim($_GET['city'] ?? '');
+        $map = [
+            'સુરત' => 'Surat',
+            'અમદાવાદ' => 'Ahmedabad',
+            'વડોદરા' => 'Vadodara',
+            'રાજકોટ' => 'Rajkot',
+            'ગાંધીનગર' => 'Gandhinagar',
+            'ભાવનગર' => 'Bhavnagar',
+            'જામનગર' => 'Jamnagar',
+            'જુનાગઢ' => 'Junagadh',
+            'મુંબઈ' => 'Mumbai'
+        ];
+        return $map[$c] ?? $c;
+    })(),
         'state' => $_GET['state'] ?? '',
         'min_rating' => $_GET['min_rating'] ?? '',
         'specialty' => $_GET['specialty'] ?? '',

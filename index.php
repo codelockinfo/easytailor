@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793684860" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793687746" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1480,30 +1480,44 @@
                     <?php foreach ($blogArticles as $article): ?>
                         <div class="desktop-blog-card">
                             <div class="desktop-blog-image-wrap">
-                                <img src="<?php echo htmlspecialchars($article['image']); ?>" 
-                                     alt="<?php echo htmlspecialchars($article['title']); ?>" 
-                                     onerror="this.onerror=null; this.src='assets/images/blog/at01.png';">
+                                <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" class="desktop-blog-img-link" aria-label="<?php echo htmlspecialchars($article['title']); ?>">
+                                    <img src="<?php echo htmlspecialchars($article['image']); ?>" 
+                                         alt="<?php echo htmlspecialchars($article['title']); ?>" 
+                                         onerror="this.onerror=null; this.src='assets/images/blog/at01.png';">
+                                </a>
                                 <span class="desktop-blog-badge">
                                     <?php echo htmlspecialchars($article['category']); ?>
                                 </span>
+                                <div class="desktop-blog-image-overlay">
+                                    <h3 class="desktop-blog-img-title">
+                                        <?php echo htmlspecialchars($article['title']); ?>
+                                    </h3>
+                                    <span class="desktop-blog-hint">
+                                        Read Article <i class="fas fa-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
                             </div>
                             <div class="desktop-blog-body">
-                                <h3 class="desktop-blog-title">
-                                    <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index">
-                                        <?php echo htmlspecialchars($article['title']); ?>
-                                    </a>
-                                </h3>
-                                <p class="desktop-blog-excerpt">
-                                    <?php echo htmlspecialchars($article['excerpt']); ?>
-                                </p>
-                                <div class="desktop-blog-meta">
-                                    <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
-                                    <span><i class="fas fa-clock"></i> <?php echo htmlspecialchars($article['read_time']); ?></span>
+                                <div class="desktop-blog-body-top">
+                                    <h3 class="desktop-blog-title">
+                                        <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index">
+                                            <?php echo htmlspecialchars($article['title']); ?>
+                                        </a>
+                                    </h3>
+                                    <p class="desktop-blog-excerpt">
+                                        <?php echo htmlspecialchars($article['excerpt']); ?>
+                                    </p>
                                 </div>
-                                <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" 
-                                   class="btn-blog-read">
-                                    Read More <i class="fas fa-arrow-right ms-1"></i>
-                                </a>
+                                <div class="desktop-blog-body-bottom">
+                                    <div class="desktop-blog-meta">
+                                        <span><i class="fas fa-calendar"></i> <?php echo date('M d, Y', strtotime($article['published_date'])); ?></span>
+                                        <span><i class="fas fa-clock"></i> <?php echo htmlspecialchars($article['read_time']); ?></span>
+                                    </div>
+                                    <a href="article.php?slug=<?php echo htmlspecialchars($article['slug']); ?>&from=index" 
+                                       class="btn-blog-read">
+                                        Read More <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>

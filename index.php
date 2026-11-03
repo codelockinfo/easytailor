@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793194647" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793607500" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -353,27 +353,27 @@
             </div>
             <div class="mob-categories-scroll">
                 <a href="tailors.php?cat=men" class="mob-category-item">
-                    <div class="mob-category-icon">👔</div>
+                    <div class="mob-category-icon">ðŸ‘”</div>
                     <span class="mob-category-label">Men Wear</span>
                 </a>
                 <a href="tailors.php?cat=women" class="mob-category-item">
-                    <div class="mob-category-icon">👗</div>
+                    <div class="mob-category-icon">ðŸ‘—</div>
                     <span class="mob-category-label">Women Wear</span>
                 </a>
                 <a href="tailors.php?cat=alteration" class="mob-category-item">
-                    <div class="mob-category-icon">✂️</div>
+                    <div class="mob-category-icon">âœ‚ï¸</div>
                     <span class="mob-category-label">Alteration</span>
                 </a>
                 <a href="tailors.php?cat=uniform" class="mob-category-item">
-                    <div class="mob-category-icon">🧥</div>
+                    <div class="mob-category-icon">ðŸ§¥</div>
                     <span class="mob-category-label">Uniform</span>
                 </a>
                 <a href="tailors.php?cat=custom" class="mob-category-item">
-                    <div class="mob-category-icon">🪡</div>
+                    <div class="mob-category-icon">ðŸª¡</div>
                     <span class="mob-category-label">Custom Stitch</span>
                 </a>
                 <a href="tailors.php" class="mob-category-item">
-                    <div class="mob-category-icon" style="font-size:18px;">⋯</div>
+                    <div class="mob-category-icon" style="font-size:18px;">â‹¯</div>
                     <span class="mob-category-label">More</span>
                 </a>
             </div>
@@ -539,9 +539,9 @@
                         <span class="mob-feat-num">08 / 09</span>
                     </div>
                     <div class="mob-feat-name">Multi-Language</div>
-                    <p class="mob-feat-desc">Use the software comfortably in your native language — English, Hindi or Gujarati.</p>
+                    <p class="mob-feat-desc">Use the software comfortably in your native language â€” English, Hindi or Gujarati.</p>
                     <div class="mob-feat-footer">
-                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN • HI • GU</span>
+                        <span class="mob-feat-tag"><i class="fas fa-check-circle"></i> EN â€¢ HI â€¢ GU</span>
                     </div>
                 </div>
                 <div class="mob-feat-slide-card">
@@ -940,7 +940,7 @@
         <div class="container position-relative" style="z-index: 3;">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-xl-7 text-center">
-                    <div class="desktop-eyebrow justify-content-center">— DIGITALIZE YOUR TAILORING BUSINESS —</div>
+                    <div class="desktop-eyebrow justify-content-center">â€” DIGITALIZE YOUR TAILORING BUSINESS â€”</div>
                     <h2 class="desktop-section-title text-center">About Our Platform</h2>
                     <p class="desktop-section-subtitle text-center mx-auto" style="max-width: 680px;">
                         Our platform helps tailoring businesses streamline their workflow with ease. 
@@ -1119,7 +1119,7 @@
         </div>
         <div class="container position-relative" style="z-index: 3;">
             <div class="desktop-section-header">
-                <div class="desktop-eyebrow">— YOUR PERFECT BUSINESS PARTNER —</div>
+                <div class="desktop-eyebrow">&mdash; YOUR PERFECT BUSINESS PARTNER &mdash;</div>
                 <h2 class="desktop-section-title">Why Choose Our Platform?</h2>
                 <p class="desktop-section-subtitle">
                     Discover the advantages that make our tailoring management system the best choice for your business.
@@ -1127,7 +1127,54 @@
             </div>
             <div class="row align-items-center">
                 <!-- Left spacer column reserved for the 3D tailor illustration in background -->
-                <div class="col-lg-5 d-none d-lg-block benefits-spacer-col"></div>
+               
+<div class="col-lg-5 d-none d-lg-flex benefits-spacer-col">
+    <div class="tailor-visual">
+
+        <!-- Decorative Circles -->
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+
+        <!-- Center Person -->
+        <div class="tailor-person">
+            <img src="assets/images/person.png" alt="Professional Tailor">
+        </div>
+
+        <!-- Floating Icons -->
+        <div class="floating-icon icon-one">
+            <i class="fas fa-stopwatch"></i>
+        </div>
+
+        <div class="floating-icon icon-two">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+
+        <div class="floating-icon icon-three">
+            <i class="fas fa-chart-line"></i>
+        </div>
+
+        <div class="floating-icon icon-four">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+
+        <div class="floating-icon icon-five">
+            <i class="fas fa-cloud-upload-alt"></i>
+        </div>
+
+        <div class="floating-icon icon-six">
+            <i class="fas fa-ruler-combined"></i>
+        </div>
+
+        <div class="floating-icon icon-seven">
+            <i class="fas fa-cut"></i>
+        </div>
+
+        <!-- Decorative Dots -->
+        <div class="decoration-dots"></div>
+
+    </div>
+</div>
+
                 <div class="col-lg-7">
                     <div class="benefits-grid">
                         <div class="desktop-benefit-item">
@@ -1166,7 +1213,7 @@
                             </div>
                         </div>
                         <div class="desktop-benefit-item">
-                            <div class="desktop-benefit-icon purple"><i class="fas fa-shield-halved"></i></div>
+                            <div class="desktop-benefit-icon purple"><i class="fas fa-shield-alt"></i></div>
                             <div>
                                 <h4 class="desktop-benefit-title">Secure & Reliable Platform</h4>
                                 <p class="desktop-benefit-desc">Your data is protected with industry-grade security and 99.9% uptime.</p>
@@ -1178,61 +1225,69 @@
         </div>
     </section>
 
-    <section id="how-it-works" class="how-it-works-section">
-        <div class="container">
-            <div class="desktop-section-header">
-                <div class="desktop-eyebrow">GET STARTED TODAY</div>
-                <h2 class="desktop-section-title">How It Works</h2>
-                <p class="desktop-section-subtitle">
+                                            <section id="how-it-works" class="how-it-works-section">
+        <div class="container position-relative" style="z-index: 3;">
+            <div class="desktop-section-header hiw-section-header">
+                <div class="desktop-eyebrow hiw-eyebrow">GET STARTED TODAY</div>
+                <h2 class="desktop-section-title hiw-title">How It Works</h2>
+                <p class="desktop-section-subtitle hiw-subtitle">
                     Get started with our platform in just a few simple steps.
                 </p>
             </div>
-            <div class="how-it-works-flow position-relative">
-                <svg class="how-it-works-path-svg" viewBox="0 0 900 60" fill="none">
-                    <path d="M 60,35 Q 260,60 460,30 T 830,18" stroke="#c7d2fe" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
-                    <g transform="translate(835, 10) rotate(-18)">
-                        <path d="M0,10 L18,0 L8,18 L6,10 Z" fill="#6366f1"/>
-                    </g>
-                </svg>
-                <div class="desktop-step-item">
-                    <div class="desktop-step-badge">1</div>
-                    <div class="desktop-step-icon-wrap">
-                        <i class="fas fa-id-card"></i>
+
+            <div class="hiw-container">
+
+
+                <!-- 4 Equal Step Cards Grid -->
+                <div class="hiw-cards-grid">
+                    <!-- Step 1 -->
+                    <div class="hiw-step-box">
+                        <div class="hiw-badge">1</div>
+                        <div class="hiw-icon-bubble">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <h3 class="hiw-step-heading">Register Your Business</h3>
+                        <p class="hiw-step-text">Create your account and set up your tailoring business profile in minutes.</p>
                     </div>
-                    <h3 class="desktop-step-title">Register Your Business</h3>
-                    <p class="desktop-step-desc">Create your account and set up your tailoring business profile in minutes.</p>
-                </div>
-                <div class="desktop-step-item">
-                    <div class="desktop-step-badge">2</div>
-                    <div class="desktop-step-icon-wrap">
-                        <i class="fas fa-users-gear"></i>
+
+                    <!-- Step 2 -->
+                    <div class="hiw-step-box">
+                        <div class="hiw-badge">2</div>
+                        <div class="hiw-icon-bubble">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="hiw-step-heading">Add Your Team</h3>
+                        <p class="hiw-step-text">Add customers, employees, and set up roles and permissions.</p>
                     </div>
-                    <h3 class="desktop-step-title">Add Your Team</h3>
-                    <p class="desktop-step-desc">Add tailors, staff, and artisans, and set access permissions.</p>
-                </div>
-                <div class="desktop-step-item">
-                    <div class="desktop-step-badge">3</div>
-                    <div class="desktop-step-icon-wrap">
-                        <i class="fas fa-sliders"></i>
+
+                    <!-- Step 3 -->
+                    <div class="hiw-step-box">
+                        <div class="hiw-badge">3</div>
+                        <div class="hiw-icon-bubble">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3 class="hiw-step-heading">Manage Operations</h3>
+                        <p class="hiw-step-text">Handle orders, generate invoices, and track payments effortlessly.</p>
                     </div>
-                    <h3 class="desktop-step-title">Manage Operations</h3>
-                    <p class="desktop-step-desc">Add customers, generate invoices, and track orders effortlessly.</p>
-                </div>
-                <div class="desktop-step-item">
-                    <div class="desktop-step-badge">4</div>
-                    <div class="desktop-step-icon-wrap">
-                        <i class="fas fa-chart-line"></i>
+
+                    <!-- Step 4 -->
+                    <div class="hiw-step-box">
+                        <div class="hiw-badge">4</div>
+                        <div class="hiw-icon-bubble">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3 class="hiw-step-heading">Track Growth</h3>
+                        <p class="hiw-step-text">Monitor reports, set goals, and grow your business with detailed analytics.</p>
                     </div>
-                    <h3 class="desktop-step-title">Track Growth</h3>
-                    <p class="desktop-step-desc">Monitor reports, set goals, and grow your business with detailed analytics.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="screenshots" class="screenshots-section">
+        <section id="screenshots" class="screenshots-section">
         <div class="container">
             <div class="desktop-section-header">
+                <div class="desktop-eyebrow">PREVIEW OUR SOFTWARE</div>
                 <h2 class="desktop-section-title">See It In Action</h2>
                 <p class="desktop-section-subtitle">
                     Explore a preview of how the platform helps streamline daily tasks.
@@ -1240,31 +1295,47 @@
             </div>
             <div class="interactive-action-container">
                 <div class="action-tabs-list">
-                    <button type="button" class="action-tab-btn active" data-index="0" data-img="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" data-title="Powerful Dashboard" data-desc="Get a complete overview of your business with easy-to-understand analytics, charts, and reports." data-bullets='["Real-time insights", "Track key metrics", "Make data-driven decisions"]'>
+                    <button type="button" class="action-tab-btn active" data-index="0" data-img="assets/images/dashboard-screen.png?v=2" data-url="app.easytailor.com/dashboard" data-title="Powerful Dashboard" data-desc="Get a complete real-time overview of your tailoring business with revenue charts, order status tracking, and quick actions." data-bullets='["Real-time revenue & order analytics", "Quick action shortcuts for orders & bills", "Track pending & completed deliveries"]'>
                         <i class="fas fa-th-large"></i> Dashboard
                     </button>
-                    <button type="button" class="action-tab-btn" data-index="1" data-img="assets/images/Soft Minimalist Download Laptop Mockup (2).gif" data-title="Order Management" data-desc="Track and manage all your orders efficiently from measurement taking to cutting, fitting, and trial." data-bullets='["Real-time status tracking", "Trial & delivery alerts", "Status updates for clients"]'>
+                    <button type="button" class="action-tab-btn" data-index="1" data-img="assets/images/orders-screen.png?v=2" data-url="app.easytailor.com/orders" data-title="Order Management" data-desc="Track, manage and update customer tailoring orders with due dates, cloth types, and tailor assignments." data-bullets='["Real-time status tracking (Pending, In Progress, Delivered)", "Track due dates, cloth types & pricing", "Assign orders to specific tailors"]'>
                         <i class="fas fa-box-open"></i> Order Management
                     </button>
-                    <button type="button" class="action-tab-btn" data-index="2" data-img="assets/images/Soft Minimalist Download Laptop Mockup.gif" data-title="Invoice Generation" data-desc="Generate professional bills, print receipts, track advance payments, and calculate balances seamlessly." data-bullets='["GST & Tax calculation", "Advance & pending tracking", "Print and WhatsApp sharing"]'>
+                    <button type="button" class="action-tab-btn" data-index="2" data-img="assets/images/invoices-screen.png?v=2" data-url="app.easytailor.com/invoices" data-title="Invoice Generation" data-desc="Track customer billings, payment balances, tax calculation, and financial receipts seamlessly." data-bullets='["Track total, paid & pending invoice amounts", "Automated GST/tax & balance calculation", "Generate print receipts & WhatsApp sharing"]'>
                         <i class="fas fa-file-invoice-dollar"></i> Invoice Generation
                     </button>
-                    <button type="button" class="action-tab-btn" data-index="3" data-img="assets/images/Soft Minimalist Download Laptop Mockup (4).gif" data-title="Customer Profiles" data-desc="Store customer profiles, measurement history, fabric preferences, and order history in one place." data-bullets='["Saved body measurements", "Fabric style notes", "Quick customer lookups"]'>
+                    <button type="button" class="action-tab-btn" data-index="3" data-img="assets/images/customers-screen.png?v=2" data-url="app.easytailor.com/customers" data-title="Customer Profiles" data-desc="Manage your client relationships, phone contacts, location history, and linked garment orders in one place." data-bullets='["Store client phone numbers, emails & addresses", "Track total & active order count per client", "Quick customer search by code or mobile"]'>
                         <i class="fas fa-users-gear"></i> Customer Profiles
                     </button>
                 </div>
-                <div class="action-preview-screen">
+                <div class="action-preview-wrapper position-relative">
                     <button type="button" class="action-screen-nav-btn prev" id="actionScreenPrev" aria-label="Previous Screenshot"><i class="fas fa-chevron-left"></i></button>
-                    <img id="actionScreenImg" src="assets/images/Soft Minimalist Download Laptop Mockup (3).gif" alt="Dashboard Preview" class="img-fluid">
+                    <div class="action-preview-screen">
+                        <!-- Browser Mockup Header -->
+                        <div class="action-mockup-header" aria-hidden="true">
+                            <div class="mockup-dots">
+                                <span class="mockup-dot dot-red"></span>
+                                <span class="mockup-dot dot-yellow"></span>
+                                <span class="mockup-dot dot-green"></span>
+                            </div>
+                            <div class="mockup-url-bar" id="actionMockupUrl">
+                                <i class="fas fa-lock"></i> app.easytailor.com/dashboard
+                            </div>
+                        </div>
+                        <!-- Browser Body with Image -->
+                        <div class="action-mockup-body">
+                            <img id="actionScreenImg" src="assets/images/dashboard-screen.png?v=2" alt="Dashboard Preview" class="img-fluid">
+                        </div>
+                    </div>
                     <button type="button" class="action-screen-nav-btn next" id="actionScreenNext" aria-label="Next Screenshot"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 <div class="action-details-panel">
                     <h3 class="action-details-title" id="actionDetailsTitle">Powerful Dashboard</h3>
-                    <p class="action-details-desc" id="actionDetailsDesc">Get a complete overview of your business with easy-to-understand analytics, charts, and reports.</p>
+                    <p class="action-details-desc" id="actionDetailsDesc">Get a complete real-time overview of your tailoring business with revenue charts, order status tracking, and quick actions.</p>
                     <ul class="action-checklist" id="actionChecklist">
-                        <li><i class="fas fa-check-circle"></i> <span>Real-time insights</span></li>
-                        <li><i class="fas fa-check-circle"></i> <span>Track key metrics</span></li>
-                        <li><i class="fas fa-check-circle"></i> <span>Make data-driven decisions</span></li>
+                        <li><i class="fas fa-check-circle"></i> <span>Real-time revenue & order analytics</span></li>
+                        <li><i class="fas fa-check-circle"></i> <span>Quick action shortcuts for orders & bills</span></li>
+                        <li><i class="fas fa-check-circle"></i> <span>Track pending & completed deliveries</span></li>
                     </ul>
                 </div>
             </div>
@@ -1905,6 +1976,9 @@
                             if (img) previewImg.src = img;
                             if (title && titleEl) titleEl.textContent = title;
                             if (desc && descEl) descEl.textContent = desc;
+                            const url = tab.getAttribute('data-url');
+                            const urlEl = document.getElementById('actionMockupUrl');
+                            if (url && urlEl) { urlEl.innerHTML = '<i class="fas fa-lock"></i> ' + url; }
 
                             if (bulletsRaw && checklistEl) {
                                 try {

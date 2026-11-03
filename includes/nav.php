@@ -15,6 +15,236 @@ $faviconLinks = '
 
 $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';
 ?>
+<style>
+
+.announcement-bar {
+    background: linear-gradient(90deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%) !important;
+    color: #ffffff !important;
+    padding: 8px 15px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.2px;
+    box-shadow: 0 2px 10px rgba(109, 40, 217, 0.2) !important;
+    position: relative !important;
+    width: 100% !important;
+    z-index: 1060 !important;
+    display: block !important;
+}
+.announcement-bar .announcement-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    text-align: center !important;
+    padding: 0 !important;
+    position: relative !important;
+}
+.announcement-bar .announcement-text {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+}
+.announcement-click-hint {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+.announcement-bar .announcement-close {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    padding: 2px 6px !important;
+    position: absolute !important;
+    right: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+.announcement-bar .announcement-close:hover {
+    color: #ffffff !important;
+}
+
+/* Sticky Main Navbar */
+.navbar.sticky-top,
+.navbar.fixed-top,
+.navbar {
+    position: sticky !important;
+    top: 0 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+    padding: 14px 0 !important;
+    transition: all 0.3s ease;
+    z-index: 1050 !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+.desktop-nav-brand {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    color: #1e1b4b !important;
+    letter-spacing: -0.5px !important;
+    text-decoration: none !important;
+}
+.desktop-nav-brand i {
+    color: #6366f1 !important;
+    font-size: 20px !important;
+    margin-right: 6px !important;
+}
+
+.navbar-nav .nav-link {
+    font-size: 14.5px !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease !important;
+}
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: #4f46e5 !important;
+}
+
+/* Action Buttons */
+.desktop-btn-login,
+.login-header-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #f5f3ff !important;
+    color: #4f46e5 !important;
+    border: 1.5px solid #ddd6fe !important;
+    border-radius: 50px !important;
+    padding: 7px 22px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+}
+.desktop-btn-login:hover,
+.login-header-btn:hover {
+    background: #ede9fe !important;
+    border-color: #c4b5fd !important;
+    color: #4338ca !important;
+    transform: translateY(-1px);
+}
+
+.desktop-btn-register,
+.register-header-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #4f46e5 !important;
+    color: #ffffff !important;
+    border: 1.5px solid #4f46e5 !important;
+    border-radius: 50px !important;
+    padding: 7px 24px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
+    transition: all 0.2s ease !important;
+}
+.desktop-btn-register:hover,
+.register-header-btn:hover {
+    background: #4338ca !important;
+    border-color: #4338ca !important;
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45) !important;
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+/* Mobile Offcanvas Drawer */
+.site-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1080;
+    display: none;
+}
+.site-drawer {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 300px;
+    height: 100%;
+    background: #ffffff;
+    z-index: 1090;
+    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+.site-drawer.open {
+    right: 0 !important;
+}
+.site-drawer-header {
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.site-drawer-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+.site-drawer-links {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+}
+.site-drawer-link {
+    font-size: 15px;
+    font-weight: 600;
+    color: #334155;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.site-drawer-link:hover {
+    background: #f5f3ff;
+    color: #6366f1;
+}
+.site-drawer-link i {
+    width: 20px;
+    color: #6366f1;
+    font-size: 16px;
+}
+.site-drawer-actions {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+</style>
+
+<?php require_once __DIR__ . '/announcement-bar.php'; ?>
+
 <!-- Mobile / Offcanvas Navigation Drawer -->
 <div class="site-drawer-overlay" id="siteDrawerOverlay" onclick="closeSiteDrawer()"></div>
 <div class="site-drawer" id="siteDrawer">

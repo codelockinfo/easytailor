@@ -81,22 +81,6 @@ $seoOptions = [
             padding: 0.75rem 2rem;
             transition: var(--transition);
         }
-        .header-browse-tailors-btn {
-            border: 2px solid  #667eea !important;
-            color: #667eea !important;
-            background: transparent !important;
-            border-radius: 50px !important;
-        }
-        .login-header-btn {
-            border: 2px solid #667eea !important;
-            color: white !important;
-            background: #667eea !important;
-            border-radius: 50px !important;
-        }
-        .ms-auto {
-            display: flex;
-            gap: 10px;
-        }
         .btn-outline-light:hover {
             color: #667eea;
         }

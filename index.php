@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793693838" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793705801" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1554,7 +1554,7 @@
 
     // Combine database reviews with default reviews to guarantee at least 16 cards for smooth multi-page sliding
     $displayTestimonials = !empty($testimonials) ? array_merge($testimonials, $defaultReviews) : $defaultReviews;
-    $displayTestimonials = array_slice($displayTestimonials, 0, 16);
+    $displayTestimonials = array_slice($displayTestimonials, 0, 12);
     ?>
     <section id="testimonials" class="testimonials-section">
         <div class="container">
@@ -2338,10 +2338,9 @@
                 const section = document.getElementById('testimonials');
                 if (!track || !wrapper || !dotsContainer) return;
 
-                const cards = Array.from(track.querySelectorAll('.desktop-testimonial-card'));
-                if (cards.length === 0) return;
-
-                let currentPage = 0;
+                let originalCards = [];
+                let currentTrackPage = 1; // 1 = Real Page 0 (Track Page 0 is the prepended clone)
+                let isTransitioning = false;
                 let autoSlideTimer = null;
                 let isPaused = false;
                 let isSectionVisible = true;
@@ -2350,39 +2349,54 @@
                     const w = window.innerWidth;
                     if (w <= 600) return 1;
                     if (w <= 991) return 2;
-                    if (w <= 1199) return 3;
-                    return 4;
+                    return 3;
                 }
 
                 function getGap() {
-                    return window.innerWidth <= 600 ? 16 : 20;
+                    if (window.innerWidth <= 600) return 16;
+                    if (window.innerWidth <= 991) return 18;
+                    return 24;
                 }
 
                 function getPagesCount() {
                     const visible = getVisibleCards();
-                    return Math.max(1, Math.ceil(cards.length / visible));
+                    return Math.max(1, Math.ceil(originalCards.length / visible));
+                }
+
+                function getShiftForPage(trackPage) {
+                    const comp = window.getComputedStyle(wrapper);
+                    const padL = parseFloat(comp.paddingLeft) || 0;
+                    const padR = parseFloat(comp.paddingRight) || 0;
+                    const contentWidth = wrapper.clientWidth - padL - padR;
+                    const gap = getGap();
+                    return trackPage * (contentWidth + gap);
+                }
+
+                function setPosition(trackPage, animate) {
+                    if (animate === false) {
+                        track.style.transition = 'none';
+                    } else {
+                        track.style.transition = 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)';
+                    }
+                    const shift = getShiftForPage(trackPage);
+                    track.style.transform = 'translate3d(-' + shift + 'px, 0, 0)';
+                    if (animate === false) {
+                        void track.offsetHeight;
+                        track.style.transition = 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)';
+                    }
                 }
 
                 function renderDots() {
                     dotsContainer.innerHTML = '';
                     const pages = getPagesCount();
-                    if (pages <= 1) {
-                        if (navControls) navControls.style.display = 'none';
-                        return;
-                    }
-                    if (navControls) navControls.style.display = 'flex';
                     dotsContainer.style.display = 'inline-flex';
                     if (prevBtn) prevBtn.style.display = 'inline-flex';
                     if (nextBtn) nextBtn.style.display = 'inline-flex';
 
-                    if (currentPage >= pages) {
-                        currentPage = pages - 1;
-                    }
-
                     for (let i = 0; i < pages; i++) {
                         const dot = document.createElement('button');
                         dot.type = 'button';
-                        dot.className = 'testimonial-dot' + (i === currentPage ? ' active' : '');
+                        dot.className = 'testimonial-dot' + (i === 0 ? ' active' : '');
                         dot.setAttribute('data-page', i);
                         dot.setAttribute('aria-label', 'Go to testimonial page ' + (i + 1));
                         dot.addEventListener('click', function(e) {
@@ -2394,10 +2408,10 @@
                     }
                 }
 
-                function updateDots() {
+                function updateDots(activePageIdx) {
                     const dots = dotsContainer.querySelectorAll('.testimonial-dot');
                     dots.forEach((dot, idx) => {
-                        if (idx === currentPage) {
+                        if (idx === activePageIdx) {
                             dot.classList.add('active');
                         } else {
                             dot.classList.remove('active');
@@ -2405,48 +2419,120 @@
                     });
                 }
 
-                function updateSliderPosition(animate) {
-                    if (animate === false) {
-                        track.style.transition = 'none';
-                    } else {
-                        track.style.transition = 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)';
+                function setupInfiniteSlider() {
+                    // Remove any existing clones
+                    track.querySelectorAll('.is-clone').forEach(el => el.remove());
+
+                    if (!originalCards.length) {
+                        originalCards = Array.from(track.querySelectorAll('.desktop-testimonial-card'));
                     }
+                    if (originalCards.length === 0) return;
 
                     const visible = getVisibleCards();
-                    const gap = getGap();
-                    const wrapperWidth = wrapper.clientWidth;
-                    const cardWidth = (wrapperWidth - (gap * (visible - 1))) / visible;
+                    const pages = getPagesCount();
 
-                    const startIndex = Math.min(currentPage * visible, Math.max(0, cards.length - visible));
-                    const shift = startIndex * (cardWidth + gap);
+                    if (pages <= 1) {
+                        if (navControls) navControls.style.display = 'none';
+                        return;
+                    }
+                    if (navControls) navControls.style.display = 'flex';
 
-                    track.style.transform = 'translate3d(-' + shift + 'px, 0, 0)';
-
-                    if (animate === false) {
-                        void track.offsetHeight;
-                        track.style.transition = 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)';
+                    // 1. Prepend clones of the LAST page (the last `visible` cards)
+                    const lastPageStart = (pages - 1) * visible;
+                    for (let i = originalCards.length - 1; i >= lastPageStart; i--) {
+                        const clone = originalCards[i].cloneNode(true);
+                        clone.classList.add('is-clone');
+                        clone.setAttribute('aria-hidden', 'true');
+                        track.insertBefore(clone, track.firstChild);
                     }
 
-                    updateDots();
-                }
+                    // 2. Append clones of the FIRST page (the first `visible` cards)
+                    for (let i = 0; i < visible; i++) {
+                        const clone = originalCards[i].cloneNode(true);
+                        clone.classList.add('is-clone');
+                        clone.setAttribute('aria-hidden', 'true');
+                        track.appendChild(clone);
+                    }
 
-                function goToPage(pageIndex) {
-                    const pages = getPagesCount();
-                    currentPage = Math.max(0, Math.min(pageIndex, pages - 1));
-                    updateSliderPosition(true);
+                    renderDots();
+
+                    // Track page 1 corresponds to Real Page 0
+                    currentTrackPage = 1;
+                    setPosition(currentTrackPage, false);
+                    updateDots(0);
                 }
 
                 function nextSlide() {
+                    if (isTransitioning) return;
                     const pages = getPagesCount();
-                    currentPage = (currentPage + 1) % pages;
-                    updateSliderPosition(true);
+                    isTransitioning = true;
+                    currentTrackPage++;
+
+                    const activeDot = (currentTrackPage - 1) % pages;
+                    updateDots(activeDot);
+                    setPosition(currentTrackPage, true);
+
+                    // Safety watchdog in case transitionend is skipped
+                    setTimeout(function() {
+                        if (isTransitioning) {
+                            if (currentTrackPage === pages + 1) {
+                                currentTrackPage = 1;
+                                setPosition(currentTrackPage, false);
+                            }
+                            isTransitioning = false;
+                        }
+                    }, 750);
                 }
 
                 function prevSlide() {
+                    if (isTransitioning) return;
                     const pages = getPagesCount();
-                    currentPage = (currentPage - 1 + pages) % pages;
-                    updateSliderPosition(true);
+                    isTransitioning = true;
+                    currentTrackPage--;
+
+                    const activeDot = (currentTrackPage - 1 + pages) % pages;
+                    updateDots(activeDot);
+                    setPosition(currentTrackPage, true);
+
+                    // Safety watchdog in case transitionend is skipped
+                    setTimeout(function() {
+                        if (isTransitioning) {
+                            if (currentTrackPage === 0) {
+                                currentTrackPage = pages;
+                                setPosition(currentTrackPage, false);
+                            }
+                            isTransitioning = false;
+                        }
+                    }, 750);
                 }
+
+                function goToPage(pageIdx) {
+                    if (isTransitioning) return;
+                    const pages = getPagesCount();
+                    pageIdx = Math.max(0, Math.min(pageIdx, pages - 1));
+                    currentTrackPage = pageIdx + 1;
+                    updateDots(pageIdx);
+                    setPosition(currentTrackPage, true);
+                }
+
+                // Seamless wrap-around listener
+                track.addEventListener('transitionend', function(e) {
+                    if (e.target !== track) return;
+                    const pages = getPagesCount();
+
+                    // Slid forward into clone of Page 0 -> silently snap to Real Page 0
+                    if (currentTrackPage === pages + 1) {
+                        currentTrackPage = 1;
+                        setPosition(currentTrackPage, false);
+                    }
+                    // Slid backward into clone of Page 3 -> silently snap to Real Page 3
+                    else if (currentTrackPage === 0) {
+                        currentTrackPage = pages;
+                        setPosition(currentTrackPage, false);
+                    }
+
+                    isTransitioning = false;
+                });
 
                 function isTestimonialsHovered() {
                     return (wrapper && wrapper.matches(':hover')) || 
@@ -2456,7 +2542,7 @@
 
                 function startAutoSlide() {
                     stopAutoSlide();
-                    if (cards.length <= getVisibleCards()) return;
+                    if (originalCards.length <= getVisibleCards()) return;
                     autoSlideTimer = setInterval(function() {
                         if (!isPaused && !isTestimonialsHovered() && !document.hidden && isSectionVisible) {
                             nextSlide();
@@ -2476,7 +2562,7 @@
                     startAutoSlide();
                 }
 
-                // IntersectionObserver to auto-start when scrolled into view and pause when away
+                // IntersectionObserver to auto-start when in view and sleep when away
                 if ('IntersectionObserver' in window && section) {
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
@@ -2492,7 +2578,7 @@
                     observer.observe(section);
                 }
 
-                // Hover pause (using events + dynamic :hover fallback check)
+                // Hover pause
                 wrapper.addEventListener('mouseenter', function() { isPaused = true; });
                 wrapper.addEventListener('mouseleave', function() { isPaused = false; });
                 if (navControls) {
@@ -2566,16 +2652,12 @@
                 window.addEventListener('resize', function() {
                     clearTimeout(resizeTimer);
                     resizeTimer = setTimeout(function() {
-                        const pages = getPagesCount();
-                        if (currentPage >= pages) currentPage = pages - 1;
-                        renderDots();
-                        updateSliderPosition(false);
-                    }, 120);
+                        setupInfiniteSlider();
+                    }, 150);
                 });
 
-                // Initial run
-                renderDots();
-                updateSliderPosition(false);
+                // Initialize Infinite Slider
+                setupInfiniteSlider();
                 startAutoSlide();
             }
 

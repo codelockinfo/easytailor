@@ -1,4 +1,8 @@
 ﻿/* --- CONTAINER MAX-WIDTH OVERRIDE --- */
+.container,
+.container-fluid,
+.container-xl,
+.container-xxl,
 body.home-page .container,
 body.home-page .container-fluid,
 body.home-page .container-xl,
@@ -6,6 +10,20 @@ body.home-page .container-xxl {
     max-width: 1700px !important;
     padding-left: 40px !important;
     padding-right: 40px !important;
+}
+
+@media (max-width: 768px) {
+    .container,
+    .container-fluid,
+    .container-xl,
+    .container-xxl,
+    body.home-page .container,
+    body.home-page .container-fluid,
+    body.home-page .container-xl,
+    body.home-page .container-xxl {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
 }
 
 /* ==========================================================================

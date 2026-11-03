@@ -4897,3 +4897,23 @@ section:last-of-type+.footer-section {
 .mob-feat-cta i {
     font-size: 12px;
 }
+
+/* --- UNIVERSAL 1700px CONTAINER TO MATCH HOMEPAGE --- */
+.container,
+.container-fluid,
+.container-xl,
+.container-xxl {
+    max-width: 1700px !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+}
+
+@media (max-width: 768px) {
+    .container,
+    .container-fluid,
+    .container-xl,
+    .container-xxl {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+}

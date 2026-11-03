@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793705801" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793716000" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1695,34 +1695,32 @@
     </section>
 
     <section id="final-cta" class="final-cta-section">
-        <div class="container">
-            <div class="final-cta-card">
-                <div class="final-cta-inner">
-                    <div class="final-cta-visual">
-                        <img src="assets/images/cta-mannequin.svg" alt="Tailor Management Platform" class="img-fluid">
+        <div class="final-cta-card">
+            <div class="final-cta-inner">
+                <div class="final-cta-visual">
+                    <img src="assets/images/cta-tailor-3d.png?v=7" alt="Tailor Management Platform" class="final-cta-img">
+                </div>
+                <div class="final-cta-content">
+                    <div class="final-cta-eyebrow">READY TO GROW YOUR BUSINESS?</div>
+                    <h2 class="final-cta-title">Take Your Tailoring Business to the Next Level</h2>
+                    <p class="final-cta-desc">
+                        Join thousands of successful tailoring businesses that have already digitalized their operations. Start your free trial today and see the difference.
+                    </p>
+                </div>
+                <div class="final-cta-actions">
+                    <div class="final-cta-btns">
+                        <a href="admin/register.php" class="btn btn-cta-white">
+                            <i class="fa-solid fa-shapes me-2"></i>Register Your Business
+                        </a>
+                        <a href="admin/login.php" class="btn btn-cta-transparent">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Login Now
+                        </a>
                     </div>
-                    <div>
-                        <div class="final-cta-eyebrow">READY TO GROW YOUR BUSINESS?</div>
-                        <h2 class="final-cta-title">Take Your Tailoring Business to the Next Level</h2>
-                        <p class="final-cta-desc">
-                            Join thousands of successful tailoring businesses that have already digitalized their operations. Start your free trial today and see the difference.
-                        </p>
-                    </div>
-                    <div class="final-cta-actions">
-                        <div class="final-cta-btns">
-                            <a href="admin/register.php" class="btn btn-cta-white">
-                                <i class="fas fa-id-card me-2"></i>Register Your Business
-                            </a>
-                            <a href="admin/login.php" class="btn btn-cta-transparent">
-                                <i class="fas fa-right-to-bracket me-2"></i>Login Now
-                            </a>
-                        </div>
-                        <ul class="final-cta-checklist">
-                            <li><i class="fas fa-check-circle"></i> Free to use</li>
-                            <li><i class="fas fa-check-circle"></i> No credit card required</li>
-                            <li><i class="fas fa-check-circle"></i> Set up in minutes</li>
-                        </ul>
-                    </div>
+                    <ul class="final-cta-checklist">
+                        <li><i class="fa-regular fa-circle-check"></i> Free to use</li>
+                        <li><i class="fa-regular fa-circle-check"></i> No credit card required</li>
+                        <li><i class="fa-solid fa-circle-info"></i> Start in minutes</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -1943,47 +1941,84 @@
 
             let html = '';
             displayList.forEach(tailor => {
-                const stars = generateStars(tailor.rating);
+                const defaultCover = 'assets/images/default-tailor-shop.jpg';
+                const isDefaultImage = !tailor.shop_image || tailor.shop_image.includes('default-shop') || tailor.shop_image.includes('default-logo');
+                const coverImg = isDefaultImage ? defaultCover : tailor.shop_image;
+                const shopName = tailor.shop_name || 'Tailor Shop';
+                const ownerName = tailor.owner_name || 'Tailor Specialist';
+                const initialLetter = (shopName.trim().charAt(0) || 'T').toUpperCase();
+                const hasCustomLogo = tailor.shop_image && !isDefaultImage;
+
+                const rating = tailor.rating ? parseFloat(tailor.rating).toFixed(1) : '5.0';
+                const reviewCount = tailor.total_reviews || 0;
+
+                let displayLocation = '';
+                if (tailor.city && tailor.state) {
+                    displayLocation = `${tailor.city}, ${tailor.state}`;
+                } else if (tailor.city) {
+                    displayLocation = tailor.city;
+                } else if (tailor.address) {
+                    displayLocation = tailor.address;
+                } else {
+                    displayLocation = 'Surat, Gujarat';
+                }
+                const fullAddress = [tailor.address, tailor.city, tailor.state, tailor.postal_code].filter(Boolean).join(', ');
+
                 const specialties = (tailor.specialties || []).slice(0, 2);
                 const tailorLoc = formatTailorCardAddress(tailor);
 
                 html += `
                     <div class="tailor-slide">
-                        <div class="tailor-slider-card" onclick="window.location.href='tailor.php?id=${tailor.id}'" style="cursor:pointer;">
+                        <div class="tailor-slider-card" onclick="if (!event.target.closest('a, button')) window.location.href='tailor.php?id=${tailor.id}';">
                             <div class="tailor-slider-image">
-                                <img src="${tailor.shop_image || 'uploads/logos/default-shop.jpg'}" alt="${tailor.shop_name || 'Tailor Shop'}" onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
-                                ${tailor.is_featured ? '<span class="featured-badge-slider"><i class="fas fa-star"></i> Featured</span>' : ''}
-                                ${tailor.is_verified ? '<span class="verified-badge-slider"><i class="fas fa-check-circle"></i> Verified</span>' : ''}
+                                <img src="${coverImg}" alt="${shopName}" onerror="this.onerror=null; this.src='assets/images/default-tailor-shop.jpg';">
+                                <div class="tailor-card-badges">
+                                    ${tailor.is_featured ? '<span class="badge-pill badge-featured"><i class="fas fa-crown"></i> Featured</span>' : ''}
+                                    ${tailor.is_verified ? '<span class="badge-pill badge-verified"><i class="fas fa-check-circle"></i> Verified</span>' : ''}
+                                </div>
+                                <div class="tailor-avatar-badge" title="${shopName}">
+                                    ${hasCustomLogo ? `<img src="${tailor.shop_image}" alt="${shopName}" class="tailor-avatar-img">` : `<div class="tailor-avatar-initial">${initialLetter}</div>`}
+                                </div>
                             </div>
                             <div class="tailor-slider-body">
-                                <h4 class="tailor-slider-name" title="${tailor.shop_name || ''}">${tailor.shop_name || 'Tailor Shop'}</h4>
-                                <p class="tailor-slider-owner" title="${tailor.owner_name || ''}">${tailor.owner_name || 'Tailor Specialist'}</p>
-                                <div class="tailor-slider-rating">
-                                    <span class="stars">${stars}</span>
-                                    <span class="rating-text">${tailor.rating || '5.0'} (${tailor.total_reviews || 0})</span>
+                                <div class="tailor-card-top-row">
+                                    <h4 class="tailor-slider-name" title="${shopName}">
+                                        <a href="tailor.php?id=${tailor.id}">${shopName}</a>
+                                    </h4>
+                                    <div class="tailor-rating-pill" title="${rating} out of 5 (${reviewCount} reviews)">
+                                        <i class="fas fa-star"></i>
+                                        <span>${rating}</span>
+                                        <small>(${reviewCount})</small>
+                                    </div>
                                 </div>
-                                <p class="tailor-slider-location" title="${tailorLoc}">
-                                    <i class="fas fa-map-marker-alt me-1"></i>${tailorLoc}
+                                <p class="tailor-slider-owner" title="${ownerName}">
+                                    <i class="fas fa-user-tie me-1"></i>${ownerName}
+                                </p>
+                                <p class="tailor-slider-location" title="${fullAddress}">
+                                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>${displayLocation}
                                 </p>
                                 ${specialties.length > 0 ? `
                                 <div class="tailor-slider-specialties">
                                     ${specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('')}
                                 </div>
                                 ` : ''}
-                                <div class="tailor-slider-actions d-flex gap-2">
-                                    <a href="tailor.php?id=${tailor.id}" class="btn btn-outline-primary btn-icon" title="View Profile" aria-label="View Profile">
-                                        <i class="fas fa-eye"></i>
+                                <div class="tailor-slider-footer">
+                                    <a href="tailor.php?id=${tailor.id}" class="btn-card-primary">
+                                        <span>View Profile</span>
+                                        <i class="fas fa-arrow-right"></i>
                                     </a>
-                                    ${tailor.phone ? `
-                                    <a href="tel:${tailor.phone}" class="btn btn-outline-primary btn-icon" title="Call" aria-label="Call">
-                                        <i class="fas fa-phone"></i>
-                                    </a>
-                                    ` : ''}
-                                    ${tailor.whatsapp ? `
-                                    <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-whatsapp btn-icon" title="WhatsApp" aria-label="WhatsApp">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </a>
-                                    ` : ''}
+                                    <div class="tailor-quick-actions">
+                                        ${tailor.phone ? `
+                                        <a href="tel:${tailor.phone}" class="btn-action-icon btn-call" title="Call ${shopName}" aria-label="Call">
+                                            <i class="fas fa-phone-alt"></i>
+                                        </a>
+                                        ` : ''}
+                                        ${tailor.whatsapp ? `
+                                        <a href="https://wa.me/${tailor.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn-action-icon btn-whatsapp" title="WhatsApp" aria-label="WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </a>
+                                        ` : ''}
+                                    </div>
                                 </div>
                             </div>
                         </div>

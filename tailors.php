@@ -842,6 +842,23 @@ $seoOptions = [
                 });
         }
 
+        function formatTailorLocation(tailor) {
+            if (!tailor) return '';
+            let rawAddr = (tailor.address || '').replace(/[\r\n]+/g, ', ').trim();
+            let parts = [];
+            if (rawAddr) parts.push(rawAddr);
+            if (tailor.city && !rawAddr.toLowerCase().includes(tailor.city.toLowerCase())) {
+                parts.push(tailor.city);
+            }
+            if (tailor.state && !rawAddr.toLowerCase().includes(tailor.state.toLowerCase())) {
+                parts.push(tailor.state);
+            }
+            if (tailor.postal_code && !rawAddr.includes(tailor.postal_code)) {
+                parts.push(tailor.postal_code);
+            }
+            return parts.join(', ').replace(/\s*,\s*,+/g, ', ').replace(/\s+/g, ' ').trim();
+        }
+
         function displayTailors(tailors) {
             const resultsSection = document.getElementById('resultsSection');
             
@@ -882,7 +899,7 @@ $seoOptions = [
                                 
                                 <div class="tailor-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    ${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}${tailor.postal_code ? ' - ' + tailor.postal_code : ''}
+                                    ${formatTailorLocation(tailor)}
                                 </div>
                                 
                                 <p class="tailor-description">${tailor.description || ''}</p>

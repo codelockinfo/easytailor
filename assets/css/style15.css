@@ -2981,7 +2981,7 @@ section:last-of-type+.footer-section {
             font-size: 15px;
         }
         .fa-star{
-            font-size: 24px;
+            font-size: 12px;
         }
     	.tailor-slider-name {
     	    font-size: 1rem;
@@ -3957,22 +3957,7 @@ section:last-of-type+.footer-section {
     align-items: center;
     gap: 3px;
 }
-.mob-tailor-heart {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(255,255,255,0.9);
-    border: none;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #ccc;
-    font-size: 13px;
-}
+
 .mob-tailor-body {
     padding: 10px;
 }

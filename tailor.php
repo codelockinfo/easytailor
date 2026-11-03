@@ -41,6 +41,33 @@ function getSpecialtyIcon($name) {
     if (strpos($lower, 'blouse') !== false || strpos($lower, 'gown') !== false || strpos($lower, 'lehenga') !== false || strpos($lower, 'saree') !== false) return 'fa-female';
     return 'fa-check';
 }
+
+function formatTailorProfileAddress($comp) {
+    if (!is_array($comp)) return '';
+    $cleanAddr = trim(preg_replace('/[\r\n]+/', ', ', (string)($comp['business_address'] ?? '')));
+    $parts = [];
+    if (!empty($cleanAddr)) $parts[] = $cleanAddr;
+    
+    $city = trim((string)($comp['city'] ?? ''));
+    if (!empty($city) && stripos($cleanAddr, $city) === false) {
+        $parts[] = $city;
+    }
+    
+    $state = trim((string)($comp['state'] ?? ''));
+    if (!empty($state) && stripos($cleanAddr, $state) === false) {
+        $parts[] = $state;
+    }
+    
+    $postal_code = trim((string)($comp['postal_code'] ?? ''));
+    if (!empty($postal_code) && strpos($cleanAddr, $postal_code) === false) {
+        $parts[] = $postal_code;
+    }
+    
+    $full = implode(', ', $parts);
+    $full = preg_replace('/\s*,\s*,+/', ', ', $full);
+    $full = preg_replace('/\s+/', ' ', $full);
+    return trim($full, ", \t\n\r\0\x0B");
+}
 ?>
 <?php
 require_once 'helpers/SEOHelper.php';
@@ -349,6 +376,22 @@ $seoOptions = [
             color: #6366f1;
             flex-shrink: 0;
             box-shadow: 0 4px 14px rgba(99, 102, 241, 0.18);
+            animation: floatCalendarBox 3.8s ease-in-out infinite;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        @keyframes floatCalendarBox {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .profile-card:hover .wh-icon-box {
+            transform: translateY(-6px) scale(1.04);
+            box-shadow: 0 8px 22px rgba(99, 102, 241, 0.28);
         }
 
         .wh-grid {
@@ -379,7 +422,7 @@ $seoOptions = [
             font-weight: 600;
         }
 
-        /* Rating Breakdown Bars */
+        /* Rating Breakdown Bars with Entry Growth & Shimmer Animation */
         .rating-bar-row {
             display: flex;
             align-items: center;
@@ -401,13 +444,59 @@ $seoOptions = [
             background: #eef2ff;
             border-radius: 20px;
             overflow: hidden;
+            position: relative;
         }
         .rating-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #6366f1, #a855f7);
+            width: var(--target-width, 0%);
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 35%, #c084fc 65%, #6366f1 100%);
+            background-size: 200% 100%;
             border-radius: 20px;
-            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+            animation: growRatingBar 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards, shimmerRatingBar 4s linear infinite;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
         }
+        .rating-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+            animation: barShine 2.8s ease-in-out infinite;
+        }
+
+        @keyframes growRatingBar {
+            0% {
+                width: 0%;
+                opacity: 0.3;
+            }
+            100% {
+                width: var(--target-width);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmerRatingBar {
+            0% {
+                background-position: 200% 0%;
+            }
+            100% {
+                background-position: -200% 0%;
+            }
+        }
+
+        @keyframes barShine {
+            0% {
+                left: -100%;
+            }
+            60%, 100% {
+                left: 180%;
+            }
+        }
+
         .rating-count-label {
             width: 24px;
             text-align: right;
@@ -416,7 +505,7 @@ $seoOptions = [
             color: #64748b;
         }
 
-        /* Contact Card */
+        /* Contact Card with 3D Floating Envelope */
         .contact-card-relative {
             position: relative;
             overflow: hidden;
@@ -426,6 +515,10 @@ $seoOptions = [
             align-items: center;
             font-size: 14.5px;
             color: #334155;
+            transition: transform 0.2s ease;
+        }
+        .contact-info-item:hover {
+            transform: translateX(4px);
         }
         .contact-info-item i {
             color: #6366f1 !important;
@@ -445,9 +538,25 @@ $seoOptions = [
             position: absolute;
             right: 18px;
             bottom: 14px;
-            opacity: 0.9;
+            opacity: 0.95;
             pointer-events: none;
-            transform: rotate(-6deg);
+            transform-origin: center center;
+            animation: floatEnvelope 3.2s ease-in-out infinite;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
+        }
+
+        @keyframes floatEnvelope {
+            0%, 100% {
+                transform: rotate(-6deg) translateY(0px);
+            }
+            50% {
+                transform: rotate(-2deg) translateY(-8px);
+            }
+        }
+
+        .contact-card-relative:hover .contact-card-envelope-decor {
+            transform: rotate(0deg) translateY(-10px) scale(1.1);
+            filter: drop-shadow(0 10px 20px rgba(124, 58, 237, 0.35));
         }
 
         /* Customer Reviews Decorative Laurel Wreath */
@@ -778,10 +887,10 @@ $seoOptions = [
                     </div>
 
                     <?php 
-                    $fullAddressParts = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
-                    if (!empty($fullAddressParts)): ?>
+                    $profileFullAddress = formatTailorProfileAddress($company);
+                    if (!empty($profileFullAddress)): ?>
                         <div class="profile-address-line">
-                            <i class="fas fa-map-marker-alt text-warning me-2"></i><?php echo escape(implode(', ', $fullAddressParts)); ?>
+                            <i class="fas fa-map-marker-alt text-warning me-2"></i><?php echo escape($profileFullAddress); ?>
                         </div>
                     <?php endif; ?>
 
@@ -820,11 +929,11 @@ $seoOptions = [
                         </div>
                         <div class="profile-card-body">
                             <?php 
-                            $fullAboutAddress = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
-                            if (!empty($fullAboutAddress)): ?>
+                            $profileAboutAddress = formatTailorProfileAddress($company);
+                            if (!empty($profileAboutAddress)): ?>
                                 <div class="profile-about-address mb-3">
                                     <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
-                                    <span><?php echo escape(implode(', ', $fullAboutAddress)); ?></span>
+                                    <span><?php echo escape($profileAboutAddress); ?></span>
                                 </div>
                             <?php endif; ?>
 
@@ -908,7 +1017,7 @@ $seoOptions = [
                                 <div class="rating-bar-row">
                                     <span class="rating-star-label"><?php echo $i; ?> <i class="fas fa-star" style="font-size:11px; color:#fbbf24;"></i></span>
                                     <div class="rating-bar-track">
-                                        <div class="rating-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
+                                        <div class="rating-bar-fill" style="--target-width: <?php echo $percent; ?>%; width: <?php echo $percent; ?>%;"></div>
                                     </div>
                                     <span class="rating-count-label"><?php echo $count; ?></span>
                                 </div>
@@ -919,7 +1028,12 @@ $seoOptions = [
                     <!-- Contact Card -->
                     <div class="profile-card contact-card-relative mb-0 flex-grow-1">
                         <div class="profile-card-header">
-                            <span class="profile-card-icon"><i class="fas fa-phone"></i></span>
+                            <span class="profile-card-icon" title="Contact">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                                </svg>
+                            </span>
                             <h3 class="profile-card-title">Contact</h3>
                         </div>
                         <div class="profile-card-body">

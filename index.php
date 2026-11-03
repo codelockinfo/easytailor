@@ -1900,6 +1900,23 @@
                     }
         }
 
+        function formatTailorCardAddress(t) {
+            if (!t) return '';
+            let rawAddr = (t.address || '').replace(/[\r\n]+/g, ', ').trim();
+            let parts = [];
+            if (rawAddr) parts.push(rawAddr);
+            if (t.city && !rawAddr.toLowerCase().includes(t.city.toLowerCase())) {
+                parts.push(t.city);
+            }
+            if (t.state && !rawAddr.toLowerCase().includes(t.state.toLowerCase())) {
+                parts.push(t.state);
+            }
+            if (t.postal_code && !rawAddr.includes(t.postal_code)) {
+                parts.push(t.postal_code);
+            }
+            return parts.join(', ').replace(/\s*,\s*,+/g, ', ').replace(/\s+/g, ' ').trim();
+        }
+
         function displayTailorsSlider(tailors) {
             const slider = $('#tailorsSlider');
             if (!slider.length) return;
@@ -1928,10 +1945,11 @@
             displayList.forEach(tailor => {
                 const stars = generateStars(tailor.rating);
                 const specialties = (tailor.specialties || []).slice(0, 2);
+                const tailorLoc = formatTailorCardAddress(tailor);
 
                 html += `
                     <div class="tailor-slide">
-                        <div class="tailor-slider-card">
+                        <div class="tailor-slider-card" onclick="window.location.href='tailor.php?id=${tailor.id}'" style="cursor:pointer;">
                             <div class="tailor-slider-image">
                                 <img src="${tailor.shop_image || 'uploads/logos/default-shop.jpg'}" alt="${tailor.shop_name || 'Tailor Shop'}" onerror="this.onerror=null; this.src='uploads/logos/default-shop.jpg';">
                                 ${tailor.is_featured ? '<span class="featured-badge-slider"><i class="fas fa-star"></i> Featured</span>' : ''}
@@ -1944,8 +1962,8 @@
                                     <span class="stars">${stars}</span>
                                     <span class="rating-text">${tailor.rating || '5.0'} (${tailor.total_reviews || 0})</span>
                                 </div>
-                                <p class="tailor-slider-location" title="${tailor.address ? tailor.address + ', ' : ''}${tailor.city || ''}, ${tailor.state || ''}">
-                                    <i class="fas fa-map-marker-alt me-1"></i>${tailor.address ? tailor.address + ', ' : ''}${tailor.city || ''}, ${tailor.state || ''}
+                                <p class="tailor-slider-location" title="${tailorLoc}">
+                                    <i class="fas fa-map-marker-alt me-1"></i>${tailorLoc}
                                 </p>
                                 ${specialties.length > 0 ? `
                                 <div class="tailor-slider-specialties">
@@ -3257,8 +3275,13 @@
                 const container = document.getElementById('mobTailorsScroll');
                 if (!container) return;
 
-                container.innerHTML = data.data.slice(0, 6).map(t => `
-                    <div class="mob-tailor-card">
+                container.innerHTML = data.data.slice(0, 6).map(t => {
+                    const fullAddress = formatTailorCardAddress(t);
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+                    const profileUrl = `tailor.php?id=${t.id}`;
+
+                    return `
+                    <div class="mob-tailor-card" onclick="window.location.href='${profileUrl}'" style="cursor:pointer;">
                         <div class="mob-tailor-img" style="position:relative;">
                             <img src="${t.shop_image || ''}" alt="${t.shop_name || 'Tailor'}"
                                  onerror="this.style.display='none';"
@@ -3266,25 +3289,27 @@
                             <div class="mob-tailor-rating">
                                 <i class="fas fa-star"></i> ${parseFloat(t.rating || 0).toFixed(1)}
                             </div>
-                            <button class="mob-tailor-heart" onclick="event.stopPropagation()">
-                                <i class="far fa-heart"></i>
-                            </button>
                         </div>
                         <div class="mob-tailor-body">
                             <div class="mob-tailor-name">${t.shop_name || 'Tailor Shop'}</div>
                             <div class="mob-tailor-specialty">${(t.specialties || ['Tailoring'])[0]}</div>
                             <div class="mob-tailor-meta">
-                                <span class="mob-tailor-dist"><i class="fas fa-map-marker-alt"></i> ${(t.address ? t.address + ', ' : '') + (t.city || 'Nearby')}</span>
-                                <span class="mob-tailor-open">Open</span>
+                                <span class="mob-tailor-dist" title="${fullAddress}"><i class="fas fa-map-marker-alt"></i> ${fullAddress || 'Nearby'}</span>
+                               
                             </div>
                             <div class="mob-tailor-actions">
-                                <a href="tel:${t.phone || '#'}" class="mob-tailor-action-btn call"><i class="fas fa-phone"></i></a>
-                                ${t.whatsapp ? `<a href="https://wa.me/${(t.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="mob-tailor-action-btn whatsapp"><i class="fab fa-whatsapp"></i></a>` : ''}
-                                <a href="tailor.php?id=${t.id}" class="mob-tailor-action-btn dir"><i class="fas fa-location-arrow"></i></a>
+                                <a href="tel:${t.phone || '#'}" class="mob-tailor-action-btn call" onclick="event.stopPropagation();" title="Call">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                                ${t.whatsapp ? `<a href="https://wa.me/${(t.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" rel="noopener noreferrer" class="mob-tailor-action-btn whatsapp" onclick="event.stopPropagation();" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>` : ''}
+                                <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="mob-tailor-action-btn dir" onclick="event.stopPropagation();" title="Open in Google Maps">
+                                    <i class="fas fa-location-arrow"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             })
             .catch(() => {}); 
     }

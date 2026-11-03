@@ -69,20 +69,32 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     color: #ffffff !important;
 }
 
-/* Sticky Main Navbar */
-.navbar.sticky-top,
-.navbar.fixed-top,
-.navbar {
-    position: sticky !important;
-    top: 0 !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
-    padding: 14px 0 !important;
-    transition: all 0.3s ease;
-    z-index: 1050 !important;
-    display: block !important;
-    width: 100% !important;
+/* Sticky Main Navbar (Desktop Only) */
+@media (min-width: 768px) {
+    .navbar.sticky-top,
+    .navbar.fixed-top,
+    .navbar {
+        position: sticky !important;
+        top: 0 !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+        padding: 14px 0 !important;
+        transition: all 0.3s ease;
+        z-index: 1050 !important;
+        display: block !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .announcement-bar,
+    .navbar,
+    .navbar.sticky-top,
+    .navbar.fixed-top,
+    nav.navbar {
+        display: none !important;
+    }
 }
 
 .desktop-nav-brand {
@@ -260,9 +272,61 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
         padding-right: 16px !important;
     }
 }
+@media (max-width: 767px) {
+    .announcement-bar,
+    .navbar {
+        display: none !important;
+    }
+}
 </style>
 
 <?php require_once __DIR__ . '/announcement-bar.php'; ?>
+
+<?php if ($currentPage !== 'index.php'): ?>
+<!-- Mobile Header & Navigation Drawer (Exact Homepage Mobile App Experience) -->
+<div class="mob-drawer-overlay" id="mobDrawerOverlay" onclick="closeMobDrawer()"></div>
+<div class="mob-drawer" id="mobDrawer">
+    <div class="mob-drawer-header">
+        <div class="mob-drawer-avatar"><i class="fas fa-user"></i></div>
+        <div class="mob-drawer-user">
+            <div class="mob-drawer-username">Welcome!</div>
+            <div class="mob-drawer-action">Login or Register</div>
+        </div>
+        <button class="mob-drawer-close" onclick="closeMobDrawer()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="mob-drawer-links">
+        <a href="<?php echo $basePath; ?>./" class="mob-drawer-link"><i class="fas fa-home"></i> Home</a>
+        <a href="<?php echo $basePath; ?>tailors.php" class="mob-drawer-link"><i class="fas fa-map-marker-alt"></i> Tailors Near You</a>
+        <a href="<?php echo $basePath; ?>tailors.php?cat=men" class="mob-drawer-link"><i class="fas fa-tshirt"></i> Categories</a>
+        <a href="<?php echo $basePath; ?>./#how-it-works" class="mob-drawer-link"><i class="fas fa-question-circle"></i> How It Works</a>
+        <a href="<?php echo $basePath; ?>admin/login.php" class="mob-drawer-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="<?php echo $basePath; ?>admin/register.php" class="mob-drawer-link"><i class="fas fa-user-plus"></i> Register Business</a>
+        <a href="<?php echo $basePath; ?>contact.php" class="mob-drawer-link"><i class="fas fa-envelope"></i> Contact Us</a>
+        <a href="<?php echo $basePath; ?>about.php" class="mob-drawer-link"><i class="fas fa-info-circle"></i> About</a>
+        <a href="<?php echo $basePath; ?>blog.php" class="mob-drawer-link"><i class="fas fa-blog"></i> Blog</a>
+    </div>
+</div>
+<header class="mob-header">
+    <div class="mob-header-left">
+        <button class="mob-hamburger" onclick="openMobDrawer()" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="<?php echo $basePath; ?>./" style="text-decoration:none;">
+            <img src="<?php echo $basePath; ?>uploads/logos/main-logo.png" alt="Tailor" class="mob-logo"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+            <span class="mob-logo-text" style="display:none;"><i class="fas fa-cut" style="font-size:18px;"></i> Tai<span>lo</span>r</span>
+        </a>
+    </div>
+    <div class="mob-header-right">
+        <a href="<?php echo $basePath; ?>tailors.php?city=Surat" class="mob-location-chip" style="text-decoration:none;">
+            <i class="fas fa-map-marker-alt"></i> Surat, Gujarat <i class="fas fa-chevron-down"></i>
+        </a>
+        <a href="<?php echo $basePath; ?>admin/login.php" class="mob-avatar" aria-label="Profile">
+            <i class="fas fa-user"></i>
+        </a>
+    </div>
+</header>
+<?php endif; ?>
 
 <!-- Mobile / Offcanvas Navigation Drawer -->
 <div class="site-drawer-overlay" id="siteDrawerOverlay" onclick="closeSiteDrawer()"></div>
@@ -294,7 +358,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 </div>
 
 <!-- Main Top Navbar (Responsive for Desktop, Tablet, and Mobile) -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm d-none d-md-block">
     <div class="container">
         <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
             <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
@@ -339,6 +403,20 @@ function openSiteDrawer() {
     if (drawer) drawer.classList.add('open');
     if (overlay) overlay.style.display = 'block';
     document.body.style.overflow = 'hidden';
+}
+function openMobDrawer() {
+    var drawer = document.getElementById('mobDrawer');
+    var overlay = document.getElementById('mobDrawerOverlay');
+    if (drawer) drawer.classList.add('open');
+    if (overlay) overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeMobDrawer() {
+    var drawer = document.getElementById('mobDrawer');
+    var overlay = document.getElementById('mobDrawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
 }
 function closeSiteDrawer() {
     var drawer = document.getElementById('siteDrawer');

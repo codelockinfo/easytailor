@@ -845,6 +845,209 @@ $seoOptions = [
                 align-items: flex-start;
             }
         }
+
+        /* Mobile View Optimizations (< 768px) */
+        @media (max-width: 767px) {
+            body {
+                padding-bottom: 80px !important;
+            }
+            .navbar,
+            nav.navbar,
+            .announcement-bar,
+            .footer-section,
+            footer.footer-section {
+                display: none !important;
+            }
+
+            /* Profile Hero */
+            .profile-hero {
+                padding: 18px 0 24px !important;
+                background-position: center top !important;
+            }
+            .profile-shop-img-box {
+                display: block !important;
+                margin: 0 auto 12px !important;
+                max-width: 210px !important;
+                padding: 4px !important;
+                border-radius: 16px !important;
+                border-width: 2px !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+            }
+            .profile-shop-img {
+                width: 100% !important;
+                max-width: 202px !important;
+                height: 125px !important;
+                border-radius: 12px !important;
+                margin: 0 auto !important;
+                object-fit: contain !important;
+            }
+            .profile-shop-title {
+                font-size: 21px !important;
+                line-height: 1.25 !important;
+                text-align: center !important;
+                margin-bottom: 6px !important;
+            }
+            .profile-shop-desc {
+                font-size: 12.5px !important;
+                line-height: 1.45 !important;
+                text-align: center !important;
+                margin-bottom: 10px !important;
+                padding: 0 4px !important;
+                opacity: 0.92;
+            }
+            .profile-hero .d-flex.flex-wrap.align-items-center {
+                justify-content: center !important;
+                gap: 6px !important;
+                margin-bottom: 8px !important;
+            }
+            .profile-badge-pill,
+            .profile-badge-verified {
+                font-size: 11px !important;
+                padding: 3.5px 9px !important;
+            }
+            .profile-address-line {
+                font-size: 11.5px !important;
+                line-height: 1.4 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                margin-bottom: 14px !important;
+                padding: 0 6px !important;
+            }
+            .profile-actions-row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: 8px !important;
+                justify-content: center !important;
+                width: 100% !important;
+                padding: 0 4px !important;
+            }
+            .profile-actions-row a {
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 8px 6px !important;
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                justify-content: center !important;
+                text-align: center !important;
+                border-radius: 50px !important;
+                white-space: nowrap !important;
+            }
+            .profile-actions-row a i {
+                margin-right: 4px !important;
+                font-size: 11px !important;
+            }
+
+            /* Cards & Body */
+            .profile-body-wrap {
+                padding: 16px 0 24px !important;
+            }
+            .profile-card {
+                padding: 16px 14px !important;
+                border-radius: 16px !important;
+            }
+            .profile-card-header {
+                margin-bottom: 12px !important;
+            }
+            .profile-card-title {
+                font-size: 16px !important;
+            }
+            .profile-card-icon {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 13px !important;
+            }
+            .profile-about-address {
+                font-size: 12.5px !important;
+                line-height: 1.4 !important;
+            }
+            .profile-about-text {
+                font-size: 13px !important;
+                line-height: 1.5 !important;
+            }
+            .specialty-pill {
+                font-size: 12px !important;
+                padding: 4px 9px !important;
+            }
+            .wh-card-layout {
+                padding: 12px 10px !important;
+            }
+            .wh-item {
+                font-size: 12px !important;
+                padding: 5px 8px !important;
+            }
+
+            /* Contact Card */
+            .contact-card-envelope-decor {
+                right: 6px !important;
+                bottom: 6px !important;
+                max-width: 50px !important;
+                opacity: 0.18 !important;
+            }
+            .contact-link {
+                font-size: 12.5px !important;
+            }
+
+            /* Rating Breakdown */
+            .rating-bar-row {
+                gap: 8px !important;
+                margin-bottom: 6px !important;
+            }
+            .rating-star-label {
+                font-size: 11.5px !important;
+                width: 28px !important;
+            }
+            .rating-count-label {
+                font-size: 11.5px !important;
+                width: 20px !important;
+            }
+            .rating-bar-track {
+                height: 8px !important;
+            }
+
+            /* Reviews */
+            .review-item-card {
+                padding: 12px 12px !important;
+            }
+            .review-author {
+                font-size: 13px !important;
+            }
+            .review-item-text {
+                font-size: 12.5px !important;
+            }
+
+            /* Experience Form */
+            .profile-experience-card {
+                padding: 16px 12px !important;
+            }
+            .form-label-custom {
+                font-size: 12px !important;
+            }
+            .input-icon-wrap .form-control {
+                font-size: 12.5px !important;
+                padding: 8px 12px 8px 34px !important;
+            }
+            .input-icon-wrap i {
+                font-size: 12px !important;
+                left: 11px !important;
+            }
+            .textarea-counter-wrap textarea {
+                font-size: 12.5px !important;
+                padding: 8px 10px !important;
+                min-height: 80px !important;
+            }
+            .file-upload-bar {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
+                padding: 8px 10px !important;
+            }
+            .btn-submit-review {
+                width: 100% !important;
+                padding: 10px 18px !important;
+                font-size: 13.5px !important;
+                justify-content: center !important;
+            }
+        }
     </style>
 </head>
 <body>

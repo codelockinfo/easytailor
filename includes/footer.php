@@ -29,7 +29,15 @@ $currentYear = date('Y');
 </nav>
 
 
-<footer id="contact" class="footer-section py-3">
+<style>
+@media (max-width: 767px) {
+    .footer-section,
+    footer.footer-section {
+        display: none !important;
+    }
+}
+</style>
+<footer id="contact" class="footer-section py-3 d-none d-md-block">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4">

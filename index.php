@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793691650" rel="stylesheet">
+    <link href="assets/css/desktop-redesign.css?v=1793693400" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1295,47 +1295,95 @@
 
 
                 <!-- 4 Equal Step Cards Grid -->
-                <div class="hiw-cards-grid">
+                <div class="hiw-cards-grid is-touring" id="hiwCardsGrid">
                     <!-- Step 1 -->
-                    <div class="hiw-step-box">
-                        <div class="hiw-badge">1</div>
-                        <div class="hiw-icon-bubble">
-                            <i class="fas fa-file-invoice"></i>
+                    <div class="hiw-step-box" data-step="0" role="button" tabindex="0" aria-label="Step 1: Register Your Business">
+                        <div class="light-layer" aria-hidden="true">
+                            <div class="lumen"></div>
                         </div>
-                        <h3 class="hiw-step-heading">Register Your Business</h3>
-                        <p class="hiw-step-text">Create your account and set up your tailoring business profile in minutes.</p>
+                        <div class="darken" aria-hidden="true"></div>
+                        <div class="hiw-card-content">
+                            <div class="hiw-badge-wrap">
+                                <div class="hiw-badge">1</div>
+                            </div>
+                            <div class="hiw-icon-bubble">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <span class="hiw-step-tag">Step 1</span>
+                            <h3 class="hiw-step-heading">Register Your Business</h3>
+                            <p class="hiw-step-text">Create your account and set up your tailoring business profile in minutes.</p>
+                        </div>
+                        <div class="hiw-step-progress" aria-hidden="true">
+                            <div class="hiw-step-progress-bar"></div>
+                        </div>
                     </div>
 
                     <!-- Step 2 -->
-                    <div class="hiw-step-box">
-                        <div class="hiw-badge">2</div>
-                        <div class="hiw-icon-bubble">
-                            <i class="fas fa-users"></i>
+                    <div class="hiw-step-box" data-step="1" role="button" tabindex="0" aria-label="Step 2: Add Your Team">
+                        <div class="light-layer" aria-hidden="true">
+                            <div class="lumen"></div>
                         </div>
-                        <h3 class="hiw-step-heading">Add Your Team</h3>
-                        <p class="hiw-step-text">Add customers, employees, and set up roles and permissions.</p>
+                        <div class="darken" aria-hidden="true"></div>
+                        <div class="hiw-card-content">
+                            <div class="hiw-badge-wrap">
+                                <div class="hiw-badge">2</div>
+                            </div>
+                            <div class="hiw-icon-bubble">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <span class="hiw-step-tag">Step 2</span>
+                            <h3 class="hiw-step-heading">Add Your Team</h3>
+                            <p class="hiw-step-text">Add customers, employees, and set up roles and permissions.</p>
+                        </div>
+                        <div class="hiw-step-progress" aria-hidden="true">
+                            <div class="hiw-step-progress-bar"></div>
+                        </div>
                     </div>
 
                     <!-- Step 3 -->
-                    <div class="hiw-step-box">
-                        <div class="hiw-badge">3</div>
-                        <div class="hiw-icon-bubble">
-                            <i class="fas fa-cogs"></i>
+                    <div class="hiw-step-box" data-step="2" role="button" tabindex="0" aria-label="Step 3: Manage Operations">
+                        <div class="light-layer" aria-hidden="true">
+                            <div class="lumen"></div>
                         </div>
-                        <h3 class="hiw-step-heading">Manage Operations</h3>
-                        <p class="hiw-step-text">Handle orders, generate invoices, and track payments effortlessly.</p>
+                        <div class="darken" aria-hidden="true"></div>
+                        <div class="hiw-card-content">
+                            <div class="hiw-badge-wrap">
+                                <div class="hiw-badge">3</div>
+                            </div>
+                            <div class="hiw-icon-bubble">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <span class="hiw-step-tag">Step 3</span>
+                            <h3 class="hiw-step-heading">Manage Operations</h3>
+                            <p class="hiw-step-text">Handle orders, generate invoices, and track payments effortlessly.</p>
+                        </div>
+                        <div class="hiw-step-progress" aria-hidden="true">
+                            <div class="hiw-step-progress-bar"></div>
+                        </div>
                     </div>
 
                     <!-- Step 4 -->
-                    <div class="hiw-step-box">
-                        <div class="hiw-badge">4</div>
-                        <div class="hiw-icon-bubble">
-                            <i class="fas fa-chart-bar"></i>
+                    <div class="hiw-step-box" data-step="3" role="button" tabindex="0" aria-label="Step 4: Track Growth">
+                        <div class="light-layer" aria-hidden="true">
+                            <div class="lumen"></div>
                         </div>
-                        <h3 class="hiw-step-heading">Track Growth</h3>
-                        <p class="hiw-step-text">Monitor reports, set goals, and grow your business with detailed analytics.</p>
+                        <div class="darken" aria-hidden="true"></div>
+                        <div class="hiw-card-content">
+                            <div class="hiw-badge-wrap">
+                                <div class="hiw-badge">4</div>
+                            </div>
+                            <div class="hiw-icon-bubble">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <span class="hiw-step-tag">Step 4</span>
+                            <h3 class="hiw-step-heading">Track Growth</h3>
+                            <p class="hiw-step-text">Monitor reports, set goals, and grow your business with detailed analytics.</p>
+                        </div>
+                        <div class="hiw-step-progress" aria-hidden="true">
+                            <div class="hiw-step-progress-bar"></div>
+                        </div>
                     </div>
-                </div>
+            </div>
             </div>
         </div>
     </section>
@@ -2686,6 +2734,170 @@
                 document.addEventListener('DOMContentLoaded', initBenefitIconCardLink);
             } else {
                 initBenefitIconCardLink();
+            }
+        })();
+
+        // =========================================================================
+        // SEQUENTIAL STEP-BY-STEP WALKTHROUGH TOUR (1 -> 2 -> 3 -> 4)
+        // With Pseudo-3D Illumination, Flow Bridges & Progress Tracking
+        // =========================================================================
+        (function() {
+            function initHowItWorksSequentialTour() {
+                const section = document.getElementById('how-it-works');
+                const grid = document.getElementById('hiwCardsGrid');
+                const cards = Array.from(document.querySelectorAll('.hiw-step-box'));
+                if (!cards.length) return;
+
+                let currentStep = 0;
+                const STEP_DURATION = 3200; // 3.2s per step
+                let progress = 0;
+                let lastTimestamp = null;
+                let rafId = null;
+                let isPaused = false;
+                let isUserInteracting = false;
+                let userInteractTimer = null;
+                let isSectionVisible = true;
+
+                function updateProgress(pct) {
+                    cards.forEach((card, idx) => {
+                        const bar = card.querySelector('.hiw-step-progress-bar');
+                        if (!bar) return;
+                        if (idx < currentStep) {
+                            bar.style.width = '100%';
+                        } else if (idx === currentStep) {
+                            bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+                        } else {
+                            bar.style.width = '0%';
+                        }
+                    });
+                }
+
+                function setActiveStep(index, isUserClick = false) {
+                    if (index < 0) index = 0;
+                    if (index >= cards.length) index = 0;
+
+                    currentStep = index;
+                    progress = 0;
+                    updateProgress(0);
+
+                    cards.forEach((card, idx) => {
+                        if (idx === currentStep) {
+                            card.classList.add('is-active-step');
+                        } else {
+                            card.classList.remove('is-active-step');
+                        }
+                    });
+
+                    if (isUserClick) {
+                        isUserInteracting = true;
+                        clearTimeout(userInteractTimer);
+                        userInteractTimer = setTimeout(() => {
+                            isUserInteracting = false;
+                            lastTimestamp = performance.now();
+                        }, 6000); // 6s pause after user clicks
+                    }
+                }
+
+                function tourLoop(timestamp) {
+                    if (!lastTimestamp) lastTimestamp = timestamp;
+                    let delta = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+
+                    if (delta < 0 || isNaN(delta)) delta = 0;
+                    if (delta > 200) delta = 200;
+
+                    const isHovering = grid && grid.matches(':hover');
+                    const shouldPause = isHovering || isUserInteracting || !isSectionVisible || document.hidden;
+
+                    if (!shouldPause) {
+                        progress += delta;
+                        const pct = (progress / STEP_DURATION) * 100;
+                        updateProgress(pct);
+
+                        if (progress >= STEP_DURATION) {
+                            progress = 0;
+                            const nextStep = (currentStep + 1) % cards.length;
+                            setActiveStep(nextStep, false);
+                        }
+                    }
+
+                    rafId = requestAnimationFrame(tourLoop);
+                }
+
+                // Start tour loop
+                setActiveStep(0, false);
+                rafId = requestAnimationFrame(tourLoop);
+
+                // Viewport visibility check
+                if ('IntersectionObserver' in window && section) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            isSectionVisible = entry.isIntersecting;
+                            if (isSectionVisible) {
+                                lastTimestamp = performance.now();
+                            }
+                        });
+                    }, { threshold: 0.15 });
+                    observer.observe(section);
+                }
+
+                // Reset timestamp on scroll
+                window.addEventListener('scroll', function() {
+                    lastTimestamp = performance.now();
+                }, { passive: true });
+
+                // Click on any card jumps to that step
+                cards.forEach((card, idx) => {
+                    card.addEventListener('click', function() {
+                        setActiveStep(idx, true);
+                    });
+
+                    // 3D Illumination Pointer Tracking
+                    let cardBounds = null;
+                    card.addEventListener('pointerenter', function(e) {
+                        cardBounds = card.getBoundingClientRect();
+                        card.classList.add('is-tilting');
+                        updateIllumination(card, e.clientX, e.clientY, cardBounds);
+                    });
+
+                    card.addEventListener('pointermove', function(e) {
+                        if (!cardBounds) cardBounds = card.getBoundingClientRect();
+                        updateIllumination(card, e.clientX, e.clientY, cardBounds);
+                    });
+
+                    card.addEventListener('pointerleave', function() {
+                        card.classList.remove('is-tilting');
+                        card.style.setProperty('--rx', '0deg');
+                        card.style.setProperty('--ry', '0deg');
+                        card.style.setProperty('--mx', '50%');
+                        card.style.setProperty('--my', '35%');
+                        cardBounds = null;
+                    });
+                });
+
+                function updateIllumination(card, clientX, clientY, bounds) {
+                    const x = clientX - bounds.left;
+                    const y = clientY - bounds.top;
+                    const centerX = bounds.width / 2;
+                    const centerY = bounds.height / 2;
+
+                    const rotateX = ((centerY - y) / centerY) * 7.5;
+                    const rotateY = ((x - centerX) / centerX) * 7.5;
+
+                    const percentX = Math.min(100, Math.max(0, (x / bounds.width) * 100));
+                    const percentY = Math.min(100, Math.max(0, (y / bounds.height) * 100));
+
+                    card.style.setProperty('--rx', rotateX.toFixed(2) + 'deg');
+                    card.style.setProperty('--ry', rotateY.toFixed(2) + 'deg');
+                    card.style.setProperty('--mx', percentX.toFixed(1) + '%');
+                    card.style.setProperty('--my', percentY.toFixed(1) + '%');
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initHowItWorksSequentialTour);
+            } else {
+                initHowItWorksSequentialTour();
             }
         })();
 

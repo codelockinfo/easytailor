@@ -2051,28 +2051,243 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     gap: 30px;
     position: relative;
     z-index: 2;
+    perspective: 1000px;
 }
 
-/* Step Card Box */
+/* Step Card Box - Pseudo-3D Interface with Illumination Effect */
 .hiw-step-box {
+    position: relative;
     background: #ffffff;
-    border: 1.5px solid #edf2f7;
-    border-radius: 20px;
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    border-radius: 22px;
     padding: 34px 22px 28px 22px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    position: relative;
     z-index: 2;
-    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.04);
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.03),
+        0 8px 24px rgba(79, 70, 229, 0.05);
+    transform-style: preserve-3d;
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(0);
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease, opacity 0.35s ease, background 0.35s ease;
+    will-change: transform;
+    overflow: hidden;
+    cursor: pointer;
 }
 
+.hiw-step-box.is-tilting {
+    transition: transform 0.08s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* 1. Pseudo-element (::before) for Ambient Outer Light Bleed */
+.hiw-step-box::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle 320px at var(--mx, 50%) var(--my, 35%),
+        rgba(168, 85, 247, 0.36) 0%,
+        rgba(99, 102, 241, 0.16) 45%,
+        transparent 75%
+    );
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+}
+
+/* 2. The .darken Layer: Ambient Occlusion, Surface Depth & Shading Gradients */
+.hiw-step-box .darken {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(248, 250, 252, 0.2) 45%,
+        rgba(237, 233, 254, 0.45) 100%
+    );
+    box-shadow: 
+        inset 0 1px 3px rgba(255, 255, 255, 0.95),
+        inset 0 -12px 28px rgba(124, 58, 237, 0.04);
+    transition: box-shadow 0.4s ease;
+}
+
+/* 3. The .light-layer: Dynamic Specular Surface Illumination */
+.hiw-step-box .light-layer {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    background: radial-gradient(
+        circle 240px at var(--mx, 50%) var(--my, 35%),
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(243, 232, 255, 0.5) 30%,
+        rgba(224, 231, 255, 0.2) 55%,
+        transparent 75%
+    );
+    mix-blend-mode: overlay;
+    transition: opacity 0.4s ease;
+}
+
+/* 4. Illuminated Border Ring (::after on .light-layer) */
+.hiw-step-box .light-layer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(
+        circle 280px at var(--mx, 50%) var(--my, 35%),
+        rgba(168, 85, 247, 0.95) 0%,
+        rgba(99, 102, 241, 0.75) 40%,
+        transparent 75%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* 5. The .lumen: Internal Glowing Light Emission behind the bubble */
+.hiw-step-box .lumen {
+    position: absolute;
+    top: 36%;
+    left: 50%;
+    width: 140px;
+    height: 140px;
+    transform: translate(-50%, -50%) scale(0.9);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(168, 85, 247, 0.35) 0%,
+        rgba(99, 102, 241, 0.18) 50%,
+        transparent 75%
+    );
+    filter: blur(26px);
+    opacity: 0;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    pointer-events: none;
+}
+
+/* Hover Elevation & Illumination Activation */
 .hiw-step-box:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 36px rgba(79, 70, 229, 0.12);
-    border-color: #c7d2fe;
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-10px);
+    border-color: rgba(167, 139, 250, 0.7);
+    box-shadow: 
+        0 16px 36px rgba(124, 58, 237, 0.14),
+        0 6px 16px rgba(0, 0, 0, 0.04),
+        0 0 20px rgba(167, 139, 250, 0.18);
+}
+
+.hiw-step-box:hover::before {
+    opacity: 1;
+}
+
+.hiw-step-box:hover .light-layer {
+    opacity: 1;
+}
+
+.hiw-step-box:hover .lumen {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.25);
+}
+
+.hiw-step-box:hover .darken {
+    box-shadow: 
+        inset 0 2px 4px rgba(255, 255, 255, 1),
+        inset 0 -14px 30px rgba(124, 58, 237, 0.08);
+}
+
+/* =========================================================================
+   ACTIVE SEQUENTIAL STEP STATE (When Step 1, 2, 3 or 4 is being guided)
+   ========================================================================= */
+.hiw-step-box.is-active-step {
+    border-color: rgba(124, 58, 237, 0.75) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #faf8ff 100%) !important;
+    transform: perspective(900px) translateY(-10px) scale(1.025) !important;
+    box-shadow: 
+        0 18px 40px rgba(124, 58, 237, 0.16),
+        0 6px 18px rgba(99, 102, 241, 0.12),
+        0 0 24px rgba(167, 139, 250, 0.22) !important;
+    z-index: 10 !important;
+    opacity: 1 !important;
+}
+
+.hiw-step-box.is-active-step::before {
+    opacity: 1 !important;
+}
+
+.hiw-step-box.is-active-step .light-layer {
+    opacity: 1 !important;
+}
+
+.hiw-step-box.is-active-step .lumen {
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(1.3) !important;
+}
+
+.hiw-step-box.is-active-step .hiw-badge {
+    transform: translateZ(48px) scale(1.15) !important;
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+    box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.20), 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+}
+
+.hiw-step-box.is-active-step .hiw-icon-bubble {
+    transform: translateZ(40px) scale(1.08) !important;
+    background: radial-gradient(circle, #ffffff 0%, #f3f0ff 70%, #ede8ff 100%) !important;
+    color: #7c3aed !important;
+    border-color: rgba(124, 58, 237, 0.45) !important;
+    box-shadow: 0 12px 26px rgba(124, 58, 237, 0.16) !important;
+}
+
+.hiw-step-box.is-active-step .hiw-step-heading {
+    color: var(--d-primary) !important;
+}
+
+.hiw-step-box.is-active-step .hiw-step-tag {
+    background: #7c3aed !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(124, 58, 237, 0.35) !important;
+}
+
+/* Dim non-active cards slightly during the tour */
+.hiw-cards-grid.is-touring .hiw-step-box:not(.is-active-step) {
+    opacity: 0.72;
+    transform: perspective(900px) translateY(0) scale(0.985);
+}
+
+.hiw-cards-grid.is-touring .hiw-step-box:not(.is-active-step):hover {
+    opacity: 1;
+    transform: perspective(900px) translateY(-6px) scale(1);
+}
+
+/* 6. Card Content with True 3D Depth Layering */
+.hiw-card-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    transform-style: preserve-3d;
+}
+
+.hiw-badge-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    z-index: 4;
 }
 
 /* Step Number Badge */
@@ -2089,16 +2304,16 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     justify-content: center;
     box-shadow: 0 4px 14px rgba(99, 102, 241, 0.38);
     border: 3px solid #ffffff;
-    margin-bottom: 18px;
     flex-shrink: 0;
     position: relative;
     z-index: 4;
-    transition: all 0.3s ease;
+    transform: translateZ(36px);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
 .hiw-step-box:hover .hiw-badge {
-    transform: scale(1.12);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55);
+    transform: translateZ(48px) scale(1.12);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.6);
 }
 
 /* Glowing Icon Bubble */
@@ -2113,16 +2328,36 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     justify-content: center;
     color: #4f46e5;
     font-size: 32px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
     box-shadow: 0 10px 24px rgba(124, 58, 237, 0.08), inset 0 2px 6px rgba(255, 255, 255, 0.9);
-    transition: all 0.35s ease;
+    transform: translateZ(28px);
+    transition: transform 0.35s ease, box-shadow 0.35s ease, background 0.35s ease, border-color 0.35s ease;
 }
 
 .hiw-step-box:hover .hiw-icon-bubble {
-    transform: scale(1.06);
+    transform: translateZ(40px) scale(1.08);
     background: radial-gradient(circle, #ffffff 0%, #f3f0ff 70%, #ede8ff 100%);
     color: #7c3aed;
-    border-color: rgba(124, 58, 237, 0.3);
+    border-color: rgba(124, 58, 237, 0.4);
+    box-shadow: 0 16px 32px rgba(124, 58, 237, 0.22);
+}
+
+/* Step Tag Pill */
+.hiw-step-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 12px;
+    border-radius: 50px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    transform: translateZ(24px);
+    transition: all 0.3s ease;
 }
 
 /* Typography */
@@ -2130,15 +2365,44 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     font-size: 17px;
     font-weight: 700;
     color: #1e1b4b;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     line-height: 1.35;
+    transform: translateZ(22px);
+    transition: color 0.3s ease;
+}
+
+.hiw-step-box:hover .hiw-step-heading {
+    color: var(--d-primary);
 }
 
 .hiw-step-text {
-    font-size: 13.5px;
+    font-size: 13px;
     color: #64748b;
-    line-height: 1.6;
+    line-height: 1.55;
     margin: 0;
+    transform: translateZ(16px);
+}
+
+/* Step Progress Indicator Line at Card Bottom */
+.hiw-step-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(226, 232, 240, 0.6);
+    overflow: hidden;
+    border-radius: 0 0 22px 22px;
+    z-index: 4;
+}
+
+.hiw-step-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #7c3aed);
+    border-radius: inherit;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.7);
+    transition: width 0.06s linear;
 }
 
 /* Responsive Media Queries */

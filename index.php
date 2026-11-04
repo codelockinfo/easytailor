@@ -59,7 +59,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-    <link href="assets/css/style16.css" rel="stylesheet">
+    <link href="assets/css/style16.css?v=1793774857" rel="stylesheet">
+    <style>
+    @media (max-width: 767px) {
+        .mobile-app-layout {
+            padding-bottom: 85px !important;
+        }
+        .mob-testimonials-section {
+            padding-bottom: 23px !important;
+            margin-bottom: 0 !important;
+        }
+        .mob-review-card {
+            flex: 0 0 82% !important;
+            min-width: 270px !important;
+            max-width: 340px !important;
+            scroll-snap-align: center !important;
+        }
+        .mob-review-dots {
+            margin: 14px 16px 0 !important;
+        }
+    }
+    </style>
     <link href="assets/css/desktop-redesign2.css?v=1793716000" rel="stylesheet">
     <script type="application/ld+json">
     {

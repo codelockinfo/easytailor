@@ -3558,6 +3558,7 @@ section:last-of-type+.footer-section {
     display: none;
     position: relative;
     width: 100%;
+    padding-bottom: 85px !important;
 }
 .mob-header {
     background: #ffffff;
@@ -4208,8 +4209,8 @@ section:last-of-type+.footer-section {
 }
 .mob-testimonials-section {
     background: #ffffff;
-    margin-bottom: 10px;
-    padding: 16px 0 16px;
+    margin-bottom: 0;
+    padding: 18px 0 95px !important;
     box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
 
@@ -4261,10 +4262,10 @@ section:last-of-type+.footer-section {
 }
 
 .mob-review-card {
-    flex: 0 0 280px;
-    min-width: 280px;
-    max-width: 280px;
-    scroll-snap-align: start;
+    flex: 0 0 82%;
+    min-width: 270px;
+    max-width: 340px;
+    scroll-snap-align: center;
     background: #ffffff;
     border: 1px solid #eef2f6;
     border-radius: 16px;
@@ -4379,8 +4380,8 @@ section:last-of-type+.footer-section {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    margin: 2px 16px 0;
+    gap: 6px;
+    margin: 14px 16px 0;
 }
 
 .mob-review-dot {

@@ -353,30 +353,29 @@
             </div>
             <div class="mob-categories-scroll">
                 <a href="tailors.php?cat=men" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ‘”</div>
+                    <div class="mob-category-icon"><i class="fas fa-user-tie" style="color: #4f46e5; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Men Wear</span>
                 </a>
                 <a href="tailors.php?cat=women" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ‘—</div>
+                    <div class="mob-category-icon"><i class="fas fa-female" style="color: #ec4899; font-size: 24px;"></i></div>
                     <span class="mob-category-label">Women Wear</span>
                 </a>
                 <a href="tailors.php?cat=alteration" class="mob-category-item">
-                    <div class="mob-category-icon">âœ‚ï¸</div>
+                    <div class="mob-category-icon"><i class="fas fa-cut" style="color: #f59e0b; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Alteration</span>
                 </a>
                 <a href="tailors.php?cat=uniform" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ§¥</div>
+                    <div class="mob-category-icon"><i class="fas fa-tshirt" style="color: #0ea5e9; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Uniform</span>
                 </a>
                 <a href="tailors.php?cat=custom" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸª¡</div>
+                    <div class="mob-category-icon"><i class="fas fa-magic" style="color: #8b5cf6; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Custom Stitch</span>
                 </a>
                 <a href="tailors.php" class="mob-category-item">
-                    <div class="mob-category-icon" style="font-size:18px;">â‹¯</div>
+                    <div class="mob-category-icon"><i class="fas fa-ellipsis-h" style="color: #64748b; font-size: 20px;"></i></div>
                     <span class="mob-category-label">More</span>
-                </a>
-            </div>
+                </a></div>
         </div>
         <div class="mob-tailors-section">
             <div class="mob-section-header">

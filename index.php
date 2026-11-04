@@ -1100,7 +1100,7 @@
                     </div>
                 </div>
             </div>
-            <div class="text-center mt-4">
+            <div class="text-center mt-2">
                 <a href="tailors.php" class="desktop-view-all-btn">
                     <i class="fas fa-list me-2"></i>View All Tailors
                 </a>
@@ -1938,11 +1938,19 @@
             }
 
             let displayList = tailors.slice();
+            if (displayList.length > 0 && displayList.length < 4) {
+                let i = 0;
+                const origLen = displayList.length;
+                while (displayList.length < 4) {
+                    displayList.push(Object.assign({}, displayList[i % origLen]));
+                    i++;
+                }
+            }
 
             let html = '';
             displayList.forEach(tailor => {
                 const defaultCover = 'assets/images/default-tailor-shop.jpg';
-                const isDefaultImage = !tailor.shop_image || tailor.shop_image.includes('default-shop') || tailor.shop_image.includes('default-logo');
+                const isDefaultImage = !tailor.shop_image || tailor.shop_image.includes('default-shop') || tailor.shop_image.includes('default-logo') || tailor.shop_image.includes('default-tailor-shop');
                 const coverImg = isDefaultImage ? defaultCover : tailor.shop_image;
                 const shopName = tailor.shop_name || 'Tailor Shop';
                 const ownerName = tailor.owner_name || 'Tailor Specialist';
@@ -1974,26 +1982,33 @@
                                 <img src="${coverImg}" alt="${shopName}" onerror="this.onerror=null; this.src='assets/images/default-tailor-shop.jpg';">
                                 <div class="tailor-card-badges">
                                     ${tailor.is_featured ? '<span class="badge-pill badge-featured"><i class="fas fa-crown"></i> Featured</span>' : ''}
-                                    ${tailor.is_verified ? '<span class="badge-pill badge-verified"><i class="fas fa-check-circle"></i> Verified</span>' : ''}
                                 </div>
                                 <div class="tailor-avatar-badge" title="${shopName}">
-                                    ${hasCustomLogo ? `<img src="${tailor.shop_image}" alt="${shopName}" class="tailor-avatar-img">` : `<div class="tailor-avatar-initial">${initialLetter}</div>`}
+                                    ${hasCustomLogo ? `
+                                        <img src="${tailor.shop_image}" alt="${shopName}" class="tailor-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="tailor-avatar-initial" style="display:none;">${initialLetter}</div>
+                                    ` : `
+                                        <div class="tailor-avatar-initial">${initialLetter}</div>
+                                    `}
                                 </div>
                             </div>
                             <div class="tailor-slider-body">
-                                <div class="tailor-card-top-row">
+                                <div class="tailor-card-name-row">
                                     <h4 class="tailor-slider-name" title="${shopName}">
                                         <a href="tailor.php?id=${tailor.id}">${shopName}</a>
                                     </h4>
+                                    ${tailor.is_verified ? '<span class="badge-verified-pill"><i class="fas fa-check-circle"></i> Verified</span>' : ''}
+                                </div>
+                                <div class="tailor-card-owner-row">
+                                    <p class="tailor-slider-owner" title="${ownerName}">
+                                        <i class="fas fa-user-tie me-1"></i>${ownerName}
+                                    </p>
                                     <div class="tailor-rating-pill" title="${rating} out of 5 (${reviewCount} reviews)">
                                         <i class="fas fa-star"></i>
                                         <span>${rating}</span>
                                         <small>(${reviewCount})</small>
                                     </div>
                                 </div>
-                                <p class="tailor-slider-owner" title="${ownerName}">
-                                    <i class="fas fa-user-tie me-1"></i>${ownerName}
-                                </p>
                                 <p class="tailor-slider-location" title="${fullAddress}">
                                     <i class="fas fa-map-marker-alt me-1 text-danger"></i>${displayLocation}
                                 </p>
@@ -2057,37 +2072,35 @@
                 dots: false,
                 infinite: totalSlides > 4,
                 speed: 600,
-                slidesToShow: Math.min(4, Math.max(1, totalSlides)),
+                slidesToShow: 4,
                 slidesToScroll: 1,
                 autoplay: totalSlides > 4,
                 autoplaySpeed: 3500,
                 pauseOnHover: true,
-                arrows: totalSlides > 1,
-                prevArrow: '<button type="button" class="slick-prev slider-nav-circle" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>',
-                nextArrow: '<button type="button" class="slick-next slider-nav-circle" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>',
+                arrows: false,
                 responsive: [
-                    {
-                        breakpoint: 1200,
-                        settings: {
-                            slidesToShow: Math.min(3, Math.max(1, totalSlides)),
-                            slidesToScroll: 1,
-                            infinite: totalSlides > 3,
-                            autoplay: totalSlides > 3,
-                            arrows: totalSlides > 1
-                        }
-                    },
                     {
                         breakpoint: 992,
                         settings: {
-                            slidesToShow: Math.min(2, Math.max(1, totalSlides)),
+                            slidesToShow: 3,
                             slidesToScroll: 1,
-                            infinite: totalSlides > 2,
-                            autoplay: totalSlides > 2,
-                            arrows: totalSlides > 1
+                            infinite: totalSlides > 3,
+                            autoplay: totalSlides > 3,
+                            arrows: false
                         }
                     },
                     {
-                        breakpoint: 640,
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: totalSlides > 2,
+                            autoplay: totalSlides > 2,
+                            arrows: false
+                        }
+                    },
+                    {
+                        breakpoint: 576,
                         settings: {
                             slidesToShow: 1,
                             slidesToScroll: 1,

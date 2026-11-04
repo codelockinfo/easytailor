@@ -46,6 +46,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['logo'] = $targetPath;
             }
         }
+
+        // Process Specialties & Working Hours if submitting business info form
+        if (isset($_POST['company_name'])) {
+            // Process Specialties
+            $rawSpecialties = $_POST['specialties'] ?? [];
+            if (!is_array($rawSpecialties)) {
+                $rawSpecialties = [];
+            }
+            $cleanedSpecialties = [];
+            foreach ($rawSpecialties as $spec) {
+                $s = trim(sanitize_input((string)$spec));
+                if ($s !== '' && !in_array($s, $cleanedSpecialties, true)) {
+                    $cleanedSpecialties[] = $s;
+                }
+            }
+            $data['specialties'] = !empty($cleanedSpecialties) ? json_encode(array_values($cleanedSpecialties), JSON_UNESCAPED_UNICODE) : null;
+
+            // Process Working Hours
+            $daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            $whData = [];
+            $whClosed = $_POST['wh_closed'] ?? [];
+            $whOpen = $_POST['wh_open'] ?? [];
+            $whClose = $_POST['wh_close'] ?? [];
+
+            foreach ($daysList as $day) {
+                if (!empty($whClosed[$day])) {
+                    $whData[$day] = 'Closed';
+                } else {
+                    $openTime = trim((string)($whOpen[$day] ?? '10:00'));
+                    $closeTime = trim((string)($whClose[$day] ?? '20:00'));
+                    if (!empty($openTime) && !empty($closeTime)) {
+                        $openFormatted = date('g:i A', strtotime($openTime));
+                        $closeFormatted = date('g:i A', strtotime($closeTime));
+                        $whData[$day] = "$openFormatted - $closeFormatted";
+                    } elseif (!empty($openTime)) {
+                        $whData[$day] = date('g:i A', strtotime($openTime));
+                    } else {
+                        $whData[$day] = '10:00 AM - 8:00 PM';
+                    }
+                }
+            }
+            $data['working_hours'] = json_encode($whData, JSON_UNESCAPED_UNICODE);
+        } else {
+            // Logo-only upload: retain existing specialties and working hours
+            if (isset($existingCompany['specialties'])) {
+                $data['specialties'] = $existingCompany['specialties'];
+            }
+            if (isset($existingCompany['working_hours'])) {
+                $data['working_hours'] = $existingCompany['working_hours'];
+            }
+        }
         $mergedCompany = array_merge($existingCompany ?: [], $data);
         $data['show_on_listing'] = Company::isProfileComplete($mergedCompany) ? 1 : 0;
 
@@ -115,6 +166,56 @@ $offsetDesk = round($circDesk - ($prog / 100) * $circDesk, 2);
 $rMob = 19;
 $circMob = round(2 * M_PI * $rMob, 2);
 $offsetMob = round($circMob - ($prog / 100) * $circMob, 2);
+
+// Prepare Specialties Data
+$companySpecialties = [];
+if (!empty($company['specialties'])) {
+    $decodedSpec = json_decode($company['specialties'], true);
+    if (is_array($decodedSpec)) {
+        $companySpecialties = $decodedSpec;
+    }
+}
+
+$predefinedSpecialties = [
+    'Men Suits' => ['icon' => 'fa-user-tie'],
+    'Formal Shirts' => ['icon' => 'fa-tshirt'],
+    'Kurta Pajama' => ['icon' => 'fa-shopping-bag'],
+    'Alterations' => ['icon' => 'fa-cut'],
+    'Designer Blouse' => ['icon' => 'fa-female'],
+    'Chaniya Choli' => ['icon' => 'fa-female'],
+    'Kurti & Salwar' => ['icon' => 'fa-female'],
+    'Bridal Wear' => ['icon' => 'fa-gem'],
+    'Groom Sherwani' => ['icon' => 'fa-user-tie'],
+    'Kids Wear' => ['icon' => 'fa-child'],
+    'Pant & Trousers' => ['icon' => 'fa-cut'],
+    'Custom Tailoring' => ['icon' => 'fa-magic'],
+];
+
+// Any specialty saved in DB that is not predefined is classified as custom
+$customSpecialties = array_values(array_filter($companySpecialties, function($s) use ($predefinedSpecialties) {
+    return !array_key_exists($s, $predefinedSpecialties);
+}));
+
+// Prepare Working Hours Data
+$companyWorkingHours = [];
+if (!empty($company['working_hours'])) {
+    $decodedWh = json_decode($company['working_hours'], true);
+    if (is_array($decodedWh)) {
+        foreach ($decodedWh as $k => $v) {
+            $companyWorkingHours[strtolower($k)] = $v;
+        }
+    }
+}
+
+$daysOfWeek = [
+    'monday'    => 'Monday',
+    'tuesday'   => 'Tuesday',
+    'wednesday' => 'Wednesday',
+    'thursday'  => 'Thursday',
+    'friday'    => 'Friday',
+    'saturday'  => 'Saturday',
+    'sunday'    => 'Sunday',
+];
 ?>
 <style>
 .cat-stat-box {
@@ -224,6 +325,95 @@ select.form-select.settings-input,
 .settings-input:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+/* Specialties Chip Styles */
+.specialty-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 15px;
+    border-radius: 999px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.83rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    margin-bottom: 0;
+}
+.specialty-chip-btn:hover {
+    border-color: #6366f1;
+    color: #4f46e5;
+    background: #f5f3ff;
+}
+.specialty-chip-btn.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    border-color: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+.specialty-chip-btn .check-indicator {
+    font-size: 0.74rem;
+}
+.custom-spec-badge {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+.custom-spec-badge .btn-close-sm {
+    filter: invert(20%) sepia(80%) saturate(2000%) hue-rotate(210deg);
+}
+
+/* Working Hours */
+.wh-day-row {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+}
+.wh-day-row:hover {
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.wh-day-row.is-closed {
+    background: #f8fafc;
+    border-color: #f1f5f9;
+}
+.wh-day-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.wh-time-input {
+    height: 38px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    border: 1px solid #e2e8f0;
+    padding: 0.35rem 0.65rem;
+    background-color: #ffffff;
+}
+.wh-time-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+@media (max-width: 575.98px) {
+    .wh-time-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .wh-time-input {
+        width: 110px !important;
+    }
 }
 </style>
 <div class="welcome-banner overflow-hidden position-relative">
@@ -726,6 +916,171 @@ select.form-select.settings-input,
                         </div>
                     </div>
                     
+                    <hr class="my-4" style="border-color: #e2e8f0;">
+
+                    <!-- SECTION: Shop Specialties -->
+                    <div class="mb-4" id="shopSpecialtiesSection">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
+                                    <i class="fas fa-tags text-primary me-2"></i>Shop Specialties (વિશેષતાઓ)
+                                </h6>
+                                <small class="text-muted" style="font-size: 0.76rem;">Select all categories or garments your tailoring shop specializes in.</small>
+                            </div>
+                            <span class="badge bg-light text-primary border" style="font-size: 0.72rem;">
+                                <i class="fas fa-eye me-1"></i>Shown on Profile
+                            </span>
+                        </div>
+
+                        <!-- Predefined Specialties Chips -->
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <?php foreach ($predefinedSpecialties as $specName => $specInfo): 
+                                $isChecked = in_array($specName, $companySpecialties, true);
+                            ?>
+                                <label class="specialty-chip-btn <?php echo $isChecked ? 'active' : ''; ?>" for="spec_<?php echo md5($specName); ?>">
+                                    <input type="checkbox" 
+                                           name="specialties[]" 
+                                           value="<?php echo htmlspecialchars($specName); ?>" 
+                                           id="spec_<?php echo md5($specName); ?>" 
+                                           class="d-none specialty-checkbox" 
+                                           <?php echo $isChecked ? 'checked' : ''; ?>>
+                                    <i class="fas <?php echo $specInfo['icon']; ?>"></i>
+                                    <span><?php echo htmlspecialchars($specName); ?></span>
+                                    <i class="fas fa-check check-indicator ms-1" style="<?php echo $isChecked ? '' : 'display: none;'; ?>"></i>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Custom Specialty Adder -->
+                        <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
+                            <label for="customSpecialtyInput" class="form-label fw-semibold text-muted small mb-1" style="font-size: 0.76rem;">
+                                <i class="fas fa-plus-circle text-primary me-1"></i>Add Other Custom Specialty (અન્ય વિશેષતા ઉમેરો)
+                            </label>
+                            <div class="input-group input-group-sm mb-2" style="max-width: 440px;">
+                                <input type="text" 
+                                       id="customSpecialtyInput" 
+                                       class="form-control" 
+                                       placeholder="e.g., Safari Suit, Pathani, Uniforms..." 
+                                       style="border-radius: 8px 0 0 8px; height: 36px; font-size: 0.83rem;">
+                                <button type="button" 
+                                        id="btnAddCustomSpecialty" 
+                                        class="btn btn-primary px-3 fw-semibold" 
+                                        style="border-radius: 0 8px 8px 0; height: 36px; font-size: 0.82rem;">
+                                    <i class="fas fa-plus me-1"></i>Add
+                                </button>
+                            </div>
+                            <div id="customSpecialtiesList" class="d-flex flex-wrap gap-2">
+                                <?php foreach ($customSpecialties as $cSpec): ?>
+                                    <span class="custom-spec-badge d-inline-flex align-items-center gap-2 py-1 px-3 rounded-pill">
+                                        <input type="hidden" name="specialties[]" value="<?php echo htmlspecialchars($cSpec); ?>">
+                                        <span><?php echo htmlspecialchars($cSpec); ?></span>
+                                        <button type="button" class="btn-close btn-close-sm remove-custom-spec" style="font-size: 0.60rem;" aria-label="Remove"></button>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" style="border-color: #e2e8f0;">
+
+                    <!-- SECTION: Working Hours -->
+                    <div class="mb-4" id="workingHoursSection">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
+                                    <i class="fas fa-calendar-alt text-primary me-2"></i>Working Hours (કામના કલાકો)
+                                </h6>
+                                <small class="text-muted" style="font-size: 0.76rem;">Set shop opening & closing hours for each day of the week.</small>
+                            </div>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary fw-medium" id="btnQuickMonSat" style="border-radius: 8px; font-size: 0.75rem; padding: 5px 12px;">
+                                    <i class="fas fa-bolt me-1"></i> Mon-Sat 10AM-8PM (Sun Closed)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary fw-medium" id="btnCopyMonday" style="border-radius: 8px; font-size: 0.75rem; padding: 5px 12px;">
+                                    <i class="fas fa-copy me-1"></i> Copy Mon to All
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Days Schedule Rows -->
+                        <div class="d-flex flex-column gap-2">
+                            <?php foreach ($daysOfWeek as $dayKey => $dayName): 
+                                $dayHoursRaw = $companyWorkingHours[$dayKey] ?? ($dayKey === 'sunday' ? 'Closed' : '10:00 AM - 8:00 PM');
+                                $dayClosed = (empty($dayHoursRaw) || stripos($dayHoursRaw, 'closed') !== false);
+                                $dayOpenTime = '10:00';
+                                $dayCloseTime = '20:00';
+
+                                if (!$dayClosed) {
+                                    $timeParts = explode('-', $dayHoursRaw);
+                                    $t1 = trim($timeParts[0] ?? '');
+                                    $t2 = trim($timeParts[1] ?? '');
+                                    if (!empty($t1) && strtotime($t1)) {
+                                        $dayOpenTime = date('H:i', strtotime($t1));
+                                    }
+                                    if (!empty($t2) && strtotime($t2)) {
+                                        $dayCloseTime = date('H:i', strtotime($t2));
+                                    }
+                                }
+                            ?>
+                                <div class="wh-day-row d-flex align-items-center justify-content-between flex-wrap gap-2 <?php echo $dayClosed ? 'is-closed' : ''; ?>" id="row_wh_<?php echo $dayKey; ?>">
+                                    <!-- Day Name & Badge -->
+                                    <div class="d-flex align-items-center gap-2" style="min-width: 125px;">
+                                        <div class="wh-day-badge" style="background: <?php echo $dayKey === 'sunday' ? '#fee2e2; color: #dc2626;' : '#ede9fe; color: #6366f1;'; ?>">
+                                            <?php echo strtoupper(substr($dayName, 0, 2)); ?>
+                                        </div>
+                                        <div>
+                                            <span class="fw-semibold text-dark" style="font-size: 0.86rem;"><?php echo $dayName; ?></span>
+                                            <?php if ($dayKey === 'sunday'): ?>
+                                                <small class="text-muted d-block" style="font-size: 0.68rem;">Weekend</small>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- Time Inputs (Open & Close) -->
+                                    <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-md-center wh-time-controls" id="time_controls_<?php echo $dayKey; ?>" style="<?php echo $dayClosed ? 'display: none !important;' : ''; ?>">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="text-muted small" style="font-size: 0.72rem;">From:</span>
+                                            <input type="time" 
+                                                   name="wh_open[<?php echo $dayKey; ?>]" 
+                                                   class="form-control form-control-sm wh-time-input" 
+                                                   value="<?php echo htmlspecialchars($dayOpenTime); ?>" 
+                                                   style="width: 125px;"
+                                                   <?php echo $dayClosed ? 'disabled' : ''; ?>>
+                                        </div>
+                                        <span class="text-muted small px-1">-</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="text-muted small" style="font-size: 0.72rem;">To:</span>
+                                            <input type="time" 
+                                                   name="wh_close[<?php echo $dayKey; ?>]" 
+                                                   class="form-control form-control-sm wh-time-input" 
+                                                   value="<?php echo htmlspecialchars($dayCloseTime); ?>" 
+                                                   style="width: 125px;"
+                                                   <?php echo $dayClosed ? 'disabled' : ''; ?>>
+                                        </div>
+                                    </div>
+
+                                    <!-- Shop Closed Notice -->
+                                    <div class="wh-closed-msg text-danger fw-semibold small flex-grow-1 text-center" id="closed_msg_<?php echo $dayKey; ?>" style="<?php echo !$dayClosed ? 'display: none !important;' : ''; ?> font-size: 0.82rem;">
+                                        <i class="fas fa-ban me-1"></i> Closed (રજા છે)
+                                    </div>
+
+                                    <!-- Closed Switch Toggle -->
+                                    <div class="form-check form-switch m-0 ms-auto">
+                                        <input class="form-check-input wh-closed-switch" 
+                                               type="checkbox" 
+                                               role="switch" 
+                                               id="wh_closed_<?php echo $dayKey; ?>" 
+                                               name="wh_closed[<?php echo $dayKey; ?>]" 
+                                               value="1" 
+                                               data-day="<?php echo $dayKey; ?>"
+                                               <?php echo $dayClosed ? 'checked' : ''; ?>>
+                                        <label class="form-check-label small fw-semibold" for="wh_closed_<?php echo $dayKey; ?>" style="font-size: 0.78rem; color: #64748b; cursor: pointer;">Closed</label>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    
                     <hr class="my-4" style="border-color: #f1f5f9;">
                     
                     <div class="d-flex align-items-center justify-content-end gap-2">
@@ -908,6 +1263,188 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('An error occurred. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = submitBtnText;
+            });
+        });
+    }
+
+    // --- Specialties Interactivity ---
+    document.querySelectorAll('.specialty-chip-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            const checkbox = btn.querySelector('.specialty-checkbox');
+            const checkIcon = btn.querySelector('.check-indicator');
+            setTimeout(function() {
+                if (checkbox && checkbox.checked) {
+                    btn.classList.add('active');
+                    if (checkIcon) checkIcon.style.display = 'inline-block';
+                } else {
+                    btn.classList.remove('active');
+                    if (checkIcon) checkIcon.style.display = 'none';
+                }
+            }, 10);
+        });
+    });
+
+    const addCustomBtn = document.getElementById('btnAddCustomSpecialty');
+    const customInput = document.getElementById('customSpecialtyInput');
+    const customList = document.getElementById('customSpecialtiesList');
+
+    function addCustomSpecialty() {
+        if (!customInput || !customList) return;
+        const val = customInput.value.trim();
+        if (!val) return;
+
+        // Check duplicates across all specialties
+        const existing = Array.from(document.querySelectorAll('input[name="specialties[]"]')).map(el => el.value.trim().toLowerCase());
+        if (existing.includes(val.toLowerCase())) {
+            alert('This specialty is already added.');
+            customInput.focus();
+            return;
+        }
+
+        const badge = document.createElement('span');
+        badge.className = 'custom-spec-badge d-inline-flex align-items-center gap-2 py-1 px-3 rounded-pill';
+        badge.innerHTML = `
+            <input type="hidden" name="specialties[]" value="${escapeHtml(val)}">
+            <span>${escapeHtml(val)}</span>
+            <button type="button" class="btn-close btn-close-sm remove-custom-spec" style="font-size: 0.60rem;" aria-label="Remove"></button>
+        `;
+        customList.appendChild(badge);
+        customInput.value = '';
+        customInput.focus();
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    if (addCustomBtn) {
+        addCustomBtn.addEventListener('click', addCustomSpecialty);
+    }
+    if (customInput) {
+        customInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomSpecialty();
+            }
+        });
+    }
+
+    // Remove custom specialty badge
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.closest('.remove-custom-spec')) {
+            const badge = e.target.closest('.custom-spec-badge');
+            if (badge) badge.remove();
+        }
+    });
+
+    // --- Working Hours Interactivity ---
+    document.querySelectorAll('.wh-closed-switch').forEach(function(sw) {
+        sw.addEventListener('change', function() {
+            const day = this.dataset.day;
+            const row = document.getElementById('row_wh_' + day);
+            const timeControls = document.getElementById('time_controls_' + day);
+            const closedMsg = document.getElementById('closed_msg_' + day);
+            const openInput = row ? row.querySelector('input[name="wh_open[' + day + ']"]') : null;
+            const closeInput = row ? row.querySelector('input[name="wh_close[' + day + ']"]') : null;
+
+            if (this.checked) {
+                if (row) row.classList.add('is-closed');
+                if (timeControls) timeControls.style.setProperty('display', 'none', 'important');
+                if (closedMsg) closedMsg.style.setProperty('display', 'block', 'important');
+                if (openInput) openInput.disabled = true;
+                if (closeInput) closeInput.disabled = true;
+            } else {
+                if (row) row.classList.remove('is-closed');
+                if (timeControls) timeControls.style.setProperty('display', 'flex', 'important');
+                if (closedMsg) closedMsg.style.setProperty('display', 'none', 'important');
+                if (openInput) openInput.disabled = false;
+                if (closeInput) closeInput.disabled = false;
+            }
+        });
+    });
+
+    // Quick Preset: Mon-Sat 10AM-8PM, Sun Closed
+    const btnQuickMonSat = document.getElementById('btnQuickMonSat');
+    if (btnQuickMonSat) {
+        btnQuickMonSat.addEventListener('click', function() {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            days.forEach(function(d) {
+                const sw = document.getElementById('wh_closed_' + d);
+                const row = document.getElementById('row_wh_' + d);
+                const timeControls = document.getElementById('time_controls_' + d);
+                const closedMsg = document.getElementById('closed_msg_' + d);
+                const openInput = row ? row.querySelector('input[name="wh_open[' + d + ']"]') : null;
+                const closeInput = row ? row.querySelector('input[name="wh_close[' + d + ']"]') : null;
+
+                if (d === 'sunday') {
+                    if (sw) sw.checked = true;
+                    if (row) row.classList.add('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'none', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'block', 'important');
+                    if (openInput) openInput.disabled = true;
+                    if (closeInput) closeInput.disabled = true;
+                } else {
+                    if (sw) sw.checked = false;
+                    if (row) row.classList.remove('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'flex', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'none', 'important');
+                    if (openInput) {
+                        openInput.disabled = false;
+                        openInput.value = '10:00';
+                    }
+                    if (closeInput) {
+                        closeInput.disabled = false;
+                        closeInput.value = '20:00';
+                    }
+                }
+            });
+        });
+    }
+
+    // Copy Monday to other working days
+    const btnCopyMonday = document.getElementById('btnCopyMonday');
+    if (btnCopyMonday) {
+        btnCopyMonday.addEventListener('click', function() {
+            const monOpenInput = document.querySelector('input[name="wh_open[monday]"]');
+            const monCloseInput = document.querySelector('input[name="wh_close[monday]"]');
+            const monSw = document.getElementById('wh_closed_monday');
+            if (!monOpenInput || !monCloseInput || !monSw) return;
+
+            const openVal = monOpenInput.value || '10:00';
+            const closeVal = monCloseInput.value || '20:00';
+            const isClosed = monSw.checked;
+
+            const otherDays = ['tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            otherDays.forEach(function(d) {
+                const sw = document.getElementById('wh_closed_' + d);
+                const row = document.getElementById('row_wh_' + d);
+                const timeControls = document.getElementById('time_controls_' + d);
+                const closedMsg = document.getElementById('closed_msg_' + d);
+                const openInput = row ? row.querySelector('input[name="wh_open[' + d + ']"]') : null;
+                const closeInput = row ? row.querySelector('input[name="wh_close[' + d + ']"]') : null;
+
+                if (sw) sw.checked = isClosed;
+                if (isClosed) {
+                    if (row) row.classList.add('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'none', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'block', 'important');
+                    if (openInput) openInput.disabled = true;
+                    if (closeInput) closeInput.disabled = true;
+                } else {
+                    if (row) row.classList.remove('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'flex', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'none', 'important');
+                    if (openInput) {
+                        openInput.disabled = false;
+                        openInput.value = openVal;
+                    }
+                    if (closeInput) {
+                        closeInput.disabled = false;
+                        closeInput.value = closeVal;
+                    }
+                }
             });
         });
     }

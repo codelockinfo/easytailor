@@ -2950,7 +2950,7 @@ section:last-of-type+.footer-section {
 .tailors-slider .slick-dots li.slick-active button:before {
     color: var(--primary-color);
 }
-/* Slider overrides handled in desktop-redesign1.css */
+/* Slider overrides handled in desktop-redesign2.css */
 
 @media (min-width: 768px) and (max-width: 1199px) {
     .tailors-slider .tailor-slide {

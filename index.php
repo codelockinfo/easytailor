@@ -60,7 +60,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
     <link href="assets/css/style16.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign1.css?v=1793716000" rel="stylesheet">
+    <link href="assets/css/desktop-redesign2.css?v=1793716000" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",

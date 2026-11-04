@@ -816,7 +816,7 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
 
 /* --- 5. COMPREHENSIVE FEATURES SECTION (#features) --- */
 .features-section {
-    padding: 85px 0 !important;
+    padding: 85px 0 30px 0 !important;
     background: #fff !important;
 }
 
@@ -935,7 +935,7 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
 
 /* --- 6. TAILOR SHOPS NEAR YOU (#tailors-near-you) --- */
 .tailors-section {
-    padding: 85px 0 !important;
+    padding: 30px 0 70px 0 !important;
     background: radial-gradient(circle at 50% 12%, rgba(99, 102, 241, 0.05) 0%, #ffffff 65%) !important;
     position: relative;
     overflow: hidden;
@@ -4312,7 +4312,7 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     }
 
     .features-section {
-        padding: 50px 0 !important;
+        padding: 40px 0 20px 0 !important;
     }
 
     .features-grid {
@@ -4321,7 +4321,7 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     }
 
     .tailors-section {
-        padding: 50px 0 !important;
+        padding: 20px 0 45px 0 !important;
     }
 
     .tailors-slider-outer {

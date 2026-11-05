@@ -1747,7 +1747,7 @@
 
     <?php require_once 'includes/testimonial-popup.php'; ?>
     <?php require_once 'includes/footer.php'; ?>
-    <?php require_once 'includes/sticky-cta-button.php'; ?>
+   
     <?php require_once 'includes/whatsapp-button.php'; ?>
     <?php require_once 'includes/promo-popup.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

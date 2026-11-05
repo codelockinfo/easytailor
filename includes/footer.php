@@ -134,7 +134,6 @@ $currentYear = date('Y');
             </div>
         </div>
     </div>
-<a href="<?php echo $basePath; ?>admin/register.php" class="floating-get-channel d-none d-md-flex"><i class="fas fa-paper-plane"></i> Get Started</a>
 </footer>
 <meta name="google-adsense-account" content="ca-pub-2821959013351742">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>

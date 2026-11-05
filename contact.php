@@ -628,7 +628,7 @@ $seoOptions = [
             <div class="col-md-4">
                 <div class="cnt-quick-card cnt-reveal">
                     <div class="cnt-quick-icon">
-                        <i class="fas fa-phone-alt"></i>
+                        <i class="fas fa-phone"></i>
                     </div>
                     <div>
                         <h4>Call Our Hotline</h4>
@@ -740,7 +740,7 @@ $seoOptions = [
 
                     <div class="cnt-detail-item">
                         <div class="cnt-detail-icon">
-                            <i class="fas fa-phone-alt"></i>
+                            <i class="fas fa-phone"></i>
                         </div>
                         <div class="cnt-detail-content">
                             <h5>Telephone / Helpline</h5>

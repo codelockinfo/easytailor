@@ -956,7 +956,7 @@ $seoOptions = [
                                 <i class="fas fa-envelope me-1"></i> Contact Head Office
                             </a>
                             <a href="tel:+917600464414" class="btn btn-sm btn-outline-light rounded-pill px-3 py-2">
-                                <i class="fas fa-phone-alt me-1"></i> Call +91 76004 64414
+                                <i class="fas fa-phone me-1"></i> Call +91 76004 64414
                             </a>
                         </div>
                     </div>

@@ -1351,7 +1351,7 @@ $seoOptions = [
 
                                 <div class="pp-contact-item">
                                     <div class="pp-contact-icon">
-                                        <i class="fas fa-phone-alt"></i>
+                                        <i class="fas fa-phone"></i>
                                     </div>
                                     <div>
                                         <strong class="d-block text-dark">Support Hotline / WhatsApp</strong>

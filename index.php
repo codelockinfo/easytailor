@@ -2044,7 +2044,7 @@
                                     <div class="tailor-quick-actions">
                                         ${tailor.phone ? `
                                         <a href="tel:${tailor.phone}" class="btn-action-icon btn-call" title="Call ${shopName}" aria-label="Call">
-                                            <i class="fas fa-phone-alt"></i>
+                                            <i class="fas fa-phone"></i>
                                         </a>
                                         ` : ''}
                                         ${tailor.whatsapp ? `

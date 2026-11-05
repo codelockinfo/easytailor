@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = [
             'company_name' => sanitize_input($_POST['company_name'] ?? ($existingCompany['company_name'] ?? '')),
             'owner_name' => sanitize_input($_POST['owner_name'] ?? ($existingCompany['owner_name'] ?? '')),
-            'business_email' => $existingCompany['business_email'], // Keep existing email - cannot be changed directly
             'business_phone' => sanitize_input($_POST['business_phone'] ?? ($existingCompany['business_phone'] ?? '')),
             'business_address' => sanitize_input($_POST['business_address'] ?? ($existingCompany['business_address'] ?? '')),
             'city' => sanitize_input($_POST['city'] ?? ($existingCompany['city'] ?? '')),
@@ -46,24 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['logo'] = $targetPath;
             }
         }
-
-        // Process Specialties & Working Hours if submitting business info form
         if (isset($_POST['company_name'])) {
-            // Process Specialties
-            $rawSpecialties = $_POST['specialties'] ?? [];
-            if (!is_array($rawSpecialties)) {
-                $rawSpecialties = [];
-            }
-            $cleanedSpecialties = [];
-            foreach ($rawSpecialties as $spec) {
-                $s = trim(sanitize_input((string)$spec));
-                if ($s !== '' && !in_array($s, $cleanedSpecialties, true)) {
-                    $cleanedSpecialties[] = $s;
-                }
-            }
-            $data['specialties'] = !empty($cleanedSpecialties) ? json_encode(array_values($cleanedSpecialties), JSON_UNESCAPED_UNICODE) : null;
-
-            // Process Working Hours
             $daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
             $whData = [];
             $whClosed = $_POST['wh_closed'] ?? [];
@@ -89,10 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $data['working_hours'] = json_encode($whData, JSON_UNESCAPED_UNICODE);
         } else {
-            // Logo-only upload: retain existing specialties and working hours
-            if (isset($existingCompany['specialties'])) {
-                $data['specialties'] = $existingCompany['specialties'];
-            }
+            // Logo-only upload: retain existing working hours
             if (isset($existingCompany['working_hours'])) {
                 $data['working_hours'] = $existingCompany['working_hours'];
             }
@@ -166,37 +145,6 @@ $offsetDesk = round($circDesk - ($prog / 100) * $circDesk, 2);
 $rMob = 19;
 $circMob = round(2 * M_PI * $rMob, 2);
 $offsetMob = round($circMob - ($prog / 100) * $circMob, 2);
-
-// Prepare Specialties Data
-$companySpecialties = [];
-if (!empty($company['specialties'])) {
-    $decodedSpec = json_decode($company['specialties'], true);
-    if (is_array($decodedSpec)) {
-        $companySpecialties = $decodedSpec;
-    }
-}
-
-$predefinedSpecialties = [
-    'Men Suits' => ['icon' => 'fa-user-tie'],
-    'Formal Shirts' => ['icon' => 'fa-tshirt'],
-    'Kurta Pajama' => ['icon' => 'fa-shopping-bag'],
-    'Alterations' => ['icon' => 'fa-cut'],
-    'Designer Blouse' => ['icon' => 'fa-female'],
-    'Chaniya Choli' => ['icon' => 'fa-female'],
-    'Kurti & Salwar' => ['icon' => 'fa-female'],
-    'Bridal Wear' => ['icon' => 'fa-gem'],
-    'Groom Sherwani' => ['icon' => 'fa-user-tie'],
-    'Kids Wear' => ['icon' => 'fa-child'],
-    'Pant & Trousers' => ['icon' => 'fa-cut'],
-    'Custom Tailoring' => ['icon' => 'fa-magic'],
-];
-
-// Any specialty saved in DB that is not predefined is classified as custom
-$customSpecialties = array_values(array_filter($companySpecialties, function($s) use ($predefinedSpecialties) {
-    return !array_key_exists($s, $predefinedSpecialties);
-}));
-
-// Prepare Working Hours Data
 $companyWorkingHours = [];
 if (!empty($company['working_hours'])) {
     $decodedWh = json_decode($company['working_hours'], true);
@@ -326,49 +274,6 @@ select.form-select.settings-input,
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
-/* Specialties Chip Styles */
-.specialty-chip-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 15px;
-    border-radius: 999px;
-    border: 1.5px solid #e2e8f0;
-    background: #ffffff;
-    color: #475569;
-    font-size: 0.83rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-    margin-bottom: 0;
-}
-.specialty-chip-btn:hover {
-    border-color: #6366f1;
-    color: #4f46e5;
-    background: #f5f3ff;
-}
-.specialty-chip-btn.active {
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-    border-color: #4f46e5;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-}
-.specialty-chip-btn .check-indicator {
-    font-size: 0.74rem;
-}
-.custom-spec-badge {
-    background: #eff6ff;
-    color: #1e40af;
-    border: 1px solid #bfdbfe;
-    font-size: 0.82rem;
-    font-weight: 500;
-}
-.custom-spec-badge .btn-close-sm {
-    filter: invert(20%) sepia(80%) saturate(2000%) hue-rotate(210deg);
-}
-
-/* Working Hours */
 .wh-day-row {
     background: #ffffff;
     border: 1px solid #f1f5f9;
@@ -918,77 +823,12 @@ select.form-select.settings-input,
                     
                     <hr class="my-4" style="border-color: #e2e8f0;">
 
-                    <!-- SECTION: Shop Specialties -->
-                    <div class="mb-4" id="shopSpecialtiesSection">
-                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
-                                    <i class="fas fa-tags text-primary me-2"></i>Shop Specialties (વિશેષતાઓ)
-                                </h6>
-                                <small class="text-muted" style="font-size: 0.76rem;">Select all categories or garments your tailoring shop specializes in.</small>
-                            </div>
-                            <span class="badge bg-light text-primary border" style="font-size: 0.72rem;">
-                                <i class="fas fa-eye me-1"></i>Shown on Profile
-                            </span>
-                        </div>
-
-                        <!-- Predefined Specialties Chips -->
-                        <div class="d-flex flex-wrap gap-2 mb-3">
-                            <?php foreach ($predefinedSpecialties as $specName => $specInfo): 
-                                $isChecked = in_array($specName, $companySpecialties, true);
-                            ?>
-                                <label class="specialty-chip-btn <?php echo $isChecked ? 'active' : ''; ?>" for="spec_<?php echo md5($specName); ?>">
-                                    <input type="checkbox" 
-                                           name="specialties[]" 
-                                           value="<?php echo htmlspecialchars($specName); ?>" 
-                                           id="spec_<?php echo md5($specName); ?>" 
-                                           class="d-none specialty-checkbox" 
-                                           <?php echo $isChecked ? 'checked' : ''; ?>>
-                                    <i class="fas <?php echo $specInfo['icon']; ?>"></i>
-                                    <span><?php echo htmlspecialchars($specName); ?></span>
-                                    <i class="fas fa-check check-indicator ms-1" style="<?php echo $isChecked ? '' : 'display: none;'; ?>"></i>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <!-- Custom Specialty Adder -->
-                        <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
-                            <label for="customSpecialtyInput" class="form-label fw-semibold text-muted small mb-1" style="font-size: 0.76rem;">
-                                <i class="fas fa-plus-circle text-primary me-1"></i>Add Other Custom Specialty (અન્ય વિશેષતા ઉમેરો)
-                            </label>
-                            <div class="input-group input-group-sm mb-2" style="max-width: 440px;">
-                                <input type="text" 
-                                       id="customSpecialtyInput" 
-                                       class="form-control" 
-                                       placeholder="e.g., Safari Suit, Pathani, Uniforms..." 
-                                       style="border-radius: 8px 0 0 8px; height: 36px; font-size: 0.83rem;">
-                                <button type="button" 
-                                        id="btnAddCustomSpecialty" 
-                                        class="btn btn-primary px-3 fw-semibold" 
-                                        style="border-radius: 0 8px 8px 0; height: 36px; font-size: 0.82rem;">
-                                    <i class="fas fa-plus me-1"></i>Add
-                                </button>
-                            </div>
-                            <div id="customSpecialtiesList" class="d-flex flex-wrap gap-2">
-                                <?php foreach ($customSpecialties as $cSpec): ?>
-                                    <span class="custom-spec-badge d-inline-flex align-items-center gap-2 py-1 px-3 rounded-pill">
-                                        <input type="hidden" name="specialties[]" value="<?php echo htmlspecialchars($cSpec); ?>">
-                                        <span><?php echo htmlspecialchars($cSpec); ?></span>
-                                        <button type="button" class="btn-close btn-close-sm remove-custom-spec" style="font-size: 0.60rem;" aria-label="Remove"></button>
-                                    </span>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4" style="border-color: #e2e8f0;">
-
                     <!-- SECTION: Working Hours -->
                     <div class="mb-4" id="workingHoursSection">
                         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                             <div>
                                 <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
-                                    <i class="fas fa-calendar-alt text-primary me-2"></i>Working Hours (કામના કલાકો)
+                                    <i class="fas fa-calendar-alt text-primary me-2"></i>Working Hours 
                                 </h6>
                                 <small class="text-muted" style="font-size: 0.76rem;">Set shop opening & closing hours for each day of the week.</small>
                             </div>
@@ -1061,7 +901,7 @@ select.form-select.settings-input,
 
                                     <!-- Shop Closed Notice -->
                                     <div class="wh-closed-msg text-danger fw-semibold small flex-grow-1 text-center" id="closed_msg_<?php echo $dayKey; ?>" style="<?php echo !$dayClosed ? 'display: none !important;' : ''; ?> font-size: 0.82rem;">
-                                        <i class="fas fa-ban me-1"></i> Closed (રજા છે)
+                                        <i class="fas fa-ban me-1"></i> Closed
                                     </div>
 
                                     <!-- Closed Switch Toggle -->
@@ -1266,78 +1106,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
-    // --- Specialties Interactivity ---
-    document.querySelectorAll('.specialty-chip-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            const checkbox = btn.querySelector('.specialty-checkbox');
-            const checkIcon = btn.querySelector('.check-indicator');
-            setTimeout(function() {
-                if (checkbox && checkbox.checked) {
-                    btn.classList.add('active');
-                    if (checkIcon) checkIcon.style.display = 'inline-block';
-                } else {
-                    btn.classList.remove('active');
-                    if (checkIcon) checkIcon.style.display = 'none';
-                }
-            }, 10);
-        });
-    });
-
-    const addCustomBtn = document.getElementById('btnAddCustomSpecialty');
-    const customInput = document.getElementById('customSpecialtyInput');
-    const customList = document.getElementById('customSpecialtiesList');
-
-    function addCustomSpecialty() {
-        if (!customInput || !customList) return;
-        const val = customInput.value.trim();
-        if (!val) return;
-
-        // Check duplicates across all specialties
-        const existing = Array.from(document.querySelectorAll('input[name="specialties[]"]')).map(el => el.value.trim().toLowerCase());
-        if (existing.includes(val.toLowerCase())) {
-            alert('This specialty is already added.');
-            customInput.focus();
-            return;
-        }
-
-        const badge = document.createElement('span');
-        badge.className = 'custom-spec-badge d-inline-flex align-items-center gap-2 py-1 px-3 rounded-pill';
-        badge.innerHTML = `
-            <input type="hidden" name="specialties[]" value="${escapeHtml(val)}">
-            <span>${escapeHtml(val)}</span>
-            <button type="button" class="btn-close btn-close-sm remove-custom-spec" style="font-size: 0.60rem;" aria-label="Remove"></button>
-        `;
-        customList.appendChild(badge);
-        customInput.value = '';
-        customInput.focus();
-    }
-
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    if (addCustomBtn) {
-        addCustomBtn.addEventListener('click', addCustomSpecialty);
-    }
-    if (customInput) {
-        customInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addCustomSpecialty();
-            }
-        });
-    }
-
-    // Remove custom specialty badge
-    document.addEventListener('click', function(e) {
-        if (e.target && e.target.closest('.remove-custom-spec')) {
-            const badge = e.target.closest('.custom-spec-badge');
-            if (badge) badge.remove();
-        }
-    });
 
     // --- Working Hours Interactivity ---
     document.querySelectorAll('.wh-closed-switch').forEach(function(sw) {

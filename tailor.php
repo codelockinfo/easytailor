@@ -77,11 +77,14 @@ $seoOptions = [
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
     <link href="assets/css/style15.css" rel="stylesheet">
     <style>
+        html, body {
+            overflow-x: clip;
+            scroll-padding-top: 115px;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background: #f8f9fa;
             color: #334155;
-            overflow-x: hidden;
         }
 
         /* ==========================================================================

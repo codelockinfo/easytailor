@@ -110,6 +110,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
+            scroll-padding-top: 115px;
         }
 
         body {

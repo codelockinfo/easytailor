@@ -817,10 +817,6 @@
     </div>
 
     <div class="d-none d-md-block">
-    <?php require_once 'includes/announcement-bar.php'; ?>
-    <div class="scroll-indicator" id="scrollIndicator">
-        <div class="scroll-progress-bar" id="scrollProgressBar"></div>
-    </div>
     <?php require_once 'includes/nav.php'; ?>
             <section id="home" class="hero-section">
         <div class="container position-relative">
@@ -853,21 +849,21 @@
                             <div class="hero-stat-card">
                                 <div class="hero-stat-icon"><i class="fas fa-store"></i></div>
                                 <div>
-                                    <div class="hero-stat-num">500+</div>
+                                    <div class="hero-stat-num" data-target="500" data-suffix="+">500+</div>
                                     <div class="hero-stat-label">Tailor Shops</div>
                                 </div>
                             </div>
                             <div class="hero-stat-card">
                                 <div class="hero-stat-icon"><i class="fas fa-city"></i></div>
                                 <div>
-                                    <div class="hero-stat-num">10+</div>
+                                    <div class="hero-stat-num" data-target="10" data-suffix="+">10+</div>
                                     <div class="hero-stat-label">Cities Managed</div>
                                 </div>
                             </div>
                             <div class="hero-stat-card">
                                 <div class="hero-stat-icon"><i class="fas fa-award"></i></div>
                                 <div>
-                                    <div class="hero-stat-num">98%</div>
+                                    <div class="hero-stat-num" data-target="98" data-suffix="%">98%</div>
                                     <div class="hero-stat-label">Customer Satisfaction</div>
                                 </div>
                             </div>
@@ -940,7 +936,7 @@
         <div class="container position-relative" style="z-index: 3;">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-xl-7 text-center">
-                    <div class="desktop-eyebrow justify-content-center">â€” DIGITALIZE YOUR TAILORING BUSINESS â€”</div>
+                    <div class="desktop-eyebrow justify-content-center">&bull; DIGITALIZE YOUR TAILORING BUSINESS &bull;</div>
                     <h2 class="desktop-section-title text-center">About Our Platform</h2>
                     <p class="desktop-section-subtitle text-center mx-auto" style="max-width: 680px;">
                         Our platform helps tailoring businesses streamline their workflow with ease. 

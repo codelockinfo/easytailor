@@ -77,6 +77,11 @@ $seoOptions = [
             box-sizing: border-box;
         }
 
+        html, body {
+            overflow-x: clip;
+            scroll-padding-top: 115px;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;

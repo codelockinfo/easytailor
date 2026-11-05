@@ -86,6 +86,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
+            scroll-padding-top: 115px;
         }
 
         body {
@@ -281,9 +282,9 @@ $seoOptions = [
             .tos-sidebar {
                 position: -webkit-sticky !important;
                 position: sticky !important;
-                top: 90px !important;
+                top: 115px !important;
                 z-index: 100 !important;
-                max-height: calc(100vh - 105px) !important;
+                max-height: calc(100vh - 130px) !important;
                 overflow-y: auto !important;
                 scrollbar-width: thin;
                 padding-right: 4px;

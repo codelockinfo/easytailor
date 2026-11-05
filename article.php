@@ -168,7 +168,7 @@ $seoOptions = [
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="assets/css/style15.css" rel="stylesheet">
 
@@ -188,6 +188,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
+            scroll-padding-top: 115px;
         }
 
         body {
@@ -692,7 +693,7 @@ $seoOptions = [
         /* Sticky Sidebar */
         .art-sidebar {
             position: sticky;
-            top: 90px;
+            top: 115px;
             align-self: flex-start;
         }
 
@@ -763,24 +764,27 @@ $seoOptions = [
             color: #34d399;
             font-size: 0.9rem;
         }
-        .btn-art-white {
+        .btn-art-sidebar {
             background: #ffffff !important;
             color: var(--art-primary) !important;
             border: none !important;
-            padding: 12px 24px !important;
+            padding: 13px 24px !important;
             border-radius: 50px !important;
             font-weight: 700 !important;
-            font-size: 0.92rem !important;
-            display: block !important;
+            font-size: 0.95rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
             width: 100% !important;
             text-align: center !important;
             text-decoration: none !important;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12) !important;
             transition: all 0.25s ease !important;
         }
-        .btn-art-white:hover {
+        .btn-art-sidebar:hover {
             transform: translateY(-2px) !important;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18) !important;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18) !important;
             background: #f8fafc !important;
             color: var(--art-primary-hover) !important;
         }
@@ -821,7 +825,6 @@ $seoOptions = [
             display: flex;
             gap: 14px;
             text-decoration: none;
-            group: rel;
             transition: transform 0.2s ease;
         }
         .art-rel-item:hover {
@@ -986,18 +989,56 @@ $seoOptions = [
             box-shadow: 0 10px 25px rgba(79, 70, 229, 0.5) !important;
             color: #ffffff !important;
         }
-        .btn-art-glass {
-            background: rgba(255, 255, 255, 0.18) !important;
-            backdrop-filter: blur(8px) !important;
-            color: #ffffff !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+        .art-cta-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-art-white {
+            background: #ffffff !important;
+            color: var(--art-primary) !important;
+            border: 2px solid #ffffff !important;
             padding: 12px 26px !important;
             border-radius: 50px !important;
             font-weight: 700 !important;
             font-size: 0.95rem !important;
+            line-height: 1.4 !important;
             display: inline-flex !important;
             align-items: center !important;
+            justify-content: center !important;
             gap: 8px !important;
+            white-space: nowrap !important;
+            text-decoration: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+            transition: all 0.25s ease !important;
+        }
+        .btn-art-white:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+            background: #f8fafc !important;
+            border-color: #f8fafc !important;
+            color: var(--art-primary-hover) !important;
+        }
+
+        .btn-art-glass {
+            background: rgba(255, 255, 255, 0.18) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            color: #ffffff !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+            padding: 12px 26px !important;
+            border-radius: 50px !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            line-height: 1.4 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            white-space: nowrap !important;
             text-decoration: none !important;
             transition: all 0.25s ease !important;
         }
@@ -1006,6 +1047,7 @@ $seoOptions = [
             color: var(--art-primary) !important;
             border-color: #ffffff !important;
             transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
         }
 
         /* Copy Toast */
@@ -1057,8 +1099,10 @@ $seoOptions = [
             .art-bottom-cta p {
                 margin: 0 auto 22px auto;
             }
-            .art-bottom-cta .d-flex {
+            .art-cta-actions {
                 justify-content: center !important;
+                width: 100%;
+                margin-top: 15px;
             }
         }
 
@@ -1097,6 +1141,14 @@ $seoOptions = [
             .art-share-card {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+            .art-cta-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .art-cta-actions .btn-art-white,
+            .art-cta-actions .btn-art-glass {
+                width: 100% !important;
             }
         }
     </style>
@@ -1261,8 +1313,10 @@ $seoOptions = [
                                target="_blank" 
                                rel="noopener noreferrer"
                                class="art-sbtn tw" 
-                               title="Share on Twitter / X">
-                                <i class="fab fa-x-twitter"></i>
+                               title="Share on X (Twitter)">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="#ffffff" style="display:inline-block; vertical-align:middle;">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                </svg>
                             </a>
                             <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo urlencode($canonicalUrl); ?>" 
                                target="_blank" 
@@ -1340,7 +1394,7 @@ $seoOptions = [
                             <li><i class="fas fa-check-circle"></i> Professional PDF Invoices with QR Code</li>
                         </ul>
 
-                        <a href="admin/register.php" class="btn-art-white">
+                        <a href="admin/register.php" class="btn-art-sidebar">
                             <i class="fas fa-rocket me-1"></i> Start Free Registration
                         </a>
                         <p class="art-side-trust"><i class="fas fa-lock me-1"></i> No Credit Card Required • Instant Setup</p>
@@ -1397,19 +1451,19 @@ $seoOptions = [
             <div class="col-12">
                 <section class="art-bottom-cta">
                     <div class="row align-items-center">
-                        <div class="col-lg-8 mb-4 mb-lg-0">
+                        <div class="col-lg-7 col-xl-8 mb-4 mb-lg-0">
                             <h3><i class="fas fa-sparkles text-warning me-2"></i> Ready to Upgrade Your Tailoring Shop?</h3>
                             <p>
                                 Join 1,500+ tailors and designer boutiques across India who save 3+ hours every day, prevent sizing errors, and delight customers with automated WhatsApp notifications.
                             </p>
                         </div>
-                        <div class="col-lg-4 text-lg-end">
-                            <div class="d-flex flex-column flex-sm-row justify-content-lg-end gap-3">
-                                <a href="admin/register.php" class="btn-art-white py-3 px-4">
-                                    <i class="fas fa-rocket me-2"></i> Get Started Free
+                        <div class="col-lg-5 col-xl-4 text-lg-end">
+                            <div class="art-cta-actions">
+                                <a href="admin/register.php" class="btn-art-white">
+                                    <i class="fas fa-rocket"></i> Get Started Free
                                 </a>
-                                <a href="blog" class="btn-art-glass py-3 px-4">
-                                    <i class="fas fa-book-open me-2"></i> All Guides
+                                <a href="blog" class="btn-art-glass">
+                                    <i class="fas fa-book-open"></i> All Guides
                                 </a>
                             </div>
                         </div>

@@ -112,6 +112,7 @@ $remainingArticles = !empty($articles) ? array_slice($articles, 1) : [];
 
         html, body {
             overflow-x: clip;
+            scroll-padding-top: 155px;
         }
 
         body {
@@ -286,7 +287,7 @@ $remainingArticles = !empty($articles) ? array_slice($articles, 1) : [];
             border-bottom: 1px solid #e2e8f0;
             padding: 16px 0;
             position: sticky;
-            top: 70px;
+            top: 102px;
             z-index: 1020;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }

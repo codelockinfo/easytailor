@@ -69,20 +69,67 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     color: #ffffff !important;
 }
 
-/* Sticky Main Navbar */
-.navbar.sticky-top,
-.navbar.fixed-top,
-.navbar {
+/* Sticky Master Header Wrapper */
+.site-header-sticky {
+    position: -webkit-sticky !important;
     position: sticky !important;
     top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1050 !important;
+    background: #ffffff !important;
+    transition: box-shadow 0.25s ease;
+}
+.site-header-sticky.is-scrolled {
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+.site-header-sticky .announcement-bar {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    z-index: 1060 !important;
+    margin: 0 !important;
+}
+
+.site-header-sticky .navbar {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
     background: #ffffff !important;
     border-bottom: 1px solid #f1f5f9 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: none !important;
     padding: 14px 0 !important;
-    transition: all 0.3s ease;
-    z-index: 1050 !important;
-    display: block !important;
+    margin: 0 !important;
     width: 100% !important;
+    z-index: 1050 !important;
+    transition: all 0.3s ease;
+}
+
+.site-header-sticky .scroll-indicator {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    height: 3px !important;
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 1065 !important;
+    display: block !important;
+}
+
+.site-header-sticky .scroll-progress-bar {
+    height: 100% !important;
+    background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%) !important;
+    width: 0%;
+    transition: width 0.1s ease-out;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
 }
 
 .desktop-nav-brand {
@@ -262,8 +309,6 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 }
 </style>
 
-<?php require_once __DIR__ . '/announcement-bar.php'; ?>
-
 <!-- Mobile / Offcanvas Navigation Drawer -->
 <div class="site-drawer-overlay" id="siteDrawerOverlay" onclick="closeSiteDrawer()"></div>
 <div class="site-drawer" id="siteDrawer">
@@ -293,44 +338,52 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     </div>
 </div>
 
-<!-- Main Top Navbar (Responsive for Desktop, Tablet, and Mobile) -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
-            <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
-        </a>
-        
-        <div class="d-flex align-items-center d-lg-none gap-2">
-            <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn px-2 py-1" style="font-size:12px;">Login</a>
-            <button class="navbar-toggler border-0 p-1" type="button" onclick="openSiteDrawer()" aria-label="Toggle navigation" style="box-shadow:none;">
-                <i class="fas fa-bars" style="font-size:20px; color:#4f46e5;"></i>
-            </button>
+<!-- Sticky Master Header (Announcement Bar + Main Navbar + Scroll Progress) -->
+<header class="site-header-sticky" id="siteHeaderSticky">
+    <?php require_once __DIR__ . '/announcement-bar.php'; ?>
+
+    <!-- Main Top Navbar (Responsive for Desktop, Tablet, and Mobile) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" id="mainSiteNavbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
+                <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
+            </a>
+            
+            <div class="d-flex align-items-center d-lg-none gap-2">
+                <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn px-2 py-1" style="font-size:12px;">Login</a>
+                <button class="navbar-toggler border-0 p-1" type="button" onclick="openSiteDrawer()" aria-label="Toggle navigation" style="box-shadow:none;">
+                    <i class="fas fa-bars" style="font-size:20px; color:#4f46e5;"></i>
+                </button>
+            </div>
+            
+            <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#features' : $basePath . './#features'; ?>">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#benefits' : $basePath . './#benefits'; ?>">Benefits</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo $basePath; ?>blog.php">Blog</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn">Login</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="<?php echo $basePath; ?>admin/register.php" class="btn btn-sm register-header-btn">Register</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-        
-        <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#features' : $basePath . './#features'; ?>">Features</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#benefits' : $basePath . './#benefits'; ?>">Benefits</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo ($currentPage === 'index.php') ? '#contact' : $basePath . './#contact'; ?>">Contact</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $basePath; ?>blog.php">Blog</a>
-                </li>
-                <li class="nav-item ms-3">
-                    <a href="<?php echo $basePath; ?>admin/login.php" class="btn btn-sm login-header-btn">Login</a>
-                </li>
-                <li class="nav-item ms-2">
-                    <a href="<?php echo $basePath; ?>admin/register.php" class="btn btn-sm register-header-btn">Register</a>
-                </li>
-            </ul>
-        </div>
+    </nav>
+    <div class="scroll-indicator" id="scrollIndicator">
+        <div class="scroll-progress-bar" id="scrollProgressBar"></div>
     </div>
-</nav>
+</header>
 
 <script>
 function openSiteDrawer() {
@@ -347,4 +400,32 @@ function closeSiteDrawer() {
     if (overlay) overlay.style.display = 'none';
     document.body.style.overflow = '';
 }
+
+// Sticky Header & Scroll Progress Sync
+(function() {
+    function onSiteHeaderScroll() {
+        var header = document.getElementById('siteHeaderSticky');
+        var bar = document.getElementById('scrollProgressBar');
+        var scrolled = window.pageYOffset || document.documentElement.scrollTop || 0;
+        
+        if (header) {
+            if (scrolled > 8) {
+                header.classList.add('is-scrolled');
+            } else {
+                header.classList.remove('is-scrolled');
+            }
+        }
+        
+        if (bar) {
+            var docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            if (docHeight > 0) {
+                var pct = Math.min(Math.max((scrolled / docHeight) * 100, 0), 100);
+                bar.style.width = pct + '%';
+            }
+        }
+    }
+    window.addEventListener('scroll', onSiteHeaderScroll, { passive: true });
+    window.addEventListener('resize', onSiteHeaderScroll, { passive: true });
+    document.addEventListener('DOMContentLoaded', onSiteHeaderScroll);
+})();
 </script>

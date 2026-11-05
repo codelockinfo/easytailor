@@ -90,8 +90,8 @@ $seoOptions = [
     
     <link href="assets/css/style15.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
@@ -113,12 +113,16 @@ $seoOptions = [
             --ab-gradient: linear-gradient(135deg, #4f46e5 0%, #667eea 50%, #764ba2 100%);
         }
 
+        html, body {
+            overflow-x: clip;
+            scroll-padding-top: 115px;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f8fafc;
             color: var(--ab-body);
             line-height: 1.7;
-            overflow-x: hidden;
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -589,68 +593,335 @@ $seoOptions = [
             font-size: 0.9rem;
             margin-bottom: 18px;
         }
-
-        /* CTA Section */
-        .ab-cta-section {
-            background: var(--ab-gradient);
-            border-radius: var(--ab-radius);
-            padding: 60px 45px;
-            color: #ffffff;
+        .ab-hub-img-wrap {
             position: relative;
+            border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(79, 70, 229, 0.25);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
-        .ab-cta-section h2 {
+        .ab-hub-img-wrap:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.25);
+        }
+        .ab-hub-img {
+            width: 100%;
+            height: 100%;
+            max-height: 290px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s ease;
+        }
+        .ab-hub-img-wrap:hover .ab-hub-img {
+            transform: scale(1.04);
+        }
+        .ab-hub-img-badge {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: #ffffff;
-            font-size: 2.35rem;
-            font-weight: 800;
-            margin-bottom: 14px;
-        }
-        .ab-cta-section p {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 1.1rem;
-            max-width: 620px;
-            margin-bottom: 25px;
-        }
-        .ab-btn-light {
-            background: #ffffff;
-            color: var(--ab-primary) !important;
-            border: none;
-            padding: 14px 32px;
+            padding: 6px 14px;
             border-radius: 50px;
+            font-size: 0.78rem;
             font-weight: 700;
-            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            transition: all 0.25s ease;
-            text-decoration: none;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
-        .ab-btn-light:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
-            background: #f8fafc;
-            color: var(--ab-primary-hover) !important;
+
+        /* --- Final Call To Action (#final-cta from Home Page) --- */
+        .final-cta-section {
+            padding: 35px 0 0 0 !important;
+            background: #ffffff !important;
+            width: 100% !important;
+            overflow: visible !important;
         }
-        .ab-btn-transparent {
-            background: rgba(255, 255, 255, 0.15);
+
+        .final-cta-card {
+            width: 100% !important;
+            min-height: 220px !important;
+            background: linear-gradient(105deg, #a192f7 0%, #7672ea 22%, #625fe5 45%, #544ad7 72%, #4a38c2 100%) !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            position: relative !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+        }
+
+        .final-cta-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 420px;
+            height: 100%;
+            border-radius: 0 !important;
+            background: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.12), transparent 50%),
+                        radial-gradient(circle at 90% 90%, rgba(55, 41, 168, 0.45), transparent 60%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .final-cta-inner {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            min-height: 220px !important;
+            display: grid !important;
+            grid-template-columns: minmax(340px, 460px) 1fr auto !important;
+            align-items: stretch !important;
+            gap: 20px !important;
+            position: relative !important;
+            z-index: 2 !important;
+            padding: 0 clamp(24px, 3.5vw, 60px) 0 0 !important;
+        }
+
+        .final-cta-visual {
+            position: relative !important;
+            display: flex !important;
+            align-items: flex-end !important;
+            justify-content: flex-start !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            line-height: 0 !important;
+            height: 100% !important;
+            overflow: visible !important;
+        }
+
+        .final-cta-visual img {
+            height: calc(100% + 22px) !important;
+            max-height: 260px !important;
+            min-height: 220px !important;
+            width: auto !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+            object-position: bottom left !important;
+            margin-top: -22px !important;
+            margin-bottom: 0 !important;
+            display: block !important;
+            border-radius: 0 !important;
+            user-select: none !important;
+            pointer-events: none !important;
+            filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.14)) !important;
+        }
+
+        .final-cta-content {
+            padding: 30px 16px !important;
+            text-align: center !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .final-cta-eyebrow {
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            letter-spacing: 1.8px !important;
+            text-transform: uppercase !important;
+            color: rgba(255, 255, 255, 0.92) !important;
+            margin-bottom: 8px !important;
+            text-align: center !important;
+        }
+
+        .final-cta-title {
+            font-family: 'Playfair Display', Georgia, serif !important;
+            font-size: clamp(23px, 2.3vw, 29px) !important;
+            font-weight: 700 !important;
             color: #ffffff !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.5);
-            padding: 14px 28px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.25s ease;
-            text-decoration: none;
+            margin-bottom: 10px !important;
+            line-height: 1.28 !important;
+            letter-spacing: -0.2px !important;
+            text-align: center !important;
         }
-        .ab-btn-transparent:hover {
-            background: rgba(255, 255, 255, 0.25);
+
+        .final-cta-desc {
+            font-size: 13.5px !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            line-height: 1.55 !important;
+            margin: 0 auto !important;
+            max-width: 510px !important;
+            text-align: center !important;
+        }
+
+        .final-cta-actions {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            justify-content: center !important;
+            gap: 14px !important;
+            padding: 24px 0 !important;
+        }
+
+        .final-cta-btns {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            flex-wrap: nowrap !important;
+        }
+
+        .btn-cta-white {
+            background: #ffffff !important;
+            color: #4338ca !important;
+            border: 1.5px solid #ffffff !important;
+            border-radius: 10px !important;
+            padding: 10px 20px !important;
+            font-size: 13.5px !important;
+            font-weight: 700 !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+            transition: all 0.2s ease !important;
+            white-space: nowrap !important;
+        }
+
+        .btn-cta-white:hover {
+            background: #f8fafc !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16) !important;
+            color: #3730a3 !important;
+        }
+
+        .btn-cta-white i {
+            color: #4f46e5 !important;
+            font-size: 14px !important;
+        }
+
+        .btn-cta-transparent {
+            background: rgba(255, 255, 255, 0.1) !important;
             color: #ffffff !important;
-            transform: translateY(-3px);
+            border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+            border-radius: 10px !important;
+            padding: 10px 20px !important;
+            font-size: 13.5px !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            transition: all 0.2s ease !important;
+            white-space: nowrap !important;
+        }
+
+        .btn-cta-transparent:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.85) !important;
+            transform: translateY(-2px) !important;
+            color: #ffffff !important;
+        }
+
+        .final-cta-checklist {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 7px !important;
+            font-size: 12.5px !important;
+            color: rgba(255, 255, 255, 0.92) !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none !important;
+        }
+
+        .final-cta-checklist li {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            line-height: 1.3 !important;
+        }
+
+        .final-cta-checklist li i {
+            font-size: 13px !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        @media (max-width: 1199px) {
+            .final-cta-inner {
+                grid-template-columns: minmax(280px, 360px) 1fr auto !important;
+                gap: 16px !important;
+                padding: 0 24px 0 0 !important;
+                min-height: 205px !important;
+            }
+            .final-cta-card {
+                min-height: 205px !important;
+            }
+            .final-cta-content {
+                padding: 24px 12px !important;
+            }
+            .final-cta-visual img {
+                height: calc(100% + 18px) !important;
+                max-height: 235px !important;
+                margin-top: -18px !important;
+            }
+            .final-cta-title {
+                font-size: 22px !important;
+            }
+            .final-cta-desc {
+                font-size: 13px !important;
+                max-width: 440px !important;
+            }
+            .btn-cta-white,
+            .btn-cta-transparent {
+                padding: 9px 16px !important;
+                font-size: 13px !important;
+            }
+        }
+
+        @media (max-width: 991px) {
+            .final-cta-section {
+                padding: 25px 0 0 0 !important;
+            }
+            .final-cta-card {
+                padding: 0 !important;
+                border-radius: 0 !important;
+            }
+            .final-cta-inner {
+                grid-template-columns: 1fr !important;
+                text-align: center !important;
+                gap: 20px !important;
+                padding: 24px 18px 28px 18px !important;
+            }
+            .final-cta-visual {
+                justify-content: center !important;
+                margin-top: -15px !important;
+                height: auto !important;
+                align-items: center !important;
+            }
+            .final-cta-visual img {
+                height: auto !important;
+                max-height: 180px !important;
+                width: auto !important;
+                max-width: 280px !important;
+                margin: 0 auto !important;
+                object-position: center !important;
+                border-radius: 0 !important;
+            }
+            .final-cta-content {
+                padding: 0 !important;
+            }
+            .final-cta-desc {
+                margin: 0 auto !important;
+            }
+            .final-cta-title {
+                font-size: 22px !important;
+            }
+            .final-cta-actions {
+                align-items: center !important;
+                padding: 0 !important;
+            }
+            .final-cta-btns {
+                justify-content: center !important;
+                flex-wrap: wrap !important;
+            }
+            .final-cta-checklist {
+                align-items: center !important;
+            }
         }
 
         @media (max-width: 991px) {
@@ -938,7 +1209,7 @@ $seoOptions = [
         <div class="container">
             <div class="ab-hub-box ab-reveal">
                 <div class="row align-items-center">
-                    <div class="col-lg-8">
+                    <div class="col-lg-7">
                         <div class="ab-hub-badge">
                             <i class="fas fa-map-marker-alt text-warning"></i>
                             <span>Proudly Built in Surat, Gujarat — India's Textile Hub</span>
@@ -959,14 +1230,14 @@ $seoOptions = [
                             </a>
                         </div>
                     </div>
-                    <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                        <div class="p-3 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-25 d-inline-block">
-                            <img src="uploads/logos/main-logo.png" alt="TailorPro" class="img-fluid" style="max-height: 70px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                            <div style="display: none; font-size: 2rem; font-weight: 800; color: #fff;">
-                                <i class="fas fa-cut me-2"></i>TailorPro
-                            </div>
-                            <div class="mt-2 text-white-50 small">
-                                Crafting Tech for Modern Tailors
+                    <div class="col-lg-5 mt-4 mt-lg-0">
+                        <div class="ab-hub-img-wrap">
+                            <img src="assets/images/about/surat-textile-tech.jpg" 
+                                 alt="TailorPro - Built in Surat, Gujarat - India's Textile Hub" 
+                                 class="ab-hub-img"
+                                 loading="lazy">
+                            <div class="ab-hub-img-badge">
+                                <i class="fas fa-sparkles text-warning"></i> Textile &amp; SaaS Innovation
                             </div>
                         </div>
                     </div>
@@ -975,26 +1246,34 @@ $seoOptions = [
         </div>
     </section>
 
-    <!-- Section 6: CTA Section -->
-    <section class="container mb-5">
-        <div class="ab-cta-section text-center text-lg-start ab-reveal">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h2>Ready to Modernize Your Tailor Shop?</h2>
-                    <p>
-                        Join hundreds of successful tailors and boutique owners who have eliminated paper registers, reduced customer trial delays, and increased repeat orders with <?php echo htmlspecialchars($brandName); ?>.
+    <!-- Final CTA Section (From Home Page) -->
+    <section id="final-cta" class="final-cta-section ab-reveal">
+        <div class="final-cta-card">
+            <div class="final-cta-inner">
+                <div class="final-cta-visual">
+                    <img src="assets/images/cta-tailor-3d.png?v=7" alt="Tailor Management Platform" class="final-cta-img">
+                </div>
+                <div class="final-cta-content">
+                    <div class="final-cta-eyebrow">READY TO GROW YOUR BUSINESS?</div>
+                    <h2 class="final-cta-title">Take Your Tailoring Business to the Next Level</h2>
+                    <p class="final-cta-desc">
+                        Join thousands of successful tailoring businesses that have already digitalized their operations. Start your free trial today and see the difference.
                     </p>
-                    <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-                        <a href="admin/register.php" class="ab-btn-light">
-                            <i class="fas fa-rocket"></i> Start Free Registration
+                </div>
+                <div class="final-cta-actions">
+                    <div class="final-cta-btns">
+                        <a href="admin/register.php" class="btn btn-cta-white">
+                            <i class="fa-solid fa-shapes me-2"></i>Register Your Business
                         </a>
-                        <a href="contact" class="ab-btn-transparent">
-                            <i class="fas fa-calendar-check"></i> Book a Free Demo
+                        <a href="admin/login.php" class="btn btn-cta-transparent">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Login Now
                         </a>
                     </div>
-                </div>
-                <div class="col-lg-4 text-center mt-4 mt-lg-0 d-none d-lg-block">
-                    <img src="assets/images/cta-tailor-3d.png" alt="Tailor 3D" class="img-fluid ab-floating-img" style="max-height: 240px;" onerror="this.src='assets/images/person.png';">
+                    <ul class="final-cta-checklist">
+                        <li><i class="fa-regular fa-circle-check"></i> Free to use</li>
+                        <li><i class="fa-regular fa-circle-check"></i> No credit card required</li>
+                        <li><i class="fa-solid fa-circle-info"></i> Start in minutes</li>
+                    </ul>
                 </div>
             </div>
         </div>

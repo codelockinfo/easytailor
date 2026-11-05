@@ -41,11 +41,8 @@ if (isset($announcement['enabled']) && $announcement['enabled'] === false) {
     color: <?php echo $announcement['text_color']; ?>;
     padding: 0 !important;
     margin: 0 !important;
-    position: fixed;
-    top: 0 !important;
-    left: 0;
-    right: 0;
-    width: 100%;
+    position: relative !important;
+    width: 100% !important;
     z-index: 1060;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
@@ -265,26 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (announcementBar && !announcementBar.classList.contains('hidden')) {
         body.classList.add('announcement-visible');
-        adjustNavbarPosition();
     }
-    
-    function adjustNavbarPosition() {
-        const navbar = document.querySelector('.navbar.fixed-top');
-        if (navbar) {
-            if (announcementBar && !announcementBar.classList.contains('hidden')) {
-                const announcementHeight = announcementBar.offsetHeight;
-                navbar.style.top = announcementHeight + 'px';
-                navbar.style.position = 'fixed';
-                navbar.style.marginTop = '0';
-            } else {
-                navbar.style.top = '0';
-                navbar.style.position = 'fixed';
-                navbar.style.marginTop = '0';
-            }
-        }
-    }
-    
-    adjustNavbarPosition();
     
     const closeButton = document.getElementById('closeAnnouncement');
     if (closeButton) {
@@ -295,12 +273,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (announcementBar) {
                 announcementBar.style.transition = 'all 0.3s ease';
                 announcementBar.style.opacity = '0';
-                announcementBar.style.transform = 'translateY(-100%)';
+                announcementBar.style.maxHeight = '0px';
+                announcementBar.style.overflow = 'hidden';
+                announcementBar.style.padding = '0';
                 
                 setTimeout(function() {
                     announcementBar.classList.add('hidden');
+                    announcementBar.style.display = 'none';
                     body.classList.remove('announcement-visible');
-                    adjustNavbarPosition();
                 }, 300);
             }
         });
@@ -316,8 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = './admin/register';
         });
     }
-    
-    window.addEventListener('resize', adjustNavbarPosition);
 });
 </script>
 

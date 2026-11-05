@@ -88,41 +88,93 @@ function initScrollAnimations() {
 }
 
 /**
- * Counter animations
+ * Counter animations (Smooth requestAnimationFrame with easing)
  */
 function initCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    const counterObserver = new IntersectionObserver((entries) => {
+    const counters = document.querySelectorAll('.hero-stat-num, .stat-number, .ab-stat-num');
+    if (!counters.length) return;
+
+    // Check if element is in initial viewport (e.g. hero section on page refresh)
+    function isInViewport(el) {
+        const rect = el.getBoundingClientRect();
+        return (
+            rect.top < (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.bottom > 0
+        );
+    }
+
+    const counterObserver = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 animateCounter(entry.target);
                 counterObserver.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.5 });
-    
+    }, { threshold: 0.15 }) : null;
+
     counters.forEach(counter => {
-        counterObserver.observe(counter);
+        if (isInViewport(counter)) {
+            // Slight delay (180ms) on initial refresh so user visibly sees the counter roll up from 0
+            setTimeout(() => {
+                animateCounter(counter);
+            }, 180);
+            if (counterObserver) counterObserver.unobserve(counter);
+        } else if (counterObserver) {
+            counterObserver.observe(counter);
+        } else {
+            animateCounter(counter);
+        }
     });
 }
 
 function animateCounter(element) {
-    const target = parseInt(element.textContent.replace(/[^\d]/g, ''));
-    const duration = 2000;
-    const step = target / (duration / 16);
-    let current = 0;
+    if (element.dataset.animated === 'true') return;
+    element.dataset.animated = 'true';
+
+    // Parse target number and suffix/prefix from data attributes or element text
+    const rawTarget = element.getAttribute('data-target') || element.getAttribute('data-count');
+    const target = rawTarget ? parseFloat(rawTarget) : parseInt(element.textContent.replace(/[^\d]/g, ''), 10) || 0;
     
-    const timer = setInterval(() => {
-        current += step;
-        if (current >= target) {
-            current = target;
-            clearInterval(timer);
-        }
+    let suffix = element.getAttribute('data-suffix');
+    if (suffix === null) {
+        suffix = element.textContent.includes('+') ? '+' : 
+                 element.textContent.includes('%') ? '%' : '';
+    }
+    const prefix = element.getAttribute('data-prefix') || '';
+    const decimals = parseInt(element.getAttribute('data-decimals') || '0', 10);
+    const duration = parseInt(element.getAttribute('data-duration') || '1800', 10); // 1.8s smooth roll
+    
+    let startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
         
-        const suffix = element.textContent.includes('+') ? '+' : 
-                      element.textContent.includes('%') ? '%' : '';
-        element.textContent = Math.floor(current) + suffix;
-    }, 16);
+        // easeOutCubic curve: starts briskly, decelerates gracefully to the final number
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const currentVal = target * ease;
+
+        if (decimals > 0) {
+            element.textContent = prefix + currentVal.toFixed(decimals) + suffix;
+        } else {
+            element.textContent = prefix + Math.floor(currentVal).toLocaleString('en-US') + suffix;
+        }
+
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            if (decimals > 0) {
+                element.textContent = prefix + target.toFixed(decimals) + suffix;
+            } else {
+                element.textContent = prefix + target.toLocaleString('en-US') + suffix;
+            }
+        }
+    }
+
+    // Set starting 0 immediately so page refresh visibly rolls up
+    element.textContent = prefix + '0' + suffix;
+    window.requestAnimationFrame(step);
 }
 
 /**

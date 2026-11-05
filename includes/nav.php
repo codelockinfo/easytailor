@@ -85,16 +85,6 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
 }
 
-.site-header-sticky .announcement-bar {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
-    z-index: 1060 !important;
-    margin: 0 !important;
-}
-
 .site-header-sticky .navbar {
     position: relative !important;
     top: auto !important;
@@ -344,10 +334,11 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     </div>
 </div>
 
-<!-- Sticky Master Header (Announcement Bar + Main Navbar + Scroll Progress) -->
-<header class="site-header-sticky" id="siteHeaderSticky">
-    <?php require_once __DIR__ . '/announcement-bar.php'; ?>
+<!-- Announcement Bar (Scrolls away with page, NOT sticky) -->
+<?php require_once __DIR__ . '/announcement-bar.php'; ?>
 
+<!-- Sticky Navigation Header (ONLY header is sticky) -->
+<header class="site-header-sticky" id="siteHeaderSticky">
     <!-- Main Top Navbar (Responsive for Desktop, Tablet, and Mobile) -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" id="mainSiteNavbar">
         <div class="container">

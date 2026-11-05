@@ -45,10 +45,10 @@ body.home-page .container-xxl {
 }
 
 html {
-    scroll-padding-top: 110px;
+    scroll-padding-top: 80px;
 }
 section[id] {
-    scroll-margin-top: 110px;
+    scroll-margin-top: 80px;
 }
 
 body.home-page {

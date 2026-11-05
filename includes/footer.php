@@ -42,10 +42,9 @@ $currentYear = date('Y');
         <div class="row g-4">
             <div class="col-lg-4">
                 <div class="footer-brand">
-                    <h3 class="brand-name">
-                        <img src="<?php echo $basePath; ?>uploads/logos/main-logo.png" alt="TailorPro" class="footer-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                        <i class="fas fa-cut text-primary me-2" style="display: none;"></i>
-                    </h3>
+                     <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
+            <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
+        </a>
                     <p class="brand-description">
                         The complete tailoring management system for modern businesses. 
                         Digitalize your workflow and grow your business.

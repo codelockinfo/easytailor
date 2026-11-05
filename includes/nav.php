@@ -100,7 +100,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 .desktop-nav-brand {
     display: inline-flex !important;
     align-items: center !important;
-    font-size: 24px !important;
+    font-size: 34px !important;
     font-weight: 800 !important;
     color: #1e1b4b !important;
     letter-spacing: -0.5px !important;
@@ -108,7 +108,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 }
 .desktop-nav-brand i {
     color: #6366f1 !important;
-    font-size: 20px !important;
+    font-size: 32px !important;
     margin-right: 6px !important;
 }
 

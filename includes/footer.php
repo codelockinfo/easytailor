@@ -36,6 +36,46 @@ $currentYear = date('Y');
         display: none !important;
     }
 }
+.footer-social-icons {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    margin-top: 10px !important;
+    flex-wrap: wrap !important;
+}
+.footer-social-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.footer-social-btn i {
+    color: #ffffff !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+}
+
+.footer-social-btn:hover {
+    transform: translateY(-2px) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
+}
+
+.footer-social-btn.fb { background: #1877f2 !important; }
+.footer-social-btn.yt { background: #ff0000 !important; }
+.footer-social-btn.li { background: #0a66c2 !important; }
+.footer-social-btn.ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%) !important; }
+.footer-social-btn.wa { background: #25d366 !important; }
 </style>
 <footer id="contact" class="footer-section py-3 d-none d-md-block">
     <div class="container">

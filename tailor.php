@@ -41,6 +41,33 @@ function getSpecialtyIcon($name) {
     if (strpos($lower, 'blouse') !== false || strpos($lower, 'gown') !== false || strpos($lower, 'lehenga') !== false || strpos($lower, 'saree') !== false) return 'fa-female';
     return 'fa-check';
 }
+
+function formatTailorProfileAddress($comp) {
+    if (!is_array($comp)) return '';
+    $cleanAddr = trim(preg_replace('/[\r\n]+/', ', ', (string)($comp['business_address'] ?? '')));
+    $parts = [];
+    if (!empty($cleanAddr)) $parts[] = $cleanAddr;
+    
+    $city = trim((string)($comp['city'] ?? ''));
+    if (!empty($city) && stripos($cleanAddr, $city) === false) {
+        $parts[] = $city;
+    }
+    
+    $state = trim((string)($comp['state'] ?? ''));
+    if (!empty($state) && stripos($cleanAddr, $state) === false) {
+        $parts[] = $state;
+    }
+    
+    $postal_code = trim((string)($comp['postal_code'] ?? ''));
+    if (!empty($postal_code) && strpos($cleanAddr, $postal_code) === false) {
+        $parts[] = $postal_code;
+    }
+    
+    $full = implode(', ', $parts);
+    $full = preg_replace('/\s*,\s*,+/', ', ', $full);
+    $full = preg_replace('/\s+/', ' ', $full);
+    return trim($full, ", \t\n\r\0\x0B");
+}
 ?>
 <?php
 require_once 'helpers/SEOHelper.php';
@@ -75,7 +102,7 @@ $seoOptions = [
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    <link href="assets/css/style15.css" rel="stylesheet">
+    <link href="assets/css/style16.css" rel="stylesheet">
     <style>
         html, body {
             overflow-x: clip;
@@ -352,6 +379,22 @@ $seoOptions = [
             color: #6366f1;
             flex-shrink: 0;
             box-shadow: 0 4px 14px rgba(99, 102, 241, 0.18);
+            animation: floatCalendarBox 3.8s ease-in-out infinite;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        @keyframes floatCalendarBox {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .profile-card:hover .wh-icon-box {
+            transform: translateY(-6px) scale(1.04);
+            box-shadow: 0 8px 22px rgba(99, 102, 241, 0.28);
         }
 
         .wh-grid {
@@ -382,7 +425,7 @@ $seoOptions = [
             font-weight: 600;
         }
 
-        /* Rating Breakdown Bars */
+        /* Rating Breakdown Bars with Entry Growth & Shimmer Animation */
         .rating-bar-row {
             display: flex;
             align-items: center;
@@ -404,13 +447,59 @@ $seoOptions = [
             background: #eef2ff;
             border-radius: 20px;
             overflow: hidden;
+            position: relative;
         }
         .rating-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #6366f1, #a855f7);
+            width: var(--target-width, 0%);
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 35%, #c084fc 65%, #6366f1 100%);
+            background-size: 200% 100%;
             border-radius: 20px;
-            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+            animation: growRatingBar 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards, shimmerRatingBar 4s linear infinite;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
         }
+        .rating-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+            animation: barShine 2.8s ease-in-out infinite;
+        }
+
+        @keyframes growRatingBar {
+            0% {
+                width: 0%;
+                opacity: 0.3;
+            }
+            100% {
+                width: var(--target-width);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmerRatingBar {
+            0% {
+                background-position: 200% 0%;
+            }
+            100% {
+                background-position: -200% 0%;
+            }
+        }
+
+        @keyframes barShine {
+            0% {
+                left: -100%;
+            }
+            60%, 100% {
+                left: 180%;
+            }
+        }
+
         .rating-count-label {
             width: 24px;
             text-align: right;
@@ -419,7 +508,7 @@ $seoOptions = [
             color: #64748b;
         }
 
-        /* Contact Card */
+        /* Contact Card with 3D Floating Envelope */
         .contact-card-relative {
             position: relative;
             overflow: hidden;
@@ -429,6 +518,10 @@ $seoOptions = [
             align-items: center;
             font-size: 14.5px;
             color: #334155;
+            transition: transform 0.2s ease;
+        }
+        .contact-info-item:hover {
+            transform: translateX(4px);
         }
         .contact-info-item i {
             color: #6366f1 !important;
@@ -448,9 +541,25 @@ $seoOptions = [
             position: absolute;
             right: 18px;
             bottom: 14px;
-            opacity: 0.9;
+            opacity: 0.95;
             pointer-events: none;
-            transform: rotate(-6deg);
+            transform-origin: center center;
+            animation: floatEnvelope 3.2s ease-in-out infinite;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
+        }
+
+        @keyframes floatEnvelope {
+            0%, 100% {
+                transform: rotate(-6deg) translateY(0px);
+            }
+            50% {
+                transform: rotate(-2deg) translateY(-8px);
+            }
+        }
+
+        .contact-card-relative:hover .contact-card-envelope-decor {
+            transform: rotate(0deg) translateY(-10px) scale(1.1);
+            filter: drop-shadow(0 10px 20px rgba(124, 58, 237, 0.35));
         }
 
         /* Customer Reviews Decorative Laurel Wreath */
@@ -739,6 +848,209 @@ $seoOptions = [
                 align-items: flex-start;
             }
         }
+
+        /* Mobile View Optimizations (< 768px) */
+        @media (max-width: 767px) {
+            body {
+                padding-bottom: 80px !important;
+            }
+            .navbar,
+            nav.navbar,
+            .announcement-bar,
+            .footer-section,
+            footer.footer-section {
+                display: none !important;
+            }
+
+            /* Profile Hero */
+            .profile-hero {
+                padding: 18px 0 24px !important;
+                background-position: center top !important;
+            }
+            .profile-shop-img-box {
+                display: block !important;
+                margin: 0 auto 12px !important;
+                max-width: 210px !important;
+                padding: 4px !important;
+                border-radius: 16px !important;
+                border-width: 2px !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+            }
+            .profile-shop-img {
+                width: 100% !important;
+                max-width: 202px !important;
+                height: 125px !important;
+                border-radius: 12px !important;
+                margin: 0 auto !important;
+                object-fit: contain !important;
+            }
+            .profile-shop-title {
+                font-size: 21px !important;
+                line-height: 1.25 !important;
+                text-align: center !important;
+                margin-bottom: 6px !important;
+            }
+            .profile-shop-desc {
+                font-size: 12.5px !important;
+                line-height: 1.45 !important;
+                text-align: center !important;
+                margin-bottom: 10px !important;
+                padding: 0 4px !important;
+                opacity: 0.92;
+            }
+            .profile-hero .d-flex.flex-wrap.align-items-center {
+                justify-content: center !important;
+                gap: 6px !important;
+                margin-bottom: 8px !important;
+            }
+            .profile-badge-pill,
+            .profile-badge-verified {
+                font-size: 11px !important;
+                padding: 3.5px 9px !important;
+            }
+            .profile-address-line {
+                font-size: 11.5px !important;
+                line-height: 1.4 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                margin-bottom: 14px !important;
+                padding: 0 6px !important;
+            }
+            .profile-actions-row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: 8px !important;
+                justify-content: center !important;
+                width: 100% !important;
+                padding: 0 4px !important;
+            }
+            .profile-actions-row a {
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 8px 6px !important;
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                justify-content: center !important;
+                text-align: center !important;
+                border-radius: 50px !important;
+                white-space: nowrap !important;
+            }
+            .profile-actions-row a i {
+                margin-right: 4px !important;
+                font-size: 11px !important;
+            }
+
+            /* Cards & Body */
+            .profile-body-wrap {
+                padding: 16px 0 24px !important;
+            }
+            .profile-card {
+                padding: 16px 14px !important;
+                border-radius: 16px !important;
+            }
+            .profile-card-header {
+                margin-bottom: 12px !important;
+            }
+            .profile-card-title {
+                font-size: 16px !important;
+            }
+            .profile-card-icon {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 13px !important;
+            }
+            .profile-about-address {
+                font-size: 12.5px !important;
+                line-height: 1.4 !important;
+            }
+            .profile-about-text {
+                font-size: 13px !important;
+                line-height: 1.5 !important;
+            }
+            .specialty-pill {
+                font-size: 12px !important;
+                padding: 4px 9px !important;
+            }
+            .wh-card-layout {
+                padding: 12px 10px !important;
+            }
+            .wh-item {
+                font-size: 12px !important;
+                padding: 5px 8px !important;
+            }
+
+            /* Contact Card */
+            .contact-card-envelope-decor {
+                right: 6px !important;
+                bottom: 6px !important;
+                max-width: 50px !important;
+                opacity: 0.18 !important;
+            }
+            .contact-link {
+                font-size: 12.5px !important;
+            }
+
+            /* Rating Breakdown */
+            .rating-bar-row {
+                gap: 8px !important;
+                margin-bottom: 6px !important;
+            }
+            .rating-star-label {
+                font-size: 11.5px !important;
+                width: 28px !important;
+            }
+            .rating-count-label {
+                font-size: 11.5px !important;
+                width: 20px !important;
+            }
+            .rating-bar-track {
+                height: 8px !important;
+            }
+
+            /* Reviews */
+            .review-item-card {
+                padding: 12px 12px !important;
+            }
+            .review-author {
+                font-size: 13px !important;
+            }
+            .review-item-text {
+                font-size: 12.5px !important;
+            }
+
+            /* Experience Form */
+            .profile-experience-card {
+                padding: 16px 12px !important;
+            }
+            .form-label-custom {
+                font-size: 12px !important;
+            }
+            .input-icon-wrap .form-control {
+                font-size: 12.5px !important;
+                padding: 8px 12px 8px 34px !important;
+            }
+            .input-icon-wrap i {
+                font-size: 12px !important;
+                left: 11px !important;
+            }
+            .textarea-counter-wrap textarea {
+                font-size: 12.5px !important;
+                padding: 8px 10px !important;
+                min-height: 80px !important;
+            }
+            .file-upload-bar {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
+                padding: 8px 10px !important;
+            }
+            .btn-submit-review {
+                width: 100% !important;
+                padding: 10px 18px !important;
+                font-size: 13.5px !important;
+                justify-content: center !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -781,10 +1093,10 @@ $seoOptions = [
                     </div>
 
                     <?php 
-                    $fullAddressParts = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
-                    if (!empty($fullAddressParts)): ?>
+                    $profileFullAddress = formatTailorProfileAddress($company);
+                    if (!empty($profileFullAddress)): ?>
                         <div class="profile-address-line">
-                            <i class="fas fa-map-marker-alt text-warning me-2"></i><?php echo escape(implode(', ', $fullAddressParts)); ?>
+                            <i class="fas fa-map-marker-alt text-warning me-2"></i><?php echo escape($profileFullAddress); ?>
                         </div>
                     <?php endif; ?>
 
@@ -823,11 +1135,11 @@ $seoOptions = [
                         </div>
                         <div class="profile-card-body">
                             <?php 
-                            $fullAboutAddress = array_filter([$company['business_address'] ?? '', $company['city'] ?? '', $company['state'] ?? '', $company['postal_code'] ?? '']);
-                            if (!empty($fullAboutAddress)): ?>
+                            $profileAboutAddress = formatTailorProfileAddress($company);
+                            if (!empty($profileAboutAddress)): ?>
                                 <div class="profile-about-address mb-3">
                                     <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
-                                    <span><?php echo escape(implode(', ', $fullAboutAddress)); ?></span>
+                                    <span><?php echo escape($profileAboutAddress); ?></span>
                                 </div>
                             <?php endif; ?>
 
@@ -911,7 +1223,7 @@ $seoOptions = [
                                 <div class="rating-bar-row">
                                     <span class="rating-star-label"><?php echo $i; ?> <i class="fas fa-star" style="font-size:11px; color:#fbbf24;"></i></span>
                                     <div class="rating-bar-track">
-                                        <div class="rating-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
+                                        <div class="rating-bar-fill" style="--target-width: <?php echo $percent; ?>%; width: <?php echo $percent; ?>%;"></div>
                                     </div>
                                     <span class="rating-count-label"><?php echo $count; ?></span>
                                 </div>
@@ -922,7 +1234,12 @@ $seoOptions = [
                     <!-- Contact Card -->
                     <div class="profile-card contact-card-relative mb-0 flex-grow-1">
                         <div class="profile-card-header">
-                            <span class="profile-card-icon"><i class="fas fa-phone"></i></span>
+                            <span class="profile-card-icon" title="Contact">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                                </svg>
+                            </span>
                             <h3 class="profile-card-title">Contact</h3>
                         </div>
                         <div class="profile-card-body">

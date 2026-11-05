@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = [
             'company_name' => sanitize_input($_POST['company_name'] ?? ($existingCompany['company_name'] ?? '')),
             'owner_name' => sanitize_input($_POST['owner_name'] ?? ($existingCompany['owner_name'] ?? '')),
-            'business_email' => $existingCompany['business_email'], // Keep existing email - cannot be changed directly
             'business_phone' => sanitize_input($_POST['business_phone'] ?? ($existingCompany['business_phone'] ?? '')),
             'business_address' => sanitize_input($_POST['business_address'] ?? ($existingCompany['business_address'] ?? '')),
             'city' => sanitize_input($_POST['city'] ?? ($existingCompany['city'] ?? '')),
@@ -44,6 +43,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetPath)) {
                 $data['logo'] = $targetPath;
+            }
+        }
+        if (isset($_POST['company_name'])) {
+            $daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            $whData = [];
+            $whClosed = $_POST['wh_closed'] ?? [];
+            $whOpen = $_POST['wh_open'] ?? [];
+            $whClose = $_POST['wh_close'] ?? [];
+
+            foreach ($daysList as $day) {
+                if (!empty($whClosed[$day])) {
+                    $whData[$day] = 'Closed';
+                } else {
+                    $openTime = trim((string)($whOpen[$day] ?? '10:00'));
+                    $closeTime = trim((string)($whClose[$day] ?? '20:00'));
+                    if (!empty($openTime) && !empty($closeTime)) {
+                        $openFormatted = date('g:i A', strtotime($openTime));
+                        $closeFormatted = date('g:i A', strtotime($closeTime));
+                        $whData[$day] = "$openFormatted - $closeFormatted";
+                    } elseif (!empty($openTime)) {
+                        $whData[$day] = date('g:i A', strtotime($openTime));
+                    } else {
+                        $whData[$day] = '10:00 AM - 8:00 PM';
+                    }
+                }
+            }
+            $data['working_hours'] = json_encode($whData, JSON_UNESCAPED_UNICODE);
+        } else {
+            // Logo-only upload: retain existing working hours
+            if (isset($existingCompany['working_hours'])) {
+                $data['working_hours'] = $existingCompany['working_hours'];
             }
         }
         $mergedCompany = array_merge($existingCompany ?: [], $data);
@@ -115,6 +145,25 @@ $offsetDesk = round($circDesk - ($prog / 100) * $circDesk, 2);
 $rMob = 19;
 $circMob = round(2 * M_PI * $rMob, 2);
 $offsetMob = round($circMob - ($prog / 100) * $circMob, 2);
+$companyWorkingHours = [];
+if (!empty($company['working_hours'])) {
+    $decodedWh = json_decode($company['working_hours'], true);
+    if (is_array($decodedWh)) {
+        foreach ($decodedWh as $k => $v) {
+            $companyWorkingHours[strtolower($k)] = $v;
+        }
+    }
+}
+
+$daysOfWeek = [
+    'monday'    => 'Monday',
+    'tuesday'   => 'Tuesday',
+    'wednesday' => 'Wednesday',
+    'thursday'  => 'Thursday',
+    'friday'    => 'Friday',
+    'saturday'  => 'Saturday',
+    'sunday'    => 'Sunday',
+];
 ?>
 <style>
 .cat-stat-box {
@@ -224,6 +273,52 @@ select.form-select.settings-input,
 .settings-input:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+.wh-day-row {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+}
+.wh-day-row:hover {
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.wh-day-row.is-closed {
+    background: #f8fafc;
+    border-color: #f1f5f9;
+}
+.wh-day-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.wh-time-input {
+    height: 38px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    border: 1px solid #e2e8f0;
+    padding: 0.35rem 0.65rem;
+    background-color: #ffffff;
+}
+.wh-time-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+@media (max-width: 575.98px) {
+    .wh-time-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .wh-time-input {
+        width: 110px !important;
+    }
 }
 </style>
 <div class="welcome-banner overflow-hidden position-relative">
@@ -726,6 +821,106 @@ select.form-select.settings-input,
                         </div>
                     </div>
                     
+                    <hr class="my-4" style="border-color: #e2e8f0;">
+
+                    <!-- SECTION: Working Hours -->
+                    <div class="mb-4" id="workingHoursSection">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
+                                    <i class="fas fa-calendar-alt text-primary me-2"></i>Working Hours 
+                                </h6>
+                                <small class="text-muted" style="font-size: 0.76rem;">Set shop opening & closing hours for each day of the week.</small>
+                            </div>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary fw-medium" id="btnQuickMonSat" style="border-radius: 8px; font-size: 0.75rem; padding: 5px 12px;">
+                                    <i class="fas fa-bolt me-1"></i> Mon-Sat 10AM-8PM (Sun Closed)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary fw-medium" id="btnCopyMonday" style="border-radius: 8px; font-size: 0.75rem; padding: 5px 12px;">
+                                    <i class="fas fa-copy me-1"></i> Copy Mon to All
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Days Schedule Rows -->
+                        <div class="d-flex flex-column gap-2">
+                            <?php foreach ($daysOfWeek as $dayKey => $dayName): 
+                                $dayHoursRaw = $companyWorkingHours[$dayKey] ?? ($dayKey === 'sunday' ? 'Closed' : '10:00 AM - 8:00 PM');
+                                $dayClosed = (empty($dayHoursRaw) || stripos($dayHoursRaw, 'closed') !== false);
+                                $dayOpenTime = '10:00';
+                                $dayCloseTime = '20:00';
+
+                                if (!$dayClosed) {
+                                    $timeParts = explode('-', $dayHoursRaw);
+                                    $t1 = trim($timeParts[0] ?? '');
+                                    $t2 = trim($timeParts[1] ?? '');
+                                    if (!empty($t1) && strtotime($t1)) {
+                                        $dayOpenTime = date('H:i', strtotime($t1));
+                                    }
+                                    if (!empty($t2) && strtotime($t2)) {
+                                        $dayCloseTime = date('H:i', strtotime($t2));
+                                    }
+                                }
+                            ?>
+                                <div class="wh-day-row d-flex align-items-center justify-content-between flex-wrap gap-2 <?php echo $dayClosed ? 'is-closed' : ''; ?>" id="row_wh_<?php echo $dayKey; ?>">
+                                    <!-- Day Name & Badge -->
+                                    <div class="d-flex align-items-center gap-2" style="min-width: 125px;">
+                                        <div class="wh-day-badge" style="background: <?php echo $dayKey === 'sunday' ? '#fee2e2; color: #dc2626;' : '#ede9fe; color: #6366f1;'; ?>">
+                                            <?php echo strtoupper(substr($dayName, 0, 2)); ?>
+                                        </div>
+                                        <div>
+                                            <span class="fw-semibold text-dark" style="font-size: 0.86rem;"><?php echo $dayName; ?></span>
+                                            <?php if ($dayKey === 'sunday'): ?>
+                                                <small class="text-muted d-block" style="font-size: 0.68rem;">Weekend</small>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- Time Inputs (Open & Close) -->
+                                    <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-md-center wh-time-controls" id="time_controls_<?php echo $dayKey; ?>" style="<?php echo $dayClosed ? 'display: none !important;' : ''; ?>">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="text-muted small" style="font-size: 0.72rem;">From:</span>
+                                            <input type="time" 
+                                                   name="wh_open[<?php echo $dayKey; ?>]" 
+                                                   class="form-control form-control-sm wh-time-input" 
+                                                   value="<?php echo htmlspecialchars($dayOpenTime); ?>" 
+                                                   style="width: 125px;"
+                                                   <?php echo $dayClosed ? 'disabled' : ''; ?>>
+                                        </div>
+                                        <span class="text-muted small px-1">-</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="text-muted small" style="font-size: 0.72rem;">To:</span>
+                                            <input type="time" 
+                                                   name="wh_close[<?php echo $dayKey; ?>]" 
+                                                   class="form-control form-control-sm wh-time-input" 
+                                                   value="<?php echo htmlspecialchars($dayCloseTime); ?>" 
+                                                   style="width: 125px;"
+                                                   <?php echo $dayClosed ? 'disabled' : ''; ?>>
+                                        </div>
+                                    </div>
+
+                                    <!-- Shop Closed Notice -->
+                                    <div class="wh-closed-msg text-danger fw-semibold small flex-grow-1 text-center" id="closed_msg_<?php echo $dayKey; ?>" style="<?php echo !$dayClosed ? 'display: none !important;' : ''; ?> font-size: 0.82rem;">
+                                        <i class="fas fa-ban me-1"></i> Closed
+                                    </div>
+
+                                    <!-- Closed Switch Toggle -->
+                                    <div class="form-check form-switch m-0 ms-auto">
+                                        <input class="form-check-input wh-closed-switch" 
+                                               type="checkbox" 
+                                               role="switch" 
+                                               id="wh_closed_<?php echo $dayKey; ?>" 
+                                               name="wh_closed[<?php echo $dayKey; ?>]" 
+                                               value="1" 
+                                               data-day="<?php echo $dayKey; ?>"
+                                               <?php echo $dayClosed ? 'checked' : ''; ?>>
+                                        <label class="form-check-label small fw-semibold" for="wh_closed_<?php echo $dayKey; ?>" style="font-size: 0.78rem; color: #64748b; cursor: pointer;">Closed</label>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    
                     <hr class="my-4" style="border-color: #f1f5f9;">
                     
                     <div class="d-flex align-items-center justify-content-end gap-2">
@@ -908,6 +1103,116 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('An error occurred. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = submitBtnText;
+            });
+        });
+    }
+
+    // --- Working Hours Interactivity ---
+    document.querySelectorAll('.wh-closed-switch').forEach(function(sw) {
+        sw.addEventListener('change', function() {
+            const day = this.dataset.day;
+            const row = document.getElementById('row_wh_' + day);
+            const timeControls = document.getElementById('time_controls_' + day);
+            const closedMsg = document.getElementById('closed_msg_' + day);
+            const openInput = row ? row.querySelector('input[name="wh_open[' + day + ']"]') : null;
+            const closeInput = row ? row.querySelector('input[name="wh_close[' + day + ']"]') : null;
+
+            if (this.checked) {
+                if (row) row.classList.add('is-closed');
+                if (timeControls) timeControls.style.setProperty('display', 'none', 'important');
+                if (closedMsg) closedMsg.style.setProperty('display', 'block', 'important');
+                if (openInput) openInput.disabled = true;
+                if (closeInput) closeInput.disabled = true;
+            } else {
+                if (row) row.classList.remove('is-closed');
+                if (timeControls) timeControls.style.setProperty('display', 'flex', 'important');
+                if (closedMsg) closedMsg.style.setProperty('display', 'none', 'important');
+                if (openInput) openInput.disabled = false;
+                if (closeInput) closeInput.disabled = false;
+            }
+        });
+    });
+
+    // Quick Preset: Mon-Sat 10AM-8PM, Sun Closed
+    const btnQuickMonSat = document.getElementById('btnQuickMonSat');
+    if (btnQuickMonSat) {
+        btnQuickMonSat.addEventListener('click', function() {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            days.forEach(function(d) {
+                const sw = document.getElementById('wh_closed_' + d);
+                const row = document.getElementById('row_wh_' + d);
+                const timeControls = document.getElementById('time_controls_' + d);
+                const closedMsg = document.getElementById('closed_msg_' + d);
+                const openInput = row ? row.querySelector('input[name="wh_open[' + d + ']"]') : null;
+                const closeInput = row ? row.querySelector('input[name="wh_close[' + d + ']"]') : null;
+
+                if (d === 'sunday') {
+                    if (sw) sw.checked = true;
+                    if (row) row.classList.add('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'none', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'block', 'important');
+                    if (openInput) openInput.disabled = true;
+                    if (closeInput) closeInput.disabled = true;
+                } else {
+                    if (sw) sw.checked = false;
+                    if (row) row.classList.remove('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'flex', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'none', 'important');
+                    if (openInput) {
+                        openInput.disabled = false;
+                        openInput.value = '10:00';
+                    }
+                    if (closeInput) {
+                        closeInput.disabled = false;
+                        closeInput.value = '20:00';
+                    }
+                }
+            });
+        });
+    }
+
+    // Copy Monday to other working days
+    const btnCopyMonday = document.getElementById('btnCopyMonday');
+    if (btnCopyMonday) {
+        btnCopyMonday.addEventListener('click', function() {
+            const monOpenInput = document.querySelector('input[name="wh_open[monday]"]');
+            const monCloseInput = document.querySelector('input[name="wh_close[monday]"]');
+            const monSw = document.getElementById('wh_closed_monday');
+            if (!monOpenInput || !monCloseInput || !monSw) return;
+
+            const openVal = monOpenInput.value || '10:00';
+            const closeVal = monCloseInput.value || '20:00';
+            const isClosed = monSw.checked;
+
+            const otherDays = ['tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            otherDays.forEach(function(d) {
+                const sw = document.getElementById('wh_closed_' + d);
+                const row = document.getElementById('row_wh_' + d);
+                const timeControls = document.getElementById('time_controls_' + d);
+                const closedMsg = document.getElementById('closed_msg_' + d);
+                const openInput = row ? row.querySelector('input[name="wh_open[' + d + ']"]') : null;
+                const closeInput = row ? row.querySelector('input[name="wh_close[' + d + ']"]') : null;
+
+                if (sw) sw.checked = isClosed;
+                if (isClosed) {
+                    if (row) row.classList.add('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'none', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'block', 'important');
+                    if (openInput) openInput.disabled = true;
+                    if (closeInput) closeInput.disabled = true;
+                } else {
+                    if (row) row.classList.remove('is-closed');
+                    if (timeControls) timeControls.style.setProperty('display', 'flex', 'important');
+                    if (closedMsg) closedMsg.style.setProperty('display', 'none', 'important');
+                    if (openInput) {
+                        openInput.disabled = false;
+                        openInput.value = openVal;
+                    }
+                    if (closeInput) {
+                        closeInput.disabled = false;
+                        closeInput.value = closeVal;
+                    }
+                }
             });
         });
     }

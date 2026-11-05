@@ -135,7 +135,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 .desktop-nav-brand {
     display: inline-flex !important;
     align-items: center !important;
-    font-size: 24px !important;
+    font-size: 34px !important;
     font-weight: 800 !important;
     color: #1e1b4b !important;
     letter-spacing: -0.5px !important;
@@ -143,7 +143,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 }
 .desktop-nav-brand i {
     color: #6366f1 !important;
-    font-size: 20px !important;
+    font-size: 32px !important;
     margin-right: 6px !important;
 }
 
@@ -307,6 +307,12 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
         padding-right: 16px !important;
     }
 }
+@media (max-width: 767px) {
+    .announcement-bar,
+    .navbar {
+        display: none !important;
+    }
+}
 </style>
 
 <!-- Mobile / Offcanvas Navigation Drawer -->
@@ -392,6 +398,20 @@ function openSiteDrawer() {
     if (drawer) drawer.classList.add('open');
     if (overlay) overlay.style.display = 'block';
     document.body.style.overflow = 'hidden';
+}
+function openMobDrawer() {
+    var drawer = document.getElementById('mobDrawer');
+    var overlay = document.getElementById('mobDrawerOverlay');
+    if (drawer) drawer.classList.add('open');
+    if (overlay) overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeMobDrawer() {
+    var drawer = document.getElementById('mobDrawer');
+    var overlay = document.getElementById('mobDrawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
 }
 function closeSiteDrawer() {
     var drawer = document.getElementById('siteDrawer');

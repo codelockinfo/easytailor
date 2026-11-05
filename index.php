@@ -59,8 +59,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-    <link href="assets/css/style15.css" rel="stylesheet">
-    <link href="assets/css/desktop-redesign.css?v=1793730000" rel="stylesheet">
+    <link href="assets/css/style16.css?v=1793774857" rel="stylesheet">
+    <style>
+    @media (max-width: 767px) {
+        .mobile-app-layout {
+            padding-bottom: 85px !important;
+        }
+        .mob-testimonials-section {
+            padding-bottom: 23px !important;
+            margin-bottom: 0 !important;
+        }
+        .mob-review-card {
+            flex: 0 0 82% !important;
+            min-width: 270px !important;
+            max-width: 340px !important;
+            scroll-snap-align: center !important;
+        }
+        .mob-review-dots {
+            margin: 14px 16px 0 !important;
+        }
+    }
+    </style>
+    <link href="assets/css/desktop-redesign2.css?v=1793716000" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -353,30 +373,29 @@
             </div>
             <div class="mob-categories-scroll">
                 <a href="tailors.php?cat=men" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ‘”</div>
+                    <div class="mob-category-icon"><i class="fas fa-user-tie" style="color: #4f46e5; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Men Wear</span>
                 </a>
                 <a href="tailors.php?cat=women" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ‘—</div>
+                    <div class="mob-category-icon"><i class="fas fa-female" style="color: #ec4899; font-size: 24px;"></i></div>
                     <span class="mob-category-label">Women Wear</span>
                 </a>
                 <a href="tailors.php?cat=alteration" class="mob-category-item">
-                    <div class="mob-category-icon">âœ‚ï¸</div>
+                    <div class="mob-category-icon"><i class="fas fa-cut" style="color: #f59e0b; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Alteration</span>
                 </a>
                 <a href="tailors.php?cat=uniform" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸ§¥</div>
+                    <div class="mob-category-icon"><i class="fas fa-tshirt" style="color: #0ea5e9; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Uniform</span>
                 </a>
                 <a href="tailors.php?cat=custom" class="mob-category-item">
-                    <div class="mob-category-icon">ðŸª¡</div>
+                    <div class="mob-category-icon"><i class="fas fa-magic" style="color: #8b5cf6; font-size: 22px;"></i></div>
                     <span class="mob-category-label">Custom Stitch</span>
                 </a>
                 <a href="tailors.php" class="mob-category-item">
-                    <div class="mob-category-icon" style="font-size:18px;">â‹¯</div>
+                    <div class="mob-category-icon"><i class="fas fa-ellipsis-h" style="color: #64748b; font-size: 20px;"></i></div>
                     <span class="mob-category-label">More</span>
-                </a>
-            </div>
+                </a></div>
         </div>
         <div class="mob-tailors-section">
             <div class="mob-section-header">
@@ -1724,7 +1743,7 @@
 
     <?php require_once 'includes/testimonial-popup.php'; ?>
     <?php require_once 'includes/footer.php'; ?>
-    <?php require_once 'includes/sticky-cta-button.php'; ?>
+   
     <?php require_once 'includes/whatsapp-button.php'; ?>
     <?php require_once 'includes/promo-popup.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1894,6 +1913,23 @@
                     }
         }
 
+        function formatTailorCardAddress(t) {
+            if (!t) return '';
+            let rawAddr = (t.address || '').replace(/[\r\n]+/g, ', ').trim();
+            let parts = [];
+            if (rawAddr) parts.push(rawAddr);
+            if (t.city && !rawAddr.toLowerCase().includes(t.city.toLowerCase())) {
+                parts.push(t.city);
+            }
+            if (t.state && !rawAddr.toLowerCase().includes(t.state.toLowerCase())) {
+                parts.push(t.state);
+            }
+            if (t.postal_code && !rawAddr.includes(t.postal_code)) {
+                parts.push(t.postal_code);
+            }
+            return parts.join(', ').replace(/\s*,\s*,+/g, ', ').replace(/\s+/g, ' ').trim();
+        }
+
         function displayTailorsSlider(tailors) {
             const slider = $('#tailorsSlider');
             if (!slider.length) return;
@@ -1952,6 +1988,7 @@
                 const fullAddress = [tailor.address, tailor.city, tailor.state, tailor.postal_code].filter(Boolean).join(', ');
 
                 const specialties = (tailor.specialties || []).slice(0, 2);
+                const tailorLoc = formatTailorCardAddress(tailor);
 
                 html += `
                     <div class="tailor-slide">
@@ -2003,7 +2040,7 @@
                                     <div class="tailor-quick-actions">
                                         ${tailor.phone ? `
                                         <a href="tel:${tailor.phone}" class="btn-action-icon btn-call" title="Call ${shopName}" aria-label="Call">
-                                            <i class="fas fa-phone-alt"></i>
+                                            <i class="fas fa-phone"></i>
                                         </a>
                                         ` : ''}
                                         ${tailor.whatsapp ? `
@@ -3301,8 +3338,13 @@
                 const container = document.getElementById('mobTailorsScroll');
                 if (!container) return;
 
-                container.innerHTML = data.data.slice(0, 6).map(t => `
-                    <div class="mob-tailor-card">
+                container.innerHTML = data.data.slice(0, 6).map(t => {
+                    const fullAddress = formatTailorCardAddress(t);
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+                    const profileUrl = `tailor.php?id=${t.id}`;
+
+                    return `
+                    <div class="mob-tailor-card" onclick="window.location.href='${profileUrl}'" style="cursor:pointer;">
                         <div class="mob-tailor-img" style="position:relative;">
                             <img src="${t.shop_image || ''}" alt="${t.shop_name || 'Tailor'}"
                                  onerror="this.style.display='none';"
@@ -3310,25 +3352,27 @@
                             <div class="mob-tailor-rating">
                                 <i class="fas fa-star"></i> ${parseFloat(t.rating || 0).toFixed(1)}
                             </div>
-                            <button class="mob-tailor-heart" onclick="event.stopPropagation()">
-                                <i class="far fa-heart"></i>
-                            </button>
                         </div>
                         <div class="mob-tailor-body">
                             <div class="mob-tailor-name">${t.shop_name || 'Tailor Shop'}</div>
                             <div class="mob-tailor-specialty">${(t.specialties || ['Tailoring'])[0]}</div>
                             <div class="mob-tailor-meta">
-                                <span class="mob-tailor-dist"><i class="fas fa-map-marker-alt"></i> ${(t.address ? t.address + ', ' : '') + (t.city || 'Nearby')}</span>
-                                <span class="mob-tailor-open">Open</span>
+                                <span class="mob-tailor-dist" title="${fullAddress}"><i class="fas fa-map-marker-alt"></i> ${fullAddress || 'Nearby'}</span>
+                               
                             </div>
                             <div class="mob-tailor-actions">
-                                <a href="tel:${t.phone || '#'}" class="mob-tailor-action-btn call"><i class="fas fa-phone"></i></a>
-                                ${t.whatsapp ? `<a href="https://wa.me/${(t.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="mob-tailor-action-btn whatsapp"><i class="fab fa-whatsapp"></i></a>` : ''}
-                                <a href="tailor.php?id=${t.id}" class="mob-tailor-action-btn dir"><i class="fas fa-location-arrow"></i></a>
+                                <a href="tel:${t.phone || '#'}" class="mob-tailor-action-btn call" onclick="event.stopPropagation();" title="Call">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                                ${t.whatsapp ? `<a href="https://wa.me/${(t.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" rel="noopener noreferrer" class="mob-tailor-action-btn whatsapp" onclick="event.stopPropagation();" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>` : ''}
+                                <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="mob-tailor-action-btn dir" onclick="event.stopPropagation();" title="Open in Google Maps">
+                                    <i class="fas fa-location-arrow"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             })
             .catch(() => {}); 
     }

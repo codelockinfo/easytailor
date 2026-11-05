@@ -69,7 +69,7 @@ $seoOptions = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="assets/css/style15.css" rel="stylesheet">
+    <link href="assets/css/style16.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -847,6 +847,23 @@ $seoOptions = [
                 });
         }
 
+        function formatTailorLocation(tailor) {
+            if (!tailor) return '';
+            let rawAddr = (tailor.address || '').replace(/[\r\n]+/g, ', ').trim();
+            let parts = [];
+            if (rawAddr) parts.push(rawAddr);
+            if (tailor.city && !rawAddr.toLowerCase().includes(tailor.city.toLowerCase())) {
+                parts.push(tailor.city);
+            }
+            if (tailor.state && !rawAddr.toLowerCase().includes(tailor.state.toLowerCase())) {
+                parts.push(tailor.state);
+            }
+            if (tailor.postal_code && !rawAddr.includes(tailor.postal_code)) {
+                parts.push(tailor.postal_code);
+            }
+            return parts.join(', ').replace(/\s*,\s*,+/g, ', ').replace(/\s+/g, ' ').trim();
+        }
+
         function displayTailors(tailors) {
             const resultsSection = document.getElementById('resultsSection');
             
@@ -887,7 +904,7 @@ $seoOptions = [
                                 
                                 <div class="tailor-location">
                                     <i class="fas fa-map-marker-alt"></i>
-                                    ${tailor.address ? tailor.address + ', ' : ''}${tailor.city}, ${tailor.state}${tailor.postal_code ? ' - ' + tailor.postal_code : ''}
+                                    ${formatTailorLocation(tailor)}
                                 </div>
                                 
                                 <p class="tailor-description">${tailor.description || ''}</p>

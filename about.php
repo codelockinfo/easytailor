@@ -88,7 +88,8 @@ $seoOptions = [
     }
     ?>
     
-    <link href="assets/css/style15.css" rel="stylesheet">
+    <link href="assets/css/style16.css" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1226,7 +1227,7 @@ $seoOptions = [
                                 <i class="fas fa-envelope me-1"></i> Contact Head Office
                             </a>
                             <a href="tel:+917600464414" class="btn btn-sm btn-outline-light rounded-pill px-3 py-2">
-                                <i class="fas fa-phone-alt me-1"></i> Call +91 76004 64414
+                                <i class="fas fa-phone me-1"></i> Call +91 76004 64414
                             </a>
                         </div>
                     </div>

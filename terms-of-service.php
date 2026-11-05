@@ -1349,7 +1349,7 @@ $seoOptions = [
 
                                 <div class="tos-contact-item">
                                     <div class="tos-contact-icon">
-                                        <i class="fas fa-phone-alt"></i>
+                                        <i class="fas fa-phone"></i>
                                     </div>
                                     <div>
                                         <strong class="d-block text-dark">Helpline & WhatsApp</strong>

@@ -83,7 +83,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
-            scroll-padding-top: 115px;
+            scroll-padding-top: 85px;
         }
 
         body {
@@ -254,9 +254,9 @@ $seoOptions = [
             .pp-sidebar {
                 position: -webkit-sticky !important;
                 position: sticky !important;
-                top: 115px !important;
+                top: 85px !important;
                 z-index: 100 !important;
-                max-height: calc(100vh - 130px) !important;
+                max-height: calc(100vh - 105px) !important;
                 overflow-y: auto !important;
                 scrollbar-width: thin;
                 padding-right: 4px;

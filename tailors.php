@@ -79,7 +79,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
-            scroll-padding-top: 115px;
+            scroll-padding-top: 85px;
         }
 
         body {

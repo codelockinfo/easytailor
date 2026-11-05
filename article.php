@@ -190,7 +190,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
-            scroll-padding-top: 115px;
+            scroll-padding-top: 85px;
         }
 
         body {
@@ -695,7 +695,7 @@ $seoOptions = [
         /* Sticky Sidebar */
         .art-sidebar {
             position: sticky;
-            top: 115px;
+            top: 85px;
             align-self: flex-start;
         }
 

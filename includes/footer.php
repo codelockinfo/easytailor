@@ -30,6 +30,18 @@ $currentYear = date('Y');
 
 
 <style>
+@media (min-width: 768px) {
+    .mob-bottom-nav,
+    .mob-header,
+    .mob-drawer,
+    .mob-drawer-overlay {
+        display: none !important;
+    }
+    .footer-toggle-icon {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
 @media (max-width: 767px) {
     .footer-section,
     footer.footer-section {

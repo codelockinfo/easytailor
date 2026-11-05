@@ -59,7 +59,7 @@ $seoOptions = [
     }
     ?>
     
-    <link href="assets/css/style15.css" rel="stylesheet">
+    <link href="assets/css/style16.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -86,7 +86,7 @@ $seoOptions = [
 
         html, body {
             overflow-x: clip;
-            scroll-padding-top: 115px;
+            scroll-padding-top: 85px;
         }
 
         body {
@@ -282,9 +282,9 @@ $seoOptions = [
             .tos-sidebar {
                 position: -webkit-sticky !important;
                 position: sticky !important;
-                top: 115px !important;
+                top: 85px !important;
                 z-index: 100 !important;
-                max-height: calc(100vh - 130px) !important;
+                max-height: calc(100vh - 105px) !important;
                 overflow-y: auto !important;
                 scrollbar-width: thin;
                 padding-right: 4px;

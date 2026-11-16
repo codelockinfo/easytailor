@@ -109,7 +109,7 @@ section[id] {
     background: #ffffff !important;
     border-bottom: 1px solid #f1f5f9 !important;
     box-shadow: none !important;
-    padding: 14px 0 !important;
+    padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
     z-index: 1050 !important;

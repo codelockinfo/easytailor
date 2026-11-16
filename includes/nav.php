@@ -36,7 +36,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     justify-content: center !important;
     gap: 12px !important;
     text-align: center !important;
-    padding: 0 !important;
+    padding: 10px 0px !important;
     position: relative !important;
 }
 .announcement-bar .announcement-text {
@@ -93,7 +93,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     background: #ffffff !important;
     border-bottom: 1px solid #f1f5f9 !important;
     box-shadow: none !important;
-    padding: 14px 0 !important;
+    padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
     z-index: 1050 !important;
@@ -340,7 +340,7 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 <!-- Sticky Navigation Header (ONLY header is sticky) -->
 <header class="site-header-sticky" id="siteHeaderSticky">
     <!-- Main Top Navbar (Responsive for Desktop, Tablet, and Mobile) -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" id="mainSiteNavbar">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-0" id="mainSiteNavbar">
         <div class="container">
             <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
                 <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>

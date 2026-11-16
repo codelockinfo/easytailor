@@ -181,6 +181,11 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
 }
 
+.site-header-sticky .navbar,
+#mainSiteNavbar {
+    padding: 0 !important;
+}
+
 .navbar.sticky-top,
 .navbar.fixed-top,
 .navbar {

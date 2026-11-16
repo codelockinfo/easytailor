@@ -102,7 +102,7 @@ $seoOptions = [
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    <link href="assets/css/style16.css" rel="stylesheet">
+    <link href="assets/css/style17.css" rel="stylesheet">
     <style>
         html, body {
             overflow-x: clip;

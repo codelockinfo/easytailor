@@ -26,6 +26,20 @@ class User extends BaseModel {
         
         return false;
     }
+    public function getUserByGoogleId($googleId) {
+        $query = "SELECT * FROM " . $this->table . " WHERE google_id = :google_id AND status = 'active' LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':google_id', $googleId);
+        $stmt->execute();
+        return $stmt->fetch();
+    }
+    public function linkGoogleAccount($id, $googleId, $avatar = null) {
+        $data = ['google_id' => $googleId];
+        if ($avatar) {
+            $data['avatar'] = $avatar;
+        }
+        return $this->update($id, $data);
+    }
     public function getActiveUserByEmail($email) {
         $query = "SELECT * FROM " . $this->table . " WHERE email = :email AND status = 'active' LIMIT 1";
         $stmt = $this->conn->prepare($query);

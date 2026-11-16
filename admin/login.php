@@ -197,6 +197,50 @@ $seoOptions = [
         .mt-4 {
             margin-top: 0.5rem !important;
         }
+        .btn-google {
+            background: #ffffff;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+            border-radius: 10px;
+            padding: 11px 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-google:hover {
+            background: #f8f9fa;
+            color: #202124;
+            border-color: #c6c9cc;
+            box-shadow: 0 2px 6px rgba(60,64,67,0.15);
+            transform: translateY(-1px);
+        }
+        .btn-google:active {
+            background: #eeeeee;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .login-divider {
+            position: relative;
+            text-align: center;
+        }
+        .login-divider .divider-line {
+            flex-grow: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        .login-divider .divider-text {
+            padding: 0 14px;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+        }
         @media (max-width: 768px) {
             .login-header p {
                 font-size: 14px;
@@ -252,6 +296,25 @@ $seoOptions = [
 
                         <!-- Step 1: Email / Username + Password (default view) -->
                         <div id="stepPassword" style="<?php echo $isVerifyStep ? 'display:none;' : ''; ?>">
+                            <!-- Continue with Google Button -->
+                            <div class="mb-3">
+                                <a href="google-login.php" class="btn btn-google w-100" id="btnGoogleLogin">
+                                    <svg class="me-2 flex-shrink-0" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/>
+                                        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                                        <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.173 0 7.547 0 9s.347 2.827.957 4.039l3.007-2.332z"/>
+                                        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+                                    </svg>
+                                    <span><?php echo __t('continue_with_google', 'Continue with Google'); ?></span>
+                                </a>
+                            </div>
+
+                            <div class="login-divider my-3 d-flex align-items-center">
+                                <span class="divider-line"></span>
+                                <span class="divider-text"><?php echo __t('or', 'or'); ?></span>
+                                <span class="divider-line"></span>
+                            </div>
+
                             <form method="POST" action="" id="passwordLoginForm" onsubmit="handlePasswordLogin(event)">
                                 <input type="hidden" name="csrf_token" id="loginCsrfToken" value="<?php echo generate_csrf_token(); ?>">
                                 <input type="hidden" name="auth_method" value="password">

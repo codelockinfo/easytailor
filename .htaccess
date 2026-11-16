@@ -15,6 +15,7 @@ RewriteEngine On
 RewriteCond %{THE_REQUEST} ^[A-Z]+\s/+(.+?)\.php(\?[^\s]*)?\s [NC]
 RewriteCond %{REQUEST_URI} !^/.*ajax/ [NC]
 RewriteCond %{REQUEST_URI} !^/.*admin/ajax/ [NC]
+RewriteCond %{REQUEST_URI} !google-callback [NC]
 RewriteCond %{REQUEST_FILENAME} -f
 # Use REQUEST_URI to get the full path, then redirect to same path without .php
 RewriteCond %{REQUEST_URI} ^/(.+?)\.php(\?.*)?$ [NC]

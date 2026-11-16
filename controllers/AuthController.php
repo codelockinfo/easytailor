@@ -57,6 +57,141 @@ class AuthController {
             'redirect' => $redirect
         ];
     }
+    public function loginWithGoogleUser($googleUser) {
+        if (empty($googleUser['email']) || empty($googleUser['sub'])) {
+            return ['success' => false, 'message' => 'Invalid Google account information received.'];
+        }
+
+        $email = trim(strtolower($googleUser['email']));
+        $googleId = (string)$googleUser['sub'];
+        $fullName = trim($googleUser['name'] ?? '');
+        $avatar = $googleUser['picture'] ?? null;
+
+        if (empty($fullName)) {
+            $fullName = explode('@', $email)[0];
+        }
+
+        require_once __DIR__ . '/../helpers/GoogleAuthHelper.php';
+        GoogleAuthHelper::ensureDatabaseColumns();
+
+        // 1. Check if user exists by google_id
+        $user = $this->userModel->getUserByGoogleId($googleId);
+
+        // 2. If not found by google_id, check if user exists by email
+        if (!$user) {
+            $user = $this->userModel->getActiveUserByEmail($email);
+            if ($user) {
+                try {
+                    $this->userModel->linkGoogleAccount($user['id'], $googleId, $avatar);
+                    $user['google_id'] = $googleId;
+                    if ($avatar) {
+                        $user['avatar'] = $avatar;
+                    }
+                } catch (Exception $e) {
+                    error_log("Failed to link Google account: " . $e->getMessage());
+                }
+            }
+        }
+
+        // 3. If user exists, complete login
+        if ($user) {
+            if (($user['status'] ?? 'active') !== 'active') {
+                return ['success' => false, 'message' => 'Your account is deactivated. Please contact administrator.'];
+            }
+            return $this->completeUserLogin($user);
+        }
+
+        // 4. Auto-register new tailor shop & admin user
+        try {
+            require_once __DIR__ . '/../models/Company.php';
+            require_once __DIR__ . '/../helpers/DefaultDataHelper.php';
+            $companyModel = new Company();
+
+            $database = new Database();
+            $db = $database->getConnection();
+            if (!$db) {
+                return ['success' => false, 'message' => 'Database connection failed.'];
+            }
+
+            $db->beginTransaction();
+
+            $companyName = $fullName . "'s Tailor Shop";
+            $subscriptionPlan = 'free';
+            $subscriptionExpiry = date('Y-m-d', strtotime('+30 days'));
+
+            if (isset($_COOKIE['promo_offer_source']) && $_COOKIE['promo_offer_source'] === 'promo_popup') {
+                $subscriptionPlan = 'premium';
+                $subscriptionExpiry = date('Y-m-d', strtotime('+1 year'));
+            }
+
+            $existingCompany = null;
+            $checkStmt = $db->prepare("SELECT id FROM companies WHERE business_email = :email LIMIT 1");
+            $checkStmt->execute([':email' => $email]);
+            $existingCompany = $checkStmt->fetch();
+
+            if ($existingCompany) {
+                $companyId = $existingCompany['id'];
+            } else {
+                $companyData = [
+                    'company_name' => $companyName,
+                    'owner_name' => $fullName,
+                    'business_email' => $email,
+                    'business_phone' => '',
+                    'business_address' => '',
+                    'city' => '',
+                    'state' => '',
+                    'country' => 'India',
+                    'postal_code' => '',
+                    'website' => '',
+                    'currency' => 'INR',
+                    'timezone' => 'Asia/Kolkata',
+                    'status' => 'active',
+                    'subscription_plan' => $subscriptionPlan,
+                    'subscription_expiry' => $subscriptionExpiry,
+                    'show_on_listing' => 0
+                ];
+                $companyId = $companyModel->createCompany($companyData);
+                if (!$companyId) {
+                    throw new Exception('Failed to create company profile.');
+                }
+
+                DefaultDataHelper::createDefaultClothTypes($companyId);
+            }
+
+            $userData = [
+                'company_id' => $companyId,
+                'username' => $email,
+                'email' => $email,
+                'password' => bin2hex(random_bytes(16)),
+                'full_name' => $fullName,
+                'role' => 'admin',
+                'phone' => '',
+                'address' => '',
+                'status' => 'active'
+            ];
+
+            $userId = $this->userModel->createUser($userData);
+            if (!$userId) {
+                throw new Exception('Failed to create user account.');
+            }
+
+            $this->userModel->linkGoogleAccount($userId, $googleId, $avatar);
+            $companyModel->update($companyId, ['user_id' => $userId]);
+
+            $db->commit();
+
+            $newUser = $this->userModel->find($userId);
+            return $this->completeUserLogin($newUser);
+
+        } catch (Exception $e) {
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log("Google auth auto-registration failed: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Registration via Google failed: ' . $e->getMessage()];
+        }
+    }
+
     public function login($username, $password) {
         if (empty($username) || empty($password)) {
             return ['success' => false, 'message' => 'Username and password are required'];

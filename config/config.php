@@ -44,6 +44,11 @@ $mailConfigFile = __DIR__ . '/mail.php';
 if (file_exists($mailConfigFile)) {
     @include_once $mailConfigFile;
 }
+
+$googleConfigFile = __DIR__ . '/google.php';
+if (file_exists($googleConfigFile)) {
+    @include_once $googleConfigFile;
+}
 spl_autoload_register(function ($class_name) {
     $directories = [
         APP_PATH . 'models/',

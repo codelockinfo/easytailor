@@ -16,81 +16,222 @@ if (!$companyId) {
     die('No company associated with your account. Please contact support.');
 }
 
+$indianStates = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi'
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $existingCompany = $companyModel->find($companyId);
-        $data = [
-            'company_name' => sanitize_input($_POST['company_name'] ?? ($existingCompany['company_name'] ?? '')),
-            'owner_name' => sanitize_input($_POST['owner_name'] ?? ($existingCompany['owner_name'] ?? '')),
-            'business_phone' => sanitize_input($_POST['business_phone'] ?? ($existingCompany['business_phone'] ?? '')),
-            'business_address' => sanitize_input($_POST['business_address'] ?? ($existingCompany['business_address'] ?? '')),
-            'city' => sanitize_input($_POST['city'] ?? ($existingCompany['city'] ?? '')),
-            'state' => sanitize_input($_POST['state'] ?? ($existingCompany['state'] ?? '')),
-            'country' => 'India',
-            'postal_code' => sanitize_input($_POST['postal_code'] ?? ($existingCompany['postal_code'] ?? '')),
-            'tax_number' => sanitize_input($_POST['tax_number'] ?? ($existingCompany['tax_number'] ?? '')),
-            'website' => sanitize_input($_POST['website'] ?? ($existingCompany['website'] ?? '')),
-            'currency' => 'INR',
-            'timezone' => 'Asia/Kolkata'
-        ];
-        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '../uploads/logos/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-            $fileName = time() . '_' . basename($_FILES['logo']['name']);
-            $targetPath = $uploadDir . $fileName;
-            
-            if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetPath)) {
-                $data['logo'] = $targetPath;
-            }
-        }
-        if (isset($_POST['company_name'])) {
-            $daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-            $whData = [];
-            $whClosed = $_POST['wh_closed'] ?? [];
-            $whOpen = $_POST['wh_open'] ?? [];
-            $whClose = $_POST['wh_close'] ?? [];
+        $errors = [];
+        $actionType = $_POST['action_type'] ?? '';
 
-            foreach ($daysList as $day) {
-                if (!empty($whClosed[$day])) {
-                    $whData[$day] = 'Closed';
+        // 1. Handle Logo Upload
+        if ($actionType === 'upload_logo' || (isset($_FILES['logo']) && !isset($_POST['company_name']))) {
+            if (!isset($_FILES['logo']) || $_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
+                $errors[] = 'Please select a valid image file to upload.';
+            } else {
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+                
+                if (!in_array($ext, $allowedExtensions)) {
+                    $errors[] = 'Invalid file format. Allowed formats: PNG, JPG, JPEG, and WEBP.';
+                } elseif ($_FILES['logo']['size'] > 2 * 1024 * 1024) {
+                    $errors[] = 'Logo file size exceeds the maximum limit of 2MB.';
                 } else {
-                    $openTime = trim((string)($whOpen[$day] ?? '10:00'));
-                    $closeTime = trim((string)($whClose[$day] ?? '20:00'));
-                    if (!empty($openTime) && !empty($closeTime)) {
-                        $openFormatted = date('g:i A', strtotime($openTime));
-                        $closeFormatted = date('g:i A', strtotime($closeTime));
-                        $whData[$day] = "$openFormatted - $closeFormatted";
-                    } elseif (!empty($openTime)) {
-                        $whData[$day] = date('g:i A', strtotime($openTime));
-                    } else {
-                        $whData[$day] = '10:00 AM - 8:00 PM';
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mime = finfo_file($finfo, $_FILES['logo']['tmp_name']);
+                    finfo_close($finfo);
+                    $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+                    if (!in_array($mime, $allowedMimes)) {
+                        $errors[] = 'Invalid image file content.';
                     }
                 }
             }
-            $data['working_hours'] = json_encode($whData, JSON_UNESCAPED_UNICODE);
-        } else {
-            // Logo-only upload: retain existing working hours
-            if (isset($existingCompany['working_hours'])) {
-                $data['working_hours'] = $existingCompany['working_hours'];
+
+            if (empty($errors)) {
+                $uploadDir = '../uploads/logos/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                $fileName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                $targetPath = $uploadDir . $fileName;
+                
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetPath)) {
+                    $data = ['logo' => $targetPath];
+                    $merged = array_merge($existingCompany ?: [], $data);
+                    $data['show_on_listing'] = Company::isProfileComplete($merged) ? 1 : 0;
+                    
+                    if ($companyModel->update($companyId, $data)) {
+                        $_SESSION['message'] = 'Company logo updated successfully!';
+                        $_SESSION['messageType'] = 'success';
+                    } else {
+                        $_SESSION['message'] = 'Failed to update company logo.';
+                        $_SESSION['messageType'] = 'danger';
+                    }
+                } else {
+                    $_SESSION['message'] = 'Failed to save uploaded logo file.';
+                    $_SESSION['messageType'] = 'danger';
+                }
+            } else {
+                $_SESSION['message'] = implode('<br>', $errors);
+                $_SESSION['messageType'] = 'danger';
+            }
+            header('Location: company-settings.php');
+            exit;
+        }
+
+        // 2. Handle Business Information Form
+        $companyName = trim(sanitize_input($_POST['company_name'] ?? ''));
+        $ownerName = trim(sanitize_input($_POST['owner_name'] ?? ''));
+        $rawPhone = trim(sanitize_input($_POST['business_phone'] ?? ''));
+        $businessAddress = trim(sanitize_input($_POST['business_address'] ?? ''));
+        $city = trim(sanitize_input($_POST['city'] ?? ''));
+        $state = trim(sanitize_input($_POST['state'] ?? ''));
+        $postalCode = trim(sanitize_input($_POST['postal_code'] ?? ''));
+        $taxNumber = strtoupper(trim(sanitize_input($_POST['tax_number'] ?? '')));
+        $website = trim(sanitize_input($_POST['website'] ?? ''));
+
+        // Company Name validation
+        if (empty($companyName)) {
+            $errors[] = 'Company Name is required.';
+        } elseif (mb_strlen($companyName) < 2 || mb_strlen($companyName) > 100) {
+            $errors[] = 'Company Name must be between 2 and 100 characters.';
+        }
+
+        // Owner Name validation
+        if (empty($ownerName)) {
+            $errors[] = 'Owner Name is required.';
+        } elseif (mb_strlen($ownerName) < 2 || mb_strlen($ownerName) > 60) {
+            $errors[] = 'Owner Name must be between 2 and 60 characters.';
+        } elseif (!preg_match("/^[a-zA-Z\s\.\p{L}]+$/u", $ownerName)) {
+            $errors[] = 'Owner Name can only contain letters, spaces, and dots.';
+        }
+
+        // Phone validation (10-digit Indian mobile starting with 6,7,8,9)
+        $cleanPhone = preg_replace('/\D/', '', $rawPhone);
+        if (strpos($cleanPhone, '91') === 0 && strlen($cleanPhone) === 12) {
+            $cleanPhone = substr($cleanPhone, 2);
+        }
+        if (empty($cleanPhone)) {
+            $errors[] = 'Business Phone number is required.';
+        } elseif (!preg_match('/^[6-9]\d{9}$/', $cleanPhone)) {
+            $errors[] = 'Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).';
+        }
+        $formattedPhone = '+91' . $cleanPhone;
+
+        // Address validation
+        if (!empty($businessAddress) && mb_strlen($businessAddress) > 250) {
+            $errors[] = 'Business Address must not exceed 250 characters.';
+        }
+
+        // City validation
+        if (!empty($city)) {
+            if (mb_strlen($city) < 2 || mb_strlen($city) > 50) {
+                $errors[] = 'City must be between 2 and 50 characters.';
+            } elseif (!preg_match("/^[a-zA-Z\s\-\.\p{L}]+$/u", $city)) {
+                $errors[] = 'City can only contain letters and spaces.';
             }
         }
-        $mergedCompany = array_merge($existingCompany ?: [], $data);
-        $data['show_on_listing'] = Company::isProfileComplete($mergedCompany) ? 1 : 0;
 
-        if ($companyModel->update($companyId, $data)) {
-            $_SESSION['message'] = 'Company settings updated successfully';
-            $_SESSION['messageType'] = 'success';
-        } else {
-            $_SESSION['message'] = 'Failed to update company settings';
-            $_SESSION['messageType'] = 'error';
+        // State validation
+        if (!empty($state) && !in_array($state, $indianStates)) {
+            $errors[] = 'Please select a valid State from the list.';
         }
-        header('Location: company-settings.php');
+
+        // PIN Code validation
+        if (!empty($postalCode)) {
+            if (!preg_match('/^[1-9][0-9]{5}$/', $postalCode)) {
+                $errors[] = 'PIN Code must be a valid 6-digit Indian PIN Code (e.g., 395006).';
+            }
+        }
+
+        // Website validation
+        if (!empty($website)) {
+            if (!preg_match('/^https?:\/\//i', $website)) {
+                $website = 'https://' . $website;
+            }
+            if (!filter_var($website, FILTER_VALIDATE_URL) || !preg_match('/^https?:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}/i', $website)) {
+                $errors[] = 'Please enter a valid Website URL (e.g., https://yourtailorshop.com).';
+            }
+        }
+
+        // GSTIN validation
+        if (!empty($taxNumber)) {
+            if (!preg_match('/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/', $taxNumber)) {
+                $errors[] = 'GST Number must be a valid 15-character GSTIN (e.g., 24AAAAA0000A1Z5).';
+            }
+        }
+
+        // Working Hours validation
+        $daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $whData = [];
+        $whClosed = $_POST['wh_closed'] ?? [];
+        $whOpen = $_POST['wh_open'] ?? [];
+        $whClose = $_POST['wh_close'] ?? [];
+
+        foreach ($daysList as $day) {
+            if (!empty($whClosed[$day])) {
+                $whData[$day] = 'Closed';
+            } else {
+                $openTime = trim((string)($whOpen[$day] ?? '10:00'));
+                $closeTime = trim((string)($whClose[$day] ?? '20:00'));
+                if (!empty($openTime) && !empty($closeTime)) {
+                    if (strtotime($openTime) >= strtotime($closeTime)) {
+                        $errors[] = ucfirst($day) . ': Opening time must be earlier than closing time.';
+                    }
+                    $openFormatted = date('g:i A', strtotime($openTime));
+                    $closeFormatted = date('g:i A', strtotime($closeTime));
+                    $whData[$day] = "$openFormatted - $closeFormatted";
+                } elseif (!empty($openTime)) {
+                    $whData[$day] = date('g:i A', strtotime($openTime));
+                } else {
+                    $whData[$day] = '10:00 AM - 8:00 PM';
+                }
+            }
+        }
+
+        if (empty($errors)) {
+            $data = [
+                'company_name' => $companyName,
+                'owner_name' => $ownerName,
+                'business_phone' => $formattedPhone,
+                'business_address' => $businessAddress,
+                'city' => $city,
+                'state' => $state,
+                'country' => 'India',
+                'postal_code' => $postalCode,
+                'tax_number' => $taxNumber,
+                'website' => $website,
+                'currency' => 'INR',
+                'timezone' => 'Asia/Kolkata',
+                'working_hours' => json_encode($whData, JSON_UNESCAPED_UNICODE)
+            ];
+
+            $mergedCompany = array_merge($existingCompany ?: [], $data);
+            $data['show_on_listing'] = Company::isProfileComplete($mergedCompany) ? 1 : 0;
+
+            if ($companyModel->update($companyId, $data)) {
+                $_SESSION['message'] = 'Company settings updated successfully!';
+                $_SESSION['messageType'] = 'success';
+            } else {
+                $_SESSION['message'] = 'Failed to update company settings. Please try again.';
+                $_SESSION['messageType'] = 'danger';
+            }
+        } else {
+            $_SESSION['message'] = implode('<br>', $errors);
+            $_SESSION['messageType'] = 'danger';
+        }
+        header('Location: company-settings.php#businessInfoForm');
         exit;
     } else {
-        $_SESSION['message'] = 'Invalid request';
-        $_SESSION['messageType'] = 'error';
+        $_SESSION['message'] = 'Invalid request or session expired. Please try again.';
+        $_SESSION['messageType'] = 'danger';
         header('Location: company-settings.php');
         exit;
     }
@@ -497,7 +638,7 @@ select.form-select.settings-input,
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
-        <?php echo htmlspecialchars($message); ?>
+        <?php echo $message; ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
@@ -570,20 +711,21 @@ select.form-select.settings-input,
                     </div>
                     <p class="text-muted small mb-3">No logo uploaded yet</p>
                 <?php endif; ?>
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="logoUploadForm">
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                    <input type="hidden" name="action_type" value="upload_logo">
                     <div class="mb-2">
                         <label for="logoUploadInput" class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; cursor: pointer;">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <span>Choose New Logo</span>
+                            <span id="logoBtnLabel">Choose New Logo</span>
                         </label>
                         <input type="file" 
                                id="logoUploadInput"
                                class="d-none" 
                                name="logo" 
-                               accept="image/*"
-                               onchange="this.form.submit()">
+                               accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
                     </div>
+                    <div id="logoValidationMsg" class="alert alert-danger py-2 px-3 small d-none" style="font-size: 0.76rem; border-radius: 8px;"></div>
                     <small class="text-muted d-block" style="font-size: 0.74rem;">PNG, JPG, WEBP (Max 2MB)</small>
                 </form>
             </div>
@@ -650,8 +792,9 @@ select.form-select.settings-input,
                 <span class="text-muted small">Fields with * are required</span>
             </div>
             <div class="card-body p-4">
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="businessInfoActualForm" novalidate>
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                    <input type="hidden" name="action_type" value="update_business_info">
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label for="company_name" class="form-label fw-semibold text-muted small mb-1">Company Name *</label>
@@ -660,7 +803,11 @@ select.form-select.settings-input,
                                    id="company_name" 
                                    name="company_name" 
                                    value="<?php echo htmlspecialchars($company['company_name'] ?? ''); ?>" 
+                                   placeholder="e.g., Isha's Tailor Shop"
+                                   minlength="2"
+                                   maxlength="100"
                                    required>
+                            <div class="invalid-feedback">Company name is required (2 to 100 characters).</div>
                         </div>
                         <div class="col-md-6">
                             <label for="owner_name" class="form-label fw-semibold text-muted small mb-1">Owner Name *</label>
@@ -669,7 +816,11 @@ select.form-select.settings-input,
                                    id="owner_name" 
                                    name="owner_name" 
                                    value="<?php echo htmlspecialchars($company['owner_name'] ?? ''); ?>" 
+                                   placeholder="e.g., Isha Patel"
+                                   minlength="2"
+                                   maxlength="60"
                                    required>
+                            <div class="invalid-feedback">Owner name can only contain letters, spaces, and dots (2 to 60 chars).</div>
                         </div>
                     </div>
                     
@@ -717,7 +868,7 @@ select.form-select.settings-input,
                         </div>
                         <div class="col-md-6">
                             <label for="business_phone" class="form-label fw-semibold text-muted small mb-1">Business Phone *</label>
-                            <div class="input-group">
+                            <div class="input-group has-validation">
                                 <span class="input-group-text bg-light text-muted fw-semibold" style="border-radius: 12px 0 0 12px; height: 42px; font-size: 0.86rem; border-color: #e2e8f0;">+91</span>
                                 <input type="tel" 
                                        class="form-control" 
@@ -731,13 +882,14 @@ select.form-select.settings-input,
                                            echo htmlspecialchars($phone); 
                                        ?>" 
                                        placeholder="10-digit mobile number"
-                                       pattern="[0-9]{10}"
+                                       pattern="[6-9][0-9]{9}"
                                        maxlength="10"
+                                       inputmode="numeric"
                                        style="border-radius: 0 12px 12px 0; height: 42px; font-size: 0.86rem; border-color: #e2e8f0;"
                                        required>
+                                <div class="invalid-feedback" id="phoneInvalidFeedback">Please enter a valid 10-digit mobile number (starts with 6, 7, 8, or 9).</div>
                             </div>
                             <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Enter 10-digit mobile number (digits only)</small>
-                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                     </div>
                     
@@ -747,8 +899,13 @@ select.form-select.settings-input,
                                   id="business_address" 
                                   name="business_address" 
                                   rows="2" 
+                                  maxlength="250"
                                   placeholder="Shop number, street, landmark..."
                                   style="border-radius: 12px; border-color: #e2e8f0; font-size: 0.86rem;"><?php echo htmlspecialchars($company['business_address'] ?? ''); ?></textarea>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <div class="invalid-feedback mb-0" id="addressInvalidFeedback" style="display:none;">Address cannot exceed 250 characters.</div>
+                            <small class="text-muted ms-auto" id="addressCharCount" style="font-size: 0.72rem;">0/250</small>
+                        </div>
                     </div>
                     
                     <div class="row g-3 mb-3">
@@ -758,21 +915,23 @@ select.form-select.settings-input,
                                    class="form-control settings-input" 
                                    id="city" 
                                    name="city" 
+                                   maxlength="50"
                                    placeholder="e.g., Surat, Ahmedabad"
                                    value="<?php echo htmlspecialchars($company['city'] ?? ''); ?>">
+                            <div class="invalid-feedback">City should only contain letters and spaces (2 to 50 chars).</div>
                         </div>
                         <div class="col-md-4">
                             <label for="state" class="form-label fw-semibold text-muted small mb-1">State</label>
                             <select class="form-select settings-input" id="state" name="state">
                                 <option value="">Select State</option>
                                 <?php
-                                $indianStates = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi'];
                                 foreach ($indianStates as $st) {
                                     $selected = ($company['state'] ?? '') === $st ? 'selected' : '';
                                     echo "<option value=\"$st\" $selected>$st</option>";
                                 }
                                 ?>
                             </select>
+                            <div class="invalid-feedback">Please select a valid State.</div>
                         </div>
                         <div class="col-md-4">
                             <label for="postal_code" class="form-label fw-semibold text-muted small mb-1">PIN Code</label>
@@ -782,42 +941,46 @@ select.form-select.settings-input,
                                    name="postal_code" 
                                    placeholder="e.g., 395006"
                                    maxlength="6"
-                                   pattern="[0-9]{6}"
+                                   inputmode="numeric"
                                    value="<?php echo htmlspecialchars($company['postal_code'] ?? ''); ?>">
+                            <div class="invalid-feedback">PIN code must be a valid 6-digit number (cannot start with 0).</div>
                         </div>
                     </div>
                     
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label for="website" class="form-label fw-semibold text-muted small mb-1">Website (Optional)</label>
-                            <div class="input-group">
+                            <div class="input-group has-validation">
                                 <span class="input-group-text bg-light text-muted border-end-0" style="border-radius: 12px 0 0 12px; height: 42px;">
                                     <i class="fas fa-globe"></i>
                                 </span>
-                                <input type="url" 
+                                <input type="text" 
                                        class="form-control" 
                                        id="website" 
                                        name="website" 
                                        placeholder="https://yourtailorshop.com"
                                        value="<?php echo htmlspecialchars($company['website'] ?? ''); ?>"
                                        style="border-radius: 0 12px 12px 0; height: 42px; font-size: 0.86rem; border-color: #e2e8f0;">
+                                <div class="invalid-feedback">Please enter a valid website URL (e.g., https://yourtailorshop.com).</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label for="tax_number" class="form-label fw-semibold text-muted small mb-1">GST Number (Optional)</label>
-                            <div class="input-group">
+                            <div class="input-group has-validation">
                                 <span class="input-group-text bg-light text-muted border-end-0" style="border-radius: 12px 0 0 12px; height: 42px;">
                                     <i class="fas fa-file-invoice"></i>
                                 </span>
                                 <input type="text" 
-                                       class="form-control" 
+                                       class="form-control text-uppercase" 
                                        id="tax_number" 
                                        name="tax_number" 
                                        placeholder="e.g., 24AAAAA0000A1Z5"
+                                       maxlength="15"
                                        value="<?php echo htmlspecialchars($company['tax_number'] ?? ''); ?>"
                                        style="border-radius: 0 12px 12px 0; height: 42px; font-size: 0.86rem; border-color: #e2e8f0;">
+                                <div class="invalid-feedback">Invalid GSTIN format (15 characters, e.g., 24AAAAA0000A1Z5).</div>
                             </div>
-                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Enter your GSTIN if registered</small>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Enter your 15-character GSTIN if registered</small>
                         </div>
                     </div>
                     
@@ -841,6 +1004,7 @@ select.form-select.settings-input,
                                 </button>
                             </div>
                         </div>
+                        <div id="whValidationAlert" class="alert alert-danger py-2 px-3 small d-none mb-3" style="border-radius: 8px;"></div>
 
                         <!-- Days Schedule Rows -->
                         <div class="d-flex flex-column gap-2">
@@ -927,9 +1091,9 @@ select.form-select.settings-input,
                         <a href="dashboard.php" class="btn btn-light fw-medium px-4" style="border-radius: 12px; height: 42px; font-size: 0.86rem; display: inline-flex; align-items: center;">
                             Cancel
                         </a>
-                        <button type="submit" class="btn text-white fw-semibold px-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; height: 42px; font-size: 0.86rem; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28); display: inline-flex; align-items: center; gap: 8px;">
+                        <button type="submit" id="btnSaveBusinessInfo" class="btn text-white fw-semibold px-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; height: 42px; font-size: 0.86rem; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28); display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-save"></i>
-                            <span>Save Changes</span>
+                            <span id="btnSaveBusinessInfoText">Save Changes</span>
                         </button>
                     </div>
                 </form>
@@ -1004,21 +1168,375 @@ select.form-select.settings-input,
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    setupPhoneValidation('business_phone', '+91');
-    const phoneInputEl = document.getElementById('business_phone');
-    const companyForm = phoneInputEl ? phoneInputEl.closest('form') : null;
-    if (companyForm && phoneInputEl) {
-        companyForm.addEventListener('submit', function(e) {
-            const phoneInput = document.getElementById('business_phone');
-            const phoneValue = getPhoneWithPrefix('business_phone', '+91');
+    // -------------------------------------------------------------
+    // 1. Logo File Upload Validation
+    // -------------------------------------------------------------
+    const logoInput = document.getElementById('logoUploadInput');
+    const logoForm = document.getElementById('logoUploadForm');
+    const logoMsg = document.getElementById('logoValidationMsg');
+    const logoBtnLabel = document.getElementById('logoBtnLabel');
+
+    if (logoInput && logoForm) {
+        logoInput.addEventListener('change', function() {
+            if (!this.files || !this.files[0]) return;
+            const file = this.files[0];
+            const allowedExts = ['png', 'jpg', 'jpeg', 'webp'];
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            const allowedMimes = ['image/png', 'image/jpeg', 'image/webp'];
+
+            if (!allowedExts.includes(fileExt) || (file.type && !allowedMimes.includes(file.type))) {
+                if (logoMsg) {
+                    logoMsg.textContent = 'Invalid file format. Allowed formats: PNG, JPG, JPEG, and WEBP.';
+                    logoMsg.classList.remove('d-none');
+                }
+                this.value = '';
+                return;
+            }
+
+            // Max 2MB
+            if (file.size > 2 * 1024 * 1024) {
+                if (logoMsg) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    logoMsg.textContent = `Logo file size exceeds the 2MB limit (Selected: ${sizeMB} MB).`;
+                    logoMsg.classList.remove('d-none');
+                }
+                this.value = '';
+                return;
+            }
+
+            if (logoMsg) {
+                logoMsg.classList.add('d-none');
+                logoMsg.textContent = '';
+            }
+
+            if (logoBtnLabel) {
+                logoBtnLabel.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Uploading...';
+            }
+            logoForm.submit();
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 2. Business Information Form Real-time Validation
+    // -------------------------------------------------------------
+    const companyNameInput = document.getElementById('company_name');
+    const ownerNameInput = document.getElementById('owner_name');
+    const phoneInput = document.getElementById('business_phone');
+    const addressInput = document.getElementById('business_address');
+    const cityInput = document.getElementById('city');
+    const stateInput = document.getElementById('state');
+    const postalCodeInput = document.getElementById('postal_code');
+    const websiteInput = document.getElementById('website');
+    const taxNumberInput = document.getElementById('tax_number');
+    const addressCharCount = document.getElementById('addressCharCount');
+    const addressFeedback = document.getElementById('addressInvalidFeedback');
+
+    function validateCompanyName() {
+        if (!companyNameInput) return true;
+        const val = companyNameInput.value.trim();
+        if (val.length < 2 || val.length > 100) {
+            companyNameInput.classList.add('is-invalid');
+            companyNameInput.classList.remove('is-valid');
+            return false;
+        } else {
+            companyNameInput.classList.remove('is-invalid');
+            companyNameInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateOwnerName() {
+        if (!ownerNameInput) return true;
+        const val = ownerNameInput.value.trim();
+        const namePattern = /^[a-zA-Z\s\.]+$/;
+        if (val.length < 2 || val.length > 60 || !namePattern.test(val)) {
+            ownerNameInput.classList.add('is-invalid');
+            ownerNameInput.classList.remove('is-valid');
+            return false;
+        } else {
+            ownerNameInput.classList.remove('is-invalid');
+            ownerNameInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validatePhone() {
+        if (!phoneInput) return true;
+        let val = phoneInput.value.replace(/[^0-9]/g, '');
+        if (val.length === 12 && val.startsWith('91')) {
+            val = val.substring(2);
+        }
+        phoneInput.value = val.slice(0, 10);
+        
+        const phonePattern = /^[6-9][0-9]{9}$/;
+        if (!phonePattern.test(phoneInput.value)) {
+            phoneInput.classList.add('is-invalid');
+            phoneInput.classList.remove('is-valid');
+            return false;
+        } else {
+            phoneInput.classList.remove('is-invalid');
+            phoneInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateAddress() {
+        if (!addressInput) return true;
+        const len = addressInput.value.length;
+        if (addressCharCount) {
+            addressCharCount.textContent = `${len}/250`;
+        }
+        if (len > 250) {
+            addressInput.classList.add('is-invalid');
+            addressInput.classList.remove('is-valid');
+            if (addressFeedback) addressFeedback.style.display = 'block';
+            if (addressCharCount) addressCharCount.classList.add('text-danger');
+            return false;
+        } else {
+            addressInput.classList.remove('is-invalid');
+            if (addressFeedback) addressFeedback.style.display = 'none';
+            if (addressCharCount) addressCharCount.classList.remove('text-danger');
+            if (len > 0) addressInput.classList.add('is-valid');
+            else addressInput.classList.remove('is-valid');
+            return true;
+        }
+    }
+
+    function validateCity() {
+        if (!cityInput) return true;
+        const val = cityInput.value.trim();
+        if (val === '') {
+            cityInput.classList.remove('is-invalid', 'is-valid');
+            return true;
+        }
+        const cityPattern = /^[a-zA-Z\s\-]+$/;
+        if (val.length < 2 || val.length > 50 || !cityPattern.test(val)) {
+            cityInput.classList.add('is-invalid');
+            cityInput.classList.remove('is-valid');
+            return false;
+        } else {
+            cityInput.classList.remove('is-invalid');
+            cityInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateState() {
+        if (!stateInput) return true;
+        if (stateInput.value !== '') {
+            stateInput.classList.add('is-valid');
+            stateInput.classList.remove('is-invalid');
+        } else {
+            stateInput.classList.remove('is-valid', 'is-invalid');
+        }
+        return true;
+    }
+
+    function validatePostalCode() {
+        if (!postalCodeInput) return true;
+        postalCodeInput.value = postalCodeInput.value.replace(/[^0-9]/g, '').slice(0, 6);
+        const val = postalCodeInput.value.trim();
+        if (val === '') {
+            postalCodeInput.classList.remove('is-invalid', 'is-valid');
+            return true;
+        }
+        const pinPattern = /^[1-9][0-9]{5}$/;
+        if (!pinPattern.test(val)) {
+            postalCodeInput.classList.add('is-invalid');
+            postalCodeInput.classList.remove('is-valid');
+            return false;
+        } else {
+            postalCodeInput.classList.remove('is-invalid');
+            postalCodeInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateWebsite() {
+        if (!websiteInput) return true;
+        let val = websiteInput.value.trim();
+        if (val === '') {
+            websiteInput.classList.remove('is-invalid', 'is-valid');
+            return true;
+        }
+        const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,})(\/[^\s]*)?$/i;
+        if (!urlPattern.test(val)) {
+            websiteInput.classList.add('is-invalid');
+            websiteInput.classList.remove('is-valid');
+            return false;
+        } else {
+            websiteInput.classList.remove('is-invalid');
+            websiteInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateTaxNumber() {
+        if (!taxNumberInput) return true;
+        taxNumberInput.value = taxNumberInput.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+        const val = taxNumberInput.value.trim();
+        if (val === '') {
+            taxNumberInput.classList.remove('is-invalid', 'is-valid');
+            return true;
+        }
+        const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        if (!gstPattern.test(val)) {
+            taxNumberInput.classList.add('is-invalid');
+            taxNumberInput.classList.remove('is-valid');
+            return false;
+        } else {
+            taxNumberInput.classList.remove('is-invalid');
+            taxNumberInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateWorkingHours() {
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        let isValid = true;
+        const invalidDays = [];
+        const whAlert = document.getElementById('whValidationAlert');
+
+        days.forEach(day => {
+            const sw = document.getElementById('wh_closed_' + day);
+            const openInput = document.querySelector('input[name="wh_open[' + day + ']"]');
+            const closeInput = document.querySelector('input[name="wh_close[' + day + ']"]');
             
-            if (!validatePhoneNumber('business_phone', '+91')) {
+            if (openInput) openInput.classList.remove('is-invalid');
+            if (closeInput) closeInput.classList.remove('is-invalid');
+
+            if (sw && !sw.checked && openInput && closeInput) {
+                const openVal = openInput.value;
+                const closeVal = closeInput.value;
+                if (openVal && closeVal && openVal >= closeVal) {
+                    isValid = false;
+                    openInput.classList.add('is-invalid');
+                    closeInput.classList.add('is-invalid');
+                    const dayCap = day.charAt(0).toUpperCase() + day.slice(1);
+                    invalidDays.push(`${dayCap}: Opening time (${openVal}) must be earlier than closing time (${closeVal}).`);
+                }
+            }
+        });
+
+        if (!isValid && whAlert) {
+            whAlert.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + invalidDays.join('<br>');
+            whAlert.classList.remove('d-none');
+        } else if (whAlert) {
+            whAlert.classList.add('d-none');
+            whAlert.innerHTML = '';
+        }
+        return isValid;
+    }
+
+    // Attach real-time input listeners
+    if (companyNameInput) {
+        companyNameInput.addEventListener('input', validateCompanyName);
+        companyNameInput.addEventListener('blur', validateCompanyName);
+    }
+    if (ownerNameInput) {
+        ownerNameInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-Z\s\.]/g, '');
+            validateOwnerName();
+        });
+        ownerNameInput.addEventListener('blur', validateOwnerName);
+    }
+    if (phoneInput) {
+        phoneInput.addEventListener('input', validatePhone);
+        phoneInput.addEventListener('blur', validatePhone);
+        phoneInput.addEventListener('paste', function(e) {
+            setTimeout(validatePhone, 10);
+        });
+    }
+    if (addressInput) {
+        validateAddress();
+        addressInput.addEventListener('input', validateAddress);
+        addressInput.addEventListener('blur', validateAddress);
+    }
+    if (cityInput) {
+        cityInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-Z\s\-]/g, '');
+            validateCity();
+        });
+        cityInput.addEventListener('blur', validateCity);
+    }
+    if (stateInput) {
+        stateInput.addEventListener('change', validateState);
+    }
+    if (postalCodeInput) {
+        postalCodeInput.addEventListener('input', validatePostalCode);
+        postalCodeInput.addEventListener('blur', validatePostalCode);
+    }
+    if (websiteInput) {
+        websiteInput.addEventListener('input', validateWebsite);
+        websiteInput.addEventListener('blur', function() {
+            let val = this.value.trim();
+            if (val && !val.match(/^https?:\/\//i)) {
+                this.value = 'https://' + val;
+            }
+            validateWebsite();
+        });
+    }
+    if (taxNumberInput) {
+        taxNumberInput.addEventListener('input', validateTaxNumber);
+        taxNumberInput.addEventListener('blur', validateTaxNumber);
+    }
+
+    // Working hours change listeners
+    document.querySelectorAll('.wh-time-input').forEach(input => {
+        input.addEventListener('change', validateWorkingHours);
+    });
+
+    // -------------------------------------------------------------
+    // 3. Form Submit Interception & Handling
+    // -------------------------------------------------------------
+    const businessForm = document.getElementById('businessInfoActualForm');
+    if (businessForm) {
+        businessForm.addEventListener('submit', function(e) {
+            const isCompanyValid = validateCompanyName();
+            const isOwnerValid = validateOwnerName();
+            const isPhoneValid = validatePhone();
+            const isAddressValid = validateAddress();
+            const isCityValid = validateCity();
+            const isStateValid = validateState();
+            const isPostalValid = validatePostalCode();
+            const isWebValid = validateWebsite();
+            const isGstValid = validateTaxNumber();
+            const isHoursValid = validateWorkingHours();
+
+            if (!isCompanyValid || !isOwnerValid || !isPhoneValid || !isAddressValid || !isCityValid || !isStateValid || !isPostalValid || !isWebValid || !isGstValid || !isHoursValid) {
                 e.preventDefault();
-                phoneInput.focus();
-                alert('Please enter a valid 10-digit phone number.');
+                const firstInvalid = businessForm.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                } else if (!isHoursValid) {
+                    const whSec = document.getElementById('workingHoursSection');
+                    if (whSec) whSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return false;
             }
-            phoneInput.value = phoneValue;
+
+            // Ensure website has https://
+            if (websiteInput && websiteInput.value.trim() && !websiteInput.value.trim().match(/^https?:\/\//i)) {
+                websiteInput.value = 'https://' + websiteInput.value.trim();
+            }
+
+            // Clean phone before submission
+            if (phoneInput) {
+                let cleanPhone = phoneInput.value.replace(/[^0-9]/g, '');
+                if (cleanPhone.length === 10) {
+                    phoneInput.value = '+91' + cleanPhone;
+                }
+            }
+
+            const saveBtn = document.getElementById('btnSaveBusinessInfo');
+            const saveBtnText = document.getElementById('btnSaveBusinessInfoText');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                if (saveBtnText) saveBtnText.textContent = 'Saving...';
+                const icon = saveBtn.querySelector('i');
+                if (icon) icon.className = 'fas fa-spinner fa-spin me-1';
+            }
         });
     }
     

@@ -616,7 +616,7 @@ include 'includes/page-header.php';
                         </div>
                         <div class="col-md-6">
                             <label for="status" class="form-label fw-semibold small text-dark">Status</label>
-                            <select class="form-select" id="status" name="status" style="border-radius: 12px; height: 42px; font-size: 0.85rem;">
+                            <select class="form-select" id="status" name="status" style="border-radius: 12px;  font-size: 0.85rem;">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>

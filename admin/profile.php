@@ -151,7 +151,7 @@ if (count($nameParts) >= 2) {
                     <input type="hidden" name="action" value="update_profile">
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="full_name" class="form-label">Full Name *</label>
                             <input type="text" 
                                    class="form-control" 
@@ -160,16 +160,7 @@ if (count($nameParts) >= 2) {
                                    value="<?php echo htmlspecialchars($currentUser['full_name']); ?>" 
                                    required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="username" 
-                                   value="<?php echo htmlspecialchars($currentUser['username']); ?>" 
-                                   readonly
-                                   disabled>
-                            <small class="text-muted">Username cannot be changed</small>
-                        </div>
+                       
                     </div>
                     
                     <div class="row">

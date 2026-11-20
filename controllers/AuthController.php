@@ -20,7 +20,13 @@ class AuthController {
         if (!$user) {
             return ['success' => false, 'message' => 'User not found'];
         }
-        require_once __DIR__ . '/../admin/models/Company.php';
+        if (!class_exists('Company')) {
+            if (file_exists(__DIR__ . '/../admin/models/Company.php')) {
+                require_once __DIR__ . '/../admin/models/Company.php';
+            } elseif (file_exists(__DIR__ . '/../models/Company.php')) {
+                require_once __DIR__ . '/../models/Company.php';
+            }
+        }
         $companyModel = new Company();
         $company = $companyModel->find($user['company_id']);
         if ($company && $company['subscription_expiry']) {
@@ -103,7 +109,13 @@ class AuthController {
 
         // 4. Auto-register new tailor shop & admin user
         try {
-            require_once __DIR__ . '/../models/Company.php';
+            if (!class_exists('Company')) {
+                if (file_exists(__DIR__ . '/../admin/models/Company.php')) {
+                    require_once __DIR__ . '/../admin/models/Company.php';
+                } elseif (file_exists(__DIR__ . '/../models/Company.php')) {
+                    require_once __DIR__ . '/../models/Company.php';
+                }
+            }
             require_once __DIR__ . '/../helpers/DefaultDataHelper.php';
             $companyModel = new Company();
 

@@ -4,6 +4,7 @@
  * Tailoring Management System - Multi-Tenant
  */
 
+if (!class_exists('Company')) {
 class Company extends BaseModel {
     protected $table = 'companies';
 

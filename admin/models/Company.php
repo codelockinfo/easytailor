@@ -146,5 +146,6 @@ class Company extends BaseModel {
         return $result;
     }
 }
+}
 ?>
 

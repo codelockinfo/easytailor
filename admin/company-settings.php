@@ -125,30 +125,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $formattedPhone = '+91' . $cleanPhone;
 
-        // Address validation
-        if (!empty($businessAddress) && mb_strlen($businessAddress) > 250) {
-            $errors[] = 'Business Address must not exceed 250 characters.';
+        // Address validation (Required)
+        if (empty($businessAddress)) {
+            $errors[] = 'Business Address is required.';
+        } elseif (mb_strlen($businessAddress) < 5 || mb_strlen($businessAddress) > 250) {
+            $errors[] = 'Business Address must be between 5 and 250 characters.';
         }
 
-        // City validation
-        if (!empty($city)) {
-            if (mb_strlen($city) < 2 || mb_strlen($city) > 50) {
-                $errors[] = 'City must be between 2 and 50 characters.';
-            } elseif (!preg_match("/^[a-zA-Z\s\-\.\p{L}]+$/u", $city)) {
-                $errors[] = 'City can only contain letters and spaces.';
-            }
+        // City validation (Required)
+        if (empty($city)) {
+            $errors[] = 'City is required.';
+        } elseif (mb_strlen($city) < 2 || mb_strlen($city) > 50) {
+            $errors[] = 'City must be between 2 and 50 characters.';
+        } elseif (!preg_match("/^[a-zA-Z\s\-\.\p{L}]+$/u", $city)) {
+            $errors[] = 'City can only contain letters and spaces.';
         }
 
-        // State validation
-        if (!empty($state) && !in_array($state, $indianStates)) {
+        // State validation (Required)
+        if (empty($state)) {
+            $errors[] = 'State is required. Please select your State.';
+        } elseif (!in_array($state, $indianStates)) {
             $errors[] = 'Please select a valid State from the list.';
         }
 
-        // PIN Code validation
-        if (!empty($postalCode)) {
-            if (!preg_match('/^[1-9][0-9]{5}$/', $postalCode)) {
-                $errors[] = 'PIN Code must be a valid 6-digit Indian PIN Code (e.g., 395006).';
-            }
+        // PIN Code validation (Required)
+        if (empty($postalCode)) {
+            $errors[] = 'PIN Code is required.';
+        } elseif (!preg_match('/^[1-9][0-9]{5}$/', $postalCode)) {
+            $errors[] = 'PIN Code must be a valid 6-digit Indian PIN Code (e.g., 395006).';
+        }
+
+        // Company Logo validation (Required)
+        $hasExistingLogo = (!empty($existingCompany['logo']) && file_exists($existingCompany['logo']));
+        if (!$hasExistingLogo) {
+            $errors[] = 'Company Logo is required. Please upload your company logo.';
         }
 
         // Website validation
@@ -690,14 +700,16 @@ select.form-select.settings-input,
 </div>
 <div class="row g-3">
     <div class="col-lg-4">
-        <div class="card settings-card mb-3">
+        <div class="card settings-card mb-3" id="companyLogoCard">
             <div class="settings-card-header d-flex align-items-center justify-content-between">
                 <span class="fw-bold text-dark" style="font-size: 0.92rem;">
-                    <i class="fas fa-image text-primary me-2"></i>Company Logo
+                    <i class="fas fa-image text-primary me-2"></i>Company Logo *
                 </span>
-                <span class="badge bg-light text-muted border" style="font-size: 0.72rem;">Branding</span>
+                <span class="badge <?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'bg-light text-muted border' : 'bg-danger-subtle text-danger border border-danger-subtle'; ?>" style="font-size: 0.72rem;">
+                    <?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'Branding' : 'Required *'; ?>
+                </span>
             </div>
-            <div class="card-body p-4 text-center">
+            <div class="card-body p-4 text-center" id="companyLogoCardBody">
                 <?php if (!empty($company['logo']) && file_exists($company['logo'])): ?>
                     <div class="p-3 mb-3 bg-white rounded-3 shadow-sm border d-inline-block" style="max-width: 100%;">
                         <img src="<?php echo htmlspecialchars($company['logo']); ?>" 
@@ -706,10 +718,10 @@ select.form-select.settings-input,
                              style="max-height: 150px; max-width: 100%; object-fit: contain;">
                     </div>
                 <?php else: ?>
-                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; border-radius: 20px; background: #f8fafc; border: 2px dashed #cbd5e1; color: #94a3b8;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" id="noLogoBox" style="width: 100px; height: 100px; border-radius: 20px; background: #fff5f5; border: 2px dashed #f87171; color: #ef4444;">
                         <i class="fas fa-building fa-3x"></i>
                     </div>
-                    <p class="text-muted small mb-3">No logo uploaded yet</p>
+                    <p class="text-danger small mb-3 fw-semibold" id="noLogoText"><i class="fas fa-exclamation-circle me-1"></i>No logo uploaded yet (Required *)</p>
                 <?php endif; ?>
                 <form method="POST" enctype="multipart/form-data" id="logoUploadForm">
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
@@ -717,7 +729,7 @@ select.form-select.settings-input,
                     <div class="mb-2">
                         <label for="logoUploadInput" class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; cursor: pointer;">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <span id="logoBtnLabel">Choose New Logo</span>
+                            <span id="logoBtnLabel"><?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'Choose New Logo' : 'Upload Logo *'; ?></span>
                         </label>
                         <input type="file" 
                                id="logoUploadInput"
@@ -725,8 +737,8 @@ select.form-select.settings-input,
                                name="logo" 
                                accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
                     </div>
-                    <div id="logoValidationMsg" class="alert alert-danger py-2 px-3 small d-none" style="font-size: 0.76rem; border-radius: 8px;"></div>
-                    <small class="text-muted d-block" style="font-size: 0.74rem;">PNG, JPG, WEBP (Max 2MB)</small>
+                    <div id="logoValidationMsg" class="alert alert-danger py-2 px-3 small d-none text-start" style="font-size: 0.76rem; border-radius: 8px;"></div>
+                    <small class="text-muted d-block" style="font-size: 0.74rem;">PNG, JPG, WEBP (Max 2MB) &bull; <span class="text-danger fw-semibold">Required *</span></small>
                 </form>
             </div>
         </div>
@@ -894,35 +906,39 @@ select.form-select.settings-input,
                     </div>
                     
                     <div class="mb-3">
-                        <label for="business_address" class="form-label fw-semibold text-muted small mb-1">Business Address</label>
+                        <label for="business_address" class="form-label fw-semibold text-muted small mb-1">Business Address *</label>
                         <textarea class="form-control" 
                                   id="business_address" 
                                   name="business_address" 
                                   rows="2" 
+                                  minlength="5"
                                   maxlength="250"
                                   placeholder="Shop number, street, landmark..."
-                                  style="border-radius: 12px; border-color: #e2e8f0; font-size: 0.86rem;"><?php echo htmlspecialchars($company['business_address'] ?? ''); ?></textarea>
+                                  style="border-radius: 12px; border-color: #e2e8f0; font-size: 0.86rem;"
+                                  required><?php echo htmlspecialchars($company['business_address'] ?? ''); ?></textarea>
                         <div class="d-flex justify-content-between align-items-center mt-1">
-                            <div class="invalid-feedback mb-0" id="addressInvalidFeedback" style="display:none;">Address cannot exceed 250 characters.</div>
+                            <div class="invalid-feedback mb-0" id="addressInvalidFeedback" style="display:none;">Business Address is required (5 to 250 characters).</div>
                             <small class="text-muted ms-auto" id="addressCharCount" style="font-size: 0.72rem;">0/250</small>
                         </div>
                     </div>
                     
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label for="city" class="form-label fw-semibold text-muted small mb-1">City</label>
+                            <label for="city" class="form-label fw-semibold text-muted small mb-1">City *</label>
                             <input type="text" 
                                    class="form-control settings-input" 
                                    id="city" 
                                    name="city" 
+                                   minlength="2"
                                    maxlength="50"
                                    placeholder="e.g., Surat, Ahmedabad"
-                                   value="<?php echo htmlspecialchars($company['city'] ?? ''); ?>">
-                            <div class="invalid-feedback">City should only contain letters and spaces (2 to 50 chars).</div>
+                                   value="<?php echo htmlspecialchars($company['city'] ?? ''); ?>"
+                                   required>
+                            <div class="invalid-feedback">City is required (2 to 50 characters, letters only).</div>
                         </div>
                         <div class="col-md-4">
-                            <label for="state" class="form-label fw-semibold text-muted small mb-1">State</label>
-                            <select class="form-select settings-input" id="state" name="state">
+                            <label for="state" class="form-label fw-semibold text-muted small mb-1">State *</label>
+                            <select class="form-select settings-input" id="state" name="state" required>
                                 <option value="">Select State</option>
                                 <?php
                                 foreach ($indianStates as $st) {
@@ -931,19 +947,21 @@ select.form-select.settings-input,
                                 }
                                 ?>
                             </select>
-                            <div class="invalid-feedback">Please select a valid State.</div>
+                            <div class="invalid-feedback">State is required. Please select your State.</div>
                         </div>
                         <div class="col-md-4">
-                            <label for="postal_code" class="form-label fw-semibold text-muted small mb-1">PIN Code</label>
+                            <label for="postal_code" class="form-label fw-semibold text-muted small mb-1">PIN Code *</label>
                             <input type="text" 
                                    class="form-control settings-input" 
                                    id="postal_code" 
                                    name="postal_code" 
                                    placeholder="e.g., 395006"
                                    maxlength="6"
+                                   pattern="[1-9][0-9]{5}"
                                    inputmode="numeric"
-                                   value="<?php echo htmlspecialchars($company['postal_code'] ?? ''); ?>">
-                            <div class="invalid-feedback">PIN code must be a valid 6-digit number (cannot start with 0).</div>
+                                   value="<?php echo htmlspecialchars($company['postal_code'] ?? ''); ?>"
+                                   required>
+                            <div class="invalid-feedback">PIN code is required (6-digit number, cannot start with 0).</div>
                         </div>
                     </div>
                     
@@ -1282,22 +1300,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function validateAddress() {
         if (!addressInput) return true;
+        const val = addressInput.value.trim();
         const len = addressInput.value.length;
         if (addressCharCount) {
             addressCharCount.textContent = `${len}/250`;
         }
-        if (len > 250) {
+        if (val.length < 5 || len > 250) {
             addressInput.classList.add('is-invalid');
             addressInput.classList.remove('is-valid');
-            if (addressFeedback) addressFeedback.style.display = 'block';
-            if (addressCharCount) addressCharCount.classList.add('text-danger');
+            if (addressFeedback) {
+                addressFeedback.textContent = val.length === 0 ? 'Business Address is required.' : (val.length < 5 ? 'Business Address must be at least 5 characters.' : 'Address cannot exceed 250 characters.');
+                addressFeedback.style.display = 'block';
+            }
+            if (addressCharCount && len > 250) addressCharCount.classList.add('text-danger');
             return false;
         } else {
             addressInput.classList.remove('is-invalid');
+            addressInput.classList.add('is-valid');
             if (addressFeedback) addressFeedback.style.display = 'none';
             if (addressCharCount) addressCharCount.classList.remove('text-danger');
-            if (len > 0) addressInput.classList.add('is-valid');
-            else addressInput.classList.remove('is-valid');
             return true;
         }
     }
@@ -1305,10 +1326,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function validateCity() {
         if (!cityInput) return true;
         const val = cityInput.value.trim();
-        if (val === '') {
-            cityInput.classList.remove('is-invalid', 'is-valid');
-            return true;
-        }
         const cityPattern = /^[a-zA-Z\s\-]+$/;
         if (val.length < 2 || val.length > 50 || !cityPattern.test(val)) {
             cityInput.classList.add('is-invalid');
@@ -1323,23 +1340,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function validateState() {
         if (!stateInput) return true;
-        if (stateInput.value !== '') {
-            stateInput.classList.add('is-valid');
-            stateInput.classList.remove('is-invalid');
+        if (stateInput.value === '') {
+            stateInput.classList.add('is-invalid');
+            stateInput.classList.remove('is-valid');
+            return false;
         } else {
-            stateInput.classList.remove('is-valid', 'is-invalid');
+            stateInput.classList.remove('is-invalid');
+            stateInput.classList.add('is-valid');
+            return true;
         }
-        return true;
     }
 
     function validatePostalCode() {
         if (!postalCodeInput) return true;
         postalCodeInput.value = postalCodeInput.value.replace(/[^0-9]/g, '').slice(0, 6);
         const val = postalCodeInput.value.trim();
-        if (val === '') {
-            postalCodeInput.classList.remove('is-invalid', 'is-valid');
-            return true;
-        }
         const pinPattern = /^[1-9][0-9]{5}$/;
         if (!pinPattern.test(val)) {
             postalCodeInput.classList.add('is-invalid');
@@ -1348,6 +1363,32 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             postalCodeInput.classList.remove('is-invalid');
             postalCodeInput.classList.add('is-valid');
+            return true;
+        }
+    }
+
+    function validateCompanyLogo() {
+        const hasExisting = <?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'true' : 'false'; ?>;
+        const logoInput = document.getElementById('logoUploadInput');
+        const hasSelected = logoInput && logoInput.files && logoInput.files.length > 0;
+        const logoMsg = document.getElementById('logoValidationMsg');
+        const noLogoBox = document.getElementById('noLogoBox');
+
+        if (!hasExisting && !hasSelected) {
+            if (logoMsg) {
+                logoMsg.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Company Logo is required. Please upload your logo.';
+                logoMsg.classList.remove('d-none');
+            }
+            if (noLogoBox) {
+                noLogoBox.style.borderColor = '#ef4444';
+                noLogoBox.style.background = '#fff5f5';
+                noLogoBox.style.color = '#ef4444';
+            }
+            return false;
+        } else {
+            if (logoMsg && !hasSelected) {
+                logoMsg.classList.add('d-none');
+            }
             return true;
         }
     }
@@ -1502,13 +1543,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const isWebValid = validateWebsite();
             const isGstValid = validateTaxNumber();
             const isHoursValid = validateWorkingHours();
+            const isLogoValid = validateCompanyLogo();
 
-            if (!isCompanyValid || !isOwnerValid || !isPhoneValid || !isAddressValid || !isCityValid || !isStateValid || !isPostalValid || !isWebValid || !isGstValid || !isHoursValid) {
+            if (!isCompanyValid || !isOwnerValid || !isPhoneValid || !isAddressValid || !isCityValid || !isStateValid || !isPostalValid || !isWebValid || !isGstValid || !isHoursValid || !isLogoValid) {
                 e.preventDefault();
                 const firstInvalid = businessForm.querySelector('.is-invalid');
                 if (firstInvalid) {
                     firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     firstInvalid.focus();
+                } else if (!isLogoValid) {
+                    const logoCard = document.getElementById('companyLogoCard') || document.getElementById('logoUploadForm');
+                    if (logoCard) logoCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else if (!isHoursValid) {
                     const whSec = document.getElementById('workingHoursSection');
                     if (whSec) whSec.scrollIntoView({ behavior: 'smooth', block: 'center' });

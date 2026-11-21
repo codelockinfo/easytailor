@@ -148,6 +148,34 @@ class Order extends BaseModel {
             $params['date_to'] = $conditions['date_to'];
             unset($conditions['date_to']);
         }
+
+        if (!empty($conditions['customer_id'])) {
+            $custId = (int)$conditions['customer_id'];
+            require_once dirname(dirname(__DIR__)) . '/models/Customer.php';
+            $cModel = new Customer();
+            $cData = $cModel->find($custId);
+            $fullName = '';
+            $phone = '';
+            if ($cData) {
+                $fullName = trim(($cData['first_name'] ?? '') . ' ' . ($cData['last_name'] ?? ''));
+                $phone = !empty($cData['phone']) ? preg_replace('/\D/', '', $cData['phone']) : '';
+            }
+            $custClauses = ["o.customer_id = :cust_filter_id", "o.measurement_id = :cust_filter_m_id"];
+            $params['cust_filter_id'] = $custId;
+            $params['cust_filter_m_id'] = $custId;
+            if (!empty($fullName)) {
+                $custClauses[] = "LOWER(TRIM(o.customer_name)) = :cust_filter_name";
+                $custClauses[] = "LOWER(TRIM(ms.name)) = :cust_filter_ms_name";
+                $params['cust_filter_name'] = strtolower($fullName);
+                $params['cust_filter_ms_name'] = strtolower($fullName);
+            }
+            if (!empty($phone)) {
+                $custClauses[] = "REPLACE(REPLACE(o.customer_phone, '+', ''), ' ', '') = :cust_filter_phone";
+                $params['cust_filter_phone'] = $phone;
+            }
+            $where_clauses[] = "(" . implode(" OR ", $custClauses) . ")";
+            unset($conditions['customer_id']);
+        }
         
         if (!empty($conditions)) {
             foreach ($conditions as $column => $value) {

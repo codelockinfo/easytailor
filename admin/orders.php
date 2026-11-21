@@ -103,8 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         $_SESSION['message'] = 'Order created successfully';
                         $_SESSION['messageType'] = 'success';
-
-                        // Semi-automatic WhatsApp invoice trigger
                         $canSendInvoiceCheck = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
                         if (!empty($_POST['send_whatsapp_invoice']) && $canSendInvoiceCheck) {
                             $cleanPhone = preg_replace('/\D/', '', $customerPhone ?? '');
@@ -201,8 +199,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $_SESSION['message'] = 'Order updated successfully';
                     $_SESSION['messageType'] = 'success';
-
-                    // Semi-automatic WhatsApp invoice trigger on update
                     $canSendInvoiceCheck = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
                     if (!empty($_POST['send_whatsapp_invoice']) && $canSendInvoiceCheck) {
                         $cleanPhone = preg_replace('/\D/', '', $customerPhone ?? '');
@@ -325,6 +321,8 @@ $page_title = 'Order Management';
 require_once 'includes/header.php';
 $status_filter = $_GET['status'] ?? '';
 $search = $_GET['search'] ?? '';
+$cloth_type_id_filter = $_GET['cloth_type_id'] ?? '';
+$customer_id_filter = $_GET['customer_id'] ?? '';
 $page = (int)($_GET['page'] ?? 1);
 $limit = RECORDS_PER_PAGE;
 $offset = ($page - 1) * $limit;
@@ -333,10 +331,51 @@ $conditions = [];
 if (!empty($status_filter)) {
     $conditions['status'] = $status_filter;
 }
+if (!empty($cloth_type_id_filter)) {
+    $conditions['cloth_type_id'] = (int)$cloth_type_id_filter;
+}
+if (!empty($customer_id_filter)) {
+    $conditions['customer_id'] = (int)$customer_id_filter;
+}
 if (has_role('tailor')) {
     $conditions['assigned_tailor_id'] = get_user_id();
 }
 $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+
+$filteredCustomerName = '';
+if (!empty($customer_id_filter)) {
+    $custObj = $customerModel->find((int)$customer_id_filter);
+    if ($custObj) {
+        $filteredCustomerName = trim(($custObj['first_name'] ?? '') . ' ' . ($custObj['last_name'] ?? ''));
+    }
+    if (empty($allOrders)) {
+        $custOrders = $orderModel->getCustomerOrders((int)$customer_id_filter, $custObj);
+        if (!empty($custOrders)) {
+            $allOrders = $custOrders;
+            if (!empty($status_filter)) {
+                $allOrders = array_filter($allOrders, fn($o) => ($o['status'] ?? '') === $status_filter);
+            }
+            if (!empty($cloth_type_id_filter)) {
+                $allOrders = array_filter($allOrders, fn($o) => (int)($o['cloth_type_id'] ?? 0) === (int)$cloth_type_id_filter);
+            }
+            $allOrders = array_values($allOrders);
+        }
+    }
+}
+
+if (!empty($search)) {
+    $searchLower = strtolower(trim($search));
+    $allOrders = array_filter($allOrders, function($order) use ($searchLower) {
+        $displayCustName = !empty($order['measurement_customer_name']) 
+            ? $order['measurement_customer_name'] 
+            : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+        return strpos(strtolower($order['order_number'] ?? ''), $searchLower) !== false ||
+               strpos(strtolower($displayCustName), $searchLower) !== false ||
+               strpos(strtolower($order['customer_phone'] ?? ''), $searchLower) !== false;
+    });
+    $allOrders = array_values($allOrders);
+}
+
 $totalOrders = count($allOrders);
 $orders = array_slice($allOrders, $offset, $limit);
 $totalPages = ceil($totalOrders / $limit);
@@ -370,7 +409,6 @@ if (!function_exists('getCustomerAvatarDesign')) {
     }
 }
 ?>
-
 <style>
 .cat-stat-box {
     border-radius: 16px;
@@ -521,7 +559,6 @@ if (!function_exists('getCustomerAvatarDesign')) {
     }
 }
 </style>
-
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
@@ -657,7 +694,7 @@ include 'includes/page-header.php';
         <select class="form-select" id="clothTypeFilter" title="Filter by Cloth Type" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 2.2rem 0.45rem 0.8rem; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
             <option value="">All Cloth Types</option>
             <?php foreach ($clothTypes as $ct): ?>
-                <option value="<?php echo $ct['id']; ?>"><?php echo htmlspecialchars($ct['name']); ?></option>
+                <option value="<?php echo $ct['id']; ?>" <?php echo ((string)$cloth_type_id_filter === (string)$ct['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($ct['name']); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -684,11 +721,25 @@ include 'includes/page-header.php';
     </div>
 </div>
 
-<div id="filterResults" class="mb-3" style="display: none;">
-    <div id="filterAlertBox" class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 12px; font-size: 0.85rem;">
+<?php 
+$hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !empty($search) || !empty($customer_id_filter));
+?>
+<div id="filterResults" class="mb-3" style="<?php echo $hasActiveFilter ? 'display: block;' : 'display: none;'; ?>">
+    <div id="filterAlertBox" class="alert <?php echo $totalOrders > 0 ? 'alert-info' : 'alert-warning'; ?> py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 12px; font-size: 0.85rem;">
         <div class="d-flex align-items-center">
-            <i id="filterAlertIcon" class="fas fa-info-circle me-2"></i>
-            <span id="filterAlertMessage"><strong id="filterCount">0</strong> orders found</span>
+            <i id="filterAlertIcon" class="fas <?php echo $totalOrders > 0 ? 'fa-info-circle text-primary' : 'fa-search text-warning'; ?> me-2"></i>
+            <span id="filterAlertMessage">
+                <?php if ($totalOrders > 0): ?>
+                    <strong id="filterCount"><?php echo $totalOrders; ?></strong> <?php echo $totalOrders === 1 ? 'order' : 'orders'; ?> found
+                    <?php if (!empty($filteredCustomerName)): ?>
+                        for customer <strong><?php echo htmlspecialchars($filteredCustomerName); ?></strong>
+                    <?php else: ?>
+                        matching your filter criteria
+                    <?php endif; ?>
+                <?php else: ?>
+                    <strong>0 orders found<?php echo !empty($filteredCustomerName) ? ' for customer ' . htmlspecialchars($filteredCustomerName) : ''; ?>.</strong> Try adjusting your filter criteria.
+                <?php endif; ?>
+            </span>
         </div>
         <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 ms-3 text-secondary" id="btnDismissFilterBanner" title="Dismiss" onclick="document.getElementById('filterResults').style.display='none';">
             <i class="fas fa-times"></i>
@@ -886,23 +937,29 @@ include 'includes/page-header.php';
             </div>
             <div id="paginationContainer" class="p-3">
             <?php if ($totalPages > 1): ?>
+                <?php 
+                $filterQuery = ($status_filter ? '&status=' . urlencode($status_filter) : '') . 
+                               ($cloth_type_id_filter ? '&cloth_type_id=' . urlencode($cloth_type_id_filter) : '') . 
+                               ($customer_id_filter ? '&customer_id=' . urlencode($customer_id_filter) : '') . 
+                               ($search ? '&search=' . urlencode($search) : '');
+                ?>
                 <nav aria-label="Order pagination">
                     <ul class="pagination justify-content-center mb-0">
                         <?php if ($page > 1): ?>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $status_filter ? '&status=' . urlencode($status_filter) : ''; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Previous</a>
+                                <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $filterQuery; ?>">Previous</a>
                             </li>
                         <?php endif; ?>
                         
                         <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
                             <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
-                                <a class="page-link" href="?page=<?php echo $i; ?><?php echo $status_filter ? '&status=' . urlencode($status_filter) : ''; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>"><?php echo $i; ?></a>
+                                <a class="page-link" href="?page=<?php echo $i; ?><?php echo $filterQuery; ?>"><?php echo $i; ?></a>
                             </li>
                         <?php endfor; ?>
                         
                         <?php if ($page < $totalPages): ?>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo $status_filter ? '&status=' . urlencode($status_filter) : ''; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Next</a>
+                                <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo $filterQuery; ?>">Next</a>
                             </li>
                         <?php endif; ?>
                     </ul>
@@ -916,13 +973,13 @@ include 'includes/page-header.php';
                 </div>
                 <h5 class="fw-bold text-dark mb-1">No orders found</h5>
                 <p class="text-muted small mb-3">
-                    <?php if (!empty($search) || !empty($status_filter)): ?>
+                    <?php if (!empty($search) || !empty($status_filter) || !empty($cloth_type_id_filter) || !empty($customer_id_filter)): ?>
                         No orders match your search criteria.
                     <?php else: ?>
                         Get started by creating your first order.
                     <?php endif; ?>
                 </p>
-                <?php if (!has_role('tailor') && empty($search) && empty($status_filter)): ?>
+                <?php if (!has_role('tailor') && empty($search) && empty($status_filter) && empty($cloth_type_id_filter) && empty($customer_id_filter)): ?>
                     <button type="button" class="btn text-white fw-semibold px-4 py-2" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#orderModal">
                         <i class="fas fa-plus me-1"></i>Create Order
                     </button>
@@ -1929,18 +1986,29 @@ function loadFilterOptions() {
 }
 
 function populateFilterOptions(options) {
-
     const clothTypeSelect = document.getElementById('clothTypeFilter');
-    clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
-    options.cloth_types.forEach(clothType => {
-        clothTypeSelect.innerHTML += `<option value="${clothType.id}">${clothType.name}</option>`;
-    });
+    if (clothTypeSelect && options.cloth_types) {
+        const currentClothType = clothTypeSelect.value;
+        clothTypeSelect.innerHTML = '<option value="">All Cloth Types</option>';
+        options.cloth_types.forEach(clothType => {
+            const isSel = String(clothType.id) === String(currentClothType);
+            clothTypeSelect.innerHTML += `<option value="${clothType.id}" ${isSel ? 'selected' : ''}>${clothType.name}</option>`;
+        });
+        if (currentClothType) {
+            clothTypeSelect.value = currentClothType;
+        }
+    }
     const tailorSelect = document.getElementById('tailorFilter');
     if (tailorSelect && options.tailors) {
+        const currentTailor = tailorSelect.value;
         tailorSelect.innerHTML = '<option value="">All Tailors</option>';
         options.tailors.forEach(tailor => {
-            tailorSelect.innerHTML += `<option value="${tailor.id}">${tailor.name}</option>`;
+            const isSel = String(tailor.id) === String(currentTailor);
+            tailorSelect.innerHTML += `<option value="${tailor.id}" ${isSel ? 'selected' : ''}>${tailor.name}</option>`;
         });
+        if (currentTailor) {
+            tailorSelect.value = currentTailor;
+        }
     }
 }
 [searchInput, statusFilter, clothTypeFilter, tailorFilter, startDateFilter, endDateFilter].forEach(element => {
@@ -1975,7 +2043,9 @@ function executeFilter() {
     const tailor = tailorFilter ? tailorFilter.value : '';
     const startDate = startDateFilter ? startDateFilter.value : '';
     const endDate = endDateFilter ? endDateFilter.value : '';
-    const hasActiveFilters = Boolean(search || status || clothType || tailor || startDate || endDate);
+    const urlParams = new URLSearchParams(window.location.search);
+    const customerIdParam = urlParams.get('customer_id');
+    const hasActiveFilters = Boolean(search || status || clothType || tailor || startDate || endDate || customerIdParam);
     
     if (hasActiveFilters) {
         filterResults.style.display = 'block';
@@ -2001,6 +2071,7 @@ function executeFilter() {
     if (tailor) params.append('assigned_tailor_id', tailor);
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
+    if (customerIdParam) params.append('customer_id', customerIdParam);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
     

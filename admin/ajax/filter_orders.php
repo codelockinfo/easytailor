@@ -60,6 +60,19 @@ try {
     }
     $offset = ($page - 1) * $limit;
     $orders = $orderModel->getOrdersWithDetails($conditions, $limit, $offset);
+    if (empty($orders) && !empty($customer_id)) {
+        $cData = $customerModel->find((int)$customer_id);
+        $custOrders = $orderModel->getCustomerOrders((int)$customer_id, $cData);
+        if (!empty($custOrders)) {
+            if (!empty($status)) {
+                $custOrders = array_filter($custOrders, fn($o) => ($o['status'] ?? '') === $status);
+            }
+            if (!empty($cloth_type_id)) {
+                $custOrders = array_filter($custOrders, fn($o) => (int)($o['cloth_type_id'] ?? 0) === (int)$cloth_type_id);
+            }
+            $orders = array_slice(array_values($custOrders), $offset, $limit);
+        }
+    }
     if (!empty($search)) {
         $searchLower = strtolower($search);
         $orders = array_filter($orders, function($order) use ($searchLower) {

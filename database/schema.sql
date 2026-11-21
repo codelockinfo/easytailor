@@ -204,6 +204,7 @@ CREATE TABLE `orders` (
   `total_amount` decimal(10,2) NOT NULL,
   `advance_amount` decimal(10,2) DEFAULT 0.00,
   `balance_amount` decimal(10,2) NOT NULL,
+  `payment_method` varchar(50) NOT NULL DEFAULT 'cash',
   `special_instructions` text DEFAULT NULL,
   `created_by` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

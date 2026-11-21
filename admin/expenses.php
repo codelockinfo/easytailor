@@ -525,8 +525,8 @@ include 'includes/page-header.php';
                         <div class="col-md-6 mb-3">
                             <label for="payment_method" class="form-label fw-semibold">Type *</label>
                             <select class="form-select" id="payment_method" name="payment_method" required onchange="handleTypeChange(this.value)">
-                                <option value="cash_out" selected>Cash Out (Expense / ખર્ચ)</option>
-                                <option value="cash_in">Cash In (Income / આવક)</option>
+                                <option value="cash_out" selected>Cash Out</option>
+                                <option value="cash_in">Cash In </option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">

@@ -1,6 +1,23 @@
 <?php
 class Order extends BaseModel {
     protected $table = 'orders';
+
+    public function __construct() {
+        parent::__construct();
+        $this->ensurePaymentMethodColumn();
+    }
+
+    private function ensurePaymentMethodColumn() {
+        try {
+            $colCheck = $this->conn->query("SHOW COLUMNS FROM " . $this->table . " LIKE 'payment_method'");
+            if ($colCheck && $colCheck->rowCount() === 0) {
+                $this->conn->exec("ALTER TABLE " . $this->table . " ADD COLUMN payment_method VARCHAR(50) NOT NULL DEFAULT 'cash' AFTER balance_amount");
+            }
+        } catch (Exception $e) {
+            // Silently ignore if column already exists or table locked
+        }
+    }
+
     private function getCompanyId() {
         require_once __DIR__ . '/../config/config.php';
         return get_company_id();

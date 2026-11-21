@@ -115,6 +115,7 @@ try {
             'total_amount' => $order['total_amount'],
             'advance_amount' => $order['advance_amount'],
             'balance_amount' => $order['balance_amount'],
+            'payment_method' => $order['payment_method'] ?? 'cash',
             'created_by_name' => htmlspecialchars($order['created_by_name'] ?? ''),
             'created_at' => $order['created_at']
         ];

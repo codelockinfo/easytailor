@@ -57,6 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
+                $totalAmount = (float)$_POST['total_amount'];
+                $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
+                $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
+                $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
+
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
                     'customer_id' => null,
@@ -65,9 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'assigned_tailor_id' => (int)$_POST['assigned_tailor_id'],
                     'order_date' => $_POST['order_date'],
                     'due_date' => $_POST['due_date'],
-                    'total_amount' => (float)$_POST['total_amount'],
-                    'advance_amount' => (float)$_POST['advance_amount'],
-                    'balance_amount' => (float)$_POST['total_amount'] - (float)$_POST['advance_amount'],
+                    'total_amount' => $totalAmount,
+                    'advance_amount' => $advanceAmount,
+                    'balance_amount' => $balanceAmount,
+                    'payment_method' => $paymentMethod,
                     'special_instructions' => sanitize_input($_POST['special_instructions']),
                     'created_by' => $userId
                 ];
@@ -125,6 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
+                $totalAmount = (float)$_POST['total_amount'];
+                $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
+                $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
+                $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
+
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
                     'customer_id' => null,
@@ -133,9 +144,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'assigned_tailor_id' => (int)$_POST['assigned_tailor_id'],
                     'order_date' => $_POST['order_date'],
                     'due_date' => $_POST['due_date'],
-                    'total_amount' => (float)$_POST['total_amount'],
-                    'advance_amount' => (float)$_POST['advance_amount'],
-                    'balance_amount' => (float)$_POST['total_amount'] - (float)$_POST['advance_amount'],
+                    'total_amount' => $totalAmount,
+                    'advance_amount' => $advanceAmount,
+                    'balance_amount' => $balanceAmount,
+                    'payment_method' => $paymentMethod,
                     'special_instructions' => sanitize_input($_POST['special_instructions'])
                 ];
                 
@@ -670,11 +682,29 @@ include 'includes/page-header.php';
                             <td class="py-3">
                                 <div>
                                     <strong class="text-dark" style="font-size: 0.88rem;"><?php echo format_currency($order['total_amount']); ?></strong>
-                                    <?php if ($order['advance_amount'] > 0): ?>
-                                        <div class="text-muted" style="font-size: 0.72rem;">
-                                            Adv: <span class="text-success"><?php echo format_currency($order['advance_amount']); ?></span>
+                                    <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.72rem;">
+                                        <div class="text-muted">
+                                            Adv: <span class="text-success fw-semibold"><?php echo format_currency($order['advance_amount']); ?></span>
+                                            <?php 
+                                                $pm = strtolower($order['payment_method'] ?? 'cash');
+                                                $pmBadgeClass = $pm === 'online' ? 'bg-primary text-white' : 'bg-light text-dark border';
+                                                $pmLabel = $pm === 'online' ? 'Online' : ucfirst($pm);
+                                            ?>
+                                            <span class="badge <?php echo $pmBadgeClass; ?> ms-1" style="font-size: 0.65rem;"><?php echo htmlspecialchars($pmLabel); ?></span>
                                         </div>
-                                    <?php endif; ?>
+                                        <?php 
+                                            $pending = isset($order['balance_amount']) ? (float)$order['balance_amount'] : max(0.0, ((float)$order['total_amount'] - (float)$order['advance_amount']));
+                                        ?>
+                                        <?php if ($pending > 0): ?>
+                                            <div class="text-danger fw-semibold">
+                                                Pending: <?php echo format_currency($pending); ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-success fw-semibold">
+                                                <i class="fas fa-check-circle me-1"></i>Fully Paid
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </td>
                             <td class="pe-3 py-3 text-end">
@@ -693,6 +723,8 @@ include 'includes/page-header.php';
                                                 'due_date' => $order['due_date'],
                                                 'total_amount' => $order['total_amount'],
                                                 'advance_amount' => $order['advance_amount'],
+                                                'balance_amount' => $order['balance_amount'] ?? 0,
+                                                'payment_method' => $order['payment_method'] ?? 'cash',
                                                 'special_instructions' => $order['special_instructions']
                                             ])); ?>)"
                                             title="Edit Order">
@@ -867,18 +899,48 @@ include 'includes/page-header.php';
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="total_amount" class="form-label">Total Amount *</label>
                             <div class="input-group">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" id="total_amount" name="total_amount" step="0.01" min="0" required>
+                                <input type="number" class="form-control" id="total_amount" name="total_amount" step="0.01" min="0" placeholder="0.00" required>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="advance_amount" class="form-label">Advance Amount</label>
+                        <div class="col-md-4 mb-3">
+                            <label for="advance_amount" class="form-label">Advance Amount *</label>
                             <div class="input-group">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" id="advance_amount" name="advance_amount" step="0.01" min="0" value="0">
+                                <input type="number" class="form-control" id="advance_amount" name="advance_amount" step="0.01" min="0" value="0" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="pending_amount" class="form-label">Pending Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-danger fw-bold" id="pending_currency_symbol">₹</span>
+                                <input type="number" class="form-control bg-light fw-bold text-danger" id="pending_amount" name="pending_amount" step="0.01" value="0.00" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="advance_warning" class="alert alert-warning py-1 px-2 mb-3 small" style="display: none; font-size: 0.8rem;">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Advance amount cannot exceed Total Amount.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_method" class="form-label">Payment Method *</label>
+                            <select class="form-select" id="payment_method" name="payment_method" required>
+                                <option value="cash" selected>Cash</option>
+                                <option value="online">Online / UPI</option>
+                                <option value="card">Card</option>
+                                <option value="cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Payment Summary</label>
+                            <div class="p-2 border rounded bg-light d-flex align-items-center justify-content-between" style="min-height: 38px; font-size: 0.82rem;">
+                                <span><span class="text-muted">Status:</span> <strong id="payment_status_text" class="text-secondary">Enter amounts</strong></span>
+                                <span id="payment_summary_badge" class="badge bg-secondary">Draft</span>
                             </div>
                         </div>
                     </div>
@@ -940,6 +1002,80 @@ include 'includes/page-header.php';
 
 
 <script>
+function calculatePendingAmount() {
+    const totalEl = document.getElementById('total_amount');
+    const advanceEl = document.getElementById('advance_amount');
+    const pendingEl = document.getElementById('pending_amount');
+    const symbolEl = document.getElementById('pending_currency_symbol');
+    const warningEl = document.getElementById('advance_warning');
+    const statusTextEl = document.getElementById('payment_status_text');
+    const summaryBadgeEl = document.getElementById('payment_summary_badge');
+    
+    if (!totalEl || !advanceEl || !pendingEl) return;
+    
+    const total = parseFloat(totalEl.value) || 0;
+    const advance = parseFloat(advanceEl.value) || 0;
+    
+    if (advance > total && total > 0) {
+        if (warningEl) {
+            warningEl.style.display = 'block';
+            warningEl.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Advance amount (₹' + advance.toFixed(2) + ') cannot exceed Total amount (₹' + total.toFixed(2) + ').';
+        }
+    } else {
+        if (warningEl) {
+            warningEl.style.display = 'none';
+        }
+    }
+    
+    const pending = Math.max(0, total - advance);
+    pendingEl.value = pending.toFixed(2);
+    
+    if (pending > 0) {
+        pendingEl.classList.remove('text-success');
+        pendingEl.classList.add('text-danger');
+        if (symbolEl) {
+            symbolEl.classList.remove('text-success');
+            symbolEl.classList.add('text-danger');
+        }
+    } else if (total > 0 && advance >= total) {
+        pendingEl.classList.remove('text-danger');
+        pendingEl.classList.add('text-success');
+        if (symbolEl) {
+            symbolEl.classList.remove('text-danger');
+            symbolEl.classList.add('text-success');
+        }
+    } else {
+        pendingEl.classList.remove('text-success', 'text-danger');
+        if (symbolEl) {
+            symbolEl.classList.remove('text-success', 'text-danger');
+        }
+    }
+    
+    if (statusTextEl && summaryBadgeEl) {
+        if (total <= 0) {
+            statusTextEl.textContent = 'Enter total amount';
+            statusTextEl.className = 'text-muted';
+            summaryBadgeEl.className = 'badge bg-secondary';
+            summaryBadgeEl.textContent = 'Draft';
+        } else if (advance <= 0) {
+            statusTextEl.textContent = 'Full pending: ₹' + pending.toFixed(2);
+            statusTextEl.className = 'text-danger fw-semibold';
+            summaryBadgeEl.className = 'badge bg-danger';
+            summaryBadgeEl.textContent = 'Unpaid';
+        } else if (advance >= total) {
+            statusTextEl.textContent = 'Fully paid (₹' + total.toFixed(2) + ')';
+            statusTextEl.className = 'text-success fw-semibold';
+            summaryBadgeEl.className = 'badge bg-success';
+            summaryBadgeEl.textContent = 'Fully Paid';
+        } else {
+            statusTextEl.textContent = 'Adv: ₹' + advance.toFixed(2) + ' | Pending: ₹' + pending.toFixed(2);
+            statusTextEl.className = 'text-warning text-dark fw-semibold';
+            summaryBadgeEl.className = 'badge bg-warning text-dark';
+            summaryBadgeEl.textContent = 'Partial';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const orderModalStatusSelect = document.querySelector('#statusModal select[name="status"]');
     if (orderModalStatusSelect) {
@@ -947,6 +1083,35 @@ document.addEventListener('DOMContentLoaded', function() {
             const group = document.getElementById('orderStatusCancellationReasonGroup');
             if (group) {
                 group.style.display = this.value === 'cancelled' ? 'block' : 'none';
+            }
+        });
+    }
+
+    const totalAmountInput = document.getElementById('total_amount');
+    if (totalAmountInput) {
+        totalAmountInput.addEventListener('input', calculatePendingAmount);
+        totalAmountInput.addEventListener('change', calculatePendingAmount);
+    }
+    const advanceAmountInput = document.getElementById('advance_amount');
+    if (advanceAmountInput) {
+        advanceAmountInput.addEventListener('input', calculatePendingAmount);
+        advanceAmountInput.addEventListener('change', calculatePendingAmount);
+    }
+
+    const orderFormEl = document.getElementById('orderForm');
+    if (orderFormEl) {
+        orderFormEl.addEventListener('submit', function(e) {
+            const total = parseFloat(document.getElementById('total_amount')?.value || 0);
+            const advance = parseFloat(document.getElementById('advance_amount')?.value || 0);
+            if (advance < 0) {
+                e.preventDefault();
+                alert('Advance amount cannot be negative.');
+                return false;
+            }
+            if (advance > total && total > 0) {
+                e.preventDefault();
+                alert('Advance amount (₹' + advance.toFixed(2) + ') cannot be greater than Total amount (₹' + total.toFixed(2) + ').');
+                return false;
             }
         });
     }
@@ -958,7 +1123,7 @@ function editOrder(order) {
     document.getElementById('orderModalTitle').textContent = 'Edit Order';
     document.getElementById('orderAction').value = 'update';
     document.getElementById('orderId').value = order.id || '';
-        const customerName = order.customer_name || '';
+    const customerName = order.customer_name || '';
     const clothTypeId = order.cloth_type_id ? String(order.cloth_type_id) : '';
     const assignedTailorId = order.assigned_tailor_id ? String(order.assigned_tailor_id) : '';
     document.getElementById('customer_id').value = customerName;
@@ -967,8 +1132,12 @@ function editOrder(order) {
     document.getElementById('order_date').value = order.order_date || '';
     document.getElementById('due_date').value = order.due_date || '';
     document.getElementById('total_amount').value = order.total_amount || '';
-    document.getElementById('advance_amount').value = order.advance_amount || '';
+    document.getElementById('advance_amount').value = (order.advance_amount !== undefined && order.advance_amount !== null) ? order.advance_amount : '0';
+    if (document.getElementById('payment_method')) {
+        document.getElementById('payment_method').value = order.payment_method || 'cash';
+    }
     document.getElementById('special_instructions').value = order.special_instructions || '';
+    calculatePendingAmount();
     
     console.log('Set values:', { customerName, clothTypeId, assignedTailorId }); // Debug log
         const measurementSelect = document.getElementById('measurement_id');
@@ -1182,7 +1351,10 @@ if (clothTypeSelectEl) {
         const rate = selectedOption ? selectedOption.getAttribute('data-rate') : null;
         if (rate && rate > 0) {
             const totalAmountEl = document.getElementById('total_amount');
-            if (totalAmountEl) totalAmountEl.value = rate;
+            if (totalAmountEl) {
+                totalAmountEl.value = rate;
+                calculatePendingAmount();
+            }
         }
     });
 }
@@ -1392,8 +1564,13 @@ if (orderModalEl) {
         if (formEl) formEl.reset();
         const dateEl = document.getElementById('order_date');
         if (dateEl) dateEl.value = '<?php echo date('Y-m-d'); ?>';
+        const advanceEl = document.getElementById('advance_amount');
+        if (advanceEl) advanceEl.value = '0';
+        const paymentMethodEl = document.getElementById('payment_method');
+        if (paymentMethodEl) paymentMethodEl.value = 'cash';
         hideMeasurementPreview();
         window.currentCustomerMeasurements = [];
+        calculatePendingAmount();
     });
 }
 let filterTimeout;
@@ -1728,11 +1905,23 @@ function displayFilterResults(orders) {
                 <td class="py-3">
                     <div>
                         <strong class="text-dark" style="font-size: 0.88rem;">${formatCurrency(order.total_amount)}</strong>
-                        ${order.advance_amount > 0 ? `
-                            <div class="text-muted" style="font-size: 0.72rem;">
-                                Adv: <span class="text-success">${formatCurrency(order.advance_amount)}</span>
+                        <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.72rem;">
+                            <div class="text-muted">
+                                Adv: <span class="text-success fw-semibold">${formatCurrency(order.advance_amount || 0)}</span>
+                                <span class="badge ${((order.payment_method || 'cash').toLowerCase() === 'online') ? 'bg-primary text-white' : 'bg-light text-dark border'} ms-1" style="font-size: 0.65rem;">
+                                    ${escapeHtml((order.payment_method || 'cash').toLowerCase() === 'online' ? 'Online' : ((order.payment_method || 'cash').charAt(0).toUpperCase() + (order.payment_method || 'cash').slice(1)))}
+                                </span>
                             </div>
-                        ` : ''}
+                            ${(order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, (parseFloat(order.total_amount) || 0) - (parseFloat(order.advance_amount) || 0))) > 0 ? `
+                                <div class="text-danger fw-semibold">
+                                    Pending: ${formatCurrency(order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, (parseFloat(order.total_amount) || 0) - (parseFloat(order.advance_amount) || 0)))}
+                                </div>
+                            ` : `
+                                <div class="text-success fw-semibold">
+                                    <i class="fas fa-check-circle me-1"></i>Fully Paid
+                                </div>
+                            `}
+                        </div>
                     </div>
                 </td>
                 <td class="pe-3 py-3 text-end">
@@ -1751,6 +1940,8 @@ function displayFilterResults(orders) {
                                     due_date: order.due_date,
                                     total_amount: order.total_amount,
                                     advance_amount: order.advance_amount,
+                                    balance_amount: order.balance_amount,
+                                    payment_method: order.payment_method || 'cash',
                                     special_instructions: order.special_instructions || ''
                                 }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
                                 title="Edit Order">

@@ -293,6 +293,9 @@ require_once 'includes/header.php';
                 <div class="col-4 border-end">
                     <div class="text-muted" style="font-size: 0.72rem;">Paid Amount</div>
                     <div class="fw-bold text-success" style="font-size: 0.95rem;"><?php echo format_currency($order['advance_amount']); ?></div>
+                    <?php if (!empty($order['payment_method'])): ?>
+                        <span class="badge bg-light text-dark border text-uppercase" style="font-size: 0.62rem;"><?php echo htmlspecialchars($order['payment_method']); ?></span>
+                    <?php endif; ?>
                 </div>
                 <div class="col-4">
                     <div class="text-muted" style="font-size: 0.72rem;">Balance</div>
@@ -348,7 +351,12 @@ require_once 'includes/header.php';
                         </div>
                         <div>
                             <div class="text-muted small fw-medium" style="font-size: 0.78rem;">Paid Amount</div>
-                            <div class="fw-bold fs-6 text-success"><?php echo format_currency($order['advance_amount']); ?></div>
+                            <div class="fw-bold fs-6 text-success d-flex align-items-center gap-1">
+                                <?php echo format_currency($order['advance_amount']); ?>
+                                <?php if (!empty($order['payment_method'])): ?>
+                                    <span class="badge bg-light text-dark border text-uppercase" style="font-size: 0.65rem;"><?php echo htmlspecialchars($order['payment_method']); ?></span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>

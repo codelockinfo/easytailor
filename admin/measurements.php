@@ -641,7 +641,8 @@ include 'includes/page-header.php';
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="phone_number" class="form-label">Phone Number *</label>
-                                <input type="text" class="form-control" id="phone_number" name="phone_number" required placeholder="Enter phone number"
+                                <input type="text" class="form-control" id="phone_number" name="phone_number" required placeholder="Enter phone number" maxlength="10"
+
                                        value="<?php echo htmlspecialchars($editMeasurement['phone_number'] ?? ''); ?>">
                             </div>
                         </div>

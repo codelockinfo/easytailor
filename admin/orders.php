@@ -103,6 +103,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         $_SESSION['message'] = 'Order created successfully';
                         $_SESSION['messageType'] = 'success';
+
+                        // Semi-automatic WhatsApp invoice trigger
+                        $canSendInvoiceCheck = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
+                        if (!empty($_POST['send_whatsapp_invoice']) && $canSendInvoiceCheck) {
+                            $cleanPhone = preg_replace('/\D/', '', $customerPhone ?? '');
+                            if (strlen($cleanPhone) === 10) {
+                                $cleanPhone = '91' . $cleanPhone;
+                            }
+                            $orderNum = $order['order_number'] ?? ('ORD' . $orderId);
+                            $clothTypeName = '';
+                            if (!empty($data['cloth_type_id'])) {
+                                $ct = $clothTypeModel->find($data['cloth_type_id']);
+                                $clothTypeName = $ct['name'] ?? '';
+                            }
+                            $waMsg = "*ORDER INVOICE / RECEIPT*\n";
+                            $waMsg .= "--------------------------------\n";
+                            $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
+                            $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
+                            if ($clothTypeName) $waMsg .= "👗 *Cloth Type:* " . $clothTypeName . "\n";
+                            if (!empty($data['due_date'])) $waMsg .= "📅 *Due Date:* " . $data['due_date'] . "\n";
+                            $waMsg .= "--------------------------------\n";
+                            $waMsg .= "💰 *Total Amount:* ₹" . number_format($totalAmount, 2) . "\n";
+                            $waMsg .= "✅ *Advance Paid:* ₹" . number_format($advanceAmount, 2) . " (" . strtoupper($paymentMethod) . ")\n";
+                            $waMsg .= "⏳ *Balance Due:* ₹" . number_format($balanceAmount, 2) . "\n";
+                            $waMsg .= "--------------------------------\n";
+                            $waMsg .= "Thank you for choosing us! 🙏";
+
+                            $_SESSION['auto_whatsapp'] = [
+                                'phone' => $cleanPhone,
+                                'customer_name' => $data['customer_name'] ?? 'Customer',
+                                'order_number' => $orderNum,
+                                'message' => $waMsg,
+                                'wa_url' => 'https://wa.me/' . $cleanPhone . '?text=' . urlencode($waMsg)
+                            ];
+                        }
                     } else {
                         $_SESSION['message'] = 'Failed to create order';
                         $_SESSION['messageType'] = 'error';
@@ -166,6 +201,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $_SESSION['message'] = 'Order updated successfully';
                     $_SESSION['messageType'] = 'success';
+
+                    // Semi-automatic WhatsApp invoice trigger on update
+                    $canSendInvoiceCheck = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
+                    if (!empty($_POST['send_whatsapp_invoice']) && $canSendInvoiceCheck) {
+                        $cleanPhone = preg_replace('/\D/', '', $customerPhone ?? '');
+                        if (strlen($cleanPhone) === 10) {
+                            $cleanPhone = '91' . $cleanPhone;
+                        }
+                        $order = $orderModel->find($orderId);
+                        $orderNum = $order['order_number'] ?? ('ORD' . $orderId);
+                        $clothTypeName = '';
+                        if (!empty($data['cloth_type_id'])) {
+                            $ct = $clothTypeModel->find($data['cloth_type_id']);
+                            $clothTypeName = $ct['name'] ?? '';
+                        }
+                        $waMsg = "*ORDER INVOICE / RECEIPT*\n";
+                        $waMsg .= "--------------------------------\n";
+                        $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
+                        $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
+                        if ($clothTypeName) $waMsg .= "👗 *Cloth Type:* " . $clothTypeName . "\n";
+                        if (!empty($data['due_date'])) $waMsg .= "📅 *Due Date:* " . $data['due_date'] . "\n";
+                        $waMsg .= "--------------------------------\n";
+                        $waMsg .= "💰 *Total Amount:* ₹" . number_format($totalAmount, 2) . "\n";
+                        $waMsg .= "✅ *Advance Paid:* ₹" . number_format($advanceAmount, 2) . " (" . strtoupper($paymentMethod) . ")\n";
+                        $waMsg .= "⏳ *Balance Due:* ₹" . number_format($balanceAmount, 2) . "\n";
+                        $waMsg .= "--------------------------------\n";
+                        $waMsg .= "Thank you for choosing us! 🙏";
+
+                        $_SESSION['auto_whatsapp'] = [
+                            'phone' => $cleanPhone,
+                            'customer_name' => $data['customer_name'] ?? 'Customer',
+                            'order_number' => $orderNum,
+                            'message' => $waMsg,
+                            'wa_url' => 'https://wa.me/' . $cleanPhone . '?text=' . urlencode($waMsg)
+                        ];
+                    }
                 } else {
                     $_SESSION['message'] = 'Failed to update order';
                     $_SESSION['messageType'] = 'error';
@@ -281,6 +352,8 @@ if (isset($_GET['edit'])) {
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
 $canSendInvoice = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
+$autoWhatsApp = $_SESSION['auto_whatsapp'] ?? null;
+unset($_SESSION['auto_whatsapp']);
 
 $orderStats = $orderModel->getOrderStats();
 if (!function_exists('getCustomerAvatarDesign')) {
@@ -1004,11 +1077,23 @@ include 'includes/page-header.php';
                         <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Save Order
-                    </button>
+                <div class="modal-footer d-flex justify-content-between align-items-center">
+                    <div>
+                        <?php if ($canSendInvoice): ?>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="send_whatsapp_invoice" name="send_whatsapp_invoice" value="1" checked style="cursor: pointer;">
+                            <label class="form-check-label fw-semibold text-success small" for="send_whatsapp_invoice" style="cursor: pointer;">
+                                <i class="fab fa-whatsapp me-1"></i>Send Invoice on WhatsApp
+                            </label>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="saveOrderBtn">
+                            <i class="fas fa-save me-2"></i>Save Order
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1053,6 +1138,60 @@ include 'includes/page-header.php';
         </div>
     </div>
 </div>
+
+<?php if ($autoWhatsApp): ?>
+<div class="modal fade" id="autoWhatsAppModal" tabindex="-1" aria-labelledby="autoWhatsAppModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg text-center" style="border-radius: 20px; overflow: hidden;">
+            <div class="p-4" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                <div class="rounded-circle bg-white text-success d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px; font-size: 2.2rem;">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Order Saved!</h4>
+                <p class="mb-0 opacity-90" style="font-size: 0.88rem;">Invoice receipt is ready to send</p>
+            </div>
+            <div class="p-4 bg-white">
+                <div class="p-3 mb-3 rounded-3 text-start" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Order #:</span>
+                        <strong class="text-primary"><?php echo htmlspecialchars($autoWhatsApp['order_number']); ?></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Customer:</span>
+                        <strong><?php echo htmlspecialchars($autoWhatsApp['customer_name']); ?></strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">WhatsApp:</span>
+                        <strong class="<?php echo !empty($autoWhatsApp['phone']) ? 'text-success' : 'text-danger'; ?>">
+                            <?php echo !empty($autoWhatsApp['phone']) ? ('+' . htmlspecialchars($autoWhatsApp['phone'])) : 'No phone entered'; ?>
+                        </strong>
+                    </div>
+                </div>
+
+                <?php if (!empty($autoWhatsApp['phone'])): ?>
+                <a id="btnTriggerAutoWhatsApp" href="<?php echo htmlspecialchars($autoWhatsApp['wa_url']); ?>" target="_blank" class="btn btn-success btn-lg w-100 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2" style="background-color: #16a34a; border-color: #16a34a;" onclick="const m = bootstrap.Modal.getInstance(document.getElementById('autoWhatsAppModal')); if(m) m.hide();">
+                    <i class="fab fa-whatsapp fs-5"></i>
+                    <span>Send on WhatsApp</span>
+                </a>
+                <div class="text-muted small" style="font-size: 0.78rem;">
+                    <i class="fas fa-magic me-1 text-success"></i>Opening WhatsApp... Tap button above if not opened
+                </div>
+                <?php else: ?>
+                <div class="alert alert-warning py-2 px-3 small text-start mb-3" style="font-size: 0.82rem;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Phone number was not provided for this order. You can use the "Send Invoice" button in the order list after adding their number.
+                </div>
+                <?php endif; ?>
+
+                <div class="mt-3 pt-2 border-top">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
+                        Close / Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="modal fade" id="sendInvoiceModal" tabindex="-1" aria-labelledby="sendInvoiceModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1212,6 +1351,19 @@ function calculatePendingAmount() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    <?php if ($autoWhatsApp): ?>
+    const autoModalEl = document.getElementById('autoWhatsAppModal');
+    if (autoModalEl) {
+        const autoModal = new bootstrap.Modal(autoModalEl);
+        autoModal.show();
+        <?php if (!empty($autoWhatsApp['phone'])): ?>
+        try {
+            const waUrl = <?php echo json_encode($autoWhatsApp['wa_url']); ?>;
+            window.open(waUrl, '_blank');
+        } catch(e) {}
+        <?php endif; ?>
+    }
+    <?php endif; ?>
     const orderModalStatusSelect = document.querySelector('#statusModal select[name="status"]');
     if (orderModalStatusSelect) {
         orderModalStatusSelect.addEventListener('change', function() {
@@ -1253,7 +1405,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function editOrder(order) {
-    console.log('Editing order:', order); 
+    console.log('Editing order:', order);
+    const waSwitch = document.getElementById('send_whatsapp_invoice');
+    if (waSwitch) waSwitch.checked = false; 
     
     document.getElementById('orderModalTitle').textContent = 'Edit Order';
     document.getElementById('orderAction').value = 'update';
@@ -1715,6 +1869,8 @@ if (orderModalEl) {
         if (dateEl) dateEl.value = '<?php echo date('Y-m-d'); ?>';
         const phoneEl = document.getElementById('customer_phone');
         if (phoneEl) phoneEl.value = '';
+        const waSwitch = document.getElementById('send_whatsapp_invoice');
+        if (waSwitch) waSwitch.checked = true;
         const advanceEl = document.getElementById('advance_amount');
         if (advanceEl) advanceEl.value = '0';
         const paymentMethodEl = document.getElementById('payment_method');

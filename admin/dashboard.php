@@ -183,7 +183,11 @@ if (empty($scheduleItems)) {
                             <?php echo htmlspecialchars($current_user['name'] ?? 'User'); ?> 👋
                         </div>
                         <div style="font-size: 0.78rem; color: rgba(255,255,255,0.82); line-height: 1.45; max-width: 320px;">
-                            Complete your shop profile to unlock all features and grow your tailoring business.
+                            <?php if ($prog >= 100): ?>
+                                Your shop profile is fully completed and active!
+                            <?php else: ?>
+                                Complete your shop profile to unlock all features and grow your tailoring business.
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -210,17 +214,23 @@ if (empty($scheduleItems)) {
                         <div>
                             <div class="fw-bold text-white mb-1" style="font-size: 1.05rem; line-height: 1.2;">Profile Completed</div>
                             <div style="font-size: 0.74rem; color: rgba(255,255,255,0.82); line-height: 1.4; max-width: 240px;">
-                                Add your shop details to get more customers and manage everything easily.
+                                <?php if ($prog >= 100): ?>
+                                    All your shop details have been added successfully.
+                                <?php else: ?>
+                                    Add your shop details to get more customers and manage everything easily.
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
 
+                    <?php if ($prog < 100): ?>
                     <div class="pe-5 me-3">
                         <a href="company-settings.php" class="wb-btn-clean">
                             Complete Profile
                             <i class="fas fa-arrow-right" style="font-size: 0.8rem;"></i>
                         </a>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <div class="d-flex align-items-center justify-content-between gap-4 mt-3 pt-2">
                     <div class="d-flex align-items-center flex-wrap" style="gap: 16px;">
@@ -241,6 +251,7 @@ if (empty($scheduleItems)) {
                         <?php endforeach; ?>
                     </div>
 
+                    <?php if ($prog < 100): ?>
                     <div class="d-flex align-items-center gap-3 pe-5 me-3" style="flex: 0 0 46%; max-width: 46%;">
                         <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.22); border-radius: 10px; overflow: hidden;">
                             <div style="height: 100%; width: <?php echo $prog; ?>%; background: #00e676; border-radius: 10px; box-shadow: 0 0 10px rgba(0,230,118,0.7); transition: width 1.2s ease;"></div>
@@ -249,6 +260,7 @@ if (empty($scheduleItems)) {
                             <?php echo $prog; ?>%
                         </span>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="d-flex d-lg-none flex-column gap-2">
@@ -286,11 +298,13 @@ if (empty($scheduleItems)) {
                         </div>
                     </div>
                 </div>
+                <?php if ($prog < 100): ?>
                 <div class="mt-1">
                     <a href="company-settings.php" class="wb-pill-btn-mob">
                         Complete Profile <i class="fas fa-arrow-right ms-1" style="font-size: 0.70rem;"></i>
                     </a>
                 </div>
+                <?php endif; ?>
                 <div class="d-flex flex-column gap-1 mt-1 pt-1">
                     <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
                         <?php 

@@ -548,6 +548,7 @@ select.form-select.settings-input,
                     <?php endforeach; ?>
                 </div>
 
+                <?php if ($prog < 100): ?>
                 <div class="d-flex align-items-center gap-3 pe-5 me-3" style="flex: 0 0 46%; max-width: 46%;">
                     <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.22); border-radius: 10px; overflow: hidden;">
                         <div style="height: 100%; width: <?php echo $prog; ?>%; background: #00e676; border-radius: 10px; box-shadow: 0 0 10px rgba(0,230,118,0.7); transition: width 1.2s ease;"></div>
@@ -556,6 +557,7 @@ select.form-select.settings-input,
                         <?php echo $prog; ?>%
                     </span>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         <div class="d-flex d-lg-none flex-column gap-2">

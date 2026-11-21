@@ -18,8 +18,8 @@ class User extends BaseModel {
     /**
      * Authenticate user (no company filter - needed for login)
      */
-    public function authenticate($username, $password) {
-        $query = "SELECT * FROM " . $this->table . " WHERE (username = :username OR email = :email) AND status = 'active' LIMIT 1";
+    public function authenticateWithDetails($username, $password) {
+        $query = "SELECT * FROM " . $this->table . " WHERE (username = :username OR email = :email) LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':username', $username);
         $stmt->bindParam(':email', $username);
@@ -27,11 +27,39 @@ class User extends BaseModel {
         
         $user = $stmt->fetch();
         
-        if ($user && password_verify($password, $user['password'])) {
-            return $user;
+        if (!$user) {
+            return [
+                'success' => false,
+                'error_type' => 'user_not_found',
+                'message' => 'Wrong email or username. No account found with this email / username.'
+            ];
         }
-        
-        return false;
+
+        if ($user['status'] !== 'active') {
+            return [
+                'success' => false,
+                'error_type' => 'account_inactive',
+                'message' => 'Your account is currently inactive or disabled. Please contact administrator.'
+            ];
+        }
+
+        if (!password_verify($password, $user['password'])) {
+            return [
+                'success' => false,
+                'error_type' => 'wrong_password',
+                'message' => 'Wrong password. Please enter the correct password.'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'user' => $user
+        ];
+    }
+
+    public function authenticate($username, $password) {
+        $result = $this->authenticateWithDetails($username, $password);
+        return $result['success'] ? $result['user'] : false;
     }
 
     /**

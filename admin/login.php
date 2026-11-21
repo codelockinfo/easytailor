@@ -334,6 +334,9 @@ $seoOptions = [
                                                autocomplete="username"
                                                required>
                                     </div>
+                                    <div class="text-danger small mt-1 d-none fw-semibold" id="usernameFeedback">
+                                        <i class="fas fa-times-circle me-1"></i><span></span>
+                                    </div>
                                 </div>
 
                                 <div class="mb-3" id="passwordFieldBlock">
@@ -352,6 +355,9 @@ $seoOptions = [
                                         <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                             <i class="fas fa-eye"></i>
                                         </button>
+                                    </div>
+                                    <div class="text-danger small mt-1 d-none fw-semibold" id="passwordFeedback">
+                                        <i class="fas fa-times-circle me-1"></i><span></span>
                                     </div>
                                 </div>
 
@@ -461,10 +467,13 @@ $seoOptions = [
             }
         });
         setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
+            // Auto close only flash banner alerts, NEVER touch #otpAlertBox
+            const alerts = document.querySelectorAll('.alert.alert-dismissible:not(#otpAlertBox)');
             alerts.forEach(function(alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+                try {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                } catch(e) {}
             });
         }, 5000);
         <?php if (isset($_SESSION['ga4_event']) && !empty($_SESSION['ga4_event'])): ?>
@@ -497,21 +506,75 @@ $seoOptions = [
         ?>
 
         function showOtpAlert(message, type = 'danger') {
-            const box = document.getElementById('otpAlertBox');
+            let box = document.getElementById('otpAlertBox');
+            if (!box) {
+                // In case it was somehow removed from DOM, recreate it
+                const container = document.getElementById('stepPassword') || document.querySelector('.card-body');
+                if (container) {
+                    box = document.createElement('div');
+                    box.id = 'otpAlertBox';
+                    container.parentNode.insertBefore(box, container);
+                }
+            }
             if (!box) return;
-            box.className = `alert alert-${type} alert-dismissible fade show`;
-            box.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i><span>${message}</span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            box.className = `alert alert-${type} d-flex align-items-center justify-content-between mb-3 shadow-sm`;
+            box.style.display = 'flex';
+            box.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-${type === 'success' ? 'check-circle text-success' : 'exclamation-circle text-danger'} fs-5 flex-shrink-0"></i>
+                    <span class="fw-semibold" style="font-size:0.88rem;">${message}</span>
+                </div>
+                <button type="button" class="btn-close ms-2" onclick="hideOtpAlert()" aria-label="Close"></button>
+            `;
             box.classList.remove('d-none');
+            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function hideOtpAlert() {
             const box = document.getElementById('otpAlertBox');
-            if (box) box.classList.add('d-none');
+            if (box) {
+                box.classList.add('d-none');
+                box.style.display = 'none';
+            }
         }
+
+        function clearFieldErrors() {
+            const u = document.getElementById('username');
+            const p = document.getElementById('password');
+            const uf = document.getElementById('usernameFeedback');
+            const pf = document.getElementById('passwordFeedback');
+            if (u) u.classList.remove('is-invalid');
+            if (p) p.classList.remove('is-invalid');
+            if (uf) {
+                uf.classList.add('d-none');
+                uf.querySelector('span').textContent = '';
+            }
+            if (pf) {
+                pf.classList.add('d-none');
+                pf.querySelector('span').textContent = '';
+            }
+        }
+
+        // Clear field validation errors as user types
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('username')?.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const uf = document.getElementById('usernameFeedback');
+                if (uf) uf.classList.add('d-none');
+                hideOtpAlert();
+            });
+            document.getElementById('password')?.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const pf = document.getElementById('passwordFeedback');
+                if (pf) pf.classList.add('d-none');
+                hideOtpAlert();
+            });
+        });
 
         async function handlePasswordLogin(e) {
             if (e) e.preventDefault();
             hideOtpAlert();
+            clearFieldErrors();
 
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
@@ -520,8 +583,27 @@ $seoOptions = [
             const csrf = document.getElementById('loginCsrfToken')?.value || '';
             const btn = document.getElementById('btnPasswordSignIn');
 
-            if (!username || !password) {
-                showOtpAlert('Please enter both username/email and password.');
+            if (!username) {
+                if (usernameInput) usernameInput.classList.add('is-invalid');
+                const uf = document.getElementById('usernameFeedback');
+                if (uf) {
+                    uf.querySelector('span').textContent = 'Please enter your username or email.';
+                    uf.classList.remove('d-none');
+                }
+                showOtpAlert('Please enter your username or email address.');
+                usernameInput?.focus();
+                return;
+            }
+
+            if (!password) {
+                if (passwordInput) passwordInput.classList.add('is-invalid');
+                const pf = document.getElementById('passwordFeedback');
+                if (pf) {
+                    pf.querySelector('span').textContent = 'Please enter your password.';
+                    pf.classList.remove('d-none');
+                }
+                showOtpAlert('Please enter your password.');
+                passwordInput?.focus();
                 return;
             }
 
@@ -539,7 +621,15 @@ $seoOptions = [
                     })
                 });
 
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (jsonErr) {
+                    console.error("JSON parse error:", text);
+                    showOtpAlert('Server error occurred during login. Please try again.');
+                    return;
+                }
 
                 if (data.success) {
                     if (data.redirect && !data.requires_otp) {
@@ -561,9 +651,36 @@ $seoOptions = [
                         if (firstInput) firstInput.focus();
                     }, 100);
                 } else {
+                    // Specific highlight based on error type
+                    if (data.error_type === 'user_not_found') {
+                        if (usernameInput) {
+                            usernameInput.classList.add('is-invalid');
+                            usernameInput.focus();
+                        }
+                        const uf = document.getElementById('usernameFeedback');
+                        if (uf) {
+                            uf.querySelector('span').textContent = 'Wrong email or username.';
+                            uf.classList.remove('d-none');
+                        }
+                    } else if (data.error_type === 'wrong_password') {
+                        if (passwordInput) {
+                            passwordInput.classList.add('is-invalid');
+                            passwordInput.value = '';
+                            passwordInput.focus();
+                        }
+                        const pf = document.getElementById('passwordFeedback');
+                        if (pf) {
+                            pf.querySelector('span').textContent = 'Wrong password.';
+                            pf.classList.remove('d-none');
+                        }
+                    } else {
+                        if (usernameInput) usernameInput.classList.add('is-invalid');
+                        if (passwordInput) passwordInput.classList.add('is-invalid');
+                    }
                     showOtpAlert(data.message || 'Invalid username or password.');
                 }
             } catch (err) {
+                console.error("Login fetch error:", err);
                 showOtpAlert('An unexpected error occurred. Please try again.');
             } finally {
                 setButtonLoading(btn, false);

@@ -209,13 +209,12 @@ class AuthController {
             return ['success' => false, 'message' => 'Username and password are required'];
         }
 
-        $user = $this->userModel->authenticate($username, $password);
-        
-        if ($user) {
-            return $this->completeUserLogin($user);
-        } else {
-            return ['success' => false, 'message' => 'Invalid username or password'];
+        $authResult = $this->userModel->authenticateWithDetails($username, $password);
+        if (!$authResult['success']) {
+            return $authResult;
         }
+
+        return $this->completeUserLogin($authResult['user']);
     }
 
     public function loginWithPasswordOtp($username, $password, $clientIp = null) {
@@ -237,10 +236,12 @@ class AuthController {
             ];
         }
 
-        $user = $this->userModel->authenticate($username, $password);
-        if (!$user) {
-            return ['success' => false, 'message' => 'Invalid username or password.'];
+        $authResult = $this->userModel->authenticateWithDetails($username, $password);
+        if (!$authResult['success']) {
+            return $authResult;
         }
+
+        $user = $authResult['user'];
 
         if (empty($user['email']) || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => 'No valid email address found for this user to receive OTP.'];

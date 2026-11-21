@@ -309,22 +309,36 @@ class Invoice extends BaseModel {
     /**
      * Get invoices for a specific customer
      */
-    public function getCustomerInvoices($customer_id) {
+    public function getCustomerInvoices($customer_id, $customer = null) {
         $companyId = $this->getCompanyId();
         $query = "SELECT i.*, o.order_number, ct.name as cloth_type_name
                   FROM " . $this->table . " i
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
-                  WHERE o.customer_id = :customer_id";
+                  WHERE (o.customer_id = :cust_id_1 OR o.measurement_id = :cust_id_2";
+        
+        $params = [
+            ':cust_id_1' => $customer_id,
+            ':cust_id_2' => $customer_id
+        ];
+        if (!empty($customer)) {
+            $fullName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
+            if (!empty($fullName)) {
+                $query .= " OR LOWER(TRIM(o.customer_name)) = :full_name";
+                $params[':full_name'] = strtolower($fullName);
+            }
+        }
+        $query .= ")";
+
         if ($companyId) {
             $query .= " AND i.company_id = :company_id";
+            $params[':company_id'] = $companyId;
         }
         $query .= " ORDER BY i.created_at DESC";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
-        if ($companyId) {
-            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        foreach ($params as $param => $val) {
+            $stmt->bindValue($param, $val);
         }
         $stmt->execute();
         

@@ -104,6 +104,27 @@ class Order extends BaseModel {
             $where_clauses[] = "o.company_id = :company_id";
             $params['company_id'] = $companyId;
         }
+
+        if (!empty($conditions['start_date'])) {
+            $where_clauses[] = "DATE(o.order_date) >= :start_date";
+            $params['start_date'] = $conditions['start_date'];
+            unset($conditions['start_date']);
+        }
+        if (!empty($conditions['end_date'])) {
+            $where_clauses[] = "DATE(o.order_date) <= :end_date";
+            $params['end_date'] = $conditions['end_date'];
+            unset($conditions['end_date']);
+        }
+        if (!empty($conditions['date_from'])) {
+            $where_clauses[] = "DATE(o.order_date) >= :date_from";
+            $params['date_from'] = $conditions['date_from'];
+            unset($conditions['date_from']);
+        }
+        if (!empty($conditions['date_to'])) {
+            $where_clauses[] = "DATE(o.order_date) <= :date_to";
+            $params['date_to'] = $conditions['date_to'];
+            unset($conditions['date_to']);
+        }
         
         if (!empty($conditions)) {
             foreach ($conditions as $column => $value) {
@@ -224,8 +245,55 @@ class Order extends BaseModel {
     public function getOrdersByStatus($status) {
         return $this->getOrdersWithDetails(['status' => $status]);
     }
-    public function getCustomerOrders($customer_id) {
-        return $this->getOrdersWithDetails(['customer_id' => $customer_id]);
+    public function getCustomerOrders($customer_id, $customer = null) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT o.*, 
+                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
+                         ct.name as cloth_type_name,
+                         u.full_name as tailor_name,
+                         creator.full_name as created_by_name,
+                         COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, '')) as measurement_customer_name
+                  FROM " . $this->table . " o
+                  LEFT JOIN customers c ON o.customer_id = c.id
+                  LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
+                  LEFT JOIN users u ON o.assigned_tailor_id = u.id
+                  LEFT JOIN users creator ON o.created_by = creator.id
+                  LEFT JOIN measurements ms ON o.measurement_id = ms.id
+                  WHERE (o.customer_id = :customer_id OR o.measurement_id = :cust_m_id";
+        
+        $params = [
+            ':customer_id' => $customer_id,
+            ':cust_m_id' => $customer_id
+        ];
+        
+        if (!empty($customer)) {
+            $fullName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
+            if (!empty($fullName)) {
+                $query .= " OR LOWER(TRIM(o.customer_name)) = :full_name";
+                $params[':full_name'] = strtolower($fullName);
+            }
+            if (!empty($customer['phone'])) {
+                $cleanPhone = preg_replace('/\D/', '', $customer['phone']);
+                $query .= " OR REPLACE(REPLACE(c.phone, '+', ''), ' ', '') = :clean_phone";
+                $params[':clean_phone'] = $cleanPhone;
+            }
+        }
+        
+        $query .= ")";
+        
+        if ($companyId) {
+            $query .= " AND o.company_id = :company_id";
+            $params[':company_id'] = $companyId;
+        }
+        
+        $query .= " ORDER BY o.created_at DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        foreach ($params as $param => $val) {
+            $stmt->bindValue($param, $val);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
     public function getTailorOrders($tailor_id) {
         return $this->getOrdersWithDetails(['assigned_tailor_id' => $tailor_id]);

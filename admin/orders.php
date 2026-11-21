@@ -577,9 +577,14 @@ include 'includes/page-header.php';
 </div>
 
 <div id="filterResults" class="mb-3" style="display: none;">
-    <div class="alert alert-info py-2 px-3 d-flex align-items-center" style="border-radius: 12px; font-size: 0.85rem;">
-        <i class="fas fa-info-circle me-2"></i>
-        <span><strong id="filterCount">0</strong> orders found</span>
+    <div id="filterAlertBox" class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 12px; font-size: 0.85rem;">
+        <div class="d-flex align-items-center">
+            <i id="filterAlertIcon" class="fas fa-info-circle me-2"></i>
+            <span id="filterAlertMessage"><strong id="filterCount">0</strong> orders found</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 ms-3 text-secondary" id="btnDismissFilterBanner" title="Dismiss" onclick="document.getElementById('filterResults').style.display='none';">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 </div>
 <div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
@@ -1400,6 +1405,9 @@ const startDateFilter = document.getElementById('startDateFilter');
 const endDateFilter = document.getElementById('endDateFilter');
 const clearFilters = document.getElementById('clearFilters');
 const filterResults = document.getElementById('filterResults');
+const filterAlertBox = document.getElementById('filterAlertBox');
+const filterAlertIcon = document.getElementById('filterAlertIcon');
+const filterAlertMessage = document.getElementById('filterAlertMessage');
 const filterCount = document.getElementById('filterCount');
 const ordersTable = document.getElementById('ordersTableBody') || document.querySelector('.table tbody');
 const originalTableContent = ordersTable ? ordersTable.innerHTML : '';
@@ -1483,9 +1491,24 @@ function executeFilter() {
     const tailor = tailorFilter ? tailorFilter.value : '';
     const startDate = startDateFilter ? startDateFilter.value : '';
     const endDate = endDateFilter ? endDateFilter.value : '';
+    const hasActiveFilters = Boolean(search || status || clothType || tailor || startDate || endDate);
     
-    filterResults.style.display = 'block';
-    filterCount.textContent = 'Filtering...';
+    if (hasActiveFilters) {
+        filterResults.style.display = 'block';
+        if (filterAlertBox) {
+            filterAlertBox.className = 'alert alert-info py-2 px-3 d-flex align-items-center justify-content-between';
+        }
+        if (filterAlertIcon) {
+            filterAlertIcon.className = 'fas fa-spinner fa-spin me-2 text-primary';
+        }
+        if (filterAlertMessage) {
+            filterAlertMessage.innerHTML = 'Filtering orders...';
+        } else if (filterCount) {
+            filterCount.textContent = 'Filtering...';
+        }
+    } else {
+        filterResults.style.display = 'none';
+    }
     
     const params = new URLSearchParams();
     if (search) params.append('search', search);
@@ -1505,7 +1528,6 @@ function executeFilter() {
             return response.text(); 
         })
         .then(text => {
-          
             if (text.trim().startsWith('<')) {
                 throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
             }
@@ -1514,7 +1536,36 @@ function executeFilter() {
                 const data = JSON.parse(text);
                 if (data.success) {
                     displayFilterResults(data.orders);
-                    filterCount.textContent = data.pagination.total_orders;
+                    const totalOrders = data.pagination.total_orders;
+                    if (filterCount) filterCount.textContent = totalOrders;
+                    
+                    if (hasActiveFilters) {
+                        filterResults.style.display = 'block';
+                        if (totalOrders > 0) {
+                            if (filterAlertBox) {
+                                filterAlertBox.className = 'alert alert-info py-2 px-3 d-flex align-items-center justify-content-between';
+                            }
+                            if (filterAlertIcon) {
+                                filterAlertIcon.className = 'fas fa-info-circle me-2 text-primary';
+                            }
+                            if (filterAlertMessage) {
+                                const orderLabel = totalOrders === 1 ? 'order' : 'orders';
+                                filterAlertMessage.innerHTML = `<strong id="filterCount">${totalOrders}</strong> ${orderLabel} found matching your filter criteria`;
+                            }
+                        } else {
+                            if (filterAlertBox) {
+                                filterAlertBox.className = 'alert alert-warning py-2 px-3 d-flex align-items-center justify-content-between';
+                            }
+                            if (filterAlertIcon) {
+                                filterAlertIcon.className = 'fas fa-search me-2 text-warning';
+                            }
+                            if (filterAlertMessage) {
+                                filterAlertMessage.innerHTML = `<strong>0 orders found.</strong> Try adjusting your filter criteria.`;
+                            }
+                        }
+                    } else {
+                        filterResults.style.display = 'none';
+                    }
                     
                     const paginationContainer = document.getElementById('paginationContainer');
                     if (paginationContainer) {
@@ -1526,18 +1577,46 @@ function executeFilter() {
                     }
                 } else {
                     console.error('Filter error:', data.error);
-                    filterCount.textContent = 'Filter failed: ' + (data.error || 'Unknown error');
+                    showFilterError(data.error || 'Unable to filter orders');
                 }
             } catch (parseError) {
                 console.error('JSON parse error:', parseError);
                 console.error('Response text:', text);
-                filterCount.textContent = 'Invalid response from server';
+                showFilterError('Invalid response from server');
             }
         })
         .catch(error => {
             console.error('Filter error:', error);
-            filterCount.textContent = 'Filter failed: ' + error.message;
+            showFilterError(error.message);
         });
+}
+
+function showFilterError(errorMessage) {
+    if (filterResults) filterResults.style.display = 'block';
+    if (filterAlertBox) {
+        filterAlertBox.className = 'alert alert-danger py-2 px-3 d-flex align-items-center justify-content-between';
+    }
+    if (filterAlertIcon) {
+        filterAlertIcon.className = 'fas fa-exclamation-triangle me-2 text-danger';
+    }
+    if (filterAlertMessage) {
+        filterAlertMessage.innerHTML = `<strong>Filter error:</strong> ${errorMessage || 'Unable to load orders'}. Please try again or clear filters.`;
+    } else if (filterCount) {
+        filterCount.textContent = 'Error';
+    }
+    if (ordersTable) {
+        ordersTable.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #fef2f2; color: #ef4444;">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Error filtering orders</h5>
+                    <p class="text-muted small mb-0">Please clear your filters and try again.</p>
+                </td>
+            </tr>
+        `;
+    }
 }
 
 function displayFilterResults(orders) {

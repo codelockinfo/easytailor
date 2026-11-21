@@ -133,27 +133,41 @@ try {
     }
     $expensesInRange = $expenseModel->getExpensesByDateRange($date_from, $date_to);
     $filteredExpenseStats = [
-        'total' => count($expensesInRange),
+        'total' => 0,
         'total_amount' => 0,
+        'total_cash_in' => 0,
+        'total_cash_out' => 0,
         'by_category' => [],
         'by_payment_method' => []
     ];
     $categoryTotals = [];
     $methodTotals = [];
     foreach ($expensesInRange as $expense) {
-        $filteredExpenseStats['total_amount'] += floatval($expense['amount'] ?? 0);
-        $category = $expense['category'] ?? 'Other';
-        if (!isset($categoryTotals[$category])) {
-            $categoryTotals[$category] = ['count' => 0, 'total' => 0];
-        }
-        $categoryTotals[$category]['count']++;
-        $categoryTotals[$category]['total'] += floatval($expense['amount'] ?? 0);
+        $amount = floatval($expense['amount'] ?? 0);
         $method = $expense['payment_method'] ?? 'cash';
+        
+        // Track payment methods (all transactions)
         if (!isset($methodTotals[$method])) {
             $methodTotals[$method] = ['count' => 0, 'total' => 0];
         }
         $methodTotals[$method]['count']++;
-        $methodTotals[$method]['total'] += floatval($expense['amount'] ?? 0);
+        $methodTotals[$method]['total'] += $amount;
+        
+        if ($method === 'cash_in') {
+            $filteredExpenseStats['total_cash_in'] += $amount;
+        } else {
+            // Actual expenses (cash_out)
+            $filteredExpenseStats['total']++;
+            $filteredExpenseStats['total_amount'] += $amount;
+            $filteredExpenseStats['total_cash_out'] += $amount;
+            
+            $cat = !empty($expense['category']) ? $expense['category'] : (!empty($expense['description']) ? ucfirst($expense['description']) : 'General');
+            if (!isset($categoryTotals[$cat])) {
+                $categoryTotals[$cat] = ['count' => 0, 'total' => 0];
+            }
+            $categoryTotals[$cat]['count']++;
+            $categoryTotals[$cat]['total'] += $amount;
+        }
     }
     foreach ($categoryTotals as $cat => $data) {
         $filteredExpenseStats['by_category'][] = [
@@ -164,7 +178,7 @@ try {
     }
     foreach ($methodTotals as $method => $data) {
         $filteredExpenseStats['by_payment_method'][] = [
-            'payment_method' => $method,
+            'payment_method' => ucwords(str_replace('_', ' ', $method)),
             'count' => $data['count'],
             'total' => $data['total']
         ];
@@ -235,12 +249,17 @@ try {
         );
         
         $expenseTotal = 0;
+        $cashInTotal = 0;
         foreach ($monthExpenses as $exp) {
-            $expenseTotal += floatval($exp['amount'] ?? 0);
+            if (($exp['payment_method'] ?? '') === 'cash_in') {
+                $cashInTotal += floatval($exp['amount'] ?? 0);
+            } else {
+                $expenseTotal += floatval($exp['amount'] ?? 0);
+            }
         }
         $monthlyRevenue[] = [
             'month' => $date->format('M Y'),
-            'revenue' => $revenue
+            'revenue' => $revenue + $cashInTotal
         ];
         $monthlyExpenses[] = [
             'month' => $date->format('M Y'),
@@ -275,6 +294,10 @@ try {
             ];
         }
     }
+    $totalInflow = $filteredInvoiceStats['total_amount'] + $filteredExpenseStats['total_cash_in'];
+    $totalExpenses = $filteredExpenseStats['total_amount'];
+    $netProfit = $totalInflow - $totalExpenses;
+
     $response = [
         'success' => true,
         'data' => [
@@ -284,15 +307,16 @@ try {
                     'this_month' => $filteredCustomerStats['this_month']
                 ],
                 'revenue' => [
-                    'total_amount' => format_currency($filteredInvoiceStats['total_amount']),
-                    'paid' => $filteredInvoiceStats['paid']
+                    'total_amount' => format_currency($totalInflow),
+                    'paid' => $filteredInvoiceStats['paid'],
+                    'cash_in' => $filteredExpenseStats['total_cash_in'] > 0 ? format_currency($filteredExpenseStats['total_cash_in']) : null
                 ],
                 'expenses' => [
-                    'total_amount' => format_currency($filteredExpenseStats['total_amount']),
+                    'total_amount' => format_currency($totalExpenses),
                     'total' => $filteredExpenseStats['total']
                 ],
                 'profit' => [
-                    'net_profit' => format_currency($filteredInvoiceStats['total_amount'] - $filteredExpenseStats['total_amount'])
+                    'net_profit' => format_currency($netProfit)
                 ]
             ],
             'charts' => [

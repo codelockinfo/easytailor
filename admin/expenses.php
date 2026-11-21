@@ -17,8 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         switch ($action) {
             case 'create':
+                $desc = sanitize_input($_POST['description'] ?? '');
+                $cat = sanitize_input($_POST['category'] ?? '');
+                if (empty($cat)) {
+                    $cat = !empty($desc) ? ucfirst(explode(' ', trim($desc))[0]) : 'General';
+                }
                 $data = [
-                    'description' => sanitize_input($_POST['description']),
+                    'category' => $cat,
+                    'description' => $desc,
                     'amount' => (float)$_POST['amount'],
                     'expense_date' => $_POST['expense_date'],
                     'payment_method' => $_POST['payment_method'],
@@ -37,12 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'update':
                 $expenseId = (int)$_POST['expense_id'];
+                $desc = sanitize_input($_POST['description'] ?? '');
+                $cat = sanitize_input($_POST['category'] ?? '');
+                if (empty($cat)) {
+                    $cat = !empty($desc) ? ucfirst(explode(' ', trim($desc))[0]) : 'General';
+                }
                 $data = [
-                    'description' => sanitize_input($_POST['description']),
+                    'category' => $cat,
+                    'description' => $desc,
                     'amount' => (float)$_POST['amount'],
                     'expense_date' => $_POST['expense_date'],
                     'payment_method' => $_POST['payment_method'],
-                    'reference_number' => sanitize_input($_POST['reference_number']),
+                    'reference_number' => sanitize_input($_POST['reference_number'] ?? ''),
                     'receipt_image' => $_POST['receipt_image'] ?: null
                 ];
                 
@@ -126,12 +138,18 @@ foreach ($expenseStats['by_payment_method'] as $pm) {
     }
 }
 $profit = $totalCashIn - $totalCashOut;
-$current_company_id = get_company_id();
-$dbCategories = $categoryModel->findAll(['status' => 'active', 'company_id' => $current_company_id], 'name ASC');
-$categories = array_unique(array_column($dbCategories, 'name'));
-if (empty($categories)) {
-    $categories = ['Rent', 'Utilities', 'Salaries', 'Materials', 'Equipment', 'Marketing', 'Transportation', 'Other'];
-}
+$expenseCategories = [
+    'Rent',
+    'Utilities & Electricity',
+    'Salaries & Wages',
+    'Materials & Supplies',
+    'Machine Maintenance',
+    'Tea & Refreshments',
+    'Shop Maintenance',
+    'Transportation',
+    'Other Expenses'
+];
+$categories = $expenseCategories;
 ?>
 <style>
 .cat-stat-box {
@@ -388,6 +406,9 @@ include 'includes/page-header.php';
                                         <div class="fw-semibold text-dark text-truncate" style="font-size: 0.88rem; max-width: 260px;">
                                             <?php echo display_val($expense['description']); ?>
                                         </div>
+                                        <?php if (!empty($expense['category'])): ?>
+                                            <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.7rem; font-weight: 500;"><?php echo htmlspecialchars($expense['category']); ?></span>
+                                        <?php endif; ?>
                                         <?php if (!empty($expense['receipt_image'])): ?>
                                             <div class="text-muted" style="font-size: 0.72rem;">
                                                 <i class="fas fa-paperclip text-primary me-1"></i>Receipt attached
@@ -501,31 +522,38 @@ include 'includes/page-header.php';
                     <input type="hidden" name="expense_id" id="expenseId">
                     
                     <div class="row">
-                         <div class="mb-3">
-                        <label for="description" class="form-label">Description *</label>
-                        <textarea class="form-control" id="description" name="description" rows="2" required></textarea>
-                    </div>
                         <div class="col-md-6 mb-3">
-                            <label for="amount" class="form-label">Amount *</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
-                            </div>
+                            <label for="payment_method" class="form-label fw-semibold">Type *</label>
+                            <select class="form-select" id="payment_method" name="payment_method" required onchange="handleTypeChange(this.value)">
+                                <option value="cash_out" selected>Cash Out (Expense / ખર્ચ)</option>
+                                <option value="cash_in">Cash In (Income / આવક)</option>
+                            </select>
                         </div>
-                         <div class="col-md-6 mb-3">
-                            <label for="expense_date" class="form-label">Expense Date *</label>
-                            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?php echo date('Y-m-d'); ?>" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label fw-semibold">Category *</label>
+                            <select class="form-select" id="category" name="category">
+                                <?php foreach ($expenseCategories as $cat): ?>
+                                    <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div> 
                     <div class="row">
-                       
-                        <div class="col-md-12 mb-3">
-                            <label for="payment_method" class="form-label">Payment Method *</label>
-                            <select class="form-select" id="payment_method" name="payment_method" required>
-                                <option value="cash_in">Cash In</option>
-                                <option value="cash_out">Cash Out</option>
-                            </select>
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label fw-semibold">Amount *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0.01" required placeholder="0.00">
+                            </div>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="expense_date" class="form-label fw-semibold">Expense Date *</label>
+                            <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-semibold">Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="2" required placeholder="e.g. Shop rent, electricity bill, etc."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -697,18 +725,54 @@ function saveQuickCategory() {
         msgDiv.classList.remove('d-none');
     });
 }
+const expenseCategories = <?php echo json_encode($expenseCategories); ?>;
+const incomeCategories = [
+    'Customer Bill / Income',
+    'Advance Payment',
+    'Capital / Cash Deposit',
+    'Scrap / Fabric Sale',
+    'Other Income'
+];
+
+function handleTypeChange(val, selectedCat = '') {
+    const catEl = document.getElementById('category');
+    if (!catEl) return;
+    
+    const list = (val === 'cash_in') ? incomeCategories : expenseCategories;
+    catEl.innerHTML = '';
+    
+    list.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        if (selectedCat && selectedCat === cat) {
+            opt.selected = true;
+        }
+        catEl.appendChild(opt);
+    });
+
+    if (selectedCat && !list.includes(selectedCat)) {
+        const customOpt = document.createElement('option');
+        customOpt.value = selectedCat;
+        customOpt.textContent = selectedCat;
+        customOpt.selected = true;
+        catEl.appendChild(customOpt);
+    }
+}
+
 function editExpense(expense) {
     document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
     document.getElementById('expenseAction').value = 'update';
     document.getElementById('expenseId').value = expense.id;
     
     // Populate form fields
-    const catEl = document.getElementById('category');
-    if (catEl) catEl.value = expense.category || '';
+    const pm = expense.payment_method || 'cash_out';
+    document.getElementById('payment_method').value = pm;
+    handleTypeChange(pm, expense.category || '');
+    
     document.getElementById('description').value = expense.description || '';
     document.getElementById('amount').value = expense.amount || '';
     document.getElementById('expense_date').value = expense.expense_date || '';
-    document.getElementById('payment_method').value = expense.payment_method || 'cash';
     const refEl = document.getElementById('reference_number');
     if (refEl) refEl.value = expense.reference_number || '';
     
@@ -781,14 +845,23 @@ function exportExpenses() {
         exportBtn.innerHTML = originalText;
     });
 }
+document.getElementById('expenseModal').addEventListener('show.bs.modal', function() {
+    if (document.getElementById('expenseAction').value === 'create') {
+        const pm = document.getElementById('payment_method').value || 'cash_out';
+        handleTypeChange(pm);
+    }
+});
 document.getElementById('expenseModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('expenseModalTitle').textContent = 'Record Expense';
     document.getElementById('expenseAction').value = 'create';
     document.getElementById('expenseId').value = '';
     document.getElementById('expenseForm').reset();
+    document.getElementById('payment_method').value = 'cash_out';
     document.getElementById('expense_date').value = '<?php echo date('Y-m-d'); ?>';
+    handleTypeChange('cash_out');
 });
 document.addEventListener('DOMContentLoaded', function() {
+    handleTypeChange('cash_out');
     const formatCurrency = (amount) => '₹' + parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
     let filterTimeout;
     const searchInput = document.getElementById('searchInput');
@@ -973,6 +1046,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="fw-semibold text-dark text-truncate" style="font-size: 0.88rem; max-width: 260px;">
                                     ${cleanDesc}
                                 </div>
+                                ${expense.category ? `<span class="badge bg-light text-secondary border mt-1" style="font-size: 0.7rem; font-weight: 500;">${escapeHtml(expense.category)}</span>` : ''}
                                 ${expense.receipt_image ? `
                                     <div class="text-muted" style="font-size: 0.72rem;">
                                         <i class="fas fa-paperclip text-primary me-1"></i>Receipt attached

@@ -1,8 +1,5 @@
 <?php
-/**
- * Automatic User Fix Script
- * This will automatically fix the user session issue
- */
+
 
 require_once '../config/database.php';
 
@@ -14,8 +11,6 @@ $allFixed = true;
 try {
     $db = new Database();
     $conn = $db->getConnection();
-    
-    // STEP 1: Check if users table exists and has data
     $steps['check_users'] = ['status' => 'checking', 'message' => 'Checking users table...'];
     
     $stmt = $conn->query("SELECT COUNT(*) as count FROM users");
@@ -25,11 +20,10 @@ try {
     if ($userCount == 0) {
         $steps['check_users'] = ['status' => 'warning', 'message' => "No users found. Creating default admin user..."];
         
-        // Create default admin user
         $sql = "INSERT INTO `users` (`username`, `email`, `password`, `full_name`, `role`, `status`) 
                 VALUES ('admin', 'admin@tailoring.com', :password, 'System Administrator', 'admin', 'active')";
         $stmt = $conn->prepare($sql);
-        $hashedPassword = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'; // password
+        $hashedPassword = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'; 
         $stmt->bindParam(':password', $hashedPassword);
         
         if ($stmt->execute()) {
@@ -42,8 +36,6 @@ try {
     } else {
         $steps['check_users'] = ['status' => 'success', 'message' => "✅ Found $userCount user(s) in database"];
     }
-    
-    // STEP 2: Check current session
     $steps['check_session'] = ['status' => 'checking', 'message' => 'Checking current session...'];
     
     $sessionUserId = $_SESSION['user_id'] ?? null;
@@ -58,7 +50,6 @@ try {
         } else {
             $steps['check_session'] = ['status' => 'error', 'message' => "❌ Session user ID ($sessionUserId) NOT found in database"];
             
-            // Clear invalid session
             session_unset();
             session_destroy();
             
@@ -67,8 +58,6 @@ try {
     } else {
         $steps['check_session'] = ['status' => 'warning', 'message' => "⚠️ No user session found"];
     }
-    
-    // STEP 3: Get list of valid users
     $stmt = $conn->query("SELECT id, username, full_name, role, status FROM users ORDER BY id");
     $users = $stmt->fetchAll();
     
@@ -206,4 +195,3 @@ try {
     </div>
 </body>
 </html>
-

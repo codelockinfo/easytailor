@@ -45,7 +45,7 @@ try {
     $excelContent .= '<Table>' . "\n";
     $excelContent .= '<Row>' . "\n";
     $headers = [
-        'Expense ID', 'Description', 'Amount', 'Expense Date', 'Payment Method',
+        'Expense ID', 'Category', 'Description', 'Amount', 'Expense Date', 'Payment Method',
         'Receipt Image', 'Created By', 'Created Date'
     ];
     foreach ($headers as $header) {
@@ -55,8 +55,10 @@ try {
     foreach ($expenses as $expense) {
         $createdBy = $userModel->getUserById($expense['created_by']);
         $createdByName = $createdBy ? $createdBy['full_name'] : 'Unknown';
+        $cat = !empty($expense['category']) ? $expense['category'] : (!empty($expense['description']) ? ucfirst($expense['description']) : 'General');
         $excelContent .= '<Row>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">EXP-' . str_pad($expense['id'], 6, '0', STR_PAD_LEFT) . '</Data></Cell>' . "\n";
+        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($cat) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['description']) . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="Number">' . $expense['amount'] . '</Data></Cell>' . "\n";
         $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['expense_date']) . '</Data></Cell>' . "\n";

@@ -25,6 +25,12 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
 $expenseStats = $expenseModel->getExpenseStats();
 $customerStats = $customerModel->getCustomerStats();
 
+$invoiceRevenue = (float)($invoiceStats['total_amount'] ?? 0);
+$cashInRevenue = (float)($expenseStats['total_cash_in'] ?? 0);
+$totalInflow = $invoiceRevenue + $cashInRevenue;
+$totalExpenses = (float)($expenseStats['total_amount'] ?? 0);
+$netProfitVal = $totalInflow - $totalExpenses;
+
 // Get monthly data for charts
 $monthlyRevenue = [];
 $monthlyExpenses = [];
@@ -33,17 +39,19 @@ for ($i = 11; $i >= 0; $i--) {
     $year = date('Y', strtotime($date));
     $month = date('m', strtotime($date));
     
-    $revenue = $orderModel->getMonthlyRevenue($year, $month);
+    $orderRev = (float)$orderModel->getMonthlyRevenue($year, $month);
     $expense = $expenseModel->getMonthlyExpenseStats($year, $month);
+    $cashInMonth = (float)($expense['total_cash_in'] ?? 0);
+    $expMonth = (float)($expense['total_expenses'] ?? ($expense['total_amount'] ?? 0));
     
     $monthlyRevenue[] = [
         'month' => date('M Y', strtotime($date)),
-        'revenue' => $revenue
+        'revenue' => $orderRev + $cashInMonth
     ];
     
     $monthlyExpenses[] = [
         'month' => date('M Y', strtotime($date)),
-        'expenses' => $expense['total_amount'] ?? 0
+        'expenses' => $expMonth
     ];
 }
 ?>
@@ -174,8 +182,10 @@ include 'includes/page-header.php';
         <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
             <div>
                 <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL REVENUE</span>
-                <div class="fs-4 fw-bold text-success mt-1" id="totalRevenue"><?php echo format_currency($invoiceStats['total_amount']); ?></div>
-                <div class="text-muted" style="font-size: 0.72rem;" id="paidInvoices"><?php echo $invoiceStats['paid']; ?> paid invoices</div>
+                <div class="fs-4 fw-bold text-success mt-1" id="totalRevenue"><?php echo format_currency($totalInflow); ?></div>
+                <div class="text-muted" style="font-size: 0.72rem;" id="paidInvoices">
+                    <?php echo $invoiceStats['paid']; ?> paid invoices<?php if ($cashInRevenue > 0): ?> <span class="text-success">(+<?php echo format_currency($cashInRevenue); ?> in)</span><?php endif; ?>
+                </div>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #dcfce7; color: #16a34a; font-size: 0.95rem;">
                 <i class="fas fa-wallet"></i>
@@ -186,8 +196,10 @@ include 'includes/page-header.php';
         <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #fef2f2; border: 1px solid #fee2e2;">
             <div>
                 <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL EXPENSES</span>
-                <div class="fs-4 fw-bold text-danger mt-1" id="totalExpenses"><?php echo format_currency($expenseStats['total_amount']); ?></div>
-                <div class="text-muted" style="font-size: 0.72rem;" id="expenseTransactions"><?php echo $expenseStats['total']; ?> transactions</div>
+                <div class="fs-4 fw-bold text-danger mt-1" id="totalExpenses"><?php echo format_currency($totalExpenses); ?></div>
+                <div class="text-muted" style="font-size: 0.72rem;" id="expenseTransactions">
+                    <?php echo ($expenseStats['total_cash_out_count'] ?? $expenseStats['total']); ?> expenses
+                </div>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #fee2e2; color: #dc2626; font-size: 0.95rem;">
                 <i class="fas fa-receipt"></i>
@@ -198,8 +210,8 @@ include 'includes/page-header.php';
         <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
             <div>
                 <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">NET PROFIT</span>
-                <div class="fs-4 fw-bold text-primary mt-1" id="netProfit"><?php echo format_currency($invoiceStats['total_amount'] - $expenseStats['total_amount']); ?></div>
-                <div class="text-muted" style="font-size: 0.72rem;">Revenue - Expenses</div>
+                <div class="fs-4 fw-bold <?php echo $netProfitVal >= 0 ? 'text-primary' : 'text-danger'; ?> mt-1" id="netProfit"><?php echo format_currency($netProfitVal); ?></div>
+                <div class="text-muted" style="font-size: 0.72rem;">Total Inflow - Expenses</div>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #ede9fe; color: #9333ea; font-size: 0.95rem;">
                 <i class="fas fa-chart-line"></i>
@@ -489,18 +501,22 @@ function initializeCharts() {
         }
     });
 
+    const reportColorPalette = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#64748b'];
+
     // Expense Category Chart
     const expenseCategoryCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+    const initCatLabels = <?php echo json_encode(array_column($expenseStats['by_category'], 'category')); ?>;
+    const initCatData = <?php echo json_encode(array_column($expenseStats['by_category'], 'total')); ?>;
     expenseCategoryChart = new Chart(expenseCategoryCtx, {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode(array_column($expenseStats['by_category'], 'category')); ?>,
+            labels: initCatLabels.length ? initCatLabels : ['No Expenses'],
             datasets: [{
                 label: 'Amount',
-                data: <?php echo json_encode(array_column($expenseStats['by_category'], 'total')); ?>,
-                backgroundColor: '#dc3545',
-                borderColor: '#dc3545',
-                borderWidth: 1
+                data: initCatData.length ? initCatData : [0],
+                backgroundColor: initCatLabels.length ? reportColorPalette.slice(0, initCatLabels.length) : ['#e2e8f0'],
+                borderRadius: 8,
+                maxBarThickness: 45
             }]
         },
         options: {
@@ -526,17 +542,22 @@ function initializeCharts() {
 
     // Payment Method Chart
     const paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
+    const initPmLabels = <?php echo json_encode(array_map(function($pm) {
+        return ucwords(str_replace('_', ' ', $pm['payment_method']));
+    }, $expenseStats['by_payment_method'])); ?>;
+    const initPmData = <?php echo json_encode(array_column($expenseStats['by_payment_method'], 'total')); ?>;
     paymentMethodChart = new Chart(paymentMethodCtx, {
         type: 'pie',
         data: {
-            labels: <?php echo json_encode(array_column($expenseStats['by_payment_method'], 'payment_method')); ?>,
+            labels: initPmLabels.length ? initPmLabels : ['None'],
             datasets: [{
-                data: <?php echo json_encode(array_column($expenseStats['by_payment_method'], 'total')); ?>,
+                data: initPmData.length ? initPmData : [0],
                 backgroundColor: [
-                    '#28a745',
-                    '#007bff',
-                    '#17a2b8',
-                    '#ffc107'
+                    '#10b981',
+                    '#ef4444',
+                    '#3b82f6',
+                    '#f59e0b',
+                    '#8b5cf6'
                 ]
             }]
         },
@@ -638,13 +659,18 @@ function updateCharts(data) {
     }
 
     // Update Expense Category Chart
-    expenseCategoryChart.data.labels = data.charts.expense_categories.labels;
-    expenseCategoryChart.data.datasets[0].data = data.charts.expense_categories.data;
+    const updCatLabels = data.charts.expense_categories.labels || [];
+    const updCatData = data.charts.expense_categories.data || [];
+    expenseCategoryChart.data.labels = updCatLabels.length ? updCatLabels : ['No Expenses'];
+    expenseCategoryChart.data.datasets[0].data = updCatData.length ? updCatData : [0];
+    expenseCategoryChart.data.datasets[0].backgroundColor = updCatLabels.length ? reportColorPalette.slice(0, updCatLabels.length) : ['#e2e8f0'];
     expenseCategoryChart.update();
 
     // Update Payment Method Chart
-    paymentMethodChart.data.labels = data.charts.payment_methods.labels;
-    paymentMethodChart.data.datasets[0].data = data.charts.payment_methods.data;
+    const updPmLabels = (data.charts.payment_methods.labels || []).map(l => l.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+    const updPmData = data.charts.payment_methods.data || [];
+    paymentMethodChart.data.labels = updPmLabels.length ? updPmLabels : ['None'];
+    paymentMethodChart.data.datasets[0].data = updPmData.length ? updPmData : [0];
     paymentMethodChart.update();
 }
 
@@ -653,10 +679,16 @@ function updateKeyMetrics(data) {
     document.getElementById('totalCustomers').textContent = data.stats.customers.total;
     document.getElementById('customersThisMonth').textContent = '+' + data.stats.customers.this_month + ' this month';
     document.getElementById('totalRevenue').textContent = data.stats.revenue.total_amount;
-    document.getElementById('paidInvoices').textContent = data.stats.revenue.paid + ' paid invoices';
+    document.getElementById('paidInvoices').innerHTML = data.stats.revenue.paid + ' paid invoices' + (data.stats.revenue.cash_in ? ` <span class="text-success">(+${data.stats.revenue.cash_in} in)</span>` : '');
     document.getElementById('totalExpenses').textContent = data.stats.expenses.total_amount;
-    document.getElementById('expenseTransactions').textContent = data.stats.expenses.total + ' transactions';
-    document.getElementById('netProfit').textContent = data.stats.profit.net_profit;
+    document.getElementById('expenseTransactions').textContent = data.stats.expenses.total + ' expenses';
+    const netEl = document.getElementById('netProfit');
+    netEl.textContent = data.stats.profit.net_profit;
+    if (data.stats.profit.net_profit && data.stats.profit.net_profit.includes('-')) {
+        netEl.className = 'fs-4 fw-bold text-danger mt-1';
+    } else {
+        netEl.className = 'fs-4 fw-bold text-primary mt-1';
+    }
 }
 
 // Update summary tables

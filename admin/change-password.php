@@ -1,33 +1,21 @@
-
 <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
 require_once '../config/config.php';
 require_login();
-
 require_once 'models/User.php';
-
 $userModel = new User();
 $message = '';
 $messageType = '';
-
-// Handle form submissions BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $userId = get_user_id();
         $currentPassword = $_POST['current_password'];
         $newPassword = $_POST['new_password'];
         $confirmPassword = $_POST['confirm_password'];
-        
-        // Get current user
         $user = $userModel->find($userId);
-        
-        // Verify current password
         if (!password_verify($currentPassword, $user['password'])) {
             $_SESSION['message'] = 'Current password is incorrect';
             $_SESSION['messageType'] = 'error';
@@ -56,20 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
-// Get messages from session
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     $messageType = $_SESSION['messageType'] ?? 'info';
     unset($_SESSION['message']);
     unset($_SESSION['messageType']);
 }
-
-// NOW include header (after all redirects are done)
 $page_title = 'Change Password';
 require_once 'includes/header.php';
 ?>
-
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">
         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
@@ -180,8 +163,6 @@ function togglePassword(fieldId) {
         icon.classList.add('fa-eye');
     }
 }
-
-// Validate passwords match
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     const newPassword = document.getElementById('new_password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
@@ -193,9 +174,7 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     }
 });
 </script>
-
 <?php require_once 'includes/footer.php'; ?>
-
 <style>
     .card-header {
         color: white !important;

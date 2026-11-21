@@ -2,17 +2,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
-/**
- * Diagnostic Script - Check Measurement Charts Setup
- * This script helps verify that measurement charts are properly configured
- */
-
 require_once '../config/config.php';
 require_login();
-
-// Check if user is admin
 if (!has_role('admin')) {
     die('Access denied. Admin only.');
 }

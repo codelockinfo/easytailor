@@ -1,10 +1,7 @@
 <?php
-
 $page_title = 'Category Management';
 require_once 'includes/header.php';
-
 require_once 'models/Category.php';
-
 $categoryModel = new Category();
 $message = '';
 $messageType = '';

@@ -4,16 +4,23 @@ class Order extends BaseModel {
 
     public function __construct() {
         parent::__construct();
-        $this->ensurePaymentMethodColumn();
+        $this->ensureColumns();
     }
 
-    private function ensurePaymentMethodColumn() {
+    private function ensureColumns() {
+        if (!$this->conn) {
+            return;
+        }
         try {
             $colCheck = $this->conn->query("SHOW COLUMNS FROM " . $this->table . " LIKE 'payment_method'");
             if ($colCheck && $colCheck->rowCount() === 0) {
                 $this->conn->exec("ALTER TABLE " . $this->table . " ADD COLUMN payment_method VARCHAR(50) NOT NULL DEFAULT 'cash' AFTER balance_amount");
             }
-        } catch (Exception $e) {
+            $phoneCheck = $this->conn->query("SHOW COLUMNS FROM " . $this->table . " LIKE 'customer_phone'");
+            if ($phoneCheck && $phoneCheck->rowCount() === 0) {
+                $this->conn->exec("ALTER TABLE " . $this->table . " ADD COLUMN customer_phone VARCHAR(25) DEFAULT NULL AFTER special_instructions");
+            }
+        } catch (\Throwable $e) {
             // Silently ignore if column already exists or table locked
         }
     }
@@ -105,7 +112,7 @@ class Order extends BaseModel {
     public function getOrdersWithDetails($conditions = [], $limit = null, $offset = 0) {
         $companyId = $this->getCompanyId();
         $query = "SELECT o.*, 
-                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone, c.email as customer_email,
+                         c.first_name, c.last_name, c.customer_code, COALESCE(NULLIF(o.customer_phone, ''), NULLIF(c.phone, ''), NULLIF(ms.phone_number, '')) as customer_phone, c.email as customer_email,
                          ct.name as cloth_type_name,
                          u.full_name as tailor_name,
                          creator.full_name as created_by_name,

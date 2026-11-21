@@ -61,9 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
+                $customerPhone = !empty($_POST['customer_phone']) ? sanitize_input($_POST['customer_phone']) : null;
 
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
+                    'customer_phone' => $customerPhone,
                     'customer_id' => null,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
@@ -135,9 +137,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
+                $customerPhone = !empty($_POST['customer_phone']) ? sanitize_input($_POST['customer_phone']) : null;
 
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
+                    'customer_phone' => $customerPhone,
                     'customer_id' => null,
                     'cloth_type_id' => (int)$_POST['cloth_type_id'],
                     'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
@@ -276,6 +280,7 @@ if (isset($_GET['edit'])) {
 }
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
+$canSendInvoice = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
 
 $orderStats = $orderModel->getOrderStats();
 if (!function_exists('getCustomerAvatarDesign')) {
@@ -346,6 +351,24 @@ if (!function_exists('getCustomerAvatarDesign')) {
 }
 .cat-action-status::after {
     display: none !important;
+}
+.cat-action-print {
+    background: #faf5ff;
+    border-color: #ede9fe;
+    color: #8b5cf6;
+}
+.cat-action-print:hover {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+.cat-action-whatsapp {
+    background: #f0fdf4;
+    border-color: #dcfce7;
+    color: #16a34a;
+}
+.cat-action-whatsapp:hover {
+    background: #dcfce7;
+    color: #15803d;
 }
 .cat-table-head th {
     background-color: #f8fafc !important;
@@ -716,6 +739,7 @@ include 'includes/page-header.php';
                                                 'id' => $order['id'],
                                                 'customer_id' => $order['customer_id'],
                                                 'customer_name' => $order['measurement_customer_name'] ?? '',
+                                                'customer_phone' => $order['customer_phone'] ?? '',
                                                 'cloth_type_id' => $order['cloth_type_id'],
                                                 'measurement_id' => $order['measurement_id'],
                                                 'assigned_tailor_id' => $order['assigned_tailor_id'],
@@ -754,6 +778,32 @@ include 'includes/page-header.php';
                                             <li><a class="dropdown-item py-1 text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'cancelled', this); return false;"><i class="fas fa-times-circle me-2"></i>Cancelled</a></li>
                                         </ul>
                                     </div>
+                                    <button type="button" 
+                                            class="cat-action-btn cat-action-print" 
+                                            onclick="printOrderInvoice(<?php echo $order['id']; ?>)" 
+                                            title="Print Invoice">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                    <?php if ($canSendInvoice): ?>
+                                    <button type="button" 
+                                            class="cat-action-btn cat-action-whatsapp" 
+                                            onclick='openSendInvoiceModal(<?php echo htmlspecialchars(json_encode([
+                                                "id" => $order["id"],
+                                                "order_number" => $order["order_number"] ?? ("ORD" . $order["id"]),
+                                                "customer_name" => $order["measurement_customer_name"] ?? $order["customer_name"] ?? "Customer",
+                                                "customer_phone" => $order["customer_phone"] ?? "",
+                                                "cloth_type_name" => $order["cloth_type_name"] ?? "",
+                                                "total_amount" => (float)$order["total_amount"],
+                                                "advance_amount" => (float)($order["advance_amount"] ?? 0),
+                                                "balance_amount" => isset($order["balance_amount"]) ? (float)$order["balance_amount"] : max(0.0, (float)$order["total_amount"] - (float)($order["advance_amount"] ?? 0)),
+                                                "payment_method" => $order["payment_method"] ?? "cash",
+                                                "order_date" => $order["order_date"] ?? "",
+                                                "due_date" => $order["due_date"] ?? ""
+                                            ])); ?>)' 
+                                            title="Send Invoice">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </button>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -823,18 +873,22 @@ include 'includes/page-header.php';
                     <input type="hidden" name="order_id" id="orderId">
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="customer_id" class="form-label">Customer *</label>
                             <select class="form-select" id="customer_id" name="customer_id" required>
                                 <option value="">Select Customer</option>
                                 <?php foreach ($measurementCustomers as $mc): ?>
-                                    <option value="<?php echo htmlspecialchars($mc['customer_name']); ?>">
+                                    <option value="<?php echo htmlspecialchars($mc['customer_name']); ?>" data-phone="<?php echo htmlspecialchars($mc['phone_number'] ?? ''); ?>">
                                         <?php echo htmlspecialchars($mc['customer_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="customer_phone" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15">
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label for="measurement_id" class="form-label">Measurement</label>
                             <select class="form-select" id="measurement_id" name="measurement_id">
                                 <option value="">No Measurement</option>
@@ -1000,6 +1054,87 @@ include 'includes/page-header.php';
     </div>
 </div>
 
+<div class="modal fade" id="sendInvoiceModal" tabindex="-1" aria-labelledby="sendInvoiceModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 44px; height: 44px; background: #dcfce7; color: #16a34a; font-size: 1.25rem;">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0">Send Invoice Receipt</h5>
+                        <small class="text-muted">Order <span id="sendInvoiceOrderNum" class="fw-semibold text-primary"></span></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <!-- Customer Details -->
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">Customer Name</label>
+                        <input type="text" class="form-control form-control-sm bg-light" id="sendInvoiceCustomerName" readonly>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">WhatsApp / Phone *</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">+91</span>
+                            <input type="text" class="form-control form-control-sm" id="sendInvoicePhone" placeholder="10-digit number" maxlength="15" oninput="generateInvoiceMessagePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Card -->
+                <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Cloth Type:</span>
+                        <strong id="sendInvoiceClothType" class="text-dark"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Due Date:</span>
+                        <strong id="sendInvoiceDueDate" class="text-dark"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Total Amount:</span>
+                        <strong id="sendInvoiceTotal" class="text-dark"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Advance Paid:</span>
+                        <strong id="sendInvoiceAdvance" class="text-success"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between pt-1 border-top">
+                        <span class="fw-bold text-dark">Pending Balance:</span>
+                        <strong id="sendInvoiceBalance" class="text-danger fw-bold"></strong>
+                    </div>
+                </div>
+
+                <!-- Message Preview -->
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-semibold text-muted mb-0">Message Preview</label>
+                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" id="copyInvoiceMsgBtn" onclick="copyInvoiceMessage()" style="font-size: 0.78rem;">
+                            <i class="far fa-copy me-1"></i>Copy Text
+                        </button>
+                    </div>
+                    <textarea class="form-control font-monospace" id="sendInvoiceMessage" rows="6" style="font-size: 0.8rem; resize: vertical; background: #fff;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm" onclick="printOrderInvoiceFromModal()">
+                    <i class="fas fa-print me-1"></i>Print Invoice
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-3 py-2 btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 py-2 btn-sm fw-semibold shadow-sm" onclick="sendInvoiceViaWhatsApp()" style="background-color: #16a34a; border-color: #16a34a;">
+                        <i class="fab fa-whatsapp me-2"></i>Send on WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
 function calculatePendingAmount() {
@@ -1131,6 +1266,9 @@ function editOrder(order) {
     document.getElementById('assigned_tailor_id').value = assignedTailorId;
     document.getElementById('order_date').value = order.order_date || '';
     document.getElementById('due_date').value = order.due_date || '';
+    if (document.getElementById('customer_phone')) {
+        document.getElementById('customer_phone').value = order.customer_phone || '';
+    }
     document.getElementById('total_amount').value = order.total_amount || '';
     document.getElementById('advance_amount').value = (order.advance_amount !== undefined && order.advance_amount !== null) ? order.advance_amount : '0';
     if (document.getElementById('payment_method')) {
@@ -1367,12 +1505,23 @@ if (customerSelectEl) {
         if (!measurementSelect) return;
         hideMeasurementPreview();
         
+        // Auto-fill customer phone number
+        const selectedOpt = this.options[this.selectedIndex];
+        const optPhone = selectedOpt ? selectedOpt.getAttribute('data-phone') : '';
+        const phoneInput = document.getElementById('customer_phone');
+        if (phoneInput && optPhone) {
+            phoneInput.value = optPhone;
+        }
+        
         if (customerName) {
             measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
             
             fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
                 .then(response => response.json())
                 .then(data => {
+                    if (phoneInput && !phoneInput.value && data && data.length > 0 && data[0].phone_number) {
+                        phoneInput.value = data[0].phone_number;
+                    }
                     measurementSelect.innerHTML = '<option value="">No Measurement</option>';
                     window.currentCustomerMeasurements = data || [];
                     
@@ -1564,6 +1713,8 @@ if (orderModalEl) {
         if (formEl) formEl.reset();
         const dateEl = document.getElementById('order_date');
         if (dateEl) dateEl.value = '<?php echo date('Y-m-d'); ?>';
+        const phoneEl = document.getElementById('customer_phone');
+        if (phoneEl) phoneEl.value = '';
         const advanceEl = document.getElementById('advance_amount');
         if (advanceEl) advanceEl.value = '0';
         const paymentMethodEl = document.getElementById('payment_method');
@@ -1933,6 +2084,7 @@ function displayFilterResults(orders) {
                                     id: order.id,
                                     customer_id: order.customer_id,
                                     customer_name: order.customer_name || '',
+                                    customer_phone: order.customer_phone || '',
                                     cloth_type_id: order.cloth_type_id,
                                     measurement_id: order.measurement_id,
                                     assigned_tailor_id: order.assigned_tailor_id,
@@ -1971,6 +2123,32 @@ function displayFilterResults(orders) {
                                 <li><a class="dropdown-item py-1 text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'cancelled', this); return false;"><i class="fas fa-times-circle me-2"></i>Cancelled</a></li>
                             </ul>
                         </div>
+                        <button type="button" 
+                                class="cat-action-btn cat-action-print" 
+                                onclick="printOrderInvoice(${order.id})" 
+                                title="Print Invoice">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        ${canSendInvoice ? `
+                        <button type="button" 
+                                class="cat-action-btn cat-action-whatsapp send-order-invoice-btn" 
+                                data-order='${JSON.stringify({
+                                    id: order.id,
+                                    order_number: order.order_number || ('ORD' + order.id),
+                                    customer_name: order.display_customer_name || order.customer_name || 'Customer',
+                                    customer_phone: order.customer_phone || '',
+                                    cloth_type_name: order.cloth_type_name || '',
+                                    total_amount: order.total_amount,
+                                    advance_amount: order.advance_amount,
+                                    balance_amount: order.balance_amount,
+                                    payment_method: order.payment_method || 'cash',
+                                    order_date: order.order_date,
+                                    due_date: order.due_date
+                                }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
+                                title="Send Invoice">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>
@@ -1992,6 +2170,22 @@ function displayFilterResults(orders) {
             } catch (e) {
                 console.error('Error parsing order data:', e);
                 alert('Error loading order data');
+            }
+        });
+    });
+    ordersTable.querySelectorAll('.send-order-invoice-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                const orderJson = this.getAttribute('data-order')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&');
+                const order = JSON.parse(orderJson);
+                openSendInvoiceModal(order);
+            } catch (e) {
+                console.error('Error parsing order data:', e);
             }
         });
     });
@@ -2056,6 +2250,133 @@ document.addEventListener('shown.bs.dropdown', function(e) {
         menu.style.inset = 'auto';
     }, 10);
 });
+
+const canSendInvoice = <?php echo $canSendInvoice ? 'true' : 'false'; ?>;
+
+// Print Invoice directly
+function printOrderInvoice(orderId) {
+    if (!orderId) return;
+    window.open('print-invoice.php?order_id=' + orderId, '_blank');
+}
+
+// Global order variable for Send Invoice modal
+window.currentSendInvoiceOrder = null;
+
+function openSendInvoiceModal(order) {
+    if (!order) return;
+    if (!canSendInvoice) {
+        alert('Send invoice feature is not available in the Free plan. Please upgrade your subscription to Basic or Premium plan.');
+        window.location.href = 'subscriptions.php';
+        return;
+    }
+    window.currentSendInvoiceOrder = order;
+    
+    const modalEl = document.getElementById('sendInvoiceModal');
+    if (!modalEl) return;
+    
+    const orderNum = order.order_number || ('ORD' + order.id);
+    document.getElementById('sendInvoiceOrderNum').textContent = '#' + orderNum;
+    document.getElementById('sendInvoiceCustomerName').value = order.customer_name || 'Customer';
+    
+    const phoneInput = document.getElementById('sendInvoicePhone');
+    if (phoneInput) {
+        let rawPhone = String(order.customer_phone || '').replace(/\D/g, '');
+        if (rawPhone.length > 10 && rawPhone.startsWith('91')) {
+            rawPhone = rawPhone.substring(2);
+        }
+        phoneInput.value = rawPhone;
+    }
+    
+    document.getElementById('sendInvoiceClothType').textContent = order.cloth_type_name || 'Tailoring Item';
+    document.getElementById('sendInvoiceDueDate').textContent = order.due_date || 'N/A';
+    document.getElementById('sendInvoiceTotal').textContent = '₹' + parseFloat(order.total_amount || 0).toFixed(2);
+    document.getElementById('sendInvoiceAdvance').textContent = '₹' + parseFloat(order.advance_amount || 0).toFixed(2);
+    
+    const balance = order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, parseFloat(order.total_amount || 0) - parseFloat(order.advance_amount || 0));
+    document.getElementById('sendInvoiceBalance').textContent = '₹' + balance.toFixed(2);
+    
+    generateInvoiceMessagePreview();
+    
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+function generateInvoiceMessagePreview() {
+    const order = window.currentSendInvoiceOrder;
+    if (!order) return;
+    
+    const custName = document.getElementById('sendInvoiceCustomerName')?.value || order.customer_name || 'Customer';
+    const orderNum = order.order_number || ('ORD' + order.id);
+    const clothType = order.cloth_type_name || 'Tailoring Item';
+    const total = parseFloat(order.total_amount || 0).toFixed(2);
+    const advance = parseFloat(order.advance_amount || 0).toFixed(2);
+    const balance = (order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, parseFloat(order.total_amount || 0) - parseFloat(order.advance_amount || 0))).toFixed(2);
+    const dueDate = order.due_date || '';
+    const paymentMethod = (order.payment_method || 'Cash').toUpperCase();
+    
+    let msg = `*ORDER INVOICE / RECEIPT*\n`;
+    msg += `--------------------------------\n`;
+    msg += `📋 *Order #:* ${orderNum}\n`;
+    msg += `👤 *Customer:* ${custName}\n`;
+    msg += `👗 *Cloth Type:* ${clothType}\n`;
+    if (dueDate) msg += `📅 *Due Date:* ${dueDate}\n`;
+    msg += `--------------------------------\n`;
+    msg += `💰 *Total Amount:* ₹${total}\n`;
+    msg += `✅ *Advance Paid:* ₹${advance} (${paymentMethod})\n`;
+    msg += `⏳ *Balance Due:* ₹${balance}\n`;
+    msg += `--------------------------------\n`;
+    msg += `Thank you for choosing us! 🙏`;
+    
+    const msgPreviewEl = document.getElementById('sendInvoiceMessage');
+    if (msgPreviewEl) {
+        msgPreviewEl.value = msg;
+    }
+}
+
+function sendInvoiceViaWhatsApp() {
+    const phoneInput = document.getElementById('sendInvoicePhone');
+    let phone = phoneInput ? phoneInput.value.trim() : '';
+    phone = phone.replace(/\D/g, '');
+    
+    if (!phone) {
+        alert('Please enter a valid 10-digit WhatsApp phone number.');
+        phoneInput?.focus();
+        return;
+    }
+    
+    if (phone.length === 10) {
+        phone = '91' + phone;
+    }
+    
+    const msg = document.getElementById('sendInvoiceMessage')?.value || '';
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+}
+
+function copyInvoiceMessage() {
+    const msgEl = document.getElementById('sendInvoiceMessage');
+    if (!msgEl) return;
+    
+    navigator.clipboard.writeText(msgEl.value).then(() => {
+        const btn = document.getElementById('copyInvoiceMsgBtn');
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        }
+    }).catch(err => {
+        msgEl.select();
+        document.execCommand('copy');
+        alert('Message copied to clipboard!');
+    });
+}
+
+function printOrderInvoiceFromModal() {
+    if (window.currentSendInvoiceOrder && window.currentSendInvoiceOrder.id) {
+        printOrderInvoice(window.currentSendInvoiceOrder.id);
+    }
+}
+
 </script>
 <?php require_once 'includes/footer.php'; ?>
 <style>

@@ -1122,12 +1122,6 @@ $seoOptions = [
                 </li>
                 
                 <?php if (!has_role('tailor')): ?>
-                <li class="nav-item">
-                    <a href="invoices.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'invoices.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-file-invoice"></i>
-                        Invoices
-                    </a>
-                </li>
                 
                 <li class="nav-item">
                     <a href="expenses.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'expenses.php' ? 'active' : ''; ?>">

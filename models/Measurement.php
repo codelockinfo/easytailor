@@ -244,13 +244,13 @@ class Measurement extends BaseModel {
      */
     public function getDistinctCustomerNames() {
         $companyId = $this->getCompanyId();
-        $query = "SELECT DISTINCT m.name as customer_name
+        $query = "SELECT m.name as customer_name, MAX(m.phone_number) as phone_number
                   FROM " . $this->table . " m
                   WHERE m.name IS NOT NULL AND m.name != ''";
         if ($companyId) {
             $query .= " AND m.company_id = :company_id";
         }
-        $query .= " ORDER BY m.name ASC";
+        $query .= " GROUP BY m.name ORDER BY m.name ASC";
         
         $stmt = $this->conn->prepare($query);
         if ($companyId) {

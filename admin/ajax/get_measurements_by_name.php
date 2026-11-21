@@ -30,6 +30,7 @@ try {
             'cloth_type_id' => $measurement['cloth_type_id'],
             'cloth_type_name' => $measurement['cloth_type_name'],
             'name' => $measurement['name'],
+            'phone_number' => $measurement['phone_number'] ?? '',
             'created_at' => format_date($measurement['created_at']),
             'measurement_data' => $measurementData,
             'notes' => $measurement['notes'] ?? ''

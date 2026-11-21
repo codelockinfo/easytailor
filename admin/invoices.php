@@ -2,6 +2,8 @@
 require_once '../config/config.php';
 
 require_login();
+header('Location: orders.php');
+exit;
 
 require_once 'models/Invoice.php';
 require_once 'models/Order.php';

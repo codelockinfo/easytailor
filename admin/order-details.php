@@ -7,6 +7,7 @@ require_once 'models/Invoice.php';
 require_once 'models/Measurement.php';
 require_once 'models/ClothType.php';
 require_once 'models/User.php';
+require_once '../helpers/SubscriptionHelper.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     error_log("POST request received. Action: " . ($_POST['action'] ?? 'none') . ", Order ID: " . ($_POST['order_id'] ?? 'none') . ", Status: " . ($_POST['status'] ?? 'none'));
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -174,8 +175,12 @@ if ($customer) {
 } elseif (!empty($order['customer_name'])) {
     $displayName = $order['customer_name'];
 }
-if (empty($displayPhone) && !empty($measurement['phone_number'])) {
-    $displayPhone = $measurement['phone_number'];
+if (empty($displayPhone)) {
+    if (!empty($order['customer_phone'])) {
+        $displayPhone = $order['customer_phone'];
+    } elseif (!empty($measurement['phone_number'])) {
+        $displayPhone = $measurement['phone_number'];
+    }
 }
 if (empty($displayEmail) && !empty($measurement['email'])) {
     $displayEmail = $measurement['email'];
@@ -237,13 +242,23 @@ require_once 'includes/header.php';
         </div>
         <div class="d-none d-md-flex gap-2">
             <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1 bg-white" onclick="printOrder()" style="border-color: #667eea; color: #4338ca; font-size: 0.88rem; font-weight: 500;">
-                <i class="fas fa-print me-2"></i>Print
+                <i class="fas fa-print me-2"></i>Print Order
             </button>
-            <?php if (!has_role('tailor')): ?>
-            <a href="invoices.php" class="btn btn-success rounded-pill px-3 py-1 text-white shadow-xs" style="background-color: #107548; border-color: #107548; font-size: 0.88rem; font-weight: 500;">
-                <i class="fas fa-file-invoice me-2"></i>Generate Invoice
+            <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-outline-secondary rounded-pill px-3 py-1 bg-white shadow-xs" style="border-color: #8b5cf6; color: #7c3aed; font-size: 0.88rem; font-weight: 500;">
+                <i class="fas fa-file-invoice me-2"></i>Print Invoice
+            </a>
+            <?php 
+                $canSendInvoice = SubscriptionHelper::canSendInvoice($order['company_id'] ?? get_company_id())['allowed'];
+                if ($canSendInvoice):
+                    $cleanPhone = preg_replace('/\D/', '', $displayPhone);
+                    if (strlen($cleanPhone) === 10) $cleanPhone = '91' . $cleanPhone;
+                    $waMsg = "*ORDER INVOICE / RECEIPT*\n--------------------------------\n📋 Order #: " . ($order['order_number'] ?? '') . "\n👤 Customer: " . $displayName . "\n👗 Item: " . ($clothType['name'] ?? '') . "\n📅 Due Date: " . ($order['due_date'] ?? '') . "\n--------------------------------\n💰 Total: ₹" . number_format($order['total_amount'] ?? 0, 2) . "\n✅ Advance: ₹" . number_format($order['advance_amount'] ?? 0, 2) . "\n⏳ Balance: ₹" . number_format($order['balance_amount'] ?? 0, 2) . "\n--------------------------------\nThank you for choosing us! 🙏";
+            ?>
+            <a href="https://wa.me/<?php echo $cleanPhone; ?>?text=<?php echo urlencode($waMsg); ?>" target="_blank" class="btn btn-success rounded-pill px-3 py-1 text-white shadow-xs" style="background-color: #16a34a; border-color: #16a34a; font-size: 0.88rem; font-weight: 500;">
+                <i class="fab fa-whatsapp me-2"></i>Send Invoice
             </a>
             <?php endif; ?>
+
         </div>
     </div>
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white d-md-none">
@@ -603,8 +618,8 @@ require_once 'includes/header.php';
                         <div class="fw-bold text-dark fs-6 mb-1">No invoice generated yet</div>
                         <div class="text-muted small mb-3">Generate an invoice to share with the customer.</div>
                         <?php if (!has_role('tailor')): ?>
-                        <a href="invoices.php" class="btn btn-success rounded-pill px-4" style="background-color: #107548; border-color: #107548;">
-                            <i class="fas fa-file-invoice me-2"></i>Generate Invoice
+                        <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-success rounded-pill px-4" style="background-color: #107548; border-color: #107548;">
+                            <i class="fas fa-print me-2"></i>Print Invoice
                         </a>
                         <?php endif; ?>
                     <?php else: ?>
@@ -629,6 +644,9 @@ require_once 'includes/header.php';
                                         <td>
                                             <a href="invoice-details.php?id=<?php echo $inv['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                                 View
+                                            </a>
+                                            <a href="print-invoice.php?id=<?php echo $inv['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 ms-1">
+                                                <i class="fas fa-print me-1"></i>Print
                                             </a>
                                         </td>
                                     </tr>
@@ -674,8 +692,8 @@ require_once 'includes/header.php';
             <i class="fas fa-print me-2"></i>Print Order
         </button>
         <?php if (!has_role('tailor')): ?>
-        <a href="invoices.php" class="btn btn-success rounded-3 py-2 w-100 fw-medium text-white shadow-xs" style="background-color: #107548; border-color: #107548; font-size: 0.95rem;">
-            <i class="fas fa-file-invoice me-2"></i>Generate Invoice
+        <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-outline-secondary rounded-3 py-2 w-100 fw-medium bg-white shadow-xs" style="border-color: #8b5cf6; color: #7c3aed; font-size: 0.95rem;">
+            <i class="fas fa-print me-2"></i>Print Invoice
         </a>
         <?php endif; ?>
     </div>

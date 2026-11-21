@@ -193,7 +193,9 @@ CREATE TABLE `measurements` (
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_number` varchar(50) NOT NULL,
-  `customer_id` int(11) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `customer_phone` varchar(25) DEFAULT NULL,
   `cloth_type_id` int(11) NOT NULL,
   `measurement_id` int(11) DEFAULT NULL,
   `assigned_tailor_id` int(11) DEFAULT NULL,

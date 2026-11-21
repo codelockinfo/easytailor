@@ -91,7 +91,6 @@ if (empty($scheduleItems)) {
     $r = 34; $circ = round(2 * M_PI * $r, 2);
     $offset = round($circ - ($prog / 100) * $circ, 2);
     ?>
-    <!-- Dashboard Welcome Banner -->
     <style>
     .welcome-banner {
         position: relative;
@@ -138,8 +137,6 @@ if (empty($scheduleItems)) {
         box-shadow: 0 4px 14px rgba(0,0,0,0.25);
         color: #1d4ed8;
     }
-
-    /* Mobile specific adjustments */
     @media (max-width: 991.98px) {
         .welcome-banner {
             border-radius: 16px !important;
@@ -164,12 +161,9 @@ if (empty($scheduleItems)) {
     </style>
 
     <div class="welcome-banner overflow-hidden position-relative">
-
-        <!-- Background Image (Tailoring workshop with mannequin visible on the right) -->
         <div class="position-absolute top-0 start-0 w-100 h-100 wb-bg-img"
              style="background: url('../assets/images/dashboard/welcome_banner_bg.png') no-repeat right center / cover; z-index: 0;"></div>
 
-        <!-- Royal blue to violet gradient overlay (leaves right side clear for mannequin) -->
         <div class="position-absolute top-0 start-0 w-100 h-100 wb-bg-gradient"
              style="background: linear-gradient(90deg, 
                  rgba(15, 23, 115, 0.96) 0%, 
@@ -178,13 +172,10 @@ if (empty($scheduleItems)) {
                  rgba(58, 48, 175, 0.60) 65%, 
                  rgba(70, 45, 168, 0.22) 80%, 
                  transparent 92%); z-index: 1;"></div>
-
-        <!-- Content Area -->
         <div class="position-relative text-white p-3 p-md-4 wb-content-pad" style="z-index: 2;">
 
-            <!-- ── DESKTOP LAYOUT (>= 992px) ── -->
             <div class="d-none d-lg-flex flex-column justify-content-between" style="min-height: 168px;">
-                <!-- Desktop Top Row -->
+                
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div>
                         <div style="font-size: 0.84rem; color: rgba(255,255,255,0.85); margin-bottom: 2px;">Welcome back,</div>
@@ -231,8 +222,6 @@ if (empty($scheduleItems)) {
                         </a>
                     </div>
                 </div>
-
-                <!-- Desktop Bottom Row -->
                 <div class="d-flex align-items-center justify-content-between gap-4 mt-3 pt-2">
                     <div class="d-flex align-items-center flex-wrap" style="gap: 16px;">
                         <?php foreach ($profileFields as $key => $label): ?>
@@ -297,17 +286,12 @@ if (empty($scheduleItems)) {
                         </div>
                     </div>
                 </div>
-
-                <!-- 3. White Pill Button: "Complete Profile →" -->
                 <div class="mt-1">
                     <a href="company-settings.php" class="wb-pill-btn-mob">
                         Complete Profile <i class="fas fa-arrow-right ms-1" style="font-size: 0.70rem;"></i>
                     </a>
                 </div>
-
-                <!-- 4. Checklist Chips in 2 neat rows -->
                 <div class="d-flex flex-column gap-1 mt-1 pt-1">
-                    <!-- Row 1: Address, City, State -->
                     <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
                         <?php 
                         $row1Fields = ['business_address' => 'Address', 'city' => 'City', 'state' => 'State'];
@@ -328,8 +312,6 @@ if (empty($scheduleItems)) {
                             <?php endif; ?>
                         <?php endforeach; ?>
                     </div>
-
-                    <!-- Row 2: PIN Code, Business Logo -->
                     <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
                         <?php 
                         $row2Fields = ['postal_code' => 'PIN Code', 'logo' => 'Business Logo'];
@@ -355,11 +337,7 @@ if (empty($scheduleItems)) {
 
         </div>
     </div>
-    <!-- /Dashboard Welcome Banner -->
-
-    <!-- Stat Cards (2x2 Grid with compact height matching reference screenshot) -->
     <div class="row g-2 g-md-3 mb-2 mb-md-3">
-        <!-- 1. Monthly Revenue -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #faf5ff; border: 1px solid #f3e8ff !important;">
                 <div class="d-flex justify-content-between align-items-center">
@@ -382,8 +360,6 @@ if (empty($scheduleItems)) {
                 </div>
             </div>
         </div>
-
-        <!-- 2. Total Orders -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
                 <div class="d-flex justify-content-between align-items-center">
@@ -406,8 +382,6 @@ if (empty($scheduleItems)) {
                 </div>
             </div>
         </div>
-
-        <!-- 3. Total Invoices -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fffbeb; border: 1px solid #fef3c7 !important;">
                 <div class="d-flex justify-content-between align-items-center">
@@ -427,8 +401,6 @@ if (empty($scheduleItems)) {
                 </div>
             </div>
         </div>
-
-        <!-- 4. Pending Orders -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fff1f2; border: 1px solid #fee2e2 !important;">
                 <div class="d-flex justify-content-between align-items-center">
@@ -449,10 +421,7 @@ if (empty($scheduleItems)) {
             </div>
         </div>
     </div>
-
-    <!-- Monthly Revenue & Order Status Row -->
     <div class="row g-3 mb-3">
-        <!-- Monthly Revenue Chart -->
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -474,8 +443,6 @@ if (empty($scheduleItems)) {
                 </div>
             </div>
         </div>
-
-        <!-- Order Status (5 Circular Donut Rings matching reference screenshot) -->
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -525,8 +492,6 @@ if (empty($scheduleItems)) {
                     </div>
                     <?php endforeach; ?>
                 </div>
-
-                <!-- Desktop bar view for large screens -->
                 <div class="d-none d-xl-flex flex-column gap-2 mt-3 pt-2 border-top">
                     <?php foreach ($orderRings as $st): 
                         $pct = $totalOrderCount > 0 ? round(($st['count'] / $totalOrderCount) * 100) : 0;
@@ -543,8 +508,6 @@ if (empty($scheduleItems)) {
             </div>
         </div>
     </div>
-
-    <!-- Quick Actions -->
     <div class="mb-3">
         <div class="d-flex align-items-center mb-2">
             <i class="fas fa-bolt me-2" style="color: #6366f1; font-size: 0.88rem;"></i>
@@ -584,15 +547,15 @@ if (empty($scheduleItems)) {
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="invoices.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
+                <a href="customers.php" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2 min-w-0">
                             <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 36px; height: 36px; background: #16a34a; color: #ffffff;">
-                                <i class="fas fa-file-invoice" style="font-size: 0.95rem;"></i>
+                                <i class="fas fa-users" style="font-size: 0.95rem;"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="fw-bold text-truncate" style="font-size: 0.80rem; color: #16a34a;">Create Invoice</div>
-                                <div class="text-muted small text-truncate" style="font-size: 0.65rem;">Generate invoice</div>
+                                <div class="fw-bold text-truncate" style="font-size: 0.80rem; color: #16a34a;">Customers</div>
+                                <div class="text-muted small text-truncate" style="font-size: 0.65rem;">View customers</div>
                             </div>
                         </div>
                         <i class="fas fa-chevron-right flex-shrink-0 ms-1" style="color: #16a34a; font-size: 0.72rem;"></i>
@@ -704,10 +667,7 @@ if (empty($scheduleItems)) {
                 </div>
             </div>
         </div>
-
-        <!-- Right Column: Today's Schedule & Promo -->
         <div class="col-lg-4 d-flex flex-column gap-3">
-            <!-- Today's Schedule Card -->
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <span class="fw-bold text-dark" style="font-size: 0.92rem;">
@@ -761,8 +721,6 @@ if (empty($scheduleItems)) {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
 }
-
-/* Welcome Banner responsive */
 @media (max-width: 767.98px) {
     .welcome-banner .d-flex.align-items-stretch {
         flex-direction: column !important;

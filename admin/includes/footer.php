@@ -14,9 +14,9 @@
             <i class="fas fa-users"></i>
             <span>Customers</span>
         </a>
-        <a href="invoices.php" class="mobile-bottom-nav-item <?php echo ($currentScript === 'invoices.php') ? 'active' : ''; ?>">
-            <i class="fas fa-file-invoice"></i>
-            <span>Invoices</span>
+        <a href="expenses.php" class="mobile-bottom-nav-item <?php echo ($currentScript === 'expenses.php') ? 'active' : ''; ?>">
+            <i class="fas fa-receipt"></i>
+            <span>Expenses</span>
         </a>
         <button type="button" class="mobile-bottom-nav-item <?php echo ($currentScript === 'categories.php') ? 'active' : ''; ?>" onclick="openAdminSidebar(); return false;" aria-label="More Menu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="mb-1" style="display: block;">

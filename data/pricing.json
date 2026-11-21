@@ -40,6 +40,7 @@
         "Up to 10 users",
         "Custom cloth types",
         "Invoice generation",
+        "Send invoice via WhatsApp",
         "SMS notifications"
       ],
       "limits": {
@@ -67,6 +68,7 @@
         "Priority support (24/7)",
         "Up to 20 users",
         "SMS notifications",
+        "Send invoice via WhatsApp",
         "Export data",
         "Custom integrations",
         "Training & onboarding"

@@ -15,6 +15,7 @@ try {
     require_once $rootDir . '/../models/Measurement.php';
     require_once $rootDir . '/models/ClothType.php';
     require_once $rootDir . '/models/User.php';
+    require_once $rootDir . '/../helpers/SubscriptionHelper.php';
     $status = $_GET['status'] ?? '';
     $search = $_GET['search'] ?? '';
     $customer_id = $_GET['customer_id'] ?? '';
@@ -141,6 +142,7 @@ try {
     ];
     echo json_encode([
         'success' => true,
+        'can_send_invoice' => SubscriptionHelper::canSendInvoice(get_company_id())['allowed'],
         'orders' => $formattedOrders,
         'filter_options' => $filterOptions,
         'pagination' => [

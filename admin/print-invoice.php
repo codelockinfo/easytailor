@@ -14,16 +14,54 @@ require_once 'models/Order.php';
 require_once 'models/Payment.php';
 require_once 'models/Company.php';
 
-$invoiceId = (int)($_GET['id'] ?? 0);
-
-if (!$invoiceId) {
-    die('Invalid invoice ID');
-}
-
 $invoiceModel = new Invoice();
 $orderModel = new Order();
 $paymentModel = new Payment();
 $companyModel = new Company();
+
+$invoiceId = (int)($_GET['id'] ?? 0);
+$orderId = (int)($_GET['order_id'] ?? 0);
+
+if (!$invoiceId && $orderId) {
+    // Check if an invoice already exists for this order
+    $existingInvoice = $invoiceModel->findOne(['order_id' => $orderId]);
+    if ($existingInvoice) {
+        $invoiceId = (int)$existingInvoice['id'];
+    } else {
+        $order = $orderModel->find($orderId);
+        if ($order) {
+            $totalAmount = (float)$order['total_amount'];
+            $advanceAmount = (float)($order['advance_amount'] ?? 0);
+            $balanceAmount = isset($order['balance_amount']) ? (float)$order['balance_amount'] : max(0.0, $totalAmount - $advanceAmount);
+            
+            $invData = [
+                'order_id' => $orderId,
+                'company_id' => $order['company_id'] ?? get_company_id(),
+                'invoice_date' => $order['order_date'] ?? date('Y-m-d'),
+                'due_date' => $order['due_date'] ?? date('Y-m-d'),
+                'subtotal' => $totalAmount,
+                'tax_rate' => 0.0,
+                'tax_amount' => 0.0,
+                'discount_amount' => 0.0,
+                'total_amount' => $totalAmount,
+                'paid_amount' => $advanceAmount,
+                'balance_amount' => $balanceAmount,
+                'payment_status' => $balanceAmount <= 0 ? 'paid' : ($advanceAmount > 0 ? 'partial' : 'due'),
+                'notes' => 'Invoice for Order #' . ($order['order_number'] ?? ''),
+                'created_by' => get_user_id()
+            ];
+            
+            $invoiceId = (int)$invoiceModel->createInvoice($invData);
+            if ($invoiceId) {
+                $invoiceModel->updatePaymentStatus($invoiceId);
+            }
+        }
+    }
+}
+
+if (!$invoiceId) {
+    die('Invalid invoice or order ID');
+}
 
 // Get invoice with details
 $invoices = $invoiceModel->getInvoicesWithDetails(['i.id' => $invoiceId], 1);
@@ -181,11 +219,20 @@ $company = $companyId ? $companyModel->find($companyId) : null;
             <div class="col-md-6">
                 <div class="info-box">
                     <h6 class="text-muted mb-2">BILL TO:</h6>
-                    <h5 class="mb-1"><?php echo htmlspecialchars($invoice['first_name'] . ' ' . $invoice['last_name']); ?></h5>
+                    <?php 
+                        $custDisplayName = trim(($invoice['first_name'] ?? '') . ' ' . ($invoice['last_name'] ?? ''));
+                        if (empty($custDisplayName)) {
+                            $custDisplayName = $invoice['measurement_customer_name'] ?? ($invoice['order_customer_name'] ?? ($order['customer_name'] ?? 'Customer'));
+                        }
+                        $custPhone = !empty($invoice['customer_phone']) ? $invoice['customer_phone'] : (!empty($order['customer_phone']) ? $order['customer_phone'] : '');
+                    ?>
+                    <h5 class="mb-1"><?php echo htmlspecialchars($custDisplayName); ?></h5>
                     <p class="mb-0">
-                        Customer Code: <strong><?php echo htmlspecialchars($invoice['customer_code']); ?></strong><br>
-                        <?php if (!empty($invoice['customer_phone'])): ?>
-                            Phone: <?php echo htmlspecialchars($invoice['customer_phone']); ?><br>
+                        <?php if (!empty($invoice['customer_code'])): ?>
+                            Customer Code: <strong><?php echo htmlspecialchars($invoice['customer_code']); ?></strong><br>
+                        <?php endif; ?>
+                        <?php if (!empty($custPhone)): ?>
+                            Phone: <?php echo htmlspecialchars($custPhone); ?><br>
                         <?php endif; ?>
                         <?php if (!empty($invoice['customer_email'])): ?>
                             Email: <?php echo htmlspecialchars($invoice['customer_email']); ?>
@@ -201,6 +248,9 @@ $company = $companyId ? $companyModel->find($companyId) : null;
                         Order Date: <?php echo format_date($invoice['order_date'], 'M j, Y'); ?><br>
                         <?php if (!empty($invoice['cloth_type_name'])): ?>
                             Cloth Type: <?php echo htmlspecialchars($invoice['cloth_type_name']); ?><br>
+                        <?php endif; ?>
+                        <?php if (!empty($order['payment_method'])): ?>
+                            Payment Method: <strong><?php echo htmlspecialchars(ucfirst($order['payment_method'])); ?></strong><br>
                         <?php endif; ?>
                         <?php if (!empty($invoice['created_by_name'])): ?>
                             Created By: <?php echo htmlspecialchars($invoice['created_by_name']); ?>

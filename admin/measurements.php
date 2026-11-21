@@ -640,14 +640,6 @@ include 'includes/page-header.php';
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="phone_number" class="form-label">Phone Number *</label>
-                                <input type="text" class="form-control" id="phone_number" name="phone_number" required placeholder="Enter phone number" maxlength="10"
-
-                                       value="<?php echo htmlspecialchars($editMeasurement['phone_number'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
                                 <label for="date_of_birth" class="form-label">Date of Birth</label>
                                 <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
                                        value="<?php echo htmlspecialchars($editMeasurement['date_of_birth'] ?? ''); ?>">
@@ -870,17 +862,12 @@ function debugFormSubmission(event) {
     
     // Basic validation
     const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone_number').value.trim();
+    const phoneInput = document.getElementById('phone_number');
+    const phone = phoneInput ? phoneInput.value.trim() : '';
     const clothTypeId = document.getElementById('cloth_type_id').value;
     
     if (!name) {
         alert('Please enter customer name.');
-        event.preventDefault();
-        return false;
-    }
-    
-    if (!phone) {
-        alert('Please enter phone number.');
         event.preventDefault();
         return false;
     }
@@ -1146,7 +1133,7 @@ function editMeasurement(measurement) {
     document.getElementById('cloth_type_id').value = measurement.cloth_type_id || '';
     document.getElementById('name').value = measurement.name || '';
     document.getElementById('email').value = measurement.email || '';
-    document.getElementById('phone_number').value = measurement.phone_number || '';
+    if (document.getElementById('phone_number')) document.getElementById('phone_number').value = measurement.phone_number || '';
     document.getElementById('address').value = measurement.address || '';
     document.getElementById('date_of_birth').value = measurement.date_of_birth || '';
     document.getElementById('notes').value = measurement.notes || '';
@@ -1229,7 +1216,7 @@ document.getElementById('customer_id').addEventListener('change', function() {
                 if (data.success && data.customer) {
                     document.getElementById('name').value = data.customer.name || '';
                     document.getElementById('email').value = data.customer.email || '';
-                    document.getElementById('phone_number').value = data.customer.phone || '';
+                    if (document.getElementById('phone_number')) document.getElementById('phone_number').value = data.customer.phone || '';
                     document.getElementById('address').value = data.customer.address || '';
                     document.getElementById('date_of_birth').value = data.customer.date_of_birth || '';
                 }
@@ -1241,7 +1228,7 @@ document.getElementById('customer_id').addEventListener('change', function() {
         // Clear fields
         document.getElementById('name').value = '';
         document.getElementById('email').value = '';
-        document.getElementById('phone_number').value = '';
+        if (document.getElementById('phone_number')) document.getElementById('phone_number').value = '';
         document.getElementById('address').value = '';
         document.getElementById('date_of_birth').value = '';
     }

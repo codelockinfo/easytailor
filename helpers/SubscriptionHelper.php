@@ -17,6 +17,7 @@ class SubscriptionHelper {
                 'orders' => 50,
                 'users' => 3,
                 'invoice_generation' => false,
+                'send_invoice' => false,
                 'export_data' => false,
                 'sms_notifications' => false
             ],
@@ -25,6 +26,7 @@ class SubscriptionHelper {
                 'orders' => 150,
                 'users' => 10,
                 'invoice_generation' => true,
+                'send_invoice' => true,
                 'export_data' => false,
                 'sms_notifications' => true
             ],
@@ -33,6 +35,7 @@ class SubscriptionHelper {
                 'orders' => 1000,
                 'users' => 20,
                 'invoice_generation' => true,
+                'send_invoice' => true,
                 'export_data' => true,
                 'sms_notifications' => true
             ],
@@ -41,6 +44,7 @@ class SubscriptionHelper {
                 'orders' => -1, // Unlimited
                 'users' => -1, // Unlimited
                 'invoice_generation' => true,
+                'send_invoice' => true,
                 'export_data' => true,
                 'sms_notifications' => true
             ]
@@ -194,6 +198,24 @@ class SubscriptionHelper {
         }
         
         return ['allowed' => true];
+    }
+    
+    /**
+     * Check if company can send invoices
+     */
+    public static function canSendInvoice($companyId) {
+        $plan = self::getCurrentPlan($companyId);
+        $limits = self::getPlanLimits($plan);
+        
+        if (empty($limits['send_invoice'])) {
+            return [
+                'allowed' => false,
+                'message' => "Send invoice feature is not available in the Free plan. Please upgrade your subscription to use this feature.",
+                'plan' => $plan
+            ];
+        }
+        
+        return ['allowed' => true, 'plan' => $plan];
     }
     
     /**

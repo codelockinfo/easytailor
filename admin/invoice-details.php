@@ -2,9 +2,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
-
 <?php
-
 require_once '../config/config.php';
 
 require_login();
@@ -17,7 +15,7 @@ require_once 'models/Company.php';
 $invoiceId = (int)($_GET['id'] ?? 0);
 
 if (!$invoiceId) {
-    header('Location: invoices.php');
+    header('Location: orders.php');
     exit;
 }
 
@@ -25,28 +23,18 @@ $invoiceModel = new Invoice();
 $orderModel = new Order();
 $paymentModel = new Payment();
 $companyModel = new Company();
-
-// Get invoice with details
 $invoices = $invoiceModel->getInvoicesWithDetails(['i.id' => $invoiceId], 1);
 
 if (empty($invoices)) {
-    header('Location: invoices.php');
+    header('Location: orders.php');
     exit;
 }
 
 $invoice = $invoices[0];
-
-// Get order details
 $order = $orderModel->find($invoice['order_id']);
-
-// Get payments for this invoice
 $payments = $paymentModel->getInvoicePayments($invoiceId);
-
-// Get company details
 $companyId = get_company_id();
 $company = $companyId ? $companyModel->find($companyId) : null;
-
-// NOW include header
 $page_title = 'Invoice Details';
 require_once 'includes/header.php';
 ?>
@@ -55,8 +43,8 @@ require_once 'includes/header.php';
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <a href="invoices.php" class="text-decoration-none text-muted mb-2 d-inline-block">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Invoices
+                <a href="orders.php" class="text-decoration-none text-muted mb-2 d-inline-block">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Orders
                 </a>
                 <h1 class="h3 mb-0">Invoice <?php echo htmlspecialchars($invoice['invoice_number'] ?? ''); ?></h1>
             </div>
@@ -306,28 +294,20 @@ function emailInvoice() {
 }
 
 function downloadPDF() {
-    // Show loading state
     const downloadBtn = document.querySelector('button[onclick="downloadPDF()"]');
     const originalText = downloadBtn.innerHTML;
     downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
     downloadBtn.disabled = true;
-    
-    // Open print-friendly invoice page in new window
     const printWindow = window.open(`ajax/generate_invoice_pdf_print.php?id=<?php echo $invoiceId; ?>`, '_blank');
     
-    // Show success message
-    showPDFToast('Success', 'Invoice opened for printing. Use Ctrl+P to save as PDF.', 'success');
     
-    // Restore button state after a short delay
+    showPDFToast('Success', 'Invoice opened for printing. Use Ctrl+P to save as PDF.', 'success');
     setTimeout(() => {
         downloadBtn.innerHTML = originalText;
         downloadBtn.disabled = false;
     }, 1000);
 }
-
-// Toast notification function for PDF
 function showPDFToast(title, message, type = 'info') {
-    // Create toast container if it doesn't exist
     let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
         toastContainer = document.createElement('div');
@@ -336,8 +316,6 @@ function showPDFToast(title, message, type = 'info') {
         toastContainer.style.zIndex = '9999';
         document.body.appendChild(toastContainer);
     }
-    
-    // Create toast element
     const toastId = 'toast-' + Date.now();
     const toastElement = document.createElement('div');
     toastElement.id = toastId;
@@ -357,37 +335,28 @@ function showPDFToast(title, message, type = 'info') {
     `;
     
     toastContainer.appendChild(toastElement);
-    
-    // Show toast
     const toast = new bootstrap.Toast(toastElement, {
         autohide: true,
         delay: 5000
     });
     toast.show();
-    
-    // Remove toast element after it's hidden
     toastElement.addEventListener('hidden.bs.toast', () => {
         toastElement.remove();
     });
 }
 
 function addPayment() {
-    // Reset form
     document.getElementById('paymentForm').reset();
     document.getElementById('payment_date').value = '<?php echo date('Y-m-d'); ?>';
     
-    // Show modal
     new bootstrap.Modal(document.getElementById('paymentModal')).show();
 }
-
-// Handle payment form submission
 function submitPaymentForm(event) {
     event.preventDefault();
     
     const form = document.getElementById('paymentForm');
     const formData = new FormData(form);
     
-    // Add loading state
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';

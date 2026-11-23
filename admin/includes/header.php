@@ -569,15 +569,17 @@ $seoOptions = [
             font-weight: 400;
             opacity: 1;
         }
-        .form-select:disabled {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23000000'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f7fafc, #edf2f7);
-            background-position: right 0.875rem center, center;
-            background-size: 18px 18px, 100% 100%;
-            border-color: #e2e8f0;
-            color: #000000 !important;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .form-select:disabled,
+        .form-select[disabled] {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f8fafc, #f1f5f9) !important;
+            background-position: right 0.875rem center, center !important;
+            background-size: 18px 18px, 100% 100% !important;
+            background-repeat: no-repeat, no-repeat !important;
+            border-color: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
         }
         
         .form-select:disabled:hover {

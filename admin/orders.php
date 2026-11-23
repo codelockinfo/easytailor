@@ -679,6 +679,13 @@ if (!function_exists('getCustomerAvatarDesign')) {
         font-size: 0.74rem;
     }
 }
+#topClothTypeSelect,
+.form-select:disabled,
+select:disabled {
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: right 0.875rem center, center !important;
+    background-size: 16px 12px, 100% 100% !important;
+}
 .measurement-search-container {
     position: relative;
     display: flex;
@@ -1353,7 +1360,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-md-4">
-                                <select class="form-select" id="topClothTypeSelect" style="border-radius: 8px; border-color: #d1d5db;  font-size: 0.88rem; font-weight: 500;">
+                                <select class="form-select" id="topClothTypeSelect" style=" border-radius: 8px; border-color: #d1d5db; font-size: 0.88rem; font-weight: 500; background-repeat: no-repeat !important;">
                                     <option value="">Cloth Type *</option>
                                     <?php foreach ($clothTypes as $ct): ?>
                                         <option value="<?php echo $ct['id']; ?>" data-rate="<?php echo htmlspecialchars($ct['standard_rate'] ?? 0); ?>" data-name="<?php echo htmlspecialchars($ct['name']); ?>">

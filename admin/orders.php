@@ -337,9 +337,28 @@ if (has_role('tailor')) {
     $conditions['assigned_tailor_id'] = get_user_id();
 }
 $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+
+if (!empty($search)) {
+    $searchLower = mb_strtolower(trim($search));
+    $allOrders = array_filter($allOrders, function($order) use ($searchLower) {
+        $displayCustomerName = !empty($order['measurement_customer_name']) 
+            ? $order['measurement_customer_name'] 
+            : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+        $clothTypeName = $order['cloth_type_name'] ?? '';
+        $customerPhone = $order['customer_phone'] ?? '';
+        $orderNumber = $order['order_number'] ?? '';
+        
+        return mb_stripos($orderNumber, $searchLower) !== false ||
+               mb_stripos($displayCustomerName, $searchLower) !== false ||
+               mb_stripos($customerPhone, $searchLower) !== false ||
+               mb_stripos($clothTypeName, $searchLower) !== false;
+    });
+    $allOrders = array_values($allOrders);
+}
+
 $totalOrders = count($allOrders);
 $orders = array_slice($allOrders, $offset, $limit);
-$totalPages = ceil($totalOrders / $limit);
+$totalPages = max(1, ceil($totalOrders / $limit));
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
 $measurementCustomers = $measurementModel->getDistinctCustomerNames();
 $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
@@ -684,11 +703,12 @@ include 'includes/page-header.php';
     </div>
 </div>
 
-<div id="filterResults" class="mb-3" style="display: none;">
+<?php $hasActiveInitialFilter = !empty($search) || !empty($status_filter); ?>
+<div id="filterResults" class="mb-3" style="<?php echo $hasActiveInitialFilter ? 'display: block;' : 'display: none;'; ?>">
     <div id="filterAlertBox" class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 12px; font-size: 0.85rem;">
         <div class="d-flex align-items-center">
-            <i id="filterAlertIcon" class="fas fa-info-circle me-2"></i>
-            <span id="filterAlertMessage"><strong id="filterCount">0</strong> orders found</span>
+            <i id="filterAlertIcon" class="fas fa-info-circle me-2 text-primary"></i>
+            <span id="filterAlertMessage"><strong id="filterCount"><?php echo $totalOrders; ?></strong> <?php echo $totalOrders === 1 ? 'order' : 'orders'; ?> found matching your filter criteria</span>
         </div>
         <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 ms-3 text-secondary" id="btnDismissFilterBanner" title="Dismiss" onclick="document.getElementById('filterResults').style.display='none';">
             <i class="fas fa-times"></i>

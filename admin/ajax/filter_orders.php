@@ -59,21 +59,31 @@ try {
         $conditions['end_date'] = $end_date;
     }
     $offset = ($page - 1) * $limit;
-    $orders = $orderModel->getOrdersWithDetails($conditions, $limit, $offset);
     if (!empty($search)) {
-        $searchLower = strtolower($search);
-        $orders = array_filter($orders, function($order) use ($searchLower) {
+        $searchLower = mb_strtolower(trim($search));
+        $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+        $filteredOrders = array_filter($allOrders, function($order) use ($searchLower) {
             $displayCustomerName = !empty($order['measurement_customer_name']) 
                 ? $order['measurement_customer_name'] 
                 : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+            $clothTypeName = $order['cloth_type_name'] ?? '';
+            $customerPhone = $order['customer_phone'] ?? '';
+            $orderNumber = $order['order_number'] ?? '';
                 
-            return strpos(strtolower($order['order_number']), $searchLower) !== false ||
-                   strpos(strtolower($displayCustomerName), $searchLower) !== false ||
-                   strpos(strtolower($order['customer_phone'] ?? ''), $searchLower) !== false;
+            return mb_stripos($orderNumber, $searchLower) !== false ||
+                   mb_stripos($displayCustomerName, $searchLower) !== false ||
+                   mb_stripos($customerPhone, $searchLower) !== false ||
+                   mb_stripos($clothTypeName, $searchLower) !== false;
         });
+        $filteredOrders = array_values($filteredOrders);
+        $totalOrders = count($filteredOrders);
+        $orders = array_slice($filteredOrders, $offset, $limit);
+    } else {
+        $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+        $totalOrders = count($allOrders);
+        $orders = array_slice($allOrders, $offset, $limit);
     }
-    $totalOrders = count($orders);
-    $totalPages = $limit > 0 ? ceil($totalOrders / $limit) : 1;
+    $totalPages = $limit > 0 ? max(1, ceil($totalOrders / $limit)) : 1;
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
     $measurementCustomers = $measurementModel->getDistinctCustomerNames();
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');

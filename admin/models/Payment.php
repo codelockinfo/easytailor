@@ -274,14 +274,22 @@ class Payment extends BaseModel {
                   LEFT JOIN invoices i ON p.invoice_id = i.id
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN customers c ON o.customer_id = c.id
-                  WHERE (i.invoice_number LIKE :search 
-                      OR o.order_number LIKE :search 
-                      OR c.first_name LIKE :search 
-                      OR c.last_name LIKE :search 
-                      OR c.customer_code LIKE :search
-                      OR p.reference_number LIKE :search)";
+                  WHERE (i.invoice_number LIKE :search_inv 
+                      OR o.order_number LIKE :search_ord 
+                      OR c.first_name LIKE :search_fn 
+                      OR c.last_name LIKE :search_ln 
+                      OR c.customer_code LIKE :search_code
+                      OR p.reference_number LIKE :search_ref)";
         
-        $params = [':search' => '%' . $search_term . '%'];
+        $searchTermPattern = '%' . $search_term . '%';
+        $params = [
+            ':search_inv' => $searchTermPattern,
+            ':search_ord' => $searchTermPattern,
+            ':search_fn' => $searchTermPattern,
+            ':search_ln' => $searchTermPattern,
+            ':search_code' => $searchTermPattern,
+            ':search_ref' => $searchTermPattern
+        ];
         if ($companyId) {
             $query .= " AND p.company_id = :company_id";
             $params[':company_id'] = $companyId;

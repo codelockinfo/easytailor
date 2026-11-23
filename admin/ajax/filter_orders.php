@@ -59,6 +59,20 @@ try {
         $conditions['end_date'] = $end_date;
     }
     $offset = ($page - 1) * $limit;
+    $orders = $orderModel->getOrdersWithDetails($conditions, $limit, $offset);
+    if (empty($orders) && !empty($customer_id)) {
+        $cData = $customerModel->find((int)$customer_id);
+        $custOrders = $orderModel->getCustomerOrders((int)$customer_id, $cData);
+        if (!empty($custOrders)) {
+            if (!empty($status)) {
+                $custOrders = array_filter($custOrders, fn($o) => ($o['status'] ?? '') === $status);
+            }
+            if (!empty($cloth_type_id)) {
+                $custOrders = array_filter($custOrders, fn($o) => (int)($o['cloth_type_id'] ?? 0) === (int)$cloth_type_id);
+            }
+            $orders = array_slice(array_values($custOrders), $offset, $limit);
+        }
+    }
     if (!empty($search)) {
         $searchLower = mb_strtolower(trim($search));
         $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
@@ -109,6 +123,9 @@ try {
             'cloth_type_id' => $order['cloth_type_id'] ?? null,
             'measurement_id' => $order['measurement_id'] ?? null,
             'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,
+            'item_count' => (int)($order['item_count'] ?? 0),
+            'all_cloth_type_names' => $order['all_cloth_type_names'] ?? '',
+            'all_tailor_names' => $order['all_tailor_names'] ?? '',
             'first_name' => $order['first_name'] ?? '',
             'last_name' => $order['last_name'] ?? '',
             'customer_code' => $order['customer_code'] ?? '',

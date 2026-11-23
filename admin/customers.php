@@ -1,6 +1,4 @@
 <?php
-
-
 $page_title = 'Customer Management';
 require_once 'includes/header.php';
 require_once '../models/Customer.php';
@@ -111,7 +109,6 @@ if (!empty($search)) {
 } else {
     $customers = array_slice($allCustomers, $offset, $limit);
 }
-
 $totalPages = ceil($totalCustomers / $limit);
 $customerStats = $customerModel->getCustomerStats();
 $totalCustomerCount = $totalCustomers;
@@ -144,7 +141,6 @@ if (!function_exists('getCustomerAvatarDesign')) {
     }
 }
 ?>
-
 <style>
 .cat-stat-box {
     border-radius: 16px;
@@ -471,9 +467,16 @@ include 'includes/page-header.php';
                                 <?php endif; ?>
                             </td>
                             <td class="py-3">
-                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
-                                    <?php echo (int)($customer['order_count'] ?? 0); ?> Orders
-                                </span>
+                                <?php 
+                                $custOrderCount = (int)($customer['order_count'] ?? 0);
+                                if ($custOrderCount > 0): 
+                                ?>
+                                    <a href="orders.php?customer_id=<?php echo $customer['id']; ?>" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#0284c7';this.style.color='#ffffff';" onmouseout="this.style.background='#e0f2fe';this.style.color='#0284c7';" title="View <?php echo $custOrderCount; ?> Orders">
+                                        <?php echo $custOrderCount; ?> <?php echo $custOrderCount === 1 ? 'Order' : 'Orders'; ?> <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                                    </a>
+                                <?php else: ?>
+                                    <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0 Orders</span>
+                                <?php endif; ?>
                             </td>
                             <td class="py-3">
                                 <?php if (($customer['status'] ?? 'active') === 'active'): ?>
@@ -1046,9 +1049,13 @@ function displaySearchResults(customers) {
                     ${locationDisplay}
                 </td>
                 <td class="py-3">
-                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
-                        ${orderCount} Orders
-                    </span>
+                    ${(orderCount > 0) ? `
+                        <a href="orders.php?customer_id=${customer.id}" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#0284c7';this.style.color='#ffffff';" onmouseout="this.style.background='#e0f2fe';this.style.color='#0284c7';" title="View ${orderCount} Orders">
+                            ${orderCount} ${orderCount === 1 ? 'Order' : 'Orders'} <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                        </a>
+                    ` : `
+                        <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0 Orders</span>
+                    `}
                 </td>
                 <td class="py-3">
                     ${statusBadge}
@@ -1069,11 +1076,9 @@ function displaySearchResults(customers) {
             </tr>
         `;
     });
-    
     customersTable.innerHTML = tableHTML;
 }
 </script>
-
 <?php require_once 'includes/footer.php'; ?>
 
 <style>
@@ -1092,7 +1097,6 @@ function displaySearchResults(customers) {
         width: 100% !important;
     }
     }
-
     .btn-outline-info:hover {
         color: #ffffff;
     }

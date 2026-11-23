@@ -36,11 +36,26 @@ try {
     $reason = sanitize_input($_POST['cancellation_reason'] ?? $_POST['reason'] ?? '');
     $orderModel = new Order();
     if (has_role('tailor')) {
+        $curUserId = (int)get_user_id();
         $existingOrder = $orderModel->find($orderId);
-        if (!$existingOrder || $existingOrder['assigned_tailor_id'] != get_user_id()) {
+        $isAuthorized = ($existingOrder && (int)($existingOrder['assigned_tailor_id'] ?? 0) === $curUserId);
+        if (!$isAuthorized) {
+            $items = $orderModel->getOrderItems($orderId);
+            foreach ($items as $it) {
+                if (!empty($it['assigned_tailor_id']) && (int)$it['assigned_tailor_id'] === $curUserId) {
+                    $isAuthorized = true;
+                    break;
+                }
+            }
+        }
+        if (!$isAuthorized) {
             echo json_encode(['success' => false, 'error' => 'You can only update orders assigned to you']);
             exit;
         }
+        try {
+            $updateItemStmt = $orderModel->conn->prepare("UPDATE order_items SET status = :status WHERE order_id = :order_id AND assigned_tailor_id = :tailor_id");
+            $updateItemStmt->execute([':status' => $status, ':order_id' => $orderId, ':tailor_id' => $curUserId]);
+        } catch (\Throwable $e) {}
     }
     if ($orderModel->updateOrderStatus($orderId, $status)) {
         try {

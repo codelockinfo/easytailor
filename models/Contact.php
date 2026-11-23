@@ -45,11 +45,11 @@ class Contact extends BaseModel {
     public function searchContacts($search_term, $limit = 20) {
         $companyId = $this->getCompanyId();
         $query = "SELECT * FROM " . $this->table . " 
-                  WHERE (name LIKE :search 
-                      OR company LIKE :search 
-                      OR email LIKE :search 
-                      OR phone LIKE :search
-                      OR notes LIKE :search)
+                  WHERE (name LIKE :search_name 
+                      OR company LIKE :search_comp 
+                      OR email LIKE :search_email 
+                      OR phone LIKE :search_phone
+                      OR notes LIKE :search_notes)
                   AND status = 'active'";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
@@ -58,7 +58,11 @@ class Contact extends BaseModel {
         
         $stmt = $this->conn->prepare($query);
         $search_pattern = '%' . $search_term . '%';
-        $stmt->bindParam(':search', $search_pattern);
+        $stmt->bindParam(':search_name', $search_pattern);
+        $stmt->bindParam(':search_comp', $search_pattern);
+        $stmt->bindParam(':search_email', $search_pattern);
+        $stmt->bindParam(':search_phone', $search_pattern);
+        $stmt->bindParam(':search_notes', $search_pattern);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }

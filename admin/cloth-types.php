@@ -1,20 +1,15 @@
 <?php
-
 $page_title = 'Cloth Type Management';
 require_once 'includes/header.php';
-
 require_once 'models/ClothType.php';
 require_once 'models/Category.php';
-
 $clothTypeModel = new ClothType();
 $categoryModel = new Category();
 $message = '';
 $messageType = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
-        $action = $_POST['action'] ?? '';
-        
+        $action = $_POST['action'] ?? ''; 
         switch ($action) {
             case 'create':
                 $data = [
@@ -35,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $data['measurement_chart_image'] = $targetPath;
                     }
                 }
-                
                 if ($clothTypeModel->nameExists($data['name'])) {
                     $message = 'Cloth type name already exists';
                     $messageType = 'error';
@@ -207,7 +201,6 @@ if (!function_exists('getCategoryDesign')) {
     }
 }
 ?>
-
 <style>
 #categoryFilter {
     height: 42px !important;
@@ -470,7 +463,13 @@ include 'includes/page-header.php';
                                 <?php endif; ?>
                             </td>
                             <td class="py-3">
-                                <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #475569; font-size: 0.72rem;"><?php echo $clothType['order_count']; ?></span>
+                                <?php if (!empty($clothType['order_count']) && (int)$clothType['order_count'] > 0): ?>
+                                    <a href="orders.php?cloth_type_id=<?php echo $clothType['id']; ?>" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.72rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#0284c7';this.style.color='#ffffff';" onmouseout="this.style.background='#e0f2fe';this.style.color='#0284c7';" title="View <?php echo $clothType['order_count']; ?> Orders">
+                                        <?php echo $clothType['order_count']; ?> <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                                    </a>
+                                <?php else: ?>
+                                    <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0</span>
+                                <?php endif; ?>
                             </td>
                             <td class="py-3">
                                 <span class="badge rounded-pill fw-semibold px-2 py-1" style="font-size: 0.72rem; background-color: <?php echo $clothType['status'] === 'active' ? '#10b981' : '#94a3b8'; ?>; color: #ffffff;">
@@ -918,7 +917,13 @@ function displayFilterResults(clothTypes) {
                     ${clothType.standard_rate ? `<span class="fw-bold text-dark" style="font-size: 0.88rem;">${formatCurrency(clothType.standard_rate)}</span>` : '<span class="text-muted small">Not set</span>'}
                 </td>
                 <td class="py-3">
-                    <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #475569; font-size: 0.72rem;">${clothType.order_count || 0}</span>
+                    ${(clothType.order_count && parseInt(clothType.order_count) > 0) ? `
+                        <a href="orders.php?cloth_type_id=${clothType.id}" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.72rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#0284c7';this.style.color='#ffffff';" onmouseout="this.style.background='#e0f2fe';this.style.color='#0284c7';" title="View ${clothType.order_count} Orders">
+                            ${clothType.order_count} <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                        </a>
+                    ` : `
+                        <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0</span>
+                    `}
                 </td>
                 <td class="py-3">
                     <span class="badge rounded-pill fw-semibold px-2 py-1" style="font-size: 0.72rem; background-color: ${isStatusActive ? '#10b981' : '#94a3b8'}; color: #ffffff;">

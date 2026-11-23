@@ -582,6 +582,26 @@ if (!function_exists('getCustomerAvatarDesign')) {
     background: #dcfce7;
     color: #15803d;
 }
+.cat-action-pay {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #059669;
+}
+.cat-action-pay:hover {
+    background: #d1fae5;
+    color: #047857;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(16, 185, 129, 0.25);
+}
+.cat-action-paid {
+    background: #f0fdf4;
+    border-color: #dcfce7;
+    color: #16a34a;
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 .cat-table-head th {
     background-color: #f8fafc !important;
     color: #334155 !important;
@@ -1032,7 +1052,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                             $avColor = getCustomerAvatarDesign($custName, $index);
                             $isOverdue = $order['due_date'] < date('Y-m-d') && !in_array($order['status'], ['completed', 'delivered', 'cancelled']);
                         ?>
-                        <tr class="order-row" data-status="<?php echo htmlspecialchars($order['status']); ?>" data-customer="<?php echo htmlspecialchars($custName); ?>">
+                        <tr class="order-row" id="orderRow_<?php echo $order['id']; ?>" data-status="<?php echo htmlspecialchars($order['status']); ?>" data-customer="<?php echo htmlspecialchars($custName); ?>">
                             <td class="ps-3 py-3">
                                 <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.82rem; padding: 5px 9px; border-radius: 8px;">
                                     <?php echo htmlspecialchars($order['order_number']); ?>
@@ -1090,7 +1110,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                     <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
                                 </span>
                             </td>
-                            <td class="py-3">
+                            <td class="py-3" id="orderAmountCell_<?php echo $order['id']; ?>">
                                 <div>
                                     <strong class="text-dark" style="font-size: 0.88rem;"><?php echo format_currency($order['total_amount']); ?></strong>
                                     <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.72rem;">
@@ -1121,8 +1141,32 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                             <td class="pe-3 py-3 text-end">
                                 <div class="d-inline-flex align-items-center gap-1">
                                     <?php if (!has_role('tailor')): ?>
+                                        <?php if ($pending > 0): ?>
+                                            <button type="button" 
+                                                    class="cat-action-btn cat-action-pay quick-pay-btn" 
+                                                    id="quickPayBtn_<?php echo $order['id']; ?>"
+                                                    onclick="openQuickPayModal(<?php echo htmlspecialchars(json_encode([
+                                                        'id' => $order['id'],
+                                                        'order_number' => $order['order_number'] ?? ('ORD' . $order['id']),
+                                                        'customer_name' => $order['measurement_customer_name'] ?? $order['customer_name'] ?? $custName,
+                                                        'total_amount' => (float)$order['total_amount'],
+                                                        'advance_amount' => (float)$order['advance_amount'],
+                                                        'balance_amount' => (float)$pending,
+                                                        'payment_method' => $order['payment_method'] ?? 'cash'
+                                                    ])); ?>)" 
+                                                    title="Mark as Fully Paid (Pending: <?php echo format_currency($pending); ?>)">
+                                                <i class="fas fa-rupee-sign"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="cat-action-btn cat-action-paid" 
+                                                  id="quickPayBtn_<?php echo $order['id']; ?>"
+                                                  title="Fully Paid (<?php echo format_currency($order['total_amount']); ?>)">
+                                                <i class="fas fa-check text-success"></i>
+                                            </span>
+                                        <?php endif; ?>
                                     <button type="button" 
                                             class="cat-action-btn cat-action-edit" 
+                                            id="editOrderBtn_<?php echo $order['id']; ?>"
                                             onclick="editOrder(<?php echo htmlspecialchars(json_encode([
                                                 'id' => $order['id'],
                                                 'customer_id' => $order['customer_id'],
@@ -1572,6 +1616,71 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         <i class="fab fa-whatsapp me-2"></i>Send on WhatsApp
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Pay Modal -->
+<div class="modal fade" id="quickPayModal" tabindex="-1" aria-labelledby="quickPayModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 44px; height: 44px; background: #dcfce7; color: #16a34a; font-size: 1.25rem;">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0">Settle Order Payment</h5>
+                        <small class="text-muted">Order <span id="quickPayOrderNum" class="fw-semibold text-primary"></span></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <input type="hidden" id="quickPayOrderId" value="">
+                <input type="hidden" id="quickPayCsrfToken" value="<?php echo generate_csrf_token(); ?>">
+
+                <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.88rem;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Customer:</span>
+                        <strong id="quickPayCustomer" class="text-dark"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Amount:</span>
+                        <strong id="quickPayTotal" class="text-dark"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Current Advance:</span>
+                        <strong id="quickPayAdvance" class="text-success"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2 border-top align-items-center">
+                        <span class="fw-bold text-dark">Pending to Collect:</span>
+                        <span class="badge bg-danger-subtle text-danger fs-6 fw-bold px-2 py-1" id="quickPayPendingBadge">₹0.00</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted mb-1">Payment Method</label>
+                    <select class="form-select form-select-sm" id="quickPayMethod" style="border-radius: 8px;">
+                        <option value="cash" selected>Cash</option>
+                        <option value="online">Online / UPI</option>
+                        <option value="card">Card</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="cheque">Cheque</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-success d-flex align-items-center py-2 px-3 mb-0" style="font-size: 0.82rem; border-radius: 8px;">
+                    <i class="fas fa-info-circle me-2 flex-shrink-0"></i>
+                    <span>This will set Advance to the Total Amount (Pending becomes ₹0.00) and mark the order as <strong>Fully Paid</strong>.</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light rounded-pill px-3 py-2 btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 py-2 btn-sm fw-semibold shadow-sm" id="quickPaySubmitBtn" onclick="submitQuickPay()" style="background-color: #16a34a; border-color: #16a34a;">
+                    <i class="fas fa-check-circle me-1"></i>Mark Fully Paid
+                </button>
             </div>
         </div>
     </div>
@@ -2539,6 +2648,157 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
     });
 }
 
+// Global order variable for Quick Pay modal
+window.currentQuickPayOrder = null;
+
+function openQuickPayModal(order) {
+    if (!order) return;
+    window.currentQuickPayOrder = order;
+
+    const modalEl = document.getElementById('quickPayModal');
+    if (!modalEl) return;
+
+    const orderNum = order.order_number || ('ORD' + order.id);
+    document.getElementById('quickPayOrderNum').textContent = '#' + orderNum;
+    document.getElementById('quickPayOrderId').value = order.id;
+    document.getElementById('quickPayCustomer').textContent = order.customer_name || 'Customer';
+
+    const formatCurr = (val) => '₹' + parseFloat(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    document.getElementById('quickPayTotal').textContent = formatCurr(order.total_amount);
+    document.getElementById('quickPayAdvance').textContent = formatCurr(order.advance_amount);
+    document.getElementById('quickPayPendingBadge').textContent = formatCurr(order.balance_amount);
+
+    const methodSelect = document.getElementById('quickPayMethod');
+    if (methodSelect) {
+        methodSelect.value = (order.payment_method || 'cash').toLowerCase();
+        if (!methodSelect.value) methodSelect.value = 'cash';
+    }
+
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+}
+
+function submitQuickPay() {
+    const orderId = document.getElementById('quickPayOrderId')?.value;
+    const paymentMethod = document.getElementById('quickPayMethod')?.value || 'cash';
+    const csrfToken = document.getElementById('quickPayCsrfToken')?.value || '<?php echo generate_csrf_token(); ?>';
+    const submitBtn = document.getElementById('quickPaySubmitBtn');
+
+    if (!orderId) {
+        showToast('Error', 'Invalid order selected', 'error');
+        return;
+    }
+
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+        submitBtn.disabled = true;
+    }
+
+    fetch('ajax/quick_pay_order.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `order_id=${encodeURIComponent(orderId)}&payment_method=${encodeURIComponent(paymentMethod)}&csrf_token=${encodeURIComponent(csrfToken)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (submitBtn) {
+            submitBtn.innerHTML = origBtnHtml;
+            submitBtn.disabled = false;
+        }
+
+        if (data.success) {
+            const modalEl = document.getElementById('quickPayModal');
+            if (modalEl) {
+                const bsModal = bootstrap.Modal.getInstance(modalEl);
+                if (bsModal) bsModal.hide();
+            }
+
+            showToast('Success', data.message || 'Payment settled successfully! Order marked as Fully Paid.', 'success');
+
+            // 1. Update Amount column UI
+            const amountCell = document.getElementById('orderAmountCell_' + orderId);
+            if (amountCell) {
+                const methodLower = (data.order.payment_method || 'cash').toLowerCase();
+                const methodDisplay = methodLower === 'online' ? 'Online' : (methodLower.charAt(0).toUpperCase() + methodLower.slice(1));
+                const methodBadgeClass = methodLower === 'online' ? 'bg-primary text-white' : 'bg-light text-dark border';
+                amountCell.innerHTML = `
+                    <div>
+                        <strong class="text-dark" style="font-size: 0.88rem;">${data.order.formatted_total}</strong>
+                        <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.72rem;">
+                            <div class="text-muted">
+                                Adv: <span class="text-success fw-semibold">${data.order.formatted_advance}</span>
+                                <span class="badge ${methodBadgeClass} ms-1" style="font-size: 0.65rem;">
+                                    ${escapeHtml(methodDisplay)}
+                                </span>
+                            </div>
+                            <div class="text-success fw-semibold">
+                                <i class="fas fa-check-circle me-1"></i>Fully Paid
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 2. Replace Quick Pay button with Fully Paid checkmark
+            const payBtn = document.getElementById('quickPayBtn_' + orderId);
+            if (payBtn) {
+                const paidSpan = document.createElement('span');
+                paidSpan.className = 'cat-action-btn cat-action-paid';
+                paidSpan.id = 'quickPayBtn_' + orderId;
+                paidSpan.title = `Fully Paid (${data.order.formatted_total})`;
+                paidSpan.innerHTML = '<i class="fas fa-check text-success"></i>';
+                payBtn.parentNode.replaceChild(paidSpan, payBtn);
+            }
+
+            // 3. Update Edit button's data so opening Edit modal shows 0 pending
+            const editBtn = document.getElementById('editOrderBtn_' + orderId);
+            if (editBtn) {
+                const currentOnClick = editBtn.getAttribute('onclick');
+                if (currentOnClick && currentOnClick.includes('editOrder(')) {
+                    try {
+                        const match = currentOnClick.match(/editOrder\(([\s\S]+)\)/);
+                        if (match && match[1]) {
+                            const orderObj = JSON.parse(match[1]);
+                            orderObj.advance_amount = data.order.advance_amount;
+                            orderObj.balance_amount = 0.00;
+                            orderObj.payment_method = data.order.payment_method;
+                            editBtn.setAttribute('onclick', `editOrder(${JSON.stringify(orderObj)})`);
+                        }
+                    } catch (e) {
+                        console.error('Error updating edit button onclick:', e);
+                    }
+                }
+                const dataOrderAttr = editBtn.getAttribute('data-order');
+                if (dataOrderAttr) {
+                    try {
+                        const orderObj = JSON.parse(dataOrderAttr.replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+                        orderObj.advance_amount = data.order.advance_amount;
+                        orderObj.balance_amount = 0.00;
+                        orderObj.payment_method = data.order.payment_method;
+                        editBtn.setAttribute('data-order', JSON.stringify(orderObj));
+                    } catch (e) {
+                        console.error('Error updating edit button data-order:', e);
+                    }
+                }
+            }
+        } else {
+            showToast('Error', data.error || 'Failed to update payment', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Quick pay error:', err);
+        if (submitBtn) {
+            submitBtn.innerHTML = origBtnHtml;
+            submitBtn.disabled = false;
+        }
+        showToast('Error', 'An error occurred while updating payment', 'error');
+    });
+}
+
 function showToast(title, message, type = 'info') {
     let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
@@ -2940,8 +3200,12 @@ function displayFilterResults(orders) {
         const statusBadgeClass = statusClasses[order.status] || 'bg-secondary';
         const statusDisplay = order.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+        const totalAmt = parseFloat(order.total_amount) || 0;
+        const advAmt = parseFloat(order.advance_amount) || 0;
+        const pendingAmt = (order.balance_amount !== undefined && order.balance_amount !== null) ? parseFloat(order.balance_amount) : Math.max(0, totalAmt - advAmt);
+
         tableHTML += `
-            <tr class="order-row" data-status="${escapeHtml(order.status)}" data-customer="${escapeHtml(customerName)}">
+            <tr class="order-row" id="orderRow_${order.id}" data-status="${escapeHtml(order.status)}" data-customer="${escapeHtml(customerName)}">
                 <td class="ps-3 py-3">
                     <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.82rem; padding: 5px 9px; border-radius: 8px;">
                         ${escapeHtml(order.order_number)}
@@ -2985,7 +3249,7 @@ function displayFilterResults(orders) {
                         ${escapeHtml(statusDisplay)}
                     </span>
                 </td>
-                <td class="py-3">
+                <td class="py-3" id="orderAmountCell_${order.id}">
                     <div>
                         <strong class="text-dark" style="font-size: 0.88rem;">${formatCurrency(order.total_amount)}</strong>
                         <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.72rem;">
@@ -2995,9 +3259,9 @@ function displayFilterResults(orders) {
                                     ${escapeHtml((order.payment_method || 'cash').toLowerCase() === 'online' ? 'Online' : ((order.payment_method || 'cash').charAt(0).toUpperCase() + (order.payment_method || 'cash').slice(1)))}
                                 </span>
                             </div>
-                            ${(order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, (parseFloat(order.total_amount) || 0) - (parseFloat(order.advance_amount) || 0))) > 0 ? `
+                            ${pendingAmt > 0 ? `
                                 <div class="text-danger fw-semibold">
-                                    Pending: ${formatCurrency(order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, (parseFloat(order.total_amount) || 0) - (parseFloat(order.advance_amount) || 0)))}
+                                    Pending: ${formatCurrency(pendingAmt)}
                                 </div>
                             ` : `
                                 <div class="text-success fw-semibold">
@@ -3010,8 +3274,32 @@ function displayFilterResults(orders) {
                 <td class="pe-3 py-3 text-end">
                     <div class="d-inline-flex align-items-center gap-1">
                         ${!isTailor ? `
+                        ${pendingAmt > 0 ? `
+                        <button type="button" 
+                                class="cat-action-btn cat-action-pay quick-pay-btn" 
+                                id="quickPayBtn_${order.id}"
+                                data-order='${JSON.stringify({
+                                    id: order.id,
+                                    order_number: order.order_number || ('ORD' + order.id),
+                                    customer_name: order.display_customer_name || order.customer_name || 'Customer',
+                                    total_amount: totalAmt,
+                                    advance_amount: advAmt,
+                                    balance_amount: pendingAmt,
+                                    payment_method: order.payment_method || 'cash'
+                                }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
+                                title="Mark as Fully Paid (Pending: ${formatCurrency(pendingAmt)})">
+                            <i class="fas fa-rupee-sign"></i>
+                        </button>
+                        ` : `
+                        <span class="cat-action-btn cat-action-paid" 
+                              id="quickPayBtn_${order.id}"
+                              title="Fully Paid (${formatCurrency(totalAmt)})">
+                            <i class="fas fa-check text-success"></i>
+                        </span>
+                        `}
                         <button type="button" 
                                 class="cat-action-btn cat-action-edit edit-order-btn" 
+                                id="editOrderBtn_${order.id}"
                                 data-order='${JSON.stringify({
                                     id: order.id,
                                     customer_id: order.customer_id,
@@ -3088,6 +3376,22 @@ function displayFilterResults(orders) {
     });
     
     ordersTable.innerHTML = tableHTML;
+    ordersTable.querySelectorAll('.quick-pay-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                const orderJson = this.getAttribute('data-order')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&');
+                const order = JSON.parse(orderJson);
+                openQuickPayModal(order);
+            } catch (e) {
+                console.error('Error parsing quick pay order data:', e);
+            }
+        });
+    });
     ordersTable.querySelectorAll('.edit-order-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {

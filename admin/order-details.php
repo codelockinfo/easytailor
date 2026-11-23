@@ -608,7 +608,7 @@ require_once 'includes/header.php';
                 <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: none;">
                     <div class="d-flex align-items-center gap-2">
                         <span class="fw-bold text-primary" style="font-size: 0.95rem;">
-                            <i class="fas fa-tshirt me-2"></i>Garments & Assigned Tailors (કપડાં અને માપ)
+                            <i class="fas fa-tshirt me-2"></i>Garments & Assigned Tailors 
                         </span>
                         <span class="badge rounded-pill bg-primary" style="font-size: 0.72rem;"><?php echo count($orderItems); ?> <?php echo count($orderItems) === 1 ? 'Garment' : 'Garments'; ?></span>
                     </div>

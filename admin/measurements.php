@@ -11,9 +11,11 @@ $measurementModel = new Measurement();
 $customerModel = new Customer();
 $clothTypeModel = new ClothType();
 
-/**
- * Helper to find or create the default Walk-in Customer record for the company
- */
+$clothTypes = $clothTypeModel->getActiveClothTypes();
+if (empty($clothTypes)) {
+    $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name ASC');
+}
+
 function getDefaultCustomerId($companyId, $customerModel) {
     $conditions = ['customer_code' => 'CUST000000'];
     if ($companyId) {
@@ -23,8 +25,6 @@ function getDefaultCustomerId($companyId, $customerModel) {
     if ($existing) {
         return (int)$existing['id'];
     }
-    
-    // Create default customer for this company
     $data = [
         'customer_code' => 'CUST000000',
         'first_name' => 'Walk-in',
@@ -37,73 +37,123 @@ function getDefaultCustomerId($companyId, $customerModel) {
     }
     return (int)$customerModel->createCustomer($data);
 }
-
-// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'add':
-                // Debug: Log the POST data
                 error_log('POST data: ' . print_r($_POST, true));
-                
-                // Process measurement data from form
-                $measurement_data = [];
-                if (isset($_POST['measurement_keys']) && isset($_POST['measurement_values'])) {
-                    for ($i = 0; $i < count($_POST['measurement_keys']); $i++) {
-                        $key = sanitize_input($_POST['measurement_keys'][$i]);
-                        $value = sanitize_input($_POST['measurement_values'][$i]);
-                        if (!empty($key) && !empty($value)) {
-                            $measurement_data[$key] = $value;
-                        }
-                    }
-                }
-                
-                // Debug: Log processed measurement data
-                error_log('Processed measurement data: ' . print_r($measurement_data, true));
                 
                 $name = sanitize_input($_POST['name'] ?? '');
                 $phone = sanitize_input($_POST['phone_number'] ?? '');
                 $email = sanitize_input($_POST['email'] ?? '');
                 $address = sanitize_input($_POST['address'] ?? '');
                 $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
-
+                $notes = sanitize_input($_POST['notes'] ?? '');
                 $companyId = get_company_id();
                 
-                $data = [
-                    'cloth_type_id' => (int)$_POST['cloth_type_id'],
-                    'measurement_data' => $measurement_data,
-                    'name' => $name,
-                    'email' => $email,
-                    'phone_number' => $phone,
-                    'address' => $address,
-                    'date_of_birth' => $dob,
-                    'notes' => sanitize_input($_POST['notes'] ?? ''),
-                    'images' => $_POST['images'] ?? []
-                ];
-                
-                // Debug: Log final data
-                error_log('Final data for database: ' . print_r($data, true));
-                
-                if ($measurementModel->createMeasurement($data)) {
-                    $_SESSION['success_message'] = 'Measurement added successfully! Data: ' . json_encode($measurement_data);
+                $addedCount = 0;
+                $addedClothNames = [];
+                if (!empty($_POST['garments']) && is_array($_POST['garments'])) {
+                    foreach ($_POST['garments'] as $garment) {
+                        $clothTypeId = (int)($garment['cloth_type_id'] ?? 0);
+                        if (!$clothTypeId) {
+                            continue;
+                        }
+                        $measurement_data = [];
+                        if (!empty($garment['keys']) && !empty($garment['values']) && is_array($garment['keys'])) {
+                            for ($k = 0; $k < count($garment['keys']); $k++) {
+                                $kName = sanitize_input($garment['keys'][$k] ?? '');
+                                $kVal = sanitize_input($garment['values'][$k] ?? '');
+                                if ($kName !== '' && $kVal !== '') {
+                                    $measurement_data[$kName] = $kVal;
+                                }
+                            }
+                        }
+
+                        $data = [
+                            'cloth_type_id' => $clothTypeId,
+                            'measurement_data' => $measurement_data,
+                            'name' => $name,
+                            'email' => $email,
+                            'phone_number' => $phone,
+                            'address' => $address,
+                            'date_of_birth' => $dob,
+                            'notes' => $notes,
+                            'images' => []
+                        ];
+
+                        if ($measurementModel->createMeasurement($data)) {
+                            $addedCount++;
+                            $ctFoundName = '';
+                            if (!empty($clothTypes) && is_array($clothTypes)) {
+                                foreach ($clothTypes as $ct) {
+                                    if ((int)$ct['id'] === $clothTypeId) {
+                                        $ctFoundName = $ct['name'];
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!$ctFoundName) {
+                                $directCt = $clothTypeModel->find($clothTypeId);
+                                if ($directCt && !empty($directCt['name'])) {
+                                    $ctFoundName = $directCt['name'];
+                                }
+                            }
+                            if ($ctFoundName) {
+                                $addedClothNames[] = $ctFoundName;
+                            }
+                        }
+                    }
+                } elseif (!empty($_POST['cloth_type_id'])) {
+                    $measurement_data = [];
+                    if (isset($_POST['measurement_keys']) && isset($_POST['measurement_values'])) {
+                        for ($i = 0; $i < count($_POST['measurement_keys']); $i++) {
+                            $key = sanitize_input($_POST['measurement_keys'][$i]);
+                            $value = sanitize_input($_POST['measurement_values'][$i]);
+                            if (!empty($key) && !empty($value)) {
+                                $measurement_data[$key] = $value;
+                            }
+                        }
+                    }
+
+                    $data = [
+                        'cloth_type_id' => (int)$_POST['cloth_type_id'],
+                        'measurement_data' => $measurement_data,
+                        'name' => $name,
+                        'email' => $email,
+                        'phone_number' => $phone,
+                        'address' => $address,
+                        'date_of_birth' => $dob,
+                        'notes' => $notes,
+                        'images' => $_POST['images'] ?? []
+                    ];
+
+                    if ($measurementModel->createMeasurement($data)) {
+                        $addedCount++;
+                    }
+                }
+
+                if ($addedCount > 0) {
+                    $clothList = !empty($addedClothNames) ? ' (' . implode(', ', array_unique($addedClothNames)) . ')' : '';
+                    $_SESSION['success_message'] = $addedCount . ' measurement' . ($addedCount > 1 ? 's' : '') . ' added successfully!' . $clothList;
                 } else {
-                    $_SESSION['error_message'] = 'Failed to add measurement. Please check the logs for details.';
+                    $_SESSION['error_message'] = 'Failed to add measurement. Please select at least one cloth type and enter measurement values.';
                 }
                 break;
                 
             case 'update':
-                $id = (int)$_POST['measurement_id'];
-                
-                // Process measurement data from form
-                $measurement_data = [];
-                if (isset($_POST['measurement_keys']) && isset($_POST['measurement_values'])) {
-                    for ($i = 0; $i < count($_POST['measurement_keys']); $i++) {
-                        $key = sanitize_input($_POST['measurement_keys'][$i]);
-                        $value = sanitize_input($_POST['measurement_values'][$i]);
-                        if (!empty($key) && !empty($value)) {
-                            $measurement_data[$key] = $value;
-                        }
+                $id = (int)($_POST['measurement_id'] ?? 0);
+                $existingIds = [];
+                if (!empty($_POST['existing_measurement_ids'])) {
+                    $rawExisting = $_POST['existing_measurement_ids'];
+                    if (is_string($rawExisting)) {
+                        $existingIds = json_decode($rawExisting, true) ?: [];
+                    } elseif (is_array($rawExisting)) {
+                        $existingIds = $rawExisting;
                     }
+                }
+                if (empty($existingIds) && $id > 0) {
+                    $existingIds = [$id];
                 }
                 
                 $name = sanitize_input($_POST['name'] ?? '');
@@ -111,48 +161,171 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $email = sanitize_input($_POST['email'] ?? '');
                 $address = sanitize_input($_POST['address'] ?? '');
                 $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
-
-                $companyId = get_company_id();
-
-                $data = [
-                    'measurement_data' => $measurement_data,
-                    'name' => $name,
-                    'email' => $email,
-                    'phone_number' => $phone,
-                    'address' => $address,
-                    'date_of_birth' => $dob,
-                    'notes' => sanitize_input($_POST['notes'] ?? ''),
-                    'images' => $_POST['images'] ?? []
-                ];
+                $notes = sanitize_input($_POST['notes'] ?? '');
                 
-                if ($measurementModel->updateMeasurement($id, $data)) {
-                    $_SESSION['success_message'] = 'Measurement updated successfully!';
+                $keptIds = [];
+                $updatedCount = 0;
+
+                if (!empty($_POST['garments']) && is_array($_POST['garments'])) {
+                    foreach ($_POST['garments'] as $garment) {
+                        $clothTypeId = (int)($garment['cloth_type_id'] ?? 0);
+                        if (!$clothTypeId) {
+                            continue;
+                        }
+
+                        $measurement_data = [];
+                        if (!empty($garment['keys']) && !empty($garment['values']) && is_array($garment['keys'])) {
+                            for ($k = 0; $k < count($garment['keys']); $k++) {
+                                $kName = sanitize_input($garment['keys'][$k] ?? '');
+                                $kVal = sanitize_input($garment['values'][$k] ?? '');
+                                if ($kName !== '' && $kVal !== '') {
+                                    $measurement_data[$kName] = $kVal;
+                                }
+                            }
+                        }
+
+                        $targetId = (int)($garment['measurement_id'] ?? 0);
+                        if ($targetId > 0 && in_array($targetId, $existingIds)) {
+                            $data = [
+                                'cloth_type_id' => $clothTypeId,
+                                'measurement_data' => $measurement_data,
+                                'name' => $name,
+                                'email' => $email,
+                                'phone_number' => $phone,
+                                'address' => $address,
+                                'date_of_birth' => $dob,
+                                'notes' => $notes
+                            ];
+                            if ($measurementModel->updateMeasurement($targetId, $data)) {
+                                $keptIds[] = $targetId;
+                                $updatedCount++;
+                            }
+                        } else {
+                            // Check for any unused existing ID to reuse
+                            $unusedId = null;
+                            foreach ($existingIds as $eId) {
+                                if (!in_array($eId, $keptIds)) {
+                                    $unusedId = $eId;
+                                    break;
+                                }
+                            }
+
+                            if ($unusedId) {
+                                $data = [
+                                    'cloth_type_id' => $clothTypeId,
+                                    'measurement_data' => $measurement_data,
+                                    'name' => $name,
+                                    'email' => $email,
+                                    'phone_number' => $phone,
+                                    'address' => $address,
+                                    'date_of_birth' => $dob,
+                                    'notes' => $notes
+                                ];
+                                if ($measurementModel->updateMeasurement($unusedId, $data)) {
+                                    $keptIds[] = $unusedId;
+                                    $updatedCount++;
+                                }
+                            } else {
+                                // Create new garment measurement record
+                                $data = [
+                                    'cloth_type_id' => $clothTypeId,
+                                    'measurement_data' => $measurement_data,
+                                    'name' => $name,
+                                    'email' => $email,
+                                    'phone_number' => $phone,
+                                    'address' => $address,
+                                    'date_of_birth' => $dob,
+                                    'notes' => $notes,
+                                    'images' => []
+                                ];
+                                if ($measurementModel->createMeasurement($data)) {
+                                    $updatedCount++;
+                                }
+                            }
+                        }
+                    }
+
+                    // Delete existing records that were removed during edit
+                    foreach ($existingIds as $eId) {
+                        if (!in_array($eId, $keptIds)) {
+                            $measurementModel->delete($eId);
+                        }
+                    }
+                } elseif ($id > 0) {
+                    $measurement_data = [];
+                    if (isset($_POST['measurement_keys']) && isset($_POST['measurement_values'])) {
+                        for ($i = 0; $i < count($_POST['measurement_keys']); $i++) {
+                            $key = sanitize_input($_POST['measurement_keys'][$i]);
+                            $value = sanitize_input($_POST['measurement_values'][$i]);
+                            if (!empty($key) && !empty($value)) {
+                                $measurement_data[$key] = $value;
+                            }
+                        }
+                    }
+
+                    $data = [
+                        'measurement_data' => $measurement_data,
+                        'name' => $name,
+                        'email' => $email,
+                        'phone_number' => $phone,
+                        'address' => $address,
+                        'date_of_birth' => $dob,
+                        'notes' => $notes,
+                        'images' => $_POST['images'] ?? []
+                    ];
+                    if (!empty($_POST['cloth_type_id'])) {
+                        $data['cloth_type_id'] = (int)$_POST['cloth_type_id'];
+                    }
+
+                    if ($measurementModel->updateMeasurement($id, $data)) {
+                        $updatedCount++;
+                    }
+                }
+                
+                if ($updatedCount > 0) {
+                    $_SESSION['success_message'] = 'Measurement(s) updated successfully!';
                 } else {
-                    $_SESSION['error_message'] = 'Failed to update measurement.';
+                    $_SESSION['error_message'] = 'Failed to update measurements.';
                 }
                 break;
                 
             case 'delete':
-                $id = (int)$_POST['measurement_id'];
-                if ($measurementModel->delete($id)) {
-                    $_SESSION['success_message'] = 'Measurement deleted successfully!';
+                $ids = [];
+                if (!empty($_POST['measurement_ids'])) {
+                    $raw = $_POST['measurement_ids'];
+                    if (is_string($raw) && ($raw[0] === '[' || $raw[0] === '{')) {
+                        $ids = json_decode($raw, true) ?: [];
+                    } elseif (is_string($raw)) {
+                        $ids = array_filter(array_map('intval', explode(',', $raw)));
+                    } elseif (is_array($raw)) {
+                        $ids = array_map('intval', $raw);
+                    }
+                }
+                if (empty($ids) && !empty($_POST['measurement_id'])) {
+                    $ids = [(int)$_POST['measurement_id']];
+                }
+
+                $deletedCount = 0;
+                foreach ($ids as $delId) {
+                    if ($delId > 0 && $measurementModel->delete($delId)) {
+                        $deletedCount++;
+                    }
+                }
+
+                if ($deletedCount > 0) {
+                    $_SESSION['success_message'] = 'Measurement record(s) deleted successfully!';
                 } else {
                     $_SESSION['error_message'] = 'Failed to delete measurement.';
                 }
                 break;
         }
-        
-        // Redirect to prevent form resubmission
         smart_redirect('measurements.php');
     }
 }
-
-// Get search parameters
 $search = $_GET['search'] ?? '';
 $customer_id = $_GET['customer_id'] ?? '';
 $cloth_type_id = $_GET['cloth_type_id'] ?? '';
 
-// Build conditions for filtering
 $conditions = [];
 if (!empty($search)) {
     // We'll handle search separately using the search method
@@ -163,33 +336,28 @@ if (!empty($customer_id)) {
 if (!empty($cloth_type_id)) {
     $conditions['cloth_type_id'] = $cloth_type_id;
 }
-
-// Pagination
 $page = (int)($_GET['page'] ?? 1);
 $limit = RECORDS_PER_PAGE;
 $offset = ($page - 1) * $limit;
-
-// Get measurements with company-aware totals
 $searchParam = !empty($search) ? trim($search) : null;
 $allMeasurements = $measurementModel->getMeasurementsWithDetails($conditions, null, 0, $searchParam);
-$totalMeasurements = count($allMeasurements);
+$groupedMeasurements = groupMeasurementsByCustomer($allMeasurements);
+$totalMeasurements = count($groupedMeasurements);
 
 if ($limit > 0) {
-    $measurements = array_slice($allMeasurements, $offset, $limit);
+    $measurements = array_slice($groupedMeasurements, $offset, $limit);
     $totalPages = max(1, ceil($totalMeasurements / $limit));
 } else {
-    $measurements = $allMeasurements;
+    $measurements = $groupedMeasurements;
     $totalPages = 1;
 }
 
-// Get data for dropdowns
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
-$clothTypes = $clothTypeModel->findAll(['status' => 'active']);
-
-// Get accurate count of active customers for the company
+$clothTypes = $clothTypeModel->getActiveClothTypes();
+if (empty($clothTypes)) {
+    $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name ASC');
+}
 $totalActiveCustomers = $customerModel->count(['status' => 'active']);
-
-// Get measurement for editing
 $editMeasurement = null;
 if (isset($_GET['edit'])) {
     $editMeasurement = $measurementModel->find((int)$_GET['edit']);
@@ -207,8 +375,6 @@ require_once 'includes/header.php';
 $success_message = $_SESSION['success_message'] ?? '';
 $error_message = $_SESSION['error_message'] ?? '';
 unset($_SESSION['success_message'], $_SESSION['error_message']);
-
-// Function for customer avatar design
 if (!function_exists('getCustomerAvatarDesign')) {
     function getCustomerAvatarDesign($name, $index) {
         $palettes = [
@@ -224,7 +390,6 @@ if (!function_exists('getCustomerAvatarDesign')) {
 ?>
 
 <style>
-/* Exact Measurements Styling Matching Category Page */
 .cat-stat-box {
     border-radius: 16px;
     padding: 10px 12px;
@@ -334,17 +499,12 @@ if (!function_exists('getCustomerAvatarDesign')) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-
-<!-- 1. Measurements Hero Banner (Using Shared Component) -->
 <?php
 $pageHeaderTitle = 'Measurements';
 $pageHeaderSubtitle = 'Track and manage your customer garment measurements easily.';
 include 'includes/page-header.php';
 ?>
-
-<!-- 2. Stat Cards (2x2 on Mobile, 4 cols on Desktop) -->
 <div class="row g-2 mb-3">
-    <!-- Total Measurements -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -364,8 +524,6 @@ include 'includes/page-header.php';
             </div>
         </div>
     </div>
-    
-    <!-- This Month -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -385,8 +543,6 @@ include 'includes/page-header.php';
             </div>
         </div>
     </div>
-
-    <!-- Cloth Types -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -406,8 +562,6 @@ include 'includes/page-header.php';
             </div>
         </div>
     </div>
-
-    <!-- Active Customers -->
     <div class="col-6 col-md-3">
         <div class="cat-stat-box d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
             <div class="d-flex align-items-center gap-2 min-w-0">
@@ -428,8 +582,6 @@ include 'includes/page-header.php';
         </div>
     </div>
 </div>
-
-<!-- 3. Search and Action Row -->
 <div class="row g-2 align-items-center mb-3">
     <div class="col-12 col-md-3">
         <div class="position-relative">
@@ -470,8 +622,6 @@ include 'includes/page-header.php';
         <span><strong id="filterCount">0</strong> measurements found</span>
     </div>
 </div>
-
-<!-- 4. Measurements Table (Shown in both Desktop & Mobile View) -->
 <div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
     <div class="card-body p-0">
         <?php if (!empty($measurements)): ?>
@@ -496,10 +646,13 @@ include 'includes/page-header.php';
                     </thead>
                     <tbody id="measurementsTableBody">
                         <?php foreach ($measurements as $idx => $measurement): 
+                            $custKey = 'cust_' . $idx;
                             $cleanCustName = !empty($measurement['name']) ? $measurement['name'] : trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
                             if (empty($cleanCustName)) $cleanCustName = 'Walk-in Customer';
                             $custDesign = getCustomerAvatarDesign($cleanCustName, $idx);
                             $initial = strtoupper(substr($cleanCustName, 0, 1) ?: 'C');
+                            $cClothTypes = $measurement['cloth_types'] ?? [];
+                            $cGarments = $measurement['garments'] ?? [];
                         ?>
                         <tr class="measurement-row" data-name="<?php echo strtolower($cleanCustName); ?>">
                             <td class="ps-3 py-3">
@@ -514,27 +667,69 @@ include 'includes/page-header.php';
                                 </div>
                             </td>
                             <td class="py-3">
-                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
-                                    <?php echo htmlspecialchars($measurement['cloth_type_name'] ?? 'Custom'); ?>
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <?php 
-                                $measurementData = json_decode($measurement['measurement_data'], true);
-                                if (is_array($measurementData) && !empty($measurementData)): 
-                                ?>
-                                    <div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">
-                                        <?php foreach (array_slice($measurementData, 0, 3) as $key => $value): ?>
-                                            <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;">
-                                                <strong style="color: #475569;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> <?php echo htmlspecialchars($value); ?>
+                                <div class="d-flex flex-wrap gap-1 align-items-center">
+                                    <?php if (!empty($cClothTypes)): ?>
+                                        <?php foreach ($cClothTypes as $ctName): ?>
+                                            <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                                <?php echo htmlspecialchars($ctName); ?>
                                             </span>
                                         <?php endforeach; ?>
-                                        <?php if (count($measurementData) > 3): ?>
-                                            <span class="text-muted small" style="font-size: 0.72rem;">+<?php echo count($measurementData) - 3; ?> more</span>
+                                        <?php if (count($cClothTypes) > 1): ?>
+                                            <span class="badge rounded-pill px-2 py-1 fw-bold" style="background: #f1f5f9; color: #475569; font-size: 0.72rem;">
+                                                <?php echo count($cGarments); ?> Items
+                                            </span>
                                         <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                            <?php echo htmlspecialchars($measurement['cloth_type_name'] ?? 'Custom'); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <?php if (!empty($cGarments)): ?>
+                                    <div class="d-flex flex-column gap-1" style="max-width: 320px;">
+                                        <?php foreach ($cGarments as $g): 
+                                            $gData = $g['measurement_data'] ?? [];
+                                            if (is_string($gData)) $gData = json_decode($gData, true) ?: [];
+                                        ?>
+                                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                <span class="fw-bold text-secondary me-1" style="font-size: 0.73rem;">
+                                                    <?php echo htmlspecialchars($g['cloth_type_name']); ?>:
+                                                </span>
+                                                <?php if (!empty($gData) && is_array($gData)): ?>
+                                                    <?php foreach (array_slice($gData, 0, 3) as $key => $value): ?>
+                                                        <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;">
+                                                            <strong style="color: #475569;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> <?php echo htmlspecialchars($value); ?>
+                                                        </span>
+                                                    <?php endforeach; ?>
+                                                    <?php if (count($gData) > 3): ?>
+                                                        <span class="text-muted small" style="font-size: 0.70rem;">+<?php echo count($gData) - 3; ?> more</span>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted small">—</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
                                 <?php else: ?>
-                                    <span class="text-muted small">—</span>
+                                    <?php 
+                                    $measurementData = is_array($measurement['measurement_data'] ?? null) ? $measurement['measurement_data'] : json_decode($measurement['measurement_data'] ?? '', true);
+                                    if (is_array($measurementData) && !empty($measurementData)): 
+                                    ?>
+                                        <div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">
+                                            <?php foreach (array_slice($measurementData, 0, 3) as $key => $value): ?>
+                                                <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;">
+                                                    <strong style="color: #475569;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> <?php echo htmlspecialchars($value); ?>
+                                                </span>
+                                            <?php endforeach; ?>
+                                            <?php if (count($measurementData) > 3): ?>
+                                                <span class="text-muted small" style="font-size: 0.72rem;">+<?php echo count($measurementData) - 3; ?> more</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted small">—</span>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </td>
                             <td class="py-3">
@@ -551,13 +746,13 @@ include 'includes/page-header.php';
                             </td>
                             <td class="text-end pe-3 py-3">
                                 <div class="d-inline-flex align-items-center gap-1">
-                                    <button type="button" class="cat-action-btn cat-action-edit" onclick="editMeasurement(<?php echo htmlspecialchars(json_encode($measurement)); ?>)" title="Edit">
+                                    <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomerByKey('<?php echo $custKey; ?>')" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button type="button" class="cat-action-btn cat-action-view" onclick="viewMeasurement(<?php echo $measurement['id']; ?>)" title="View Details">
+                                    <button type="button" class="cat-action-btn cat-action-view" onclick="viewCustomerByKey('<?php echo $custKey; ?>')" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button type="button" class="cat-action-btn cat-action-del" onclick="deleteMeasurement(<?php echo $measurement['id']; ?>)" title="Delete">
+                                    <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomerByKey('<?php echo $custKey; ?>')" title="Delete">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
@@ -616,6 +811,7 @@ include 'includes/page-header.php';
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="action" value="<?php echo $editMeasurement ? 'update' : 'add'; ?>">
+                    <input type="hidden" name="existing_measurement_ids" id="existing_measurement_ids" value="">
                     <?php if ($editMeasurement): ?>
                         <input type="hidden" name="measurement_id" value="<?php echo $editMeasurement['id']; ?>">
                     <?php endif; ?>
@@ -637,6 +833,8 @@ include 'includes/page-header.php';
                         </div>
                     </div>
 
+                    <input type="hidden" id="phone_number" name="phone_number" value="<?php echo htmlspecialchars($editMeasurement['phone_number'] ?? ''); ?>">
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -645,63 +843,43 @@ include 'includes/page-header.php';
                                        value="<?php echo htmlspecialchars($editMeasurement['date_of_birth'] ?? ''); ?>">
                             </div>
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Address</label>
-                        <textarea class="form-control" id="address" name="address" rows="2" placeholder="Enter customer address"><?php echo htmlspecialchars($editMeasurement['address'] ?? ''); ?></textarea>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="1" placeholder="Enter customer address" style="min-height: 38px; resize: vertical;"><?php echo htmlspecialchars($editMeasurement['address'] ?? ''); ?></textarea>
+                            </div>
+                        </div>
                     </div>
 
                     <input type="hidden" id="customer_id" name="customer_id" value="<?php echo htmlspecialchars($editMeasurement['customer_id'] ?? ''); ?>">
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <label for="cloth_type_id" class="form-label">Cloth Type *</label>
-                                <select class="form-select" id="cloth_type_id" name="cloth_type_id" required <?php echo $editMeasurement ? 'readonly' : ''; ?> onchange="loadMeasurementChart(this.value); loadFieldsForClothType(this.value)">
-                                    <option value="">Select Cloth Type</option>
-                                    <?php foreach ($clothTypes as $clothType): ?>
-                                        <option value="<?php echo $clothType['id']; ?>" 
-                                                data-chart="<?php echo htmlspecialchars($clothType['measurement_chart_image'] ? '../' . ltrim($clothType['measurement_chart_image'], './') : ''); ?>"
-                                                <?php echo ($editMeasurement && $editMeasurement['cloth_type_id'] == $clothType['id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($clothType['name']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="measurementChartContainer" class="mb-4" style="display:none;">
-                        <div class="card">
-                            <div class="card-header bg-info text-white">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-ruler-combined me-2"></i>Measurement Guide
-                                </h6>
-                            </div>
-                            <div class="card-body text-center">
-                                <img id="measurementChartImage" src="" alt="Measurement Guide" class="img-fluid" style="max-height: 500px;">
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="mb-3">
-                        <label class="form-label">Measurements</label>
-                        <div id="measurementFieldsContainer">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
+                                <i class="fas fa-tshirt me-2 text-primary"></i>Cloth Types & Measurements 
+                            </label>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomMeasurementField()">
-                            <i class="fas fa-plus me-1"></i>Add Custom Field
-                        </button>
+                        
+                        <div id="garmentsContainer" class="accordion d-flex flex-column gap-2 mb-3">
+                            <!-- Dynamic Garment Blocks as Accordion Dropdowns will be inserted here -->
+                        </div>
+                        
+                        <div id="addGarmentBtnWrapper" class="mb-3">
+                            <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 w-100 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="addGarmentBlock()" style="border: 2px dashed #4f46e5; background-color: #f8faff; transition: all 0.2s ease;">
+                                <i class="fas fa-plus-circle text-primary"></i>
+                                <span>+ Add Another Cloth Type </span>
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                        <textarea class="form-control" id="notes" name="notes" rows="2" 
                                   placeholder="Additional notes about the measurements..."><?php echo htmlspecialchars($editMeasurement['notes'] ?? ''); ?></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="saveMeasurementBtn">
                         <?php echo $editMeasurement ? 'Update Measurement' : 'Add Measurement'; ?>
                     </button>
                 </div>
@@ -778,6 +956,7 @@ include 'includes/page-header.php';
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="measurement_id" id="deleteMeasurementId">
+                    <input type="hidden" name="measurement_ids" id="deleteMeasurementIds">
                     <button type="submit" class="btn btn-danger px-4">
                         <i class="fas fa-trash me-2"></i>Delete Measurement
                     </button>
@@ -788,318 +967,710 @@ include 'includes/page-header.php';
 </div>
 
 <script>
-// Store cloth type chart data
-const clothTypeCharts = {};
-<?php foreach ($clothTypes as $clothType): ?>
-clothTypeCharts[<?php echo $clothType['id']; ?>] = '<?php echo htmlspecialchars($clothType['measurement_chart_image'] ? '../' . ltrim($clothType['measurement_chart_image'], './') : ''); ?>';
-<?php endforeach; ?>
-
-// Store cloth type names for field detection
-const clothTypeNames = {};
-<?php foreach ($clothTypes as $clothType): ?>
-clothTypeNames[<?php echo $clothType['id']; ?>] = '<?php echo htmlspecialchars($clothType['name']); ?>';
-<?php endforeach; ?>
-
-// Load measurement chart based on selected cloth type
-function loadMeasurementChart(clothTypeId) {
-    const chartContainer = document.getElementById('measurementChartContainer');
-    const chartImage = document.getElementById('measurementChartImage');
-    
-    console.log('Loading chart for cloth type ID:', clothTypeId);
-    console.log('Available charts:', clothTypeCharts);
-    
-    if (clothTypeId && clothTypeCharts[clothTypeId] && clothTypeCharts[clothTypeId].trim() !== '') {
-        const chartPath = clothTypeCharts[clothTypeId];
-        console.log('Chart path:', chartPath);
-        
-        chartImage.src = chartPath;
-        chartImage.onerror = function() {
-            console.error('Failed to load chart image:', chartPath);
-        };
-        chartImage.onload = function() {
-            console.log('Chart loaded successfully:', chartPath);
-        };
-        chartContainer.style.display = 'block';
-    } else {
-        console.log('No chart available for this cloth type');
-        chartContainer.style.display = 'none';
-    }
+// Global HTML escaping helper
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
-// Load chart on page load if editing
-<?php if ($editMeasurement && !empty($editMeasurement['cloth_type_id'])): ?>
-window.addEventListener('DOMContentLoaded', function() {
-    loadMeasurementChart(<?php echo $editMeasurement['cloth_type_id']; ?>);
-});
-<?php endif; ?>
-
-// Debug function for form submission
-function debugFormSubmission(event) {
-    console.log('Form submission started...');
-    
-    // Get all form data
-    const formData = new FormData(event.target);
-    console.log('Form data:');
-    for (let [key, value] of formData.entries()) {
-        console.log(key + ': ' + value);
-    }
-    
-    // Check measurement fields specifically
-    const measurementKeys = document.querySelectorAll('input[name="measurement_keys[]"]');
-    const measurementValues = document.querySelectorAll('input[name="measurement_values[]"], select[name="measurement_values[]"]');
-    
-    console.log('Measurement fields found:');
-    console.log('Keys:', measurementKeys.length);
-    console.log('Values:', measurementValues.length);
-    
-    measurementKeys.forEach((input, index) => {
-        console.log(`Key ${index}: "${input.value}"`);
-    });
-    
-    measurementValues.forEach((input, index) => {
-        console.log(`Value ${index}: "${input.value}"`);
-    });
-    
-    // Basic validation
-    const name = document.getElementById('name').value.trim();
-    const phoneInput = document.getElementById('phone_number');
-    const phone = phoneInput ? phoneInput.value.trim() : '';
-    const clothTypeId = document.getElementById('cloth_type_id').value;
-    
-    if (!name) {
-        alert('Please enter customer name.');
-        event.preventDefault();
-        return false;
-    }
-    
-    if (!clothTypeId) {
-        alert('Please select a cloth type.');
-        event.preventDefault();
-        return false;
-    }
-    
-    // Check if at least one measurement field has both key and value
-    let hasValidMeasurement = false;
-    for (let i = 0; i < measurementKeys.length; i++) {
-        const key = measurementKeys[i].value.trim();
-        const value = measurementValues[i].value.trim();
-        if (key && value) {
-            hasValidMeasurement = true;
-            break;
+// Global map of grouped customer measurements (eliminates JSON in HTML attributes)
+const customerMeasurementsMap = <?php 
+    $cMap = [];
+    if (!empty($measurements)) {
+        foreach ($measurements as $i => $m) {
+            $cMap['cust_' . $i] = $m;
         }
     }
-    
-    if (!hasValidMeasurement) {
-        alert('Please add at least one measurement with both name and value.');
-        event.preventDefault();
-        return false;
+    echo json_encode($cMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?: '{}';
+?>;
+
+function editCustomerByKey(key) {
+    const group = customerMeasurementsMap[key];
+    if (group) {
+        editCustomerMeasurements(group);
+    } else {
+        console.error('Customer data not found for key:', key);
     }
-    
-    console.log('Form validation passed, submitting...');
-    return true;
 }
 
-// Measurement field management
-let measurementFieldCount = 0;
+function viewCustomerByKey(key) {
+    const group = customerMeasurementsMap[key];
+    if (group) {
+        viewCustomerMeasurements(group);
+    } else {
+        console.error('Customer data not found for key:', key);
+    }
+}
 
-function addMeasurementField(key = '', value = '', fieldType = 'text') {
-    measurementFieldCount++;
-    const container = document.getElementById('measurementFieldsContainer');
-    const fieldDiv = document.createElement('div');
-    fieldDiv.className = 'row mb-2';
+function deleteCustomerByKey(key) {
+    const group = customerMeasurementsMap[key];
+    if (group) {
+        deleteCustomerMeasurements(group.ids, group.name);
+    } else {
+        console.error('Customer data not found for key:', key);
+    }
+}
+
+// Available cloth types data from PHP
+const availableClothTypes = <?php echo json_encode(array_values(array_map(function($ct) {
+    return [
+        'id' => (int)$ct['id'],
+        'name' => $ct['name'],
+        'category' => $ct['category'] ?? '',
+        'chart' => $ct['measurement_chart_image'] ? '../' . ltrim($ct['measurement_chart_image'], './') : ''
+    ];
+}, $clothTypes))); ?>;
+
+// Default standard measurement fields templates based on cloth type name
+function getDefaultFieldsForClothType(clothTypeName) {
+    const name = (clothTypeName || '').toLowerCase();
+    
+    // Suit / Blazer / Coat
+    if (name.includes('suit') || name.includes('blazer') || name.includes('coat')) {
+        return [
+            { key: 'length', label: 'Suit Length', type: 'text' },
+            { key: 'chest', label: 'Chest', type: 'text' },
+            { key: 'waist', label: 'Waist', type: 'text' },
+            { key: 'hip', label: 'Hip', type: 'text' },
+            { key: 'shoulder', label: 'Shoulder', type: 'text' },
+            { key: 'sleeve_length', label: 'Sleeve Length', type: 'text' },
+            { key: 'collar', label: 'Collar / Neck', type: 'text' },
+            { key: 'cross_back', label: 'Cross Back', type: 'text' }
+        ];
+    }
+    
+    // Pants / Pent / Trousers / Salwar / Pajama
+    if (name.includes('pant') || name.includes('pent') || name.includes('trouser') || name.includes('pajama') || name.includes('salwar') || name.includes('bottom')) {
+        return [
+            { key: 'length', label: 'Length', type: 'text' },
+            { key: 'waist', label: 'Waist', type: 'text' },
+            { key: 'hip/seat', label: 'Hip / Seat', type: 'text' },
+            { key: 'thigh', label: 'Thigh', type: 'text' },
+            { key: 'knee', label: 'Knee', type: 'text' },
+            { key: 'bottom', label: 'Bottom / Mori', type: 'text' }
+        ];
+    }
+    
+    // Shirt
+    if (name.includes('shirt')) {
+        return [
+            { key: 'collar', label: 'Collar', type: 'text' },
+            { key: 'shoulder', label: 'Shoulder', type: 'text' },
+            { key: 'chest', label: 'Chest', type: 'text' },
+            { key: 'waist', label: 'Waist', type: 'text' },
+            { key: 'sleeve_type', label: 'Sleeve Type', type: 'select', options: [{val: 'half', text: 'Half Sleeve'}, {val: 'full', text: 'Full Sleeve'}] },
+            { key: 'sleeve_length', label: 'Sleeve Length', type: 'text' },
+            { key: 'length', label: 'Length', type: 'text' },
+            { key: 'pocket', label: 'Pocket', type: 'select', options: [{val: 'yes', text: 'Yes'}, {val: 'no', text: 'No'}] },
+            { key: 'button_color', label: 'Button Color', type: 'color' }
+        ];
+    }
+    
+    // Kurta / Kameez / Sherwani
+    if (name.includes('kurta') || name.includes('kameez') || name.includes('sherwani') || name.includes('servani')) {
+        return [
+            { key: 'length', label: 'Length', type: 'text' },
+            { key: 'chest', label: 'Chest', type: 'text' },
+            { key: 'waist', label: 'Waist', type: 'text' },
+            { key: 'shoulder', label: 'Shoulder', type: 'text' },
+            { key: 'sleeve_length', label: 'Sleeve Length', type: 'text' },
+            { key: 'collar', label: 'Collar / Neck', type: 'text' },
+            { key: 'hip', label: 'Hip / Seat', type: 'text' }
+        ];
+    }
+    
+    // Saree / Blouse / Choli
+    if (name.includes('saree') || name.includes('sari') || name.includes('blouse') || name.includes('choli')) {
+        return [
+            { key: 'blouse_length', label: 'Blouse Length', type: 'text' },
+            { key: 'chest', label: 'Chest', type: 'text' },
+            { key: 'waist', label: 'Waist', type: 'text' },
+            { key: 'shoulder', label: 'Shoulder', type: 'text' },
+            { key: 'sleeve_length', label: 'Sleeve Length', type: 'text' },
+            { key: 'armhole', label: 'Armhole', type: 'text' },
+            { key: 'front_neck_depth', label: 'Front Neck Depth', type: 'text' },
+            { key: 'back_neck_depth', label: 'Back Neck Depth', type: 'text' }
+        ];
+    }
+    
+    // Dress / Gown / Frock
+    if (name.includes('dress') || name.includes('gown') || name.includes('frock')) {
+        return [
+            { key: 'length', label: 'Length', type: 'text' },
+            { key: 'shoulder', label: 'Shoulder', type: 'text' },
+            { key: 'chest', label: 'Chest', type: 'text' },
+            { key: 'waist', label: 'Waist', type: 'text' },
+            { key: 'hips', label: 'Hips', type: 'text' },
+            { key: 'sleeve_length', label: 'Sleeve Length', type: 'text' },
+            { key: 'armhole', label: 'Armhole', type: 'text' },
+            { key: 'front_neck_depth', label: 'Front Neck Depth', type: 'text' },
+            { key: 'back_neck_depth', label: 'Back Neck Depth', type: 'text' }
+        ];
+    }
+    
+    // Default fallback
+    return [
+        { key: 'length', label: 'Length', type: 'text' },
+        { key: 'chest', label: 'Chest', type: 'text' },
+        { key: 'waist', label: 'Waist', type: 'text' }
+    ];
+}
+
+let garmentBlockCounter = 0;
+
+// Add a garment block as an Accordion Dropdown
+function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId = '') {
+    garmentBlockCounter++;
+    const currentId = garmentBlockCounter;
+    const container = document.getElementById('garmentsContainer');
+    if (!container) return;
+    
+    // Check if this is the first block
+    const existingBlocks = container.querySelectorAll('.garment-block');
+    const isFirst = (existingBlocks.length === 0);
+    
+    // If not first, collapse all existing blocks so the new one gets full focus!
+    if (!isFirst) {
+        existingBlocks.forEach(b => {
+            const collapseEl = b.querySelector('.accordion-collapse');
+            const btnEl = b.querySelector('.accordion-button');
+            if (collapseEl && collapseEl.classList.contains('show')) {
+                collapseEl.classList.remove('show');
+            }
+            if (btnEl && !btnEl.classList.contains('collapsed')) {
+                btnEl.classList.add('collapsed');
+                btnEl.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    const item = document.createElement('div');
+    item.className = 'accordion-item garment-block border shadow-sm mb-2';
+    item.id = `garment-card-${currentId}`;
+    item.dataset.garmentId = currentId;
+    item.style.borderRadius = '12px';
+    item.style.overflow = 'hidden';
+    item.style.borderColor = '#e2e8f0';
+
+    let optionsHtml = '<option value="">Select Cloth Type</option>';
+    availableClothTypes.forEach(ct => {
+        const isSelected = (presetClothTypeId && String(presetClothTypeId) === String(ct.id)) ? 'selected' : '';
+        optionsHtml += `<option value="${ct.id}" data-name="${ct.name}" data-chart="${ct.chart}" ${isSelected}>${ct.name}${ct.category ? ' (' + ct.category + ')' : ''}</option>`;
+    });
+
+    item.innerHTML = `
+        <h2 class="accordion-header" id="heading-${currentId}">
+            <div class="d-flex align-items-center justify-content-between bg-light p-1 pe-2 border-bottom">
+                <button class="accordion-button py-2 px-3 bg-transparent border-0 shadow-none text-dark fw-bold d-flex align-items-center gap-2 ${isFirst ? '' : 'collapsed'}" 
+                        type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#collapse-${currentId}" 
+                        aria-expanded="${isFirst ? 'true' : 'false'}" 
+                        aria-controls="collapse-${currentId}"
+                        style="flex: 1; text-align: left; font-size: 0.92rem;">
+                    <span class="badge bg-primary rounded-pill garment-index-badge">#1</span>
+                    <span class="garment-title text-dark">Select Cloth Type</span>
+                    <span class="badge bg-white text-muted border garment-summary-badge small ms-2" style="font-size: 0.75rem; font-weight: normal;">
+                        No measurements
+                    </span>
+                </button>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-garment-btn p-1 px-2 border-0" onclick="removeGarmentBlock(${currentId})" title="Remove this garment" style="border-radius: 8px; font-size: 0.78rem;">
+                        <i class="fas fa-trash-alt text-danger"></i>
+                    </button>
+                </div>
+            </div>
+        </h2>
+        <div id="collapse-${currentId}" class="accordion-collapse collapse ${isFirst ? 'show' : ''}" aria-labelledby="heading-${currentId}" data-bs-parent="#garmentsContainer">
+            <div class="accordion-body p-3 bg-white">
+                <input type="hidden" class="garment-id-input" name="garments[${currentId}][measurement_id]" value="${measurementId || ''}">
+                <div class="row align-items-end g-2 mb-3">
+                    <div class="col-sm-8 col-12">
+                        <label class="form-label fw-semibold text-dark small mb-1">
+                            Cloth Type * 
+                        </label>
+                        <select class="form-select form-select-sm garment-cloth-type-select" name="garments[${currentId}][cloth_type_id]" required onchange="handleGarmentClothTypeChange(${currentId}, this.value)" style="border-radius: 8px; font-size: 0.88rem; ">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-sm-4 col-12 text-sm-end">
+                        <button type="button" class="btn btn-outline-info btn-sm rounded-pill w-100 garment-guide-toggle-btn" id="guide-btn-${currentId}" onclick="toggleGarmentChart(${currentId})" style="display: none; font-size: 0.78rem; height: 38px;">
+                            <i class="fas fa-ruler-combined me-1"></i><span class="guide-btn-text">View Guide</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="garment-chart-box mb-3" id="garment-chart-box-${currentId}" style="display: none;">
+                    <div class="card border-info bg-light" style="border-radius: 10px; overflow: hidden; border: 1px solid #bae6fd !important;">
+                        <div class="card-header bg-info bg-opacity-10 py-1 px-3 d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
+                            <span class="fw-semibold text-info"><i class="fas fa-ruler-combined me-1"></i>Measurement Guide Image</span>
+                            <button type="button" class="btn-close btn-close-sm" onclick="toggleGarmentChart(${currentId})" style="font-size: 0.65rem;"></button>
+                        </div>
+                        <div class="card-body text-center p-2">
+                            <img src="" alt="Guide" class="img-fluid garment-chart-img" style="max-height: 220px; border-radius: 8px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-1">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-semibold text-dark small mb-0">
+                            <i class="fas fa-tape me-1 text-primary"></i>Measurements 
+                        </label>
+                        <button type="button" class="btn btn-xs btn-outline-primary" onclick="addCustomFieldToGarment(${currentId})" style="border-radius: 8px; font-size: 0.76rem; padding: 2px 8px;">
+                            <i class="fas fa-plus me-1"></i>Add Custom Field
+                        </button>
+                    </div>
+                    <div class="garment-fields-list row g-2" id="garment-fields-${currentId}">
+                        <!-- Inputs loaded here in 2-column grid -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(item);
+
+    if (presetClothTypeId) {
+        handleGarmentClothTypeChange(currentId, presetClothTypeId, presetData);
+    } else {
+        renderGarmentDefaultFields(currentId);
+    }
+
+    updateGarmentNumbering();
+}
+
+// Update garment measurement count in the accordion badge
+function updateGarmentMeasurementCount(garmentId) {
+    const card = document.getElementById(`garment-card-${garmentId}`);
+    if (!card) return;
+    const badge = card.querySelector('.garment-summary-badge');
+    if (!badge) return;
+    
+    const inputs = card.querySelectorAll('input[name*="[values]"], select[name*="[values]"]');
+    let filledCount = 0;
+    inputs.forEach(inp => {
+        if (inp.value && inp.value.trim() !== '') {
+            filledCount++;
+        }
+    });
+    
+    if (filledCount > 0) {
+        badge.textContent = `${filledCount} ${filledCount === 1 ? 'measurement' : 'measurements'}`;
+        badge.className = 'badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small ms-2';
+    } else {
+        badge.textContent = 'No measurements';
+        badge.className = 'badge bg-white text-muted border garment-summary-badge small ms-2';
+    }
+}
+
+// Update garment index badges and remove button visibility
+function updateGarmentNumbering() {
+    const blocks = document.querySelectorAll('#garmentsContainer .garment-block');
+    const total = blocks.length;
+    blocks.forEach((block, index) => {
+        const badge = block.querySelector('.garment-index-badge');
+        if (badge) {
+            badge.textContent = `#${index + 1}`;
+        }
+        const select = block.querySelector('.garment-cloth-type-select');
+        const title = block.querySelector('.garment-title');
+        if (title && select) {
+            const selectedText = select.options[select.selectedIndex]?.text;
+            if (select.value && selectedText && !selectedText.startsWith('Select Cloth Type')) {
+                title.textContent = selectedText.split(' (')[0];
+            } else {
+                title.textContent = `Garment #${index + 1}`;
+            }
+        }
+        const removeBtn = block.querySelector('.remove-garment-btn');
+        if (removeBtn) {
+            if (total <= 1) {
+                removeBtn.style.display = 'none';
+            } else {
+                removeBtn.style.display = 'inline-block';
+            }
+        }
+    });
+}
+
+// Remove a garment block
+function removeGarmentBlock(id) {
+    const blocks = document.querySelectorAll('#garmentsContainer .garment-block');
+    if (blocks.length <= 1) {
+        alert('At least one garment is required.');
+        return;
+    }
+    const card = document.getElementById(`garment-card-${id}`);
+    if (card) {
+        card.remove();
+        updateGarmentNumbering();
+        // Make sure at least one block is expanded
+        const remaining = document.querySelectorAll('#garmentsContainer .garment-block');
+        const anyOpen = Array.from(remaining).some(b => b.querySelector('.accordion-collapse.show'));
+        if (!anyOpen && remaining.length > 0) {
+            const firstCollapse = remaining[0].querySelector('.accordion-collapse');
+            const firstBtn = remaining[0].querySelector('.accordion-button');
+            if (firstCollapse) firstCollapse.classList.add('show');
+            if (firstBtn) {
+                firstBtn.classList.remove('collapsed');
+                firstBtn.setAttribute('aria-expanded', 'true');
+            }
+        }
+    }
+}
+
+// Toggle chart preview collapse
+function toggleGarmentChart(id) {
+    const box = document.getElementById(`garment-chart-box-${id}`);
+    const btn = document.getElementById(`guide-btn-${id}`);
+    const btnText = btn ? btn.querySelector('.guide-btn-text') : null;
+    if (box) {
+        if (box.style.display === 'none' || !box.style.display) {
+            box.style.display = 'block';
+            if (btnText) btnText.textContent = 'Hide Guide';
+        } else {
+            box.style.display = 'none';
+            if (btnText) btnText.textContent = 'View Guide';
+        }
+    }
+}
+
+// Handle cloth type change for a garment
+function handleGarmentClothTypeChange(id, clothTypeId, customValues = null) {
+    const card = document.getElementById(`garment-card-${id}`);
+    if (!card) return;
+
+    const clothType = availableClothTypes.find(ct => String(ct.id) === String(clothTypeId));
+    
+    // Update title in accordion header
+    const title = card.querySelector('.garment-title');
+    if (title) {
+        title.textContent = clothType ? clothType.name : 'Select Cloth Type';
+    }
+
+    // Guide button & chart image preview
+    const guideBtn = document.getElementById(`guide-btn-${id}`);
+    const chartBox = document.getElementById(`garment-chart-box-${id}`);
+    const chartImg = chartBox ? chartBox.querySelector('.garment-chart-img') : null;
+    
+    if (clothType && clothType.chart && clothType.chart.trim() !== '') {
+        if (chartImg) chartImg.src = clothType.chart;
+        if (guideBtn) guideBtn.style.display = 'inline-block';
+    } else {
+        if (guideBtn) guideBtn.style.display = 'none';
+        if (chartBox) chartBox.style.display = 'none';
+        if (chartImg) chartImg.src = '';
+    }
+
+    // Render fields into the row container
+    const fieldsContainer = document.getElementById(`garment-fields-${id}`);
+    if (!fieldsContainer) return;
+    fieldsContainer.innerHTML = '';
+
+    if (!clothType) {
+        renderGarmentDefaultFields(id);
+        updateGarmentMeasurementCount(id);
+        return;
+    }
+
+    const fieldTemplates = getDefaultFieldsForClothType(clothType.name);
+
+    if (customValues && typeof customValues === 'object' && Object.keys(customValues).length > 0) {
+        const renderedKeys = new Set();
+        fieldTemplates.forEach(field => {
+            const val = customValues[field.key] !== undefined ? customValues[field.key] : '';
+            renderSingleFieldRow(fieldsContainer, id, field.key, val, field.type || 'text', field.options || null, true);
+            renderedKeys.add(field.key);
+        });
+        Object.entries(customValues).forEach(([k, v]) => {
+            if (!renderedKeys.has(k)) {
+                let fType = 'text';
+                if (k === 'button_color') fType = 'color';
+                renderSingleFieldRow(fieldsContainer, id, k, v, fType, null, false);
+            }
+        });
+    } else {
+        fieldTemplates.forEach(field => {
+            renderSingleFieldRow(fieldsContainer, id, field.key, '', field.type || 'text', field.options || null, true);
+        });
+    }
+
+    updateGarmentNumbering();
+    updateGarmentMeasurementCount(id);
+}
+
+// Render a single field row inside a garment block (2-column compact input-group)
+function renderSingleFieldRow(container, garmentId, key = '', value = '', fieldType = 'text', options = null, isStandard = false) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-12 measurement-field-col';
     
     let inputHtml = '';
     if (fieldType === 'color') {
-        inputHtml = `<input type="color" class="form-control form-control-color" name="measurement_values[]" value="${value}" style="width: 60px; height: 38px;">`;
+        inputHtml = `<input type="color" class="form-control form-control-color form-control-sm" name="garments[${garmentId}][values][]" value="${value || '#000000'}" style="width: 48px; height: 34px; padding: 2px;" onchange="updateGarmentMeasurementCount(${garmentId})">`;
     } else if (fieldType === 'select') {
-        const options = key === 'sleeve_type' ? 
-            '<option value="half">Half Sleeve</option><option value="full">Full Sleeve</option>' :
-            '<option value="yes">Yes</option><option value="no">No</option>';
-        inputHtml = `<select class="form-select" name="measurement_values[]">
-            <option value="">Select...</option>
-            ${options}
+        const opts = options || (key === 'sleeve_type' ? 
+            [{val: 'half', text: 'Half Sleeve'}, {val: 'full', text: 'Full Sleeve'}] :
+            [{val: 'yes', text: 'Yes'}, {val: 'no', text: 'No'}]);
+        
+        let optsHtml = '<option value="">Select...</option>';
+        opts.forEach(opt => {
+            const sel = (String(value).toLowerCase() === String(opt.val).toLowerCase()) ? 'selected' : '';
+            optsHtml += `<option value="${opt.val}" ${sel}>${opt.text}</option>`;
+        });
+        inputHtml = `<select class="form-select form-select-sm" name="garments[${garmentId}][values][]" style="border-radius: 0;" onchange="updateGarmentMeasurementCount(${garmentId})">
+            ${optsHtml}
         </select>`;
     } else {
-        inputHtml = `<input type="text" class="form-control" name="measurement_values[]" 
-                   placeholder="Value (e.g., 42 inches)" value="${value}">`;
+        inputHtml = `<input type="text" class="form-control form-control-sm" name="garments[${garmentId}][values][]" 
+                     placeholder="e.g. 42" value="${value || ''}" style="border-radius: 0;" oninput="updateGarmentMeasurementCount(${garmentId})">`;
     }
-    
-    fieldDiv.innerHTML = `
-        <div class="col-md-5">
-            <input type="text" class="form-control" name="measurement_keys[]" 
-                   placeholder="Measurement name (e.g., chest, waist)" value="${key}" readonly>
-        </div>
-        <div class="col-md-5">
-            ${inputHtml}
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMeasurementField(this)" style="padding: 17px 25px;">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    container.appendChild(fieldDiv);
-}
 
-function loadShirtFields() {
-    // Clear existing fields
-    const container = document.getElementById('measurementFieldsContainer');
-    container.innerHTML = '';
-    measurementFieldCount = 0;
-    
-    // Add shirt-specific fields
-    addMeasurementField('collar', '', 'text');
-    addMeasurementField('shoulder', '', 'text');
-    addMeasurementField('chest', '', 'text');
-    addMeasurementField('waist', '', 'text');
-    addMeasurementField('sleeve_type', '', 'select');
-    addMeasurementField('sleeve_length', '', 'text');
-    addMeasurementField('length', '', 'text');
-    addMeasurementField('pocket', '', 'select');
-    addMeasurementField('button_color', '#000000', 'color');
-}
+    const labelText = key ? key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
 
-function loadPentFields() {
-    // Clear existing fields
-    const container = document.getElementById('measurementFieldsContainer');
-    container.innerHTML = '';
-    measurementFieldCount = 0;
-    
-    // Add pent-specific fields
-    addMeasurementField('waist', '', 'text');
-    addMeasurementField('hip/seat', '', 'text');
-    addMeasurementField('thigh', '', 'text');
-    addMeasurementField('knee', '', 'text');
-    addMeasurementField('bottom', '', 'text');
-    addMeasurementField('length', '', 'text');
-}
-
-function loadSareeFields() {
-    // Clear existing fields
-    const container = document.getElementById('measurementFieldsContainer');
-    container.innerHTML = '';
-    measurementFieldCount = 0;
-    
-    // Add saree/blouse-specific fields
-    addMeasurementField('blouse_length', '', 'text');
-    addMeasurementField('chest', '', 'text');
-    addMeasurementField('waist', '', 'text');
-    addMeasurementField('shoulder', '', 'text');
-    addMeasurementField('sleeve_length', '', 'text');
-    addMeasurementField('armhole', '', 'text');
-    addMeasurementField('front_neck_depth', '', 'text');
-    addMeasurementField('back_neck_depth', '', 'text');
-}
-
-function loadDressFields() {
-    // Clear existing fields
-    const container = document.getElementById('measurementFieldsContainer');
-    container.innerHTML = '';
-    measurementFieldCount = 0;
-    
-    // Add dress-specific fields
-    addMeasurementField('length', '', 'text');
-    addMeasurementField('shoulder', '', 'text');
-    addMeasurementField('chest', '', 'text');
-    addMeasurementField('waist', '', 'text');
-    addMeasurementField('hips', '', 'text');
-    addMeasurementField('sleeve_length', '', 'text');
-    addMeasurementField('armhole', '', 'text');
-    addMeasurementField('front_neck_depth', '', 'text');
-    addMeasurementField('back_neck_depth', '', 'text');
-}
-
-function loadFieldsForClothType(clothTypeId) {
-    // Only load fields if not editing (to preserve existing data when editing)
-    <?php if (!$editMeasurement): ?>
-    // Clear existing fields whenever cloth type changes
-    const container = document.getElementById('measurementFieldsContainer');
-    container.innerHTML = '';
-    measurementFieldCount = 0;
-
-    if (clothTypeId && clothTypeNames[clothTypeId]) {
-        const clothTypeName = clothTypeNames[clothTypeId].toLowerCase();
-        
-        // Match various top garments (including suit, coat, blazer, sherwani)
-        if (clothTypeName.includes('shirt') || clothTypeName.includes('kurta') || clothTypeName.includes('kameez') || clothTypeName.includes('top') || clothTypeName.includes('suit') || clothTypeName.includes('coat') || clothTypeName.includes('blazer') || clothTypeName.includes('jacket') || clothTypeName.includes('servani') || clothTypeName.includes('sherwani')) {
-            loadShirtFields();
-        // Match various bottom garments
-        } else if (clothTypeName.includes('pent') || clothTypeName.includes('pant') || clothTypeName.includes('trouser') || clothTypeName.includes('pajama') || clothTypeName.includes('salwar') || clothTypeName.includes('bottom')) {
-            loadPentFields();
-        // Match saree and blouse
-        } else if (clothTypeName.includes('saree') || clothTypeName.includes('sari') || clothTypeName.includes('blouse') || clothTypeName.includes('choli')) {
-            loadSareeFields();
-        // Match dresses
-        } else if (clothTypeName.includes('dress') || clothTypeName.includes('gown') || clothTypeName.includes('frock')) {
-            loadDressFields();
-        } else {
-            // Add default measurement fields for other types
-            addMeasurementField('chest', '');
-            addMeasurementField('waist', '');
-            addMeasurementField('length', '');
-        }
+    if (isStandard) {
+        col.innerHTML = `
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-dark fw-medium text-truncate" style="min-width: 105px; max-width: 130px; font-size: 0.82rem; border-top-left-radius: 8px; border-bottom-left-radius: 8px;" title="${labelText}">
+                    ${labelText}
+                    <input type="hidden" class="measurement-key-input" name="garments[${garmentId}][keys][]" value="${key}">
+                </span>
+                ${inputHtml}
+                <button type="button" class="btn btn-outline-secondary border px-2" onclick="this.closest('.measurement-field-col').remove(); updateGarmentMeasurementCount(${garmentId});" title="Remove field" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                    <i class="fas fa-times text-muted"></i>
+                </button>
+            </div>
+        `;
     } else {
-        // Add default measurement fields if no specific type is selected
-        addMeasurementField('chest', '');
-        addMeasurementField('waist', '');
-        addMeasurementField('length', '');
+        col.innerHTML = `
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control form-control-sm measurement-key-input" name="garments[${garmentId}][keys][]" 
+                       placeholder="Field Name" value="${key}" style="max-width: 110px; font-size: 0.82rem; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                ${inputHtml}
+                <button type="button" class="btn btn-outline-danger border px-2" onclick="this.closest('.measurement-field-col').remove(); updateGarmentMeasurementCount(${garmentId});" title="Remove field" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
     }
-    <?php endif; ?>
+    container.appendChild(col);
 }
 
-function addCustomMeasurementField() {
-    measurementFieldCount++;
-    const container = document.getElementById('measurementFieldsContainer');
-    const fieldDiv = document.createElement('div');
-    fieldDiv.className = 'row mb-2';
+// Add custom field to a garment
+function addCustomFieldToGarment(garmentId) {
+    const container = document.getElementById(`garment-fields-${garmentId}`);
+    if (container) {
+        renderSingleFieldRow(container, garmentId, '', '', 'text', null, false);
+    }
+}
+
+// Render default 3 fields when no cloth type selected yet
+function renderGarmentDefaultFields(garmentId) {
+    const container = document.getElementById(`garment-fields-${garmentId}`);
+    if (!container) return;
+    renderSingleFieldRow(container, garmentId, 'chest', '', 'text', null, true);
+    renderSingleFieldRow(container, garmentId, 'waist', '', 'text', null, true);
+    renderSingleFieldRow(container, garmentId, 'length', '', 'text', null, true);
+}
+
+let isMeasurementSubmitting = false;
+
+// Form validation before submission
+function debugFormSubmission(event) {
+    if (isMeasurementSubmitting) {
+        if (event) event.preventDefault();
+        return false;
+    }
+
+    const name = document.getElementById('name').value.trim();
+    if (!name) {
+        alert('Please enter customer name.');
+        document.getElementById('name').focus();
+        if (event) event.preventDefault();
+        return false;
+    }
+
+    const garmentBlocks = document.querySelectorAll('#garmentsContainer .garment-block');
+    if (garmentBlocks.length === 0) {
+        alert('Please add at least one cloth type.');
+        if (event) event.preventDefault();
+        return false;
+    }
+
+    for (let i = 0; i < garmentBlocks.length; i++) {
+        const block = garmentBlocks[i];
+        const select = block.querySelector('.garment-cloth-type-select');
+        if (!select || !select.value) {
+            // Expand this block so the user sees it immediately
+            const collapseEl = block.querySelector('.accordion-collapse');
+            const btnEl = block.querySelector('.accordion-button');
+            if (collapseEl && !collapseEl.classList.contains('show')) {
+                collapseEl.classList.add('show');
+            }
+            if (btnEl && btnEl.classList.contains('collapsed')) {
+                btnEl.classList.remove('collapsed');
+                btnEl.setAttribute('aria-expanded', 'true');
+            }
+            alert(`Please select a Cloth Type for Garment #${i + 1}.`);
+            if (select) select.focus();
+            if (event) event.preventDefault();
+            return false;
+        }
+
+        const keys = block.querySelectorAll('input.measurement-key-input');
+        const vals = block.querySelectorAll('input[name*="[values]"], select[name*="[values]"]');
+        let blockHasMeas = false;
+        for (let j = 0; j < keys.length; j++) {
+            if (keys[j].value.trim() && vals[j].value.trim()) {
+                blockHasMeas = true;
+                break;
+            }
+        }
+        if (!blockHasMeas) {
+            // Expand this block so the user sees it immediately
+            const collapseEl = block.querySelector('.accordion-collapse');
+            const btnEl = block.querySelector('.accordion-button');
+            if (collapseEl && !collapseEl.classList.contains('show')) {
+                collapseEl.classList.add('show');
+            }
+            if (btnEl && btnEl.classList.contains('collapsed')) {
+                btnEl.classList.remove('collapsed');
+                btnEl.setAttribute('aria-expanded', 'true');
+            }
+            const garmentName = select?.options[select.selectedIndex]?.text?.split(' (')[0] || `Garment #${i + 1}`;
+            alert(`Please enter at least one measurement value for ${garmentName}.`);
+            if (event) event.preventDefault();
+            return false;
+        }
+    }
+
+    isMeasurementSubmitting = true;
+    const saveBtn = document.getElementById('saveMeasurementBtn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+    }
+
+    return true;
+}
+
+// Edit customer measurements from table or object
+function editCustomerMeasurements(group) {
+    if (!group) return;
     
-    fieldDiv.innerHTML = `
-        <div class="col-md-5">
-            <input type="text" class="form-control" name="measurement_keys[]" 
-                   placeholder="Measurement name (e.g., chest, waist)" value="">
-        </div>
-        <div class="col-md-5">
-            <input type="text" class="form-control" name="measurement_values[]" 
-                   placeholder="Value (e.g., 42 inches)" value="">
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMeasurementField(this)" style="padding: 17px 25px;">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    container.appendChild(fieldDiv);
+    // Fallback if raw single measurement object is passed
+    if (!group.garments) {
+        let mData = group.measurement_data;
+        if (typeof mData === 'string') {
+            try { mData = JSON.parse(mData); } catch (e) { mData = {}; }
+        }
+        group = {
+            primary_id: group.id,
+            ids: [group.id],
+            customer_id: group.customer_id || '',
+            name: group.name || ((group.first_name || '') + ' ' + (group.last_name || '')).trim(),
+            email: group.email || '',
+            phone_number: group.phone_number || '',
+            address: group.address || '',
+            date_of_birth: group.date_of_birth || '',
+            notes: group.notes || '',
+            cloth_types: [group.cloth_type_name || 'Cloth'],
+            garments: [{
+                measurement_id: group.id,
+                cloth_type_id: group.cloth_type_id,
+                cloth_type_name: group.cloth_type_name,
+                measurement_data: mData
+            }]
+        };
+    }
+    
+    const cleanName = group.name || 'Customer';
+    const modalTitle = document.querySelector('#addMeasurementModal .modal-title');
+    if (modalTitle) modalTitle.textContent = 'Edit Measurements - ' + cleanName;
+    
+    const actionInput = document.querySelector('#addMeasurementModal form input[name="action"]');
+    if (actionInput) actionInput.value = 'update';
+    
+    let measurementIdField = document.querySelector('input[name="measurement_id"]');
+    if (!measurementIdField) {
+        measurementIdField = document.createElement('input');
+        measurementIdField.type = 'hidden';
+        measurementIdField.name = 'measurement_id';
+        document.querySelector('#addMeasurementModal form').appendChild(measurementIdField);
+    }
+    measurementIdField.value = group.primary_id || (group.ids && group.ids[0]) || '';
+    
+    // Store existing measurement IDs
+    let existingIdsField = document.getElementById('existing_measurement_ids');
+    if (!existingIdsField) {
+        existingIdsField = document.createElement('input');
+        existingIdsField.type = 'hidden';
+        existingIdsField.id = 'existing_measurement_ids';
+        existingIdsField.name = 'existing_measurement_ids';
+        document.querySelector('#addMeasurementModal form').appendChild(existingIdsField);
+    }
+    existingIdsField.value = JSON.stringify(group.ids || [group.primary_id]);
+    
+    if (document.getElementById('customer_id')) document.getElementById('customer_id').value = group.customer_id || '';
+    if (document.getElementById('name')) document.getElementById('name').value = group.name || '';
+    if (document.getElementById('email')) document.getElementById('email').value = group.email || '';
+    if (document.getElementById('phone_number')) document.getElementById('phone_number').value = group.phone_number || '';
+    if (document.getElementById('address')) document.getElementById('address').value = group.address || '';
+    if (document.getElementById('date_of_birth')) document.getElementById('date_of_birth').value = group.date_of_birth || '';
+    if (document.getElementById('notes')) document.getElementById('notes').value = group.notes || '';
+    
+    const container = document.getElementById('garmentsContainer');
+    if (container) container.innerHTML = '';
+    
+    if (group.garments && group.garments.length > 0) {
+        group.garments.forEach(garment => {
+            let mData = garment.measurement_data;
+            if (typeof mData === 'string') {
+                try { mData = JSON.parse(mData); } catch (e) { mData = {}; }
+            }
+            addGarmentBlock(garment.cloth_type_id, mData, garment.measurement_id);
+        });
+    } else {
+        addGarmentBlock();
+    }
+    
+    const addBtn = document.getElementById('addGarmentBtnWrapper');
+    if (addBtn) addBtn.style.display = 'block';
+
+    const submitBtn = document.getElementById('saveMeasurementBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update Measurements';
+    }
+    isMeasurementSubmitting = false;
+    
+    const modalEl = document.getElementById('addMeasurementModal');
+    if (modalEl) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#addMeasurementModal').modal('show');
+        }
+    }
 }
 
-function removeMeasurementField(button) {
-    button.closest('.row').remove();
+// Alias for backwards compatibility
+function editMeasurement(measurement) {
+    editCustomerMeasurements(measurement);
 }
-
-// Initialize measurement fields if editing
-<?php if ($editMeasurement && !empty($editMeasurement['measurement_data'])): ?>
-    <?php foreach ($editMeasurement['measurement_data'] as $key => $value): ?>
-        <?php 
-        $fieldType = 'text';
-        if ($key === 'button_color') $fieldType = 'color';
-        if (in_array($key, ['sleeve_type', 'pocket'])) $fieldType = 'select';
-        ?>
-        addMeasurementField('<?php echo htmlspecialchars($key); ?>', '<?php echo htmlspecialchars($value); ?>', '<?php echo $fieldType; ?>');
-    <?php endforeach; ?>
-<?php else: ?>
-    // Add default measurement fields
-    addMeasurementField('chest', '');
-    addMeasurementField('waist', '');
-    addMeasurementField('length', '');
-<?php endif; ?>
 
 // Edit measurement from filtered results
 function editMeasurementFromFilter(id) {
-    // Fetch full measurement data
     fetch('ajax/get_measurement_details.php?id=' + id)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.measurement) {
-                editMeasurement(data.measurement);
+                editCustomerMeasurements(data.measurement);
             } else {
                 alert('Failed to load measurement data');
             }
@@ -1110,104 +1681,56 @@ function editMeasurementFromFilter(id) {
         });
 }
 
-// View measurement details
-function editMeasurement(measurement) {
-    // Set modal title
-    document.querySelector('#addMeasurementModal .modal-title').textContent = 'Edit Measurement';
-    
-    // Set form action
-    document.querySelector('#addMeasurementModal form input[name="action"]').value = 'update';
-    
-    // Add hidden measurement ID field if not exists
-    let measurementIdField = document.querySelector('input[name="measurement_id"]');
-    if (!measurementIdField) {
-        measurementIdField = document.createElement('input');
-        measurementIdField.type = 'hidden';
-        measurementIdField.name = 'measurement_id';
-        document.querySelector('#addMeasurementModal form').appendChild(measurementIdField);
-    }
-    measurementIdField.value = measurement.id;
-    
-    // Populate form fields
-    document.getElementById('customer_id').value = measurement.customer_id || '';
-    document.getElementById('cloth_type_id').value = measurement.cloth_type_id || '';
-    document.getElementById('name').value = measurement.name || '';
-    document.getElementById('email').value = measurement.email || '';
-    if (document.getElementById('phone_number')) document.getElementById('phone_number').value = measurement.phone_number || '';
-    document.getElementById('address').value = measurement.address || '';
-    document.getElementById('date_of_birth').value = measurement.date_of_birth || '';
-    document.getElementById('notes').value = measurement.notes || '';
-    
-    // Load cloth type chart if available
-    if (measurement.cloth_type_id) {
-        loadMeasurementChart(measurement.cloth_type_id);
-    }
-    
-    // Clear existing measurement fields
-    const container = document.getElementById('measurementFieldsContainer');
-    if (container) {
-        container.innerHTML = '';
-    }
-    
-    // Add existing measurement data
-    if (measurement.measurement_data) {
-        // Parse measurement_data if it's a string
-        let measurementData = measurement.measurement_data;
-        if (typeof measurementData === 'string') {
-            try {
-                measurementData = JSON.parse(measurementData);
-            } catch (e) {
-                console.error('Error parsing measurement data:', e);
-                measurementData = {};
-            }
-        }
-        
-        if (measurementData && Object.keys(measurementData).length > 0) {
-            Object.entries(measurementData).forEach(([key, value]) => {
-                addMeasurementField(key, value);
-            });
-        }
-    }
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('addMeasurementModal'));
-    modal.show();
-}
-
-
 // Reset modal when closed
 document.getElementById('addMeasurementModal').addEventListener('hidden.bs.modal', function() {
-    // Reset modal title
-    document.querySelector('#addMeasurementModal .modal-title').textContent = 'Add New Measurement';
+    const modalTitle = document.querySelector('#addMeasurementModal .modal-title');
+    if (modalTitle) modalTitle.textContent = 'Add New Measurement';
     
-    // Reset form action
-    document.querySelector('#addMeasurementModal form input[name="action"]').value = 'add';
+    const actionInput = document.querySelector('#addMeasurementModal form input[name="action"]');
+    if (actionInput) actionInput.value = 'add';
     
-    // Remove measurement ID field if exists
     const measurementIdField = document.querySelector('input[name="measurement_id"]');
     if (measurementIdField) {
         measurementIdField.remove();
     }
-    
-    // Reset form
-    document.getElementById('addMeasurementModal').querySelector('form').reset();
-    
-    // Clear measurement fields
-    document.getElementById('measurementFieldsContainer').innerHTML = '';
-    
-    // Clear chart
-    const chart = document.getElementById('measurementChart');
-    if (chart) {
-        chart.style.display = 'none';
+    const existingIdsField = document.getElementById('existing_measurement_ids');
+    if (existingIdsField) {
+        existingIdsField.value = '';
     }
-    const chartContainer = document.getElementById('measurementChartContainer');
-    if (chartContainer) {
-        chartContainer.style.display = 'none';
+    
+    document.getElementById('measurementForm').reset();
+    
+    const container = document.getElementById('garmentsContainer');
+    if (container) container.innerHTML = '';
+    addGarmentBlock();
+    
+    const addBtn = document.getElementById('addGarmentBtnWrapper');
+    if (addBtn) addBtn.style.display = 'block';
+
+    const submitBtn = document.getElementById('saveMeasurementBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Measurement';
     }
+    isMeasurementSubmitting = false;
+});
+
+// Initialise garment blocks on page load
+window.addEventListener('DOMContentLoaded', function() {
+    <?php if ($editMeasurement): ?>
+        addGarmentBlock(<?php echo (int)$editMeasurement['cloth_type_id']; ?>, <?php echo json_encode($editMeasurement['measurement_data'] ?? []); ?>);
+        const addBtn = document.getElementById('addGarmentBtnWrapper');
+        if (addBtn) addBtn.style.display = 'none';
+    <?php else: ?>
+        const container = document.getElementById('garmentsContainer');
+        if (container && container.children.length === 0) {
+            addGarmentBlock();
+        }
+    <?php endif; ?>
 });
 
 // Fetch customer details on selection
-document.getElementById('customer_id').addEventListener('change', function() {
+document.getElementById('customer_id')?.addEventListener('change', function() {
     const customerId = this.value;
     if (customerId) {
         fetch('ajax/get_customer_details.php?customer_id=' + customerId)
@@ -1233,6 +1756,166 @@ document.getElementById('customer_id').addEventListener('change', function() {
         document.getElementById('date_of_birth').value = '';
     }
 });
+
+function viewCustomerMeasurements(group) {
+    if (!group) return;
+    
+    // Fallback if passed ID or single record without garments
+    if (typeof group === 'number' || typeof group === 'string') {
+        return viewMeasurement(group);
+    }
+    if (!group.garments) {
+        return displayMeasurementDetails(group);
+    }
+    
+    const modalEl = document.getElementById('viewMeasurementModal');
+    const contentDiv = document.getElementById('viewMeasurementContent');
+    if (!modalEl || !contentDiv) return;
+    
+    let cleanCustName = group.name || 'Customer';
+    let cleanPhone = group.phone_number || '';
+    let cleanEmail = group.email || '';
+    let cleanAddress = group.address || '';
+    let cleanDob = group.date_of_birth ? new Date(group.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+    let dateStr = group.created_at ? new Date(group.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+    let garmentsHtml = '';
+    const garments = group.garments || [];
+    
+    if (garments.length === 0) {
+        garmentsHtml = '<p class="text-muted text-center py-3">No garment measurements recorded.</p>';
+    } else {
+        garments.forEach((garment, gIdx) => {
+            let measurementData = garment.measurement_data || {};
+            if (typeof measurementData === 'string') {
+                try { measurementData = JSON.parse(measurementData); } catch(e) { measurementData = {}; }
+            }
+            if (typeof measurementData !== 'object' || measurementData === null) {
+                measurementData = {};
+            }
+            
+            let fieldsHtml = '';
+            const keys = Object.keys(measurementData);
+            if (keys.length > 0) {
+                keys.forEach(k => {
+                    const label = String(k).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const val = measurementData[k];
+                    fieldsHtml += `
+                        <div class="col-sm-4 col-6 mb-2">
+                            <div class="p-2 border rounded bg-light text-center h-100">
+                                <small class="text-muted d-block text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.3px;">${escapeHtml(label)}</small>
+                                <strong class="text-primary fs-6">${escapeHtml(val)}</strong>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                fieldsHtml = '<div class="col-12 text-muted small p-2">No measurement fields recorded</div>';
+            }
+            
+            let chartHtml = '';
+            if (garment.measurement_chart) {
+                chartHtml = `
+                    <div class="col-md-5 text-center mt-3 mt-md-0">
+                        <div class="border rounded p-2 bg-light">
+                            <small class="text-muted d-block mb-1 fw-bold" style="font-size: 0.74rem;">Measurement Guide</small>
+                            <img src="${escapeHtml(garment.measurement_chart)}" class="img-fluid rounded" style="max-height: 220px;" alt="Guide">
+                        </div>
+                    </div>
+                `;
+            }
+            
+            garmentsHtml += `
+                <div class="card mb-3 border shadow-none" style="border-radius: 12px; overflow: hidden; border-color: #e2e8f0 !important;">
+                    <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill">#${gIdx + 1}</span>
+                            <strong class="text-dark" style="font-size: 0.95rem;">${escapeHtml(garment.cloth_type_name || 'Cloth')}</strong>
+                            ${garment.cloth_category ? `<span class="badge bg-secondary small">${escapeHtml(garment.cloth_category)}</span>` : ''}
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">
+                            ${keys.length} ${keys.length === 1 ? 'Field' : 'Fields'}
+                        </span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="row align-items-start">
+                            <div class="${garment.measurement_chart ? 'col-md-7' : 'col-12'}">
+                                <div class="row g-2">
+                                    ${fieldsHtml}
+                                </div>
+                            </div>
+                            ${chartHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    contentDiv.innerHTML = `
+        <div class="card mb-3 border shadow-none" style="border-radius: 12px; border-color: #e2e8f0 !important;">
+            <div class="card-header bg-light py-2 px-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Customer Name</small>
+                        <strong class="text-dark">${escapeHtml(cleanCustName)}</strong>
+                    </div>
+                    ${cleanPhone ? `
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Phone Number</small>
+                        <span>${escapeHtml(cleanPhone)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Email</small>
+                        <span>${escapeHtml(cleanEmail) || '—'}</span>
+                    </div>
+                    ${cleanDob ? `
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Date of Birth</small>
+                        <span>${escapeHtml(cleanDob)}</span>
+                    </div>
+                    ` : ''}
+                    ${cleanAddress ? `
+                    <div class="col-sm-8 col-12">
+                        <small class="text-muted d-block">Address</small>
+                        <span>${escapeHtml(cleanAddress)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Recorded On</small>
+                        <span><i class="fas fa-calendar-alt me-1 text-muted"></i>${escapeHtml(dateStr) || '—'}</span>
+                    </div>
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Total Garments</small>
+                        <span class="badge bg-primary rounded-pill">${garments.length} ${garments.length === 1 ? 'Garment' : 'Garments'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h6 class="fw-bold text-dark mb-2 ms-1"><i class="fas fa-tshirt me-2 text-primary"></i>Garment Measurements (${garments.length})</h6>
+        ${garmentsHtml}
+
+        ${group.notes ? `
+        <div class="card border shadow-none mt-3" style="border-radius: 12px; border-color: #fef08a !important; background-color: #fefce8;">
+            <div class="card-body p-3">
+                <strong class="text-warning-emphasis d-block mb-1" style="font-size: 0.82rem;"><i class="fas fa-sticky-note me-1"></i>Notes:</strong>
+                <p class="mb-0 text-dark small">${escapeHtml(group.notes).replace(/\n/g, '<br>')}</p>
+            </div>
+        </div>
+        ` : ''}
+    `;
+
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    } else if (typeof $ !== 'undefined' && $.fn.modal) {
+        $('#viewMeasurementModal').modal('show');
+    }
+}
 
 function viewMeasurement(id) {
     const modal = new bootstrap.Modal(document.getElementById('viewMeasurementModal'));
@@ -1435,23 +2118,49 @@ function printMeasurement() {
     }, 250);
 }
 
-// Delete measurement
-function deleteMeasurement(id) {
-    const btn = document.querySelector(`button[onclick="deleteMeasurement(${id})"]`);
-    const measurementRow = btn ? btn.closest('tr') : null;
-    let customerName = 'Measurement';
-    let clothType = '';
-    
-    if (measurementRow) {
-        const custElem = measurementRow.querySelector('.cust-name');
-        customerName = custElem ? custElem.textContent.trim() : (measurementRow.querySelector('td:first-child')?.textContent.trim() || 'Measurement');
-        const clothElem = measurementRow.querySelector('td:nth-child(2)');
-        clothType = clothElem ? clothElem.textContent.trim() : '';
+// Delete customer measurements
+function deleteCustomerMeasurements(ids, customerName) {
+    if (!Array.isArray(ids)) {
+        try { ids = JSON.parse(ids); } catch(e) { ids = [ids]; }
+    }
+    const count = ids ? ids.length : 0;
+    const infoEl = document.getElementById('deleteMeasurementInfo');
+    if (infoEl) {
+        infoEl.textContent = `${customerName || 'Customer'} (${count} ${count > 1 ? 'garments' : 'garment'})`;
+    }
+    const idEl = document.getElementById('deleteMeasurementId');
+    if (idEl) {
+        idEl.value = (ids && ids[0]) ? ids[0] : '';
     }
     
-    document.getElementById('deleteMeasurementInfo').textContent = clothType ? `${customerName} - ${clothType}` : customerName;
-    document.getElementById('deleteMeasurementId').value = id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    let idsInput = document.getElementById('deleteMeasurementIds');
+    if (!idsInput) {
+        idsInput = document.createElement('input');
+        idsInput.type = 'hidden';
+        idsInput.id = 'deleteMeasurementIds';
+        idsInput.name = 'measurement_ids';
+        const form = document.getElementById('deleteMeasurementForm');
+        if (form) form.appendChild(idsInput);
+    }
+    if (idsInput) {
+        idsInput.value = JSON.stringify(ids || []);
+    }
+    
+    const modalEl = document.getElementById('deleteModal');
+    if (modalEl) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#deleteModal').modal('show');
+        }
+    }
+}
+
+function deleteMeasurement(id) {
+    if (typeof id === 'string' && customerMeasurementsMap[id]) {
+        return deleteCustomerByKey(id);
+    }
+    deleteCustomerMeasurements([id], 'Measurement');
 }
 
 // Interactive Sort (A-Z / Z-A)
@@ -1718,36 +2427,78 @@ function displayFilterResults(measurements) {
         for (let c = 0; c < cleanCustName.length; c++) charCodeSum += cleanCustName.charCodeAt(c);
         const palette = avatarPalettes[(charCodeSum + idx) % avatarPalettes.length];
         
-        const clothTypeName = measurement.cloth_type_name || 'Custom';
+        // Cloth types badge display
+        let clothTypesHtml = '';
+        const clothTypes = measurement.cloth_types || (measurement.cloth_type_name ? [measurement.cloth_type_name] : []);
+        const garments = measurement.garments || [];
         
-        let measurementData = {};
-        if (measurement.measurement_data) {
-            try {
-                if (typeof measurement.measurement_data === 'string') {
-                    measurementData = JSON.parse(measurement.measurement_data);
-                } else if (typeof measurement.measurement_data === 'object') {
-                    measurementData = measurement.measurement_data;
-                }
-            } catch (e) {
-                measurementData = {};
+        if (clothTypes.length > 0) {
+            clothTypesHtml = '<div class="d-flex flex-wrap gap-1 align-items-center">';
+            clothTypes.forEach(ct => {
+                clothTypesHtml += `<span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">${escapeHtml(ct)}</span>`;
+            });
+            if (clothTypes.length > 1) {
+                clothTypesHtml += `<span class="badge rounded-pill px-2 py-1 fw-bold" style="background: #f1f5f9; color: #475569; font-size: 0.72rem;">${garments.length || clothTypes.length} Items</span>`;
             }
+            clothTypesHtml += '</div>';
+        } else {
+            clothTypesHtml = '<span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">Custom</span>';
         }
         
-        const keys = Object.keys(measurementData || {});
+        // Measurements summary
         let measurementSummaryHtml = '';
-        if (keys.length > 0) {
-            measurementSummaryHtml = '<div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">';
-            keys.slice(0, 3).forEach(key => {
-                const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-                const val = measurementData[key];
-                measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;"><strong style="color: #475569;">${escapeHtml(formattedKey)}:</strong> ${escapeHtml(val)}</span>`;
+        if (garments.length > 0) {
+            measurementSummaryHtml = '<div class="d-flex flex-column gap-1" style="max-width: 320px;">';
+            garments.forEach(g => {
+                let mData = g.measurement_data || {};
+                if (typeof mData === 'string') {
+                    try { mData = JSON.parse(mData); } catch(e) { mData = {}; }
+                }
+                const mKeys = Object.keys(mData);
+                measurementSummaryHtml += '<div class="d-flex flex-wrap gap-1 align-items-center">';
+                measurementSummaryHtml += `<span class="fw-bold text-secondary me-1" style="font-size: 0.73rem;">${escapeHtml(g.cloth_type_name)}:</span>`;
+                if (mKeys.length > 0) {
+                    mKeys.slice(0, 3).forEach(key => {
+                        const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                        measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;"><strong style="color: #475569;">${escapeHtml(formattedKey)}:</strong> ${escapeHtml(mData[key])}</span>`;
+                    });
+                    if (mKeys.length > 3) {
+                        measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.70rem;">+${mKeys.length - 3} more</span>`;
+                    }
+                } else {
+                    measurementSummaryHtml += '<span class="text-muted small">—</span>';
+                }
+                measurementSummaryHtml += '</div>';
             });
-            if (keys.length > 3) {
-                measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.72rem;">+${keys.length - 3} more</span>`;
-            }
             measurementSummaryHtml += '</div>';
         } else {
-            measurementSummaryHtml = '<span class="text-muted small">—</span>';
+            let measurementData = {};
+            if (measurement.measurement_data) {
+                try {
+                    if (typeof measurement.measurement_data === 'string') {
+                        measurementData = JSON.parse(measurement.measurement_data);
+                    } else if (typeof measurement.measurement_data === 'object') {
+                        measurementData = measurement.measurement_data;
+                    }
+                } catch (e) {
+                    measurementData = {};
+                }
+            }
+            const keys = Object.keys(measurementData || {});
+            if (keys.length > 0) {
+                measurementSummaryHtml = '<div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">';
+                keys.slice(0, 3).forEach(key => {
+                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                    const val = measurementData[key];
+                    measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;"><strong style="color: #475569;">${escapeHtml(formattedKey)}:</strong> ${escapeHtml(val)}</span>`;
+                });
+                if (keys.length > 3) {
+                    measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.72rem;">+${keys.length - 3} more</span>`;
+                }
+                measurementSummaryHtml += '</div>';
+            } else {
+                measurementSummaryHtml = '<span class="text-muted small">—</span>';
+            }
         }
         
         let formattedDate = '—';
@@ -1769,6 +2520,9 @@ function displayFilterResults(measurements) {
             notesDisplay = `<span class="text-muted small text-truncate d-inline-block" style="max-width: 140px; font-size: 0.78rem;" title="${escapeHtml(measurement.notes)}">${escapeHtml(measurement.notes)}</span>`;
         }
         
+        const custKey = 'filter_cust_' + idx;
+        customerMeasurementsMap[custKey] = measurement;
+        
         tableHTML += `
             <tr class="measurement-row" data-name="${escapeHtml(cleanCustName.toLowerCase())}">
                 <td class="ps-3 py-3">
@@ -1783,9 +2537,7 @@ function displayFilterResults(measurements) {
                     </div>
                 </td>
                 <td class="py-3">
-                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
-                        ${escapeHtml(clothTypeName)}
-                    </span>
+                    ${clothTypesHtml}
                 </td>
                 <td class="py-3">
                     ${measurementSummaryHtml}
@@ -1798,13 +2550,13 @@ function displayFilterResults(measurements) {
                 </td>
                 <td class="text-end pe-3 py-3">
                     <div class="d-inline-flex align-items-center gap-1">
-                        <button type="button" class="cat-action-btn cat-action-edit" onclick="editMeasurementFromFilter(${measurement.id})" title="Edit">
+                        <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomerByKey('${custKey}')" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button type="button" class="cat-action-btn cat-action-view" onclick="viewMeasurement(${measurement.id})" title="View Details">
+                        <button type="button" class="cat-action-btn cat-action-view" onclick="viewCustomerByKey('${custKey}')" title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button type="button" class="cat-action-btn cat-action-del" onclick="deleteMeasurement(${measurement.id})" title="Delete">
+                        <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomerByKey('${custKey}')" title="Delete">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -1868,5 +2620,53 @@ function displayFilterResults(measurements) {
 #addMeasurementModal textarea::placeholder {
     color: #adb5bd !important;
     opacity: 1;
+}
+
+/* Garment Accordion Dropdown Styling */
+#garmentsContainer .accordion-item {
+    border-radius: 12px !important;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0 !important;
+}
+#garmentsContainer .accordion-button {
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: #f8fafc;
+    color: #1e293b;
+    box-shadow: none !important;
+}
+#garmentsContainer .accordion-button:not(.collapsed) {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    box-shadow: none !important;
+}
+#garmentsContainer .accordion-button:focus {
+    box-shadow: none !important;
+    border-color: #e2e8f0 !important;
+}
+#garmentsContainer .accordion-button::after {
+    margin-left: auto;
+    font-size: 0.85rem;
+}
+.measurement-field-col .input-group-text {
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-color: #e2e8f0;
+}
+.measurement-field-col .form-control {
+    border-color: #e2e8f0;
+    font-size: 0.85rem;
+}
+.measurement-field-col .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: none;
+}
+.garment-summary-badge {
+    transition: all 0.2s ease;
 }
 </style>

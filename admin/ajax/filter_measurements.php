@@ -87,8 +87,9 @@ try {
             $allMeasurements = array_values($allMeasurements);
             error_log('Filter measurements - After search filter count: ' . count($allMeasurements));
         }
-        $totalMeasurements = count($allMeasurements);
-        $measurements = array_slice($allMeasurements, $offset, $limit);
+        $groupedMeasurements = Measurement::groupByCustomer($allMeasurements);
+        $totalMeasurements = count($groupedMeasurements);
+        $measurements = array_slice($groupedMeasurements, $offset, $limit);
         $totalPages = $limit > 0 ? ceil($totalMeasurements / $limit) : 1;
         
         error_log('Filter measurements - Final measurements count: ' . count($measurements));
@@ -99,23 +100,7 @@ try {
     }
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
-    $formattedMeasurements = [];
-    foreach ($measurements as $measurement) {
-        $customerName = !empty($measurement['name']) ? $measurement['name'] : trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
-        $customerPhone = !empty($measurement['phone_number']) ? $measurement['phone_number'] : ($measurement['customer_phone'] ?? ($measurement['customer_code'] ?? ''));
-        $formattedMeasurements[] = [
-            'id' => $measurement['id'],
-            'customer_id' => $measurement['customer_id'] ?? null,
-            'cloth_type_id' => $measurement['cloth_type_id'] ?? null,
-            'customer_name' => $customerName,
-            'customer_code' => $measurement['customer_code'] ?? '',
-            'customer_phone' => $customerPhone,
-            'cloth_type_name' => $measurement['cloth_type_name'] ?? '',
-            'measurement_data' => $measurement['measurement_data'],
-            'notes' => $measurement['notes'] ?? '',
-            'created_at' => $measurement['created_at']
-        ];
-    }
+    $formattedMeasurements = $measurements;
     $filterOptions = [
         'customers' => array_map(function($customer) {
             return [

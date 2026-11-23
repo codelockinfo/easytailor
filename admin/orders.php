@@ -17,6 +17,8 @@ $notifService = new NotificationService();
 $message = '';
 $messageType = '';
 $companyId = get_company_id();
+$clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
+$tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $action = $_POST['action'] ?? '';
@@ -171,10 +173,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $waMsg .= "👗 *Items (કપડાં):*\n";
                                 foreach ($cleanItems as $ci) {
                                     $ctName = '';
-                                    foreach ($clothTypes as $ct) {
-                                        if ($ct['id'] == $ci['cloth_type_id']) {
-                                            $ctName = $ct['name'];
-                                            break;
+                                    if (!empty($clothTypes) && is_array($clothTypes)) {
+                                        foreach ($clothTypes as $ct) {
+                                            if ($ct['id'] == $ci['cloth_type_id']) {
+                                                $ctName = $ct['name'];
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (!$ctName && !empty($ci['cloth_type_id'])) {
+                                        $foundCt = $clothTypeModel->find($ci['cloth_type_id']);
+                                        if ($foundCt && !empty($foundCt['name'])) {
+                                            $ctName = $foundCt['name'];
                                         }
                                     }
                                     $waMsg .= "• " . ($ctName ?: 'Garment') . ": ₹" . number_format($ci['price'], 2) . "\n";
@@ -306,10 +316,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $waMsg .= "👗 *Items (કપડાં):*\n";
                             foreach ($cleanItems as $ci) {
                                 $ctName = '';
-                                foreach ($clothTypes as $ct) {
-                                    if ($ct['id'] == $ci['cloth_type_id']) {
-                                        $ctName = $ct['name'];
-                                        break;
+                                if (!empty($clothTypes) && is_array($clothTypes)) {
+                                    foreach ($clothTypes as $ct) {
+                                        if ($ct['id'] == $ci['cloth_type_id']) {
+                                            $ctName = $ct['name'];
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!$ctName && !empty($ci['cloth_type_id'])) {
+                                    $foundCt = $clothTypeModel->find($ci['cloth_type_id']);
+                                    if ($foundCt && !empty($foundCt['name'])) {
+                                        $ctName = $foundCt['name'];
                                     }
                                 }
                                 $waMsg .= "• " . ($ctName ?: 'Garment') . ": ₹" . number_format($ci['price'], 2) . "\n";
@@ -1914,7 +1932,7 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
             .catch(() => {});
     } else {
         pillsHtml = `<div class="text-muted small py-2 text-center" style="font-size: 0.8rem;">
-            <i class="fas fa-info-circle me-1"></i>No measurement linked. (તમે ઉપર Measurement Search માંથી માપ પસંદ કરી શકો છો)
+            <i class="fas fa-info-circle me-1"></i>No measurement linked. 
         </div>`;
     }
 

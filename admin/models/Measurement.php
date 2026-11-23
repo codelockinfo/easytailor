@@ -48,8 +48,8 @@ class Measurement extends BaseModel {
     public function getMeasurementsWithDetails($conditions = [], $limit = null, $offset = 0) {
         $companyId = $this->getCompanyId();
         $query = "SELECT m.*, 
-                         c.first_name, c.last_name, c.customer_code,
-                         ct.name as cloth_type_name, ct.category as cloth_category
+                         c.first_name, c.last_name, c.customer_code, c.phone as customer_phone,
+                         ct.name as cloth_type_name, ct.category as cloth_category, ct.measurement_chart_image
                   FROM " . $this->table . " m
                   LEFT JOIN customers c ON m.id = c.id
                   LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id";
@@ -199,6 +199,30 @@ class Measurement extends BaseModel {
     }
 
     /**
+     * Get measurements by name (for loading measurements by customer name in order form)
+     */
+    public function getMeasurementsByName($name) {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT m.*, ct.name as cloth_type_name
+                  FROM " . $this->table . " m
+                  LEFT JOIN cloth_types ct ON m.cloth_type_id = ct.id
+                  WHERE m.name = :name";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " ORDER BY m.created_at DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get recent measurements
      */
     public function getRecentMeasurements($limit = 10) {
@@ -286,6 +310,81 @@ class Measurement extends BaseModel {
         $stmt->execute();
         
         return $stmt->fetch();
+    }
+
+    /**
+     * Group an array of raw measurement rows by customer
+     * Combines all cloth types / garments belonging to the same customer into a single record.
+     */
+    public static function groupByCustomer($measurements) {
+        $grouped = [];
+        foreach ($measurements as $m) {
+            $cleanName = !empty($m['name']) ? trim($m['name']) : trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? ''));
+            if (empty($cleanName)) $cleanName = 'Walk-in Customer';
+            $phone = trim($m['phone_number'] ?? ($m['customer_phone'] ?? ''));
+            
+            // Unique key for customer: lowercase name + phone
+            $key = strtolower($cleanName);
+            if (!empty($phone)) {
+                $key .= '_' . $phone;
+            }
+            
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'primary_id' => (int)$m['id'],
+                    'ids' => [],
+                    'customer_id' => $m['customer_id'] ?? null,
+                    'name' => $cleanName,
+                    'customer_code' => $m['customer_code'] ?? '',
+                    'phone_number' => $phone,
+                    'email' => $m['email'] ?? '',
+                    'address' => $m['address'] ?? '',
+                    'date_of_birth' => $m['date_of_birth'] ?? '',
+                    'notes' => $m['notes'] ?? '',
+                    'created_at' => $m['created_at'],
+                    'cloth_types' => [],
+                    'garments' => []
+                ];
+            }
+            
+            $mId = (int)$m['id'];
+            $grouped[$key]['ids'][] = $mId;
+            
+            $ctName = !empty($m['cloth_type_name']) ? $m['cloth_type_name'] : 'Custom';
+            if (!in_array($ctName, $grouped[$key]['cloth_types'])) {
+                $grouped[$key]['cloth_types'][] = $ctName;
+            }
+            
+            $measData = $m['measurement_data'] ?? [];
+            if (is_string($measData)) {
+                $decoded = json_decode($measData, true);
+                if (is_array($decoded)) $measData = $decoded;
+            }
+            
+            $chartImg = '';
+            if (!empty($m['measurement_chart_image'])) {
+                $chartImg = '../' . ltrim($m['measurement_chart_image'], './');
+            } elseif (!empty($m['measurement_chart'])) {
+                $chartImg = $m['measurement_chart'];
+            }
+            
+            $grouped[$key]['garments'][] = [
+                'measurement_id' => $mId,
+                'cloth_type_id' => (int)($m['cloth_type_id'] ?? 0),
+                'cloth_type_name' => $ctName,
+                'cloth_category' => $m['cloth_category'] ?? '',
+                'measurement_data' => $measData,
+                'measurement_chart' => $chartImg,
+                'notes' => $m['notes'] ?? ''
+            ];
+        }
+        return array_values($grouped);
+    }
+}
+
+if (!function_exists('groupMeasurementsByCustomer')) {
+    function groupMeasurementsByCustomer($measurements) {
+        return Measurement::groupByCustomer($measurements);
     }
 }
 ?>

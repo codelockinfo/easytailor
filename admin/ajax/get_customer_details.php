@@ -44,7 +44,8 @@ try {
             'email' => $customer['email'],
             'phone' => $customer['phone'],
             'address' => $customer['address'],
-            'date_of_birth' => $customer['date_of_birth']
+            'date_of_birth' => $customer['date_of_birth'],
+            'status' => $customer['status'] ?? 'active'
         ]
     ]);
     

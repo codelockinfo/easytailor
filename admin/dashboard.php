@@ -7,6 +7,8 @@ require_once 'models/Invoice.php';
 require_once 'models/User.php';
 require_once '../models/EmailChangeRequest.php';
 require_once 'models/Company.php';
+require_once 'models/ClothType.php';
+require_once 'models/Category.php';
 $customerModel = new Customer();
 $orderModel = new Order();
 $invoiceModel = new Invoice();
@@ -19,7 +21,58 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
 $userStats = $userModel->getUserStats();
 $companyId = get_company_id();
 
-$recentOrders = $orderModel->getOrdersWithDetails([], 5);
+$search = trim($_GET['search'] ?? '');
+$searchResults = [
+    'orders' => [],
+    'customers' => [],
+    'categories' => [],
+    'cloth_types' => [],
+    'total' => 0
+];
+
+if (!empty($search)) {
+    $searchLower = mb_strtolower($search);
+    
+    // Filter Orders
+    $allOrdersForSearch = $orderModel->getOrdersWithDetails([], null, 0);
+    $searchResults['orders'] = array_values(array_filter($allOrdersForSearch, function($order) use ($searchLower) {
+        $cName = !empty($order['measurement_customer_name']) 
+            ? $order['measurement_customer_name'] 
+            : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+        $clothName = $order['cloth_type_name'] ?? '';
+        $cPhone = $order['customer_phone'] ?? '';
+        $ordNum = $order['order_number'] ?? '';
+        
+        return mb_stripos($ordNum, $searchLower) !== false ||
+               mb_stripos($cName, $searchLower) !== false ||
+               mb_stripos($cPhone, $searchLower) !== false ||
+               mb_stripos($clothName, $searchLower) !== false;
+    }));
+    
+    // Filter Customers
+    $matchingCustomers = $customerModel->searchCustomers($search, 10);
+    $searchResults['customers'] = $matchingCustomers;
+    
+    // Filter Categories
+    $categoryModelForSearch = new Category();
+    $allCats = $categoryModelForSearch->getCategoriesWithStats();
+    $searchResults['categories'] = array_values(array_filter($allCats, function($cat) use ($searchLower) {
+        return mb_stripos($cat['name'], $searchLower) !== false ||
+               (!empty($cat['description']) && mb_stripos($cat['description'], $searchLower) !== false);
+    }));
+    
+    // Filter Cloth Types
+    $clothTypeModelForSearch = new ClothType();
+    $allCloth = $clothTypeModelForSearch->getActiveClothTypes();
+    $searchResults['cloth_types'] = array_values(array_filter($allCloth, function($ct) use ($searchLower) {
+        return mb_stripos($ct['name'], $searchLower) !== false ||
+               (!empty($ct['category']) && mb_stripos($ct['category'], $searchLower) !== false);
+    }));
+    
+    $searchResults['total'] = count($searchResults['orders']) + count($searchResults['customers']) + count($searchResults['categories']) + count($searchResults['cloth_types']);
+}
+
+$recentOrders = !empty($search) ? $searchResults['orders'] : $orderModel->getOrdersWithDetails([], 5);
 $totalOrderCount = ($orderStats['pending'] ?? 0) + ($orderStats['in_progress'] ?? 0) + ($orderStats['completed'] ?? 0) + ($orderStats['delivered'] ?? 0) + ($orderStats['cancelled'] ?? 0);
 $overdueOrders = $orderModel->getOverdueOrders();
 $ordersDueToday = $orderModel->getOrdersDueToday();
@@ -351,6 +404,178 @@ if (empty($scheduleItems)) {
 
         </div>
     </div>
+
+    <?php if (!empty($search)): ?>
+    <div class="card border-0 shadow-sm rounded-4 mb-3 mb-md-4 overflow-hidden" id="dashboardSearchResultsContainer" style="border: 1px solid #c7d2fe !important; background: #ffffff;">
+        <div class="px-3 px-md-4 py-3 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%); border-bottom: 1px solid #e0e7ff;">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; background: #4f46e5; color: #ffffff;">
+                    <i class="fas fa-search" style="font-size: 0.95rem;"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">
+                        Search Results for "<span class="text-primary"><?php echo htmlspecialchars($search); ?></span>"
+                    </h5>
+                    <div class="text-muted" style="font-size: 0.76rem;">
+                        Found <strong class="text-dark"><?php echo $searchResults['total']; ?></strong> total match<?php echo $searchResults['total'] === 1 ? '' : 'es'; ?> on dashboard
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="dashboard" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1 shadow-xs" style="font-size: 0.8rem;">
+                    <i class="fas fa-times"></i>
+                    <span>Clear Search</span>
+                </a>
+                <a href="orders?search=<?php echo urlencode($search); ?>" class="btn btn-sm btn-primary rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1 shadow-xs" style="font-size: 0.8rem; background: #4f46e5; border-color: #4f46e5;">
+                    <i class="fas fa-external-link-alt" style="font-size: 0.72rem;"></i>
+                    <span>Orders Page</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body p-3 p-md-4">
+            <!-- Matching Orders Section -->
+            <?php if (!empty($searchResults['orders'])): ?>
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="fw-bold text-dark text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.5px;">
+                            <i class="fas fa-shopping-bag me-1 text-primary"></i> Matching Orders (<?php echo count($searchResults['orders']); ?>)
+                        </span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-light text-muted" style="font-size: 0.74rem; text-transform: uppercase;">
+                                <tr>
+                                    <th class="ps-3">Order #</th>
+                                    <th>Customer</th>
+                                    <th>Cloth Type</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th class="text-center pe-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($searchResults['orders'] as $ord): 
+                                    $cName = $ord['customer_name'] ?? (($ord['first_name'] ?? '') . ' ' . ($ord['last_name'] ?? ''));
+                                    if (empty($cName) && !empty($ord['measurement_customer_name'])) {
+                                        $cName = $ord['measurement_customer_name'];
+                                    }
+                                    $cName = $cName ?: 'Customer';
+                                    $statusPillStyle = match($ord['status']) {
+                                        'completed' => 'background-color: #10b981; color: white;',
+                                        'pending' => 'background-color: #f59e0b; color: white;',
+                                        'in_progress' => 'background-color: #06b6d4; color: white;',
+                                        'delivered' => 'background-color: #3b82f6; color: white;',
+                                        default => 'background-color: #ef4444; color: white;'
+                                    };
+                                ?>
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="rounded-2 d-inline-flex align-items-center justify-content-center p-1" style="width: 28px; height: 28px; background: #eff6ff; color: #3b82f6;">
+                                                <i class="fas fa-tshirt" style="font-size: 0.75rem;"></i>
+                                            </span>
+                                            <a href="order-details.php?id=<?php echo $ord['id']; ?>" class="fw-bold text-primary text-decoration-none">
+                                                #<?php echo htmlspecialchars($ord['order_number']); ?>
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark"><?php echo htmlspecialchars($cName); ?></div>
+                                        <small class="text-muted"><i class="fas fa-phone-alt me-1" style="font-size: 0.65rem;"></i><?php echo htmlspecialchars($ord['customer_phone'] ?? ''); ?></small>
+                                    </td>
+                                    <td class="text-muted"><?php echo htmlspecialchars($ord['cloth_type_name'] ?? 'Custom'); ?></td>
+                                    <td class="fw-bold text-dark"><?php echo format_currency($ord['total_amount']); ?></td>
+                                    <td class="text-muted"><?php echo format_date($ord['due_date'], 'Y-m-d'); ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill" style="<?php echo $statusPillStyle; ?> font-size: 0.72rem; padding: 4px 10px; font-weight: 500;">
+                                            <?php echo ucfirst(str_replace('_', ' ', $ord['status'])); ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center pe-3">
+                                        <a href="order-details.php?id=<?php echo $ord['id']; ?>" class="btn btn-sm btn-light rounded-circle text-primary me-1 p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="View Details">
+                                            <i class="fas fa-eye" style="font-size: 0.72rem;"></i>
+                                        </a>
+                                        <a href="orders.php?edit=<?php echo $ord['id']; ?>" class="btn btn-sm btn-light rounded-circle text-secondary p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="Edit Order">
+                                            <i class="fas fa-pencil-alt" style="font-size: 0.72rem;"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Matching Customers Section -->
+            <?php if (!empty($searchResults['customers'])): ?>
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="fw-bold text-dark text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.5px;">
+                            <i class="fas fa-users me-1 text-success"></i> Matching Customers (<?php echo count($searchResults['customers']); ?>)
+                        </span>
+                        <a href="customers?search=<?php echo urlencode($search); ?>" class="text-success text-decoration-none small fw-semibold">Customers Page &rarr;</a>
+                    </div>
+                    <div class="row g-2">
+                        <?php foreach ($searchResults['customers'] as $cust): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <a href="customer-details.php?id=<?php echo $cust['id']; ?>" class="card p-3 border shadow-xs rounded-3 text-decoration-none h-100 transition-hover" style="border-color: #e2e8f0 !important; background: #f8fafc;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="fw-bold text-dark" style="font-size: 0.88rem;"><?php echo htmlspecialchars($cust['name'] ?? ($cust['first_name'] . ' ' . $cust['last_name'])); ?></div>
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;"><?php echo htmlspecialchars($cust['customer_code'] ?? ''); ?></span>
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                    <i class="fas fa-phone-alt me-1"></i><?php echo htmlspecialchars($cust['phone'] ?? $cust['phone_number'] ?? 'No phone'); ?>
+                                </div>
+                                <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
+                                    <i class="fas fa-shopping-bag me-1 text-muted"></i><?php echo (int)($cust['order_count'] ?? 0); ?> orders
+                                </div>
+                            </a>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Matching Categories Section -->
+            <?php if (!empty($searchResults['categories'])): ?>
+                <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                        <span class="fw-bold text-dark text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.5px;">
+                            <i class="fas fa-folder me-1 text-warning"></i> Matching Categories (<?php echo count($searchResults['categories']); ?>)
+                        </span>
+                        <a href="categories?search=<?php echo urlencode($search); ?>" class="text-warning text-decoration-none small fw-semibold">Categories Page &rarr;</a>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <?php foreach ($searchResults['categories'] as $cat): ?>
+                        <a href="categories?search=<?php echo urlencode($cat['name']); ?>" class="badge bg-light text-dark border p-2 text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.82rem; border-radius: 8px;">
+                            <i class="fas fa-tag text-warning"></i>
+                            <span><?php echo htmlspecialchars($cat['name']); ?></span>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- If 0 total matches -->
+            <?php if ($searchResults['total'] === 0): ?>
+                <div class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">No orders or customers found for "<?php echo htmlspecialchars($search); ?>"</h6>
+                    <p class="text-muted small mb-3">Try searching with another customer name, phone number, order number, or category.</p>
+                    <a href="dashboard" class="btn btn-sm btn-outline-secondary rounded-pill px-4">
+                        Back to Full Dashboard
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="row g-2 g-md-3 mb-2 mb-md-3">
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #faf5ff; border: 1px solid #f3e8ff !important;">
@@ -599,9 +824,9 @@ if (empty($scheduleItems)) {
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
                 <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
-                        <i class="fas fa-clock text-purple me-2" style="color: #8b5cf6;"></i>Recent Orders
+                        <i class="fas fa-clock text-purple me-2" style="color: #8b5cf6;"></i><?php echo !empty($search) ? 'Orders Matching "' . htmlspecialchars($search) . '"' : 'Recent Orders'; ?>
                     </h6>
-                    <a href="orders.php" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border-color: #e2e8f0; font-size: 0.78rem;">
+                    <a href="<?php echo !empty($search) ? 'orders?search=' . urlencode($search) : 'orders.php'; ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border-color: #e2e8f0; font-size: 0.78rem;">
                         View All
                     </a>
                 </div>
@@ -671,11 +896,17 @@ if (empty($scheduleItems)) {
                     <?php else: ?>
                         <div class="text-center py-5">
                             <i class="fas fa-clipboard-list fa-3x text-muted mb-3 opacity-50"></i>
-                            <div class="fw-bold text-dark fs-6 mb-1">No Orders Yet</div>
-                            <p class="text-muted small mb-3">Create your first order to start tracking.</p>
+                            <div class="fw-bold text-dark fs-6 mb-1"><?php echo !empty($search) ? 'No Matching Orders' : 'No Orders Yet'; ?></div>
+                            <p class="text-muted small mb-3"><?php echo !empty($search) ? 'No orders matched "' . htmlspecialchars($search) . '".' : 'Create your first order to start tracking.'; ?></p>
+                            <?php if (empty($search)): ?>
                             <a href="orders.php?action=create" class="btn btn-primary rounded-pill px-4 py-2">
                                 <i class="fas fa-plus me-1"></i> New Order
                             </a>
+                            <?php else: ?>
+                            <a href="dashboard" class="btn btn-outline-secondary rounded-pill px-4 py-1 small">
+                                Clear Search
+                            </a>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>

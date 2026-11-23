@@ -30,6 +30,7 @@ class Customer extends BaseModel {
             'phone_number' => $data['phone'] ?? null,
             'address' => $data['address'] ?? null,
             'date_of_birth' => $data['date_of_birth'] ?? null,
+            'status' => (!empty($data['status']) && strtolower($data['status']) === 'inactive') ? 'inactive' : 'active',
             'measurement_data' => '{}',
             'notes' => $data['notes'] ?? null
         ];
@@ -149,7 +150,10 @@ class Customer extends BaseModel {
             $conditions['company_id'] = $companyId;
         }
         $stats['total'] = $this->count($conditions);
-        $stats['active'] = $stats['total'];
+        $activeConditions = $conditions;
+        $activeConditions['status'] = 'active';
+        $stats['active'] = $this->count($activeConditions);
+        $stats['inactive'] = max(0, $stats['total'] - $stats['active']);
         
         $this_month = date('Y-m-01');
         $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
@@ -266,9 +270,6 @@ class Customer extends BaseModel {
             $conditions['phone_number'] = $conditions['phone'];
             unset($conditions['phone']);
         }
-        if (isset($conditions['status'])) {
-            unset($conditions['status']);
-        }
         $rows = parent::findAll($conditions, $order_by, $limit);
         if ($rows) {
             return array_map([$this, 'formatCustomerRow'], $rows);
@@ -292,9 +293,6 @@ class Customer extends BaseModel {
             $conditions['phone_number'] = $conditions['phone'];
             unset($conditions['phone']);
         }
-        if (isset($conditions['status'])) {
-            unset($conditions['status']);
-        }
         $row = parent::findOne($conditions);
         return $row ? $this->formatCustomerRow($row) : false;
     }
@@ -314,9 +312,6 @@ class Customer extends BaseModel {
         if (isset($conditions['phone'])) {
             $conditions['phone_number'] = $conditions['phone'];
             unset($conditions['phone']);
-        }
-        if (isset($conditions['status'])) {
-            unset($conditions['status']);
         }
         return parent::count($conditions);
     }
@@ -352,6 +347,9 @@ class Customer extends BaseModel {
         if (isset($data['notes'])) {
             $updateData['notes'] = $data['notes'];
         }
+        if (isset($data['status'])) {
+            $updateData['status'] = (!empty($data['status']) && strtolower($data['status']) === 'inactive') ? 'inactive' : 'active';
+        }
         
         if (empty($updateData)) {
             return true;
@@ -383,7 +381,7 @@ class Customer extends BaseModel {
         
         $row['phone'] = $row['phone_number'] ?? '';
         $row['customer_code'] = 'CUST' . str_pad($row['id'], 6, '0', STR_PAD_LEFT);
-        $row['status'] = 'active';
+        $row['status'] = (!empty($row['status']) && strtolower($row['status']) === 'inactive') ? 'inactive' : 'active';
         
         return $row;
     }

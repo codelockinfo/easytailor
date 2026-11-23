@@ -222,6 +222,41 @@ $seoOptions = [
             z-index: 998;
             transition: left 0.3s ease;
         }
+
+        /* Global Header Search */
+        .global-search-container {
+            width: 350px;
+        }
+        .global-search-container input:focus,
+        #mobileGlobalSearchInput:focus {
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15), 0 2px 8px rgba(0,0,0,0.06) !important;
+            border: 1px solid #c7d2fe !important;
+        }
+        .search-result-item {
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .search-result-item:hover, .search-result-item.active {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0;
+            transform: translateX(2px);
+        }
+        .global-search-results::-webkit-scrollbar {
+            width: 5px;
+        }
+        .global-search-results::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .global-search-results::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .global-search-results::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         
         .content-area {
             padding: 1rem;
@@ -534,15 +569,17 @@ $seoOptions = [
             font-weight: 400;
             opacity: 1;
         }
-        .form-select:disabled {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23000000'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f7fafc, #edf2f7);
-            background-position: right 0.875rem center, center;
-            background-size: 18px 18px, 100% 100%;
-            border-color: #e2e8f0;
-            color: #000000 !important;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .form-select:disabled,
+        .form-select[disabled] {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3e%3c/svg%3e"), linear-gradient(145deg, #f8fafc, #f1f5f9) !important;
+            background-position: right 0.875rem center, center !important;
+            background-size: 18px 18px, 100% 100% !important;
+            background-repeat: no-repeat, no-repeat !important;
+            border-color: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
         }
         
         .form-select:disabled:hover {
@@ -1219,14 +1256,33 @@ $seoOptions = [
                 </button>
                 <?php 
                 $currScript = basename($_SERVER['PHP_SELF']);
-                if ($currScript == 'dashboard.php'): 
+                if (in_array($currScript, ['dashboard.php', 'dashboard'])): 
+                    $headerSearchVal = htmlspecialchars($_GET['search'] ?? '');
                 ?>
-                    <a href="dashboard.php" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
+                    <a href="dashboard" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
                         <img src="../assets/images/tailor_logo_color.png?v=<?php echo time(); ?>" alt="Tailor Pro">
                     </a>
-                    <div class="position-relative d-none d-lg-block" style="width: 320px;">
-                        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem;"></i>
-                        <input type="text" class="form-control rounded-pill ps-5 py-2 border-0" style="font-size: 0.82rem; background-color: #f1f5f9 !important; color: #334155;" placeholder="Search orders, customers, categories...">
+                    <div class="position-relative d-none d-lg-block global-search-container" style="width: 340px;">
+
+                        <form id="globalSearchForm" action="dashboard" method="GET" class="m-0" onsubmit="return handleGlobalSearchSubmit(event, 'desktop');">
+                            <div class="position-relative">
+                                <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem; pointer-events: none;"></i>
+                                <input type="text" 
+                                       id="globalSearchInput" 
+                                       name="search" 
+                                       value="<?php echo $headerSearchVal; ?>"
+                                       class="form-control rounded-pill ps-5 pe-5 py-2 border-0" 
+                                       style="font-size: 0.82rem; background-color: #f1f5f9 !important; color: #334155; transition: all 0.2s;" 
+                                       placeholder="Search orders, customers, categories..." 
+                                       autocomplete="off"
+                                       aria-label="Search orders, customers, categories">
+                                <span id="globalSearchSpinner" class="spinner-border spinner-border-sm text-primary position-absolute top-50 end-0 translate-middle-y me-3 d-none" style="width: 0.82rem; height: 0.82rem; pointer-events: none;" role="status"></span>
+                                <button type="button" id="globalSearchClear" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted p-0 me-3 border-0 <?php echo empty($headerSearchVal) ? 'd-none' : ''; ?>" style="line-height: 1; font-size: 0.85rem; text-decoration: none;" title="Clear search">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <div id="globalSearchResults" class="dropdown-menu shadow-lg border-0 p-0 global-search-results" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 440px; border-radius: 14px; z-index: 1060; max-height: 480px; overflow-y: auto; background: #ffffff; border: 1px solid #edf2f7 !important;"></div>
                     </div>
                 <?php elseif (in_array($currScript, ['categories.php', 'cloth-types.php', 'measurements.php', 'customers.php', 'orders.php', 'invoices.php', 'expenses.php', 'reports.php', 'contacts.php', 'company-settings.php', 'users.php'])): ?>
                     <a href="dashboard.php" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
@@ -1251,6 +1307,11 @@ $seoOptions = [
             </div>
             
             <div class="d-flex align-items-center gap-2">
+                <?php if (in_array($currScript, ['dashboard.php', 'dashboard'])): ?>
+                    <button type="button" id="mobileSearchToggle" class="btn btn-sm btn-light rounded-circle d-lg-none d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; color: #4f46e5; background: #eef2ff; border: none;" title="Search">
+                        <i class="fas fa-search" style="font-size: 0.82rem;"></i>
+                    </button>
+                <?php endif; ?>
                 <button id="enablePushBtn" class="btn btn-sm btn-outline-primary rounded-pill px-2 px-sm-3 py-1 d-flex align-items-center gap-1" style="font-size: 0.78rem; transition: all 0.2s;" title="Enable Browser Push Notifications">
                     <i class="fas fa-bell"></i>
                     <span class="d-none d-sm-inline">Enable Notifications</span>
@@ -1344,6 +1405,28 @@ $seoOptions = [
                 </div>
             </div>
         </header>
+        <?php if (in_array($currScript, ['dashboard.php', 'dashboard'])): 
+            $mobileSearchVal = htmlspecialchars($_GET['search'] ?? '');
+        ?>
+            <div id="mobileSearchDrawer" class="d-lg-none bg-white border-bottom px-3 py-2 position-fixed start-0 end-0 shadow-sm" style="display: none; top: 58px; z-index: 1050;">
+                <form id="mobileGlobalSearchForm" action="dashboard" method="GET" class="m-0 position-relative" onsubmit="return handleGlobalSearchSubmit(event, 'mobile');">
+                    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem; pointer-events: none;"></i>
+                    <input type="text" 
+                           id="mobileGlobalSearchInput" 
+                           name="search" 
+                           value="<?php echo $mobileSearchVal; ?>"
+                           class="form-control rounded-pill ps-5 pe-5 py-2 border-0" 
+                           style="font-size: 0.85rem; background-color: #f1f5f9 !important; color: #334155;" 
+                           placeholder="Search orders, customers, categories..." 
+                           autocomplete="off">
+                    <span id="mobileGlobalSearchSpinner" class="spinner-border spinner-border-sm text-primary position-absolute top-50 end-0 translate-middle-y me-3 d-none" style="width: 0.82rem; height: 0.82rem; pointer-events: none;" role="status"></span>
+                    <button type="button" id="mobileGlobalSearchClear" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted p-0 me-3 border-0 <?php echo empty($mobileSearchVal) ? 'd-none' : ''; ?>" style="line-height: 1; font-size: 0.85rem;" title="Clear">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </form>
+                <div id="mobileGlobalSearchResults" class="dropdown-menu shadow-lg border-0 p-0 w-100 position-relative mt-2" style="display: none; border-radius: 14px; max-height: 380px; overflow-y: auto; background: #ffffff; border: 1px solid #edf2f7 !important;"></div>
+            </div>
+        <?php endif; ?>
         <main class="content-area">
         <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1494,5 +1577,343 @@ $seoOptions = [
                 }
             `;
             document.head.appendChild(style);
+
+            // Global Header Search
+            window.handleGlobalSearchSubmit = function(e, mode) {
+                const resultsId = mode === 'mobile' ? 'mobileGlobalSearchResults' : 'globalSearchResults';
+                const inputId = mode === 'mobile' ? 'mobileGlobalSearchInput' : 'globalSearchInput';
+                const results = document.getElementById(resultsId);
+                const input = document.getElementById(inputId);
+                if (!input) return true;
+                const query = input.value.trim();
+                if (!query) {
+                    e.preventDefault();
+                    return false;
+                }
+                const activeItem = results ? results.querySelector('.search-result-item.active') : null;
+                if (activeItem && activeItem.getAttribute('href')) {
+                    e.preventDefault();
+                    window.location.href = activeItem.getAttribute('href');
+                    return false;
+                }
+                return true;
+            };
+
+            function initGlobalSearch(inputId, resultsId, clearId, spinnerId) {
+                const input = document.getElementById(inputId);
+                const results = document.getElementById(resultsId);
+                const clearBtn = document.getElementById(clearId);
+                const spinner = document.getElementById(spinnerId);
+                if (!input || !results) return;
+
+                let debounceTimer = null;
+                let activeIndex = -1;
+                let lastQuery = '';
+
+                function getStatusBadge(status) {
+                    const s = (status || '').toLowerCase();
+                    switch (s) {
+                        case 'completed': return { badge: 'bg-success text-white', label: 'Completed' };
+                        case 'in_progress': return { badge: 'bg-info text-dark', label: 'In Progress' };
+                        case 'delivered': return { badge: 'bg-primary text-white', label: 'Delivered' };
+                        case 'cancelled': return { badge: 'bg-danger text-white', label: 'Cancelled' };
+                        case 'pending': default: return { badge: 'bg-warning text-dark', label: 'Pending' };
+                    }
+                }
+
+                function escapeHtml(str) {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                function renderResults(data, query) {
+                    activeIndex = -1;
+                    const orders = data.results?.orders || [];
+                    const customers = data.results?.customers || [];
+                    const categories = data.results?.categories || [];
+                    const clothTypes = data.results?.cloth_types || [];
+                    const total = (data.total_matches !== undefined) ? data.total_matches : (orders.length + customers.length + categories.length + clothTypes.length);
+
+                    if (total === 0) {
+                        results.innerHTML = `
+                            <div class="p-4 text-center">
+                                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 44px; height: 44px; background: #f8fafc; color: #94a3b8; font-size: 1.1rem; border: 1px solid #e2e8f0;">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="fw-semibold text-dark" style="font-size: 0.85rem;">No results found</div>
+                                <div class="text-muted mt-1" style="font-size: 0.74rem;">No matches found for "<span class="text-dark fw-medium">${escapeHtml(query)}</span>"</div>
+                                <div class="mt-3 pt-2 border-top d-flex justify-content-center gap-2">
+                                    <a href="dashboard?search=${encodeURIComponent(query)}" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size: 0.72rem;">Search on Dashboard</a>
+                                    <a href="orders?search=${encodeURIComponent(query)}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" style="font-size: 0.72rem;">Search Orders</a>
+                                </div>
+                            </div>
+                        `;
+                        results.style.display = 'block';
+                        return;
+                    }
+
+                    let html = '<div class="p-2">';
+
+                    // Orders
+                    if (orders.length > 0) {
+                        html += `
+                            <div class="px-2 pt-2 pb-1 text-uppercase text-muted fw-bold d-flex align-items-center justify-content-between" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                <span><i class="fas fa-shopping-bag me-1 text-primary"></i> Orders (${orders.length})</span>
+                                <a href="orders.php?search=${encodeURIComponent(query)}" class="text-primary text-decoration-none" style="font-size: 0.68rem;">View all</a>
+                            </div>
+                            <div class="mb-2">
+                        `;
+                        orders.forEach(ord => {
+                            const st = getStatusBadge(ord.status);
+                            html += `
+                                <a href="${escapeHtml(ord.url)}" class="dropdown-item search-result-item d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                                    <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #eff6ff; color: #3b82f6; font-size: 0.8rem; flex-shrink: 0;">
+                                            <i class="fas fa-receipt"></i>
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">${escapeHtml(ord.order_number)} <span class="fw-normal text-muted" style="font-size: 0.75rem;">· ${escapeHtml(ord.customer_name)}</span></div>
+                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;">${escapeHtml(ord.cloth_type_name ? ord.cloth_type_name + ' · ' : '')}${escapeHtml(ord.order_date || '')}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end ps-2 flex-shrink-0">
+                                        <span class="badge ${st.badge}" style="font-size: 0.65rem; font-weight: 500;">${st.label}</span>
+                                        <div class="fw-bold text-dark mt-1" style="font-size: 0.75rem;">${escapeHtml(ord.formatted_amount)}</div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    // Customers
+                    if (customers.length > 0) {
+                        html += `
+                            <div class="px-2 pt-2 pb-1 text-uppercase text-muted fw-bold d-flex align-items-center justify-content-between" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                <span><i class="fas fa-users me-1 text-success"></i> Customers (${customers.length})</span>
+                                <a href="customers.php?search=${encodeURIComponent(query)}" class="text-success text-decoration-none" style="font-size: 0.68rem;">View all</a>
+                            </div>
+                            <div class="mb-2">
+                        `;
+                        customers.forEach(cust => {
+                            html += `
+                                <a href="${escapeHtml(cust.url)}" class="dropdown-item search-result-item d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                                    <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #f0fdf4; color: #10b981; font-size: 0.8rem; flex-shrink: 0;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">${escapeHtml(cust.name)}</div>
+                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;"><i class="fas fa-phone-alt me-1" style="font-size: 0.62rem;"></i>${escapeHtml(cust.phone || 'No phone')}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end ps-2 flex-shrink-0">
+                                        <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;">${escapeHtml(cust.customer_code)}</span>
+                                        <div class="text-muted mt-1" style="font-size: 0.7rem;">${cust.order_count} ${cust.order_count === 1 ? 'order' : 'orders'}</div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    // Categories
+                    if (categories.length > 0) {
+                        html += `
+                            <div class="px-2 pt-2 pb-1 text-uppercase text-muted fw-bold d-flex align-items-center justify-content-between" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                <span><i class="fas fa-folder me-1 text-warning"></i> Categories (${categories.length})</span>
+                                <a href="categories.php?search=${encodeURIComponent(query)}" class="text-warning text-decoration-none" style="font-size: 0.68rem;">View all</a>
+                            </div>
+                            <div class="mb-2">
+                        `;
+                        categories.forEach(cat => {
+                            html += `
+                                <a href="${escapeHtml(cat.url)}" class="dropdown-item search-result-item d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                                    <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #fffbeb; color: #f59e0b; font-size: 0.8rem; flex-shrink: 0;">
+                                            <i class="fas fa-folder-open"></i>
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">${escapeHtml(cat.name)}</div>
+                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;">${escapeHtml(cat.description || 'Category')}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end ps-2 flex-shrink-0">
+                                        <span class="badge bg-light text-muted" style="font-size: 0.65rem;">${cat.cloth_count} items</span>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    // Cloth Types
+                    if (clothTypes.length > 0) {
+                        html += `
+                            <div class="px-2 pt-2 pb-1 text-uppercase text-muted fw-bold d-flex align-items-center justify-content-between" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                <span><i class="fas fa-tshirt me-1 text-info"></i> Cloth Types (${clothTypes.length})</span>
+                                <a href="cloth-types.php?search=${encodeURIComponent(query)}" class="text-info text-decoration-none" style="font-size: 0.68rem;">View all</a>
+                            </div>
+                            <div class="mb-2">
+                        `;
+                        clothTypes.forEach(ct => {
+                            html += `
+                                <a href="${escapeHtml(ct.url)}" class="dropdown-item search-result-item d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none">
+                                    <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #e0f2fe; color: #0284c7; font-size: 0.8rem; flex-shrink: 0;">
+                                            <i class="fas fa-tshirt"></i>
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">${escapeHtml(ct.name)}</div>
+                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;">${escapeHtml(ct.category || 'Garment')}</div>
+                                        </div>
+                                    </div>
+                                    ${ct.rate ? `<div class="fw-bold text-dark ps-2 flex-shrink-0" style="font-size: 0.75rem;">${escapeHtml(ct.rate)}</div>` : ''}
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+
+                    // Quick bottom footer
+                    html += `
+                        <div class="p-2 border-top bg-light-subtle rounded-bottom-4 d-flex align-items-center justify-content-between" style="font-size: 0.72rem;">
+                            <span class="text-muted"><i class="fas fa-info-circle me-1"></i>Press <kbd style="font-size: 0.65rem; background: #e2e8f0; color: #334155; padding: 1px 4px; border-radius: 4px;">Enter</kbd> to search</span>
+                            <div class="d-flex gap-2">
+                                <a href="dashboard?search=${encodeURIComponent(query)}" class="text-primary text-decoration-none fw-semibold">Dashboard &rarr;</a>
+                                <a href="orders?search=${encodeURIComponent(query)}" class="text-secondary text-decoration-none fw-semibold">Orders &rarr;</a>
+                            </div>
+                        </div>
+                    `;
+
+                    results.innerHTML = html;
+                    results.style.display = 'block';
+                }
+
+                function doSearch(val) {
+                    const query = val.trim();
+                    if (query.length === 0) {
+                        results.style.display = 'none';
+                        results.innerHTML = '';
+                        if (clearBtn) clearBtn.classList.add('d-none');
+                        if (spinner) spinner.classList.add('d-none');
+                        return;
+                    }
+
+                    if (clearBtn) clearBtn.classList.remove('d-none');
+                    if (spinner) spinner.classList.remove('d-none');
+
+                    lastQuery = query;
+                    fetch('ajax/global_search.php?q=' + encodeURIComponent(query))
+                        .then(res => res.json())
+                        .then(data => {
+                            if (spinner) spinner.classList.add('d-none');
+                            if (input.value.trim() === lastQuery) {
+                                renderResults(data, query);
+                            }
+                        })
+                        .catch(err => {
+                            if (spinner) spinner.classList.add('d-none');
+                            console.error('Global search error:', err);
+                        });
+                }
+
+                input.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    const val = this.value;
+                    debounceTimer = setTimeout(() => doSearch(val), 250);
+                });
+
+                input.addEventListener('focus', function() {
+                    if (this.value.trim().length > 0 && results.innerHTML.trim().length > 0) {
+                        results.style.display = 'block';
+                    }
+                });
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const hadSearchInUrl = new URLSearchParams(window.location.search).has('search');
+                        input.value = '';
+                        results.style.display = 'none';
+                        results.innerHTML = '';
+                        clearBtn.classList.add('d-none');
+                        if (spinner) spinner.classList.add('d-none');
+                        if (hadSearchInUrl) {
+                            window.location.href = 'dashboard';
+                        } else {
+                            input.focus();
+                        }
+                    });
+                }
+
+                input.addEventListener('keydown', function(e) {
+                    const items = results.querySelectorAll('.search-result-item');
+                    if (items.length === 0 || results.style.display === 'none') {
+                        return;
+                    }
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        activeIndex++;
+                        if (activeIndex >= items.length) activeIndex = 0;
+                        updateActiveItem(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        activeIndex--;
+                        if (activeIndex < 0) activeIndex = items.length - 1;
+                        updateActiveItem(items);
+                    } else if (e.key === 'Enter') {
+                        if (activeIndex >= 0 && items[activeIndex]) {
+                            e.preventDefault();
+                            window.location.href = items[activeIndex].getAttribute('href');
+                        }
+                    } else if (e.key === 'Escape') {
+                        results.style.display = 'none';
+                    }
+                });
+
+                function updateActiveItem(items) {
+                    items.forEach((item, idx) => {
+                        if (idx === activeIndex) {
+                            item.classList.add('active');
+                            item.scrollIntoView({ block: 'nearest' });
+                        } else {
+                            item.classList.remove('active');
+                        }
+                    });
+                }
+
+                document.addEventListener('click', function(e) {
+                    if (!input.contains(e.target) && !results.contains(e.target) && (!clearBtn || !clearBtn.contains(e.target))) {
+                        results.style.display = 'none';
+                    }
+                });
+            }
+
+            // Init Desktop & Mobile Search
+            initGlobalSearch('globalSearchInput', 'globalSearchResults', 'globalSearchClear', 'globalSearchSpinner');
+            initGlobalSearch('mobileGlobalSearchInput', 'mobileGlobalSearchResults', 'mobileGlobalSearchClear', 'mobileGlobalSearchSpinner');
+
+            const mobileToggle = document.getElementById('mobileSearchToggle');
+            const mobileDrawer = document.getElementById('mobileSearchDrawer');
+            if (mobileToggle && mobileDrawer) {
+                mobileToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const isOpen = mobileDrawer.style.display !== 'none';
+                    mobileDrawer.style.display = isOpen ? 'none' : 'block';
+                    if (!isOpen) {
+                        const mobInput = document.getElementById('mobileGlobalSearchInput');
+                        if (mobInput) mobInput.focus();
+                    }
+                });
+            }
         });
         </script>

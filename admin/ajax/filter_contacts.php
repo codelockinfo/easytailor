@@ -28,19 +28,28 @@ try {
     if (!empty($category)) {
         $conditions['category'] = $category;
     }
-    $offset = ($page - 1) * $limit;
-    $contacts = $contactModel->findAll($conditions, 'name ASC', $limit, $offset);
-    if (!empty($search)) {
-        $searchLower = strtolower($search);
-        $contacts = array_filter($contacts, function($contact) use ($searchLower) {
-            return strpos(strtolower($contact['name']), $searchLower) !== false ||
-                   strpos(strtolower($contact['company'] ?? ''), $searchLower) !== false ||
-                   strpos(strtolower($contact['email'] ?? ''), $searchLower) !== false ||
-                   strpos(strtolower($contact['phone'] ?? ''), $searchLower) !== false;
-        });
+    $companyId = get_company_id();
+    if ($companyId) {
+        $conditions['company_id'] = $companyId;
     }
-    $totalContacts = count($contacts);
-    $totalPages = $limit > 0 ? ceil($totalContacts / $limit) : 1;
+
+    $allContacts = $contactModel->findAll($conditions, 'name ASC');
+    if (!empty($search)) {
+        $searchLower = mb_strtolower(trim($search));
+        $filteredContacts = array_values(array_filter($allContacts, function($contact) use ($searchLower) {
+            return mb_stripos($contact['name'] ?? '', $searchLower) !== false ||
+                   mb_stripos($contact['company'] ?? '', $searchLower) !== false ||
+                   mb_stripos($contact['email'] ?? '', $searchLower) !== false ||
+                   mb_stripos($contact['phone'] ?? '', $searchLower) !== false ||
+                   mb_stripos($contact['notes'] ?? '', $searchLower) !== false;
+        }));
+    } else {
+        $filteredContacts = $allContacts;
+    }
+    $totalContacts = count($filteredContacts);
+    $offset = ($page - 1) * $limit;
+    $contacts = array_slice($filteredContacts, $offset, $limit);
+    $totalPages = $limit > 0 ? max(1, ceil($totalContacts / $limit)) : 1;
     $categories = ['Supplier', 'Partner', 'Vendor', 'Service Provider', 'Other'];
     $formattedContacts = [];
     foreach ($contacts as $contact) {

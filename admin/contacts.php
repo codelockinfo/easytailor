@@ -99,10 +99,28 @@ $conditions = [];
 if (!empty($category_filter)) {
     $conditions['category'] = $category_filter;
 }
+$companyId = get_company_id();
+if ($companyId) {
+    $conditions['company_id'] = $companyId;
+}
 
-$contacts = $contactModel->findAll($conditions, 'name ASC', $limit);
-$totalContacts = $contactModel->count($conditions);
-$totalPages = ceil($totalContacts / $limit);
+$allContacts = $contactModel->findAll($conditions, 'name ASC');
+if (!empty($search)) {
+    $searchLower = mb_strtolower(trim($search));
+    $filteredContacts = array_values(array_filter($allContacts, function($contact) use ($searchLower) {
+        return mb_stripos($contact['name'] ?? '', $searchLower) !== false ||
+               mb_stripos($contact['company'] ?? '', $searchLower) !== false ||
+               mb_stripos($contact['email'] ?? '', $searchLower) !== false ||
+               mb_stripos($contact['phone'] ?? '', $searchLower) !== false ||
+               mb_stripos($contact['notes'] ?? '', $searchLower) !== false;
+    }));
+    $totalContacts = count($filteredContacts);
+    $contacts = array_slice($filteredContacts, $offset, $limit);
+} else {
+    $totalContacts = count($allContacts);
+    $contacts = array_slice($allContacts, $offset, $limit);
+}
+$totalPages = max(1, ceil($totalContacts / $limit));
 $editContact = null;
 if (isset($_GET['edit'])) {
     $editContact = $contactModel->find((int)$_GET['edit']);
@@ -326,10 +344,15 @@ include 'includes/page-header.php';
     </div>
 </div>
 
-<div id="searchResults" class="mb-3" style="display: none;">
-    <div class="alert alert-info py-2 px-3 d-flex align-items-center" style="border-radius: 12px; font-size: 0.85rem;">
-        <i class="fas fa-info-circle me-2"></i>
-        <span><strong id="searchCount">0</strong> contacts found</span>
+<div id="searchResults" class="mb-3" style="display: <?php echo !empty($search) ? 'block' : 'none'; ?>;">
+    <div class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 12px; font-size: 0.85rem;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-2 text-primary"></i>
+            <span><strong id="searchCount"><?php echo $totalContacts; ?></strong> contact<?php echo $totalContacts === 1 ? '' : 's'; ?> found</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 ms-2 text-secondary" id="btnDismissSearchBanner" onclick="document.getElementById('clearSearch').click();" title="Clear search">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 </div>
 <div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
@@ -361,8 +384,9 @@ include 'includes/page-header.php';
                             $avColor = getContactAvatarDesign($cleanName, $index);
                             $catBadge = getContactCategoryBadge($contact['category'] ?? '');
                             $isActive = ($contact['status'] ?? 'active') === 'active';
+                            $searchPayload = strtolower($cleanName . ' ' . ($contact['company'] ?? '') . ' ' . ($contact['email'] ?? '') . ' ' . ($contact['phone'] ?? '') . ' ' . ($contact['category'] ?? '') . ' ' . ($contact['notes'] ?? ''));
                         ?>
-                        <tr class="contact-row" data-name="<?php echo htmlspecialchars(strtolower($cleanName)); ?>">
+                        <tr class="contact-row" data-name="<?php echo htmlspecialchars(strtolower($cleanName)); ?>" data-search="<?php echo htmlspecialchars($searchPayload); ?>" data-category="<?php echo htmlspecialchars($contact['category'] ?? ''); ?>">
                             <td class="ps-3 py-3">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 36px; height: 36px; border-radius: 10px; background: <?php echo $avColor['bg']; ?>; border: 1px solid <?php echo $avColor['border']; ?>; color: <?php echo $avColor['color']; ?>; font-size: 0.88rem;">
@@ -441,6 +465,15 @@ include 'includes/page-header.php';
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <tr id="noResultsRow" style="display: none;">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                                    <i class="fas fa-search fa-lg"></i>
+                                </div>
+                                <div class="fw-semibold text-dark">No contacts found</div>
+                                <small class="text-muted">Try adjusting your search or category filter.</small>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -710,28 +743,81 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryFilter = document.getElementById('categoryFilter');
     const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
     
+    function performClientFilter() {
+        const searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
+        const selectedCat = (categoryFilter ? categoryFilter.value : '').toLowerCase().trim();
+        const rows = document.querySelectorAll('#contactsTableBody tr.contact-row');
+        const searchResults = document.getElementById('searchResults');
+        const searchCount = document.getElementById('searchCount');
+        const noResultsRow = document.getElementById('noResultsRow');
+
+        if (clearBtn) {
+            clearBtn.style.display = searchTerm ? 'block' : 'none';
+        }
+
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const dataSearch = (row.getAttribute('data-search') || row.innerText || '').toLowerCase();
+            const dataCat = (row.getAttribute('data-category') || '').toLowerCase();
+            const matchesSearch = !searchTerm || dataSearch.includes(searchTerm);
+            const matchesCat = !selectedCat || dataCat === selectedCat;
+
+            if (matchesSearch && matchesCat) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (noResultsRow) {
+            noResultsRow.style.display = (visibleCount === 0 && (searchTerm || selectedCat)) ? '' : 'none';
+        }
+
+        if (searchResults && searchCount) {
+            if (searchTerm || selectedCat) {
+                searchCount.textContent = visibleCount;
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        }
+    }
+
     if (searchInput) {
         searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.trim();
-            if (clearBtn) clearBtn.style.display = searchTerm ? 'block' : 'none';
+            performClientFilter();
             
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 filterContacts();
             }, 300);
         });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                filterContacts();
+            }
+        });
     }
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
             if (searchInput) searchInput.value = '';
             this.style.display = 'none';
-            const searchResults = document.getElementById('searchResults');
-            if (searchResults) searchResults.style.display = 'none';
+            const hadSearchInUrl = new URLSearchParams(window.location.search).has('search');
+            if (hadSearchInUrl) {
+                window.location.href = 'contacts';
+                return;
+            }
+            performClientFilter();
             filterContacts();
         });
     }
     if (categoryFilter) {
         categoryFilter.addEventListener('change', function() {
+            performClientFilter();
             filterContacts();
         });
     }
@@ -740,8 +826,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (searchInput) searchInput.value = '';
             if (clearBtn) clearBtn.style.display = 'none';
             if (categoryFilter) categoryFilter.value = '';
-            const searchResults = document.getElementById('searchResults');
-            if (searchResults) searchResults.style.display = 'none';
+            const hadSearchInUrl = new URLSearchParams(window.location.search).has('search') || new URLSearchParams(window.location.search).has('category');
+            if (hadSearchInUrl) {
+                window.location.href = 'contacts';
+                return;
+            }
+            performClientFilter();
             filterContacts();
         });
     }
@@ -887,9 +977,10 @@ function updateContactsTable(contacts) {
             .replace(/'/g, '&#39;');
             
         const safeNameForDelete = cleanName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const searchPayload = (cleanName + ' ' + (contact.company || '') + ' ' + (contact.email || '') + ' ' + (contact.phone || '') + ' ' + (contact.category || '') + ' ' + (contact.notes || '')).toLowerCase();
         
         html += `
-            <tr class="contact-row" data-name="${escapeHtml(cleanName.toLowerCase())}">
+            <tr class="contact-row" data-name="${escapeHtml(cleanName.toLowerCase())}" data-search="${escapeHtml(searchPayload)}" data-category="${escapeHtml(contact.category || '')}">
                 <td class="ps-3 py-3">
                     <div class="d-flex align-items-center gap-2">
                         <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 36px; height: 36px; border-radius: 10px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.88rem;">
@@ -974,7 +1065,10 @@ function updateSearchResults(totalContacts, searchTerm, totalPages = null) {
     
     if (!searchResults || !searchCount) return;
     
-    if (searchTerm && totalContacts > 0) {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const hasCategory = categoryFilter && categoryFilter.value;
+
+    if (searchTerm || hasCategory) {
         searchCount.textContent = totalContacts;
         searchResults.style.display = 'block';
     } else {

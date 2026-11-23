@@ -509,6 +509,7 @@ if (isset($_GET['edit'])) {
 }
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
+$canGenerateInvoice = SubscriptionHelper::canGenerateInvoice($companyId)['allowed'];
 $canSendInvoice = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
 $autoWhatsApp = $_SESSION['auto_whatsapp'] ?? null;
 unset($_SESSION['auto_whatsapp']);
@@ -1235,12 +1236,14 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                             <li><a class="dropdown-item py-1 text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'cancelled', this); return false;"><i class="fas fa-times-circle me-2"></i>Cancelled</a></li>
                                         </ul>
                                     </div>
+                                    <?php if ($canGenerateInvoice): ?>
                                     <button type="button" 
                                             class="cat-action-btn cat-action-print" 
                                             onclick="printOrderInvoice(<?php echo $order['id']; ?>)" 
                                             title="Print Invoice">
                                         <i class="fas fa-print"></i>
                                     </button>
+                                    <?php endif; ?>
                                     <?php if ($canSendInvoice): ?>
                                     <button type="button" 
                                             class="cat-action-btn cat-action-whatsapp" 
@@ -3368,12 +3371,14 @@ function displayFilterResults(orders) {
                                 <li><a class="dropdown-item py-1 text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'cancelled', this); return false;"><i class="fas fa-times-circle me-2"></i>Cancelled</a></li>
                             </ul>
                         </div>
+                        ${canGenerateInvoice ? `
                         <button type="button" 
                                 class="cat-action-btn cat-action-print" 
                                 onclick="printOrderInvoice(${order.id})" 
                                 title="Print Invoice">
                             <i class="fas fa-print"></i>
                         </button>
+                        ` : ''}
                         ${canSendInvoice ? `
                         <button type="button" 
                                 class="cat-action-btn cat-action-whatsapp send-order-invoice-btn" 
@@ -3513,10 +3518,16 @@ document.addEventListener('shown.bs.dropdown', function(e) {
 });
 
 const canSendInvoice = <?php echo $canSendInvoice ? 'true' : 'false'; ?>;
+const canGenerateInvoice = <?php echo $canGenerateInvoice ? 'true' : 'false'; ?>;
 
 // Print Invoice directly
 function printOrderInvoice(orderId) {
     if (!orderId) return;
+    if (!canGenerateInvoice) {
+        alert('Print / Invoice generation feature is not available in the Free plan. Please upgrade your subscription to Basic or Premium plan.');
+        window.location.href = 'subscriptions.php';
+        return;
+    }
     window.open('print-invoice.php?order_id=' + orderId, '_blank');
 }
 

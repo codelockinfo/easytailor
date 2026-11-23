@@ -16,6 +16,62 @@ if (empty($clothTypes)) {
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name ASC');
 }
 
+if (!function_exists('formatMeasurementShortKey')) {
+    function formatMeasurementShortKey($key) {
+        $k = strtolower(trim($key));
+        $map = [
+            'length' => 'L',
+            'blouse_length' => 'L',
+            'kurta_length' => 'L',
+            'shirt_length' => 'L',
+            'pant_length' => 'L',
+            'choli_length' => 'L',
+            'dress_length' => 'L',
+            'suit_length' => 'L',
+            'chest' => 'C',
+            'bust' => 'B',
+            'upper_chest' => 'UC',
+            'waist' => 'W',
+            'hip' => 'H',
+            'hips' => 'H',
+            'hip_seat' => 'H',
+            'hip/seat' => 'H',
+            'shoulder' => 'Sh',
+            'sleeve_length' => 'Sl',
+            'sleeve' => 'Sl',
+            'sleeves' => 'Sl',
+            'collar' => 'Col',
+            'neck' => 'N',
+            'front_neck' => 'FN',
+            'front_neck_depth' => 'FN',
+            'back_neck' => 'BN',
+            'back_neck_depth' => 'BN',
+            'armhole' => 'Arm',
+            'bicep' => 'Bic',
+            'wrist' => 'Wr',
+            'thigh' => 'Th',
+            'inseam' => 'In',
+            'outseam' => 'Out',
+            'bottom' => 'Bot',
+            'knee' => 'Kn',
+            'cross_back' => 'CB',
+            'apex' => 'Ap',
+        ];
+        if (isset($map[$k])) {
+            return $map[$k];
+        }
+        $words = preg_split('/[\s_\-]+/', $k);
+        if (count($words) > 1) {
+            $initials = '';
+            foreach ($words as $w) {
+                if ($w !== '') $initials .= strtoupper($w[0]);
+            }
+            return $initials ?: strtoupper(substr($k, 0, 2));
+        }
+        return ucfirst(substr($k, 0, 1));
+    }
+}
+
 function getDefaultCustomerId($companyId, $customerModel) {
     $conditions = ['customer_code' => 'CUST000000'];
     if ($companyId) {
@@ -357,6 +413,7 @@ $clothTypes = $clothTypeModel->getActiveClothTypes();
 if (empty($clothTypes)) {
     $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name ASC');
 }
+
 $totalActiveCustomers = $customerModel->count(['status' => 'active']);
 $editMeasurement = null;
 if (isset($_GET['edit'])) {
@@ -698,13 +755,16 @@ include 'includes/page-header.php';
                                                     <?php echo htmlspecialchars($g['cloth_type_name']); ?>:
                                                 </span>
                                                 <?php if (!empty($gData) && is_array($gData)): ?>
-                                                    <?php foreach (array_slice($gData, 0, 3) as $key => $value): ?>
-                                                        <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;">
-                                                            <strong style="color: #475569;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> <?php echo htmlspecialchars($value); ?>
+                                                    <?php foreach (array_slice($gData, 0, 4) as $key => $value): 
+                                                        $shortKey = formatMeasurementShortKey($key);
+                                                        $fullKey = ucfirst(str_replace('_', ' ', $key));
+                                                    ?>
+                                                        <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.73rem; border-radius: 6px;" title="<?php echo htmlspecialchars($fullKey . ': ' . $value); ?>">
+                                                            <strong style="color: #475569;"><?php echo htmlspecialchars($shortKey); ?>:</strong> <?php echo htmlspecialchars($value); ?>
                                                         </span>
                                                     <?php endforeach; ?>
-                                                    <?php if (count($gData) > 3): ?>
-                                                        <span class="text-muted small" style="font-size: 0.70rem;">+<?php echo count($gData) - 3; ?> more</span>
+                                                    <?php if (count($gData) > 4): ?>
+                                                        <span class="text-muted small" style="font-size: 0.70rem;">+<?php echo count($gData) - 4; ?> more</span>
                                                     <?php endif; ?>
                                                 <?php else: ?>
                                                     <span class="text-muted small">—</span>
@@ -718,13 +778,16 @@ include 'includes/page-header.php';
                                     if (is_array($measurementData) && !empty($measurementData)): 
                                     ?>
                                         <div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">
-                                            <?php foreach (array_slice($measurementData, 0, 3) as $key => $value): ?>
-                                                <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;">
-                                                    <strong style="color: #475569;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $key))); ?>:</strong> <?php echo htmlspecialchars($value); ?>
+                                            <?php foreach (array_slice($measurementData, 0, 4) as $key => $value): 
+                                                $shortKey = formatMeasurementShortKey($key);
+                                                $fullKey = ucfirst(str_replace('_', ' ', $key));
+                                            ?>
+                                                <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.73rem; border-radius: 6px;" title="<?php echo htmlspecialchars($fullKey . ': ' . $value); ?>">
+                                                    <strong style="color: #475569;"><?php echo htmlspecialchars($shortKey); ?>:</strong> <?php echo htmlspecialchars($value); ?>
                                                 </span>
                                             <?php endforeach; ?>
-                                            <?php if (count($measurementData) > 3): ?>
-                                                <span class="text-muted small" style="font-size: 0.72rem;">+<?php echo count($measurementData) - 3; ?> more</span>
+                                            <?php if (count($measurementData) > 4): ?>
+                                                <span class="text-muted small" style="font-size: 0.72rem;">+<?php echo count($measurementData) - 4; ?> more</span>
                                             <?php endif; ?>
                                         </div>
                                     <?php else: ?>
@@ -978,6 +1041,55 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+// Global short measurement key abbreviation helper (e.g. L:32, C:34, W:33)
+function formatMeasurementShortKey(key) {
+    const k = String(key || '').toLowerCase().trim();
+    const map = {
+        'length': 'L',
+        'blouse_length': 'L',
+        'kurta_length': 'L',
+        'shirt_length': 'L',
+        'pant_length': 'L',
+        'choli_length': 'L',
+        'dress_length': 'L',
+        'suit_length': 'L',
+        'chest': 'C',
+        'bust': 'B',
+        'upper_chest': 'UC',
+        'waist': 'W',
+        'hip': 'H',
+        'hips': 'H',
+        'hip_seat': 'H',
+        'hip/seat': 'H',
+        'shoulder': 'Sh',
+        'sleeve_length': 'Sl',
+        'sleeve': 'Sl',
+        'sleeves': 'Sl',
+        'collar': 'Col',
+        'neck': 'N',
+        'front_neck': 'FN',
+        'front_neck_depth': 'FN',
+        'back_neck': 'BN',
+        'back_neck_depth': 'BN',
+        'armhole': 'Arm',
+        'bicep': 'Bic',
+        'wrist': 'Wr',
+        'thigh': 'Th',
+        'inseam': 'In',
+        'outseam': 'Out',
+        'bottom': 'Bot',
+        'knee': 'Kn',
+        'cross_back': 'CB',
+        'apex': 'Ap'
+    };
+    if (map[k]) return map[k];
+    const words = k.split(/[\s_\-]+/);
+    if (words.length > 1) {
+        return words.map(w => w ? w[0].toUpperCase() : '').join('');
+    }
+    return k.charAt(0).toUpperCase();
+}
+
 // Global map of grouped customer measurements (eliminates JSON in HTML attributes)
 const customerMeasurementsMap = <?php 
     $cMap = [];
@@ -1190,7 +1302,7 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
             <div class="accordion-body p-3 bg-white">
                 <input type="hidden" class="garment-id-input" name="garments[${currentId}][measurement_id]" value="${measurementId || ''}">
                 <div class="row align-items-end g-2 mb-3">
-                    <div class="col-sm-8 col-12">
+                    <div class="col-12">
                         <label class="form-label fw-semibold text-dark small mb-1">
                             Cloth Type * 
                         </label>
@@ -1198,18 +1310,12 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
                             ${optionsHtml}
                         </select>
                     </div>
-                    <div class="col-sm-4 col-12 text-sm-end">
-                        <button type="button" class="btn btn-outline-info btn-sm rounded-pill w-100 garment-guide-toggle-btn" id="guide-btn-${currentId}" onclick="toggleGarmentChart(${currentId})" style="display: none; font-size: 0.78rem; height: 38px;">
-                            <i class="fas fa-ruler-combined me-1"></i><span class="guide-btn-text">View Guide</span>
-                        </button>
-                    </div>
                 </div>
 
                 <div class="garment-chart-box mb-3" id="garment-chart-box-${currentId}" style="display: none;">
-                    <div class="card border-info bg-light" style="border-radius: 10px; overflow: hidden; border: 1px solid #bae6fd !important;">
-                        <div class="card-header bg-info bg-opacity-10 py-1 px-3 d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
-                            <span class="fw-semibold text-info"><i class="fas fa-ruler-combined me-1"></i>Measurement Guide Image</span>
-                            <button type="button" class="btn-close btn-close-sm" onclick="toggleGarmentChart(${currentId})" style="font-size: 0.65rem;"></button>
+                    <div class="card border-primary bg-light" style="border-radius: 10px; overflow: hidden; border: 1px solid #c7d2fe !important;">
+                        <div class="card-header bg-primary bg-opacity-10 py-1 px-3 d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
+                            <span class="fw-semibold text-primary"><i class="fas fa-ruler-combined me-1"></i>Measurement Guide Image</span>
                         </div>
                         <div class="card-body text-center p-2">
                             <img src="" alt="Guide" class="img-fluid garment-chart-img" style="max-height: 220px; border-radius: 8px;">
@@ -1354,16 +1460,14 @@ function handleGarmentClothTypeChange(id, clothTypeId, customValues = null) {
         title.textContent = clothType ? clothType.name : 'Select Cloth Type';
     }
 
-    // Guide button & chart image preview
-    const guideBtn = document.getElementById(`guide-btn-${id}`);
+    // Guide chart image preview (shown by default if available)
     const chartBox = document.getElementById(`garment-chart-box-${id}`);
     const chartImg = chartBox ? chartBox.querySelector('.garment-chart-img') : null;
     
     if (clothType && clothType.chart && clothType.chart.trim() !== '') {
         if (chartImg) chartImg.src = clothType.chart;
-        if (guideBtn) guideBtn.style.display = 'inline-block';
+        if (chartBox) chartBox.style.display = 'block';
     } else {
-        if (guideBtn) guideBtn.style.display = 'none';
         if (chartBox) chartBox.style.display = 'none';
         if (chartImg) chartImg.src = '';
     }
@@ -1830,7 +1934,7 @@ function viewCustomerMeasurements(group) {
                     <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary rounded-pill">#${gIdx + 1}</span>
-                            <strong class="text-dark" style="font-size: 0.95rem;">${escapeHtml(garment.cloth_type_name || 'Cloth')}</strong>
+                            <strong class="text-light" style="font-size: 0.95rem;">${escapeHtml(garment.cloth_type_name || 'Cloth')}</strong>
                             ${garment.cloth_category ? `<span class="badge bg-secondary small">${escapeHtml(garment.cloth_category)}</span>` : ''}
                         </div>
                         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">
@@ -1855,7 +1959,7 @@ function viewCustomerMeasurements(group) {
     contentDiv.innerHTML = `
         <div class="card mb-3 border shadow-none" style="border-radius: 12px; border-color: #e2e8f0 !important;">
             <div class="card-header bg-light py-2 px-3">
-                <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h6>
+                <h6 class="mb-0 fw-bold text-light"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h6>
             </div>
             <div class="card-body p-3">
                 <div class="row g-3">
@@ -2458,12 +2562,13 @@ function displayFilterResults(measurements) {
                 measurementSummaryHtml += '<div class="d-flex flex-wrap gap-1 align-items-center">';
                 measurementSummaryHtml += `<span class="fw-bold text-secondary me-1" style="font-size: 0.73rem;">${escapeHtml(g.cloth_type_name)}:</span>`;
                 if (mKeys.length > 0) {
-                    mKeys.slice(0, 3).forEach(key => {
-                        const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-                        measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;"><strong style="color: #475569;">${escapeHtml(formattedKey)}:</strong> ${escapeHtml(mData[key])}</span>`;
+                    mKeys.slice(0, 4).forEach(key => {
+                        const shortKey = formatMeasurementShortKey(key);
+                        const fullKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                        measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.73rem; border-radius: 6px;" title="${escapeHtml(fullKey)}: ${escapeHtml(mData[key])}"><strong style="color: #475569;">${escapeHtml(shortKey)}:</strong> ${escapeHtml(mData[key])}</span>`;
                     });
-                    if (mKeys.length > 3) {
-                        measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.70rem;">+${mKeys.length - 3} more</span>`;
+                    if (mKeys.length > 4) {
+                        measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.70rem;">+${mKeys.length - 4} more</span>`;
                     }
                 } else {
                     measurementSummaryHtml += '<span class="text-muted small">—</span>';
@@ -2487,13 +2592,14 @@ function displayFilterResults(measurements) {
             const keys = Object.keys(measurementData || {});
             if (keys.length > 0) {
                 measurementSummaryHtml = '<div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">';
-                keys.slice(0, 3).forEach(key => {
-                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                keys.slice(0, 4).forEach(key => {
+                    const shortKey = formatMeasurementShortKey(key);
+                    const fullKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
                     const val = measurementData[key];
-                    measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.72rem; border-radius: 6px;"><strong style="color: #475569;">${escapeHtml(formattedKey)}:</strong> ${escapeHtml(val)}</span>`;
+                    measurementSummaryHtml += `<span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.73rem; border-radius: 6px;" title="${escapeHtml(fullKey)}: ${escapeHtml(val)}"><strong style="color: #475569;">${escapeHtml(shortKey)}:</strong> ${escapeHtml(val)}</span>`;
                 });
-                if (keys.length > 3) {
-                    measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.72rem;">+${keys.length - 3} more</span>`;
+                if (keys.length > 4) {
+                    measurementSummaryHtml += `<span class="text-muted small" style="font-size: 0.72rem;">+${keys.length - 4} more</span>`;
                 }
                 measurementSummaryHtml += '</div>';
             } else {

@@ -296,11 +296,16 @@ require_once 'includes/header.php';
             <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1 bg-white" onclick="printOrder()" style="border-color: #667eea; color: #4338ca; font-size: 0.88rem; font-weight: 500;">
                 <i class="fas fa-print me-2"></i>Print Order
             </button>
+            <?php 
+                $canGenerateInvoice = SubscriptionHelper::canGenerateInvoice($order['company_id'] ?? get_company_id())['allowed'];
+                $canSendInvoice = SubscriptionHelper::canSendInvoice($order['company_id'] ?? get_company_id())['allowed'];
+            ?>
+            <?php if ($canGenerateInvoice): ?>
             <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-outline-secondary rounded-pill px-3 py-1 bg-white shadow-xs" style="border-color: #8b5cf6; color: #7c3aed; font-size: 0.88rem; font-weight: 500;">
                 <i class="fas fa-file-invoice me-2"></i>Print Invoice
             </a>
+            <?php endif; ?>
             <?php 
-                $canSendInvoice = SubscriptionHelper::canSendInvoice($order['company_id'] ?? get_company_id())['allowed'];
                 if ($canSendInvoice):
                     $cleanPhone = preg_replace('/\D/', '', $displayPhone);
                     if (strlen($cleanPhone) === 10) $cleanPhone = '91' . $cleanPhone;
@@ -763,7 +768,7 @@ require_once 'includes/header.php';
                         </div>
                         <div class="fw-bold text-dark fs-6 mb-1">No invoice generated yet</div>
                         <div class="text-muted small mb-3">Generate an invoice to share with the customer.</div>
-                        <?php if (!has_role('tailor')): ?>
+                        <?php if ($canGenerateInvoice && !has_role('tailor')): ?>
                         <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-success rounded-pill px-4" style="background-color: #107548; border-color: #107548;">
                             <i class="fas fa-print me-2"></i>Print Invoice
                         </a>
@@ -791,9 +796,11 @@ require_once 'includes/header.php';
                                             <a href="invoice-details.php?id=<?php echo $inv['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                                 View
                                             </a>
+                                            <?php if ($canGenerateInvoice): ?>
                                             <a href="print-invoice.php?id=<?php echo $inv['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 ms-1">
                                                 <i class="fas fa-print me-1"></i>Print
                                             </a>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -837,7 +844,7 @@ require_once 'includes/header.php';
         <button type="button" class="btn btn-outline-primary rounded-3 py-2 w-100 fw-medium bg-white shadow-xs" onclick="printOrder()" style="border-color: #3b82f6; color: #2563eb; font-size: 0.95rem;">
             <i class="fas fa-print me-2"></i>Print Order
         </button>
-        <?php if (!has_role('tailor')): ?>
+        <?php if ($canGenerateInvoice && !has_role('tailor')): ?>
         <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-outline-secondary rounded-3 py-2 w-100 fw-medium bg-white shadow-xs" style="border-color: #8b5cf6; color: #7c3aed; font-size: 0.95rem;">
             <i class="fas fa-print me-2"></i>Print Invoice
         </a>

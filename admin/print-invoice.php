@@ -19,6 +19,18 @@ $orderModel = new Order();
 $paymentModel = new Payment();
 $companyModel = new Company();
 
+require_once '../helpers/SubscriptionHelper.php';
+$checkCompanyId = get_company_id();
+if ($checkCompanyId) {
+    $genCheck = SubscriptionHelper::canGenerateInvoice($checkCompanyId);
+    if (!$genCheck['allowed']) {
+        $_SESSION['message'] = $genCheck['message'];
+        $_SESSION['messageType'] = 'error';
+        header('Location: orders.php');
+        exit;
+    }
+}
+
 $invoiceId = (int)($_GET['id'] ?? 0);
 $orderId = (int)($_GET['order_id'] ?? 0);
 

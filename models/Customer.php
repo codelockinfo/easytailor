@@ -7,6 +7,19 @@
 class Customer extends BaseModel {
     protected $table = 'measurements';
 
+    protected function hasStatusColumn() {
+        static $hasStatus = null;
+        if ($hasStatus === null) {
+            try {
+                $stmt = $this->conn->query("SHOW COLUMNS FROM " . $this->table . " LIKE 'status'");
+                $hasStatus = ($stmt && $stmt->fetch()) ? true : false;
+            } catch (Throwable $e) {
+                $hasStatus = false;
+            }
+        }
+        return $hasStatus;
+    }
+
     private function getCompanyId() {
         require_once __DIR__ . '/../config/config.php';
         return get_company_id();
@@ -34,6 +47,10 @@ class Customer extends BaseModel {
             'measurement_data' => '{}',
             'notes' => $data['notes'] ?? null
         ];
+        
+        if (!$this->hasStatusColumn()) {
+            unset($insertData['status']);
+        }
         
         return $this->create($insertData);
     }
@@ -151,8 +168,12 @@ class Customer extends BaseModel {
         }
         $stats['total'] = $this->count($conditions);
         $activeConditions = $conditions;
-        $activeConditions['status'] = 'active';
-        $stats['active'] = $this->count($activeConditions);
+        if ($this->hasStatusColumn()) {
+            $activeConditions['status'] = 'active';
+            $stats['active'] = $this->count($activeConditions);
+        } else {
+            $stats['active'] = $stats['total'];
+        }
         $stats['inactive'] = max(0, $stats['total'] - $stats['active']);
         
         $this_month = date('Y-m-01');
@@ -270,6 +291,9 @@ class Customer extends BaseModel {
             $conditions['phone_number'] = $conditions['phone'];
             unset($conditions['phone']);
         }
+        if (isset($conditions['status']) && !$this->hasStatusColumn()) {
+            unset($conditions['status']);
+        }
         $rows = parent::findAll($conditions, $order_by, $limit);
         if ($rows) {
             return array_map([$this, 'formatCustomerRow'], $rows);
@@ -293,6 +317,9 @@ class Customer extends BaseModel {
             $conditions['phone_number'] = $conditions['phone'];
             unset($conditions['phone']);
         }
+        if (isset($conditions['status']) && !$this->hasStatusColumn()) {
+            unset($conditions['status']);
+        }
         $row = parent::findOne($conditions);
         return $row ? $this->formatCustomerRow($row) : false;
     }
@@ -312,6 +339,9 @@ class Customer extends BaseModel {
         if (isset($conditions['phone'])) {
             $conditions['phone_number'] = $conditions['phone'];
             unset($conditions['phone']);
+        }
+        if (isset($conditions['status']) && !$this->hasStatusColumn()) {
+            unset($conditions['status']);
         }
         return parent::count($conditions);
     }
@@ -347,7 +377,7 @@ class Customer extends BaseModel {
         if (isset($data['notes'])) {
             $updateData['notes'] = $data['notes'];
         }
-        if (isset($data['status'])) {
+        if (isset($data['status']) && $this->hasStatusColumn()) {
             $updateData['status'] = (!empty($data['status']) && strtolower($data['status']) === 'inactive') ? 'inactive' : 'active';
         }
         

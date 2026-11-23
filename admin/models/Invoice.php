@@ -154,8 +154,13 @@ class Invoice extends BaseModel {
         }
         
         if ($search) {
-            $where_clauses[] = "(i.invoice_number LIKE :search OR o.order_number LIKE :search OR c.first_name LIKE :search OR c.last_name LIKE :search OR o.customer_name LIKE :search OR ms.name LIKE :search)";
-            $params['search'] = "%{$search}%";
+            $where_clauses[] = "(i.invoice_number LIKE :search_inv OR o.order_number LIKE :search_ord OR c.first_name LIKE :search_fname OR c.last_name LIKE :search_lname OR o.customer_name LIKE :search_cname OR ms.name LIKE :search_msname)";
+            $params['search_inv'] = "%{$search}%";
+            $params['search_ord'] = "%{$search}%";
+            $params['search_fname'] = "%{$search}%";
+            $params['search_lname'] = "%{$search}%";
+            $params['search_cname'] = "%{$search}%";
+            $params['search_msname'] = "%{$search}%";
         }
         
         if (!empty($where_clauses)) {

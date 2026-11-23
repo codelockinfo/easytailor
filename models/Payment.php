@@ -262,12 +262,12 @@ class Payment extends BaseModel {
                   LEFT JOIN invoices i ON p.invoice_id = i.id
                   LEFT JOIN orders o ON i.order_id = o.id
                   LEFT JOIN customers c ON o.customer_id = c.id
-                  WHERE (i.invoice_number LIKE :search 
-                      OR o.order_number LIKE :search 
-                      OR c.first_name LIKE :search 
-                      OR c.last_name LIKE :search 
-                      OR c.customer_code LIKE :search
-                      OR p.reference_number LIKE :search)";
+                  WHERE (i.invoice_number LIKE :search_inv 
+                      OR o.order_number LIKE :search_ord 
+                      OR c.first_name LIKE :search_fn 
+                      OR c.last_name LIKE :search_ln 
+                      OR c.customer_code LIKE :search_code
+                      OR p.reference_number LIKE :search_ref)";
         if ($companyId) {
             $query .= " AND p.company_id = :company_id";
         }
@@ -275,7 +275,12 @@ class Payment extends BaseModel {
         
         $stmt = $this->conn->prepare($query);
         $search_pattern = '%' . $search_term . '%';
-        $stmt->bindParam(':search', $search_pattern);
+        $stmt->bindParam(':search_inv', $search_pattern);
+        $stmt->bindParam(':search_ord', $search_pattern);
+        $stmt->bindParam(':search_fn', $search_pattern);
+        $stmt->bindParam(':search_ln', $search_pattern);
+        $stmt->bindParam(':search_code', $search_pattern);
+        $stmt->bindParam(':search_ref', $search_pattern);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }

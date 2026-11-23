@@ -50,14 +50,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
-                if (empty($_POST['assigned_tailor_id'])) {
-                    $_SESSION['message'] = 'Please select an assigned tailor.';
+                $items = $_POST['items'] ?? [];
+                $cleanItems = [];
+                $primaryClothTypeId = !empty($_POST['cloth_type_id']) ? (int)$_POST['cloth_type_id'] : null;
+                $primaryMeasurementId = !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null;
+                $primaryTailorId = !empty($_POST['assigned_tailor_id']) ? (int)$_POST['assigned_tailor_id'] : null;
+                $calculatedTotal = 0.0;
+
+                if (!empty($items) && is_array($items)) {
+                    foreach ($items as $it) {
+                        $cId = !empty($it['cloth_type_id']) ? (int)$it['cloth_type_id'] : null;
+                        if (!$cId) continue;
+                        $mId = !empty($it['measurement_id']) ? (int)$it['measurement_id'] : null;
+                        $tId = !empty($it['assigned_tailor_id']) ? (int)$it['assigned_tailor_id'] : null;
+                        $p = isset($it['price']) ? (float)$it['price'] : 0.0;
+                        $q = !empty($it['quantity']) ? (int)$it['quantity'] : 1;
+                        if (!$primaryClothTypeId) {
+                            $primaryClothTypeId = $cId;
+                            $primaryMeasurementId = $mId;
+                            $primaryTailorId = $tId;
+                        }
+                        $calculatedTotal += ($p * $q);
+                        $cleanItems[] = [
+                            'cloth_type_id' => $cId,
+                            'measurement_id' => $mId,
+                            'assigned_tailor_id' => $tId,
+                            'price' => $p,
+                            'quantity' => $q,
+                            'status' => 'pending',
+                            'notes' => sanitize_input($it['notes'] ?? '')
+                        ];
+                    }
+                }
+
+                if (empty($primaryTailorId)) {
+                    $_SESSION['message'] = 'Please select an assigned tailor for all garments.';
                     $_SESSION['messageType'] = 'error';
                     header('Location: orders.php');
                     exit;
                 }
 
-                $totalAmount = (float)$_POST['total_amount'];
+                $totalAmount = (isset($_POST['total_amount']) && (float)$_POST['total_amount'] > 0) ? (float)$_POST['total_amount'] : ($calculatedTotal > 0 ? $calculatedTotal : 0.0);
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
@@ -67,16 +100,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'customer_name' => sanitize_input($_POST['customer_id']),
                     'customer_phone' => $customerPhone,
                     'customer_id' => null,
-                    'cloth_type_id' => (int)$_POST['cloth_type_id'],
-                    'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
-                    'assigned_tailor_id' => (int)$_POST['assigned_tailor_id'],
+                    'cloth_type_id' => $primaryClothTypeId ?: (int)($_POST['cloth_type_id'] ?? 0),
+                    'measurement_id' => $primaryMeasurementId,
+                    'assigned_tailor_id' => $primaryTailorId,
                     'order_date' => $_POST['order_date'],
                     'due_date' => $_POST['due_date'],
                     'total_amount' => $totalAmount,
                     'advance_amount' => $advanceAmount,
                     'balance_amount' => $balanceAmount,
                     'payment_method' => $paymentMethod,
-                    'special_instructions' => sanitize_input($_POST['special_instructions']),
+                    'special_instructions' => sanitize_input($_POST['special_instructions'] ?? ''),
                     'created_by' => $userId
                 ];
                 if ($companyId && !isset($data['company_id'])) {
@@ -86,6 +119,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $orderId = $orderModel->createOrder($data);
                     if ($orderId) {
+                        if (!empty($cleanItems)) {
+                            $orderModel->saveOrderItems($orderId, $cleanItems);
+                        } else {
+                            $orderModel->saveOrderItems($orderId, [[
+                                'cloth_type_id' => $data['cloth_type_id'],
+                                'measurement_id' => $data['measurement_id'],
+                                'assigned_tailor_id' => $data['assigned_tailor_id'],
+                                'price' => $data['total_amount'],
+                                'quantity' => 1,
+                                'status' => 'pending'
+                            ]]);
+                        }
+
                         $order = $orderModel->find($orderId);
                         require_once '../helpers/GA4Helper.php';
                         $_SESSION['ga4_event'] = GA4Helper::trackCreateOrder(
@@ -94,9 +140,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $data['total_amount'] ?? null
                         );
                         try {
-                            $assignedTailorId = !empty($data['assigned_tailor_id']) ? (int)$data['assigned_tailor_id'] : null;
-                            if ($assignedTailorId) {
-                                $notifService->onOrderAssigned($orderId, $assignedTailorId, null);
+                            $notifiedTailors = [];
+                            foreach ($cleanItems as $ci) {
+                                $tid = $ci['assigned_tailor_id'];
+                                if ($tid && !in_array($tid, $notifiedTailors)) {
+                                    $notifiedTailors[] = $tid;
+                                    $notifService->onOrderAssigned($orderId, $tid, null);
+                                }
+                            }
+                            if (empty($notifiedTailors) && !empty($data['assigned_tailor_id'])) {
+                                $notifService->onOrderAssigned($orderId, (int)$data['assigned_tailor_id'], null);
                             }
                         } catch (Throwable $notifEx) {
                             error_log("Order create notification error: " . $notifEx->getMessage());
@@ -110,16 +163,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $cleanPhone = '91' . $cleanPhone;
                             }
                             $orderNum = $order['order_number'] ?? ('ORD' . $orderId);
-                            $clothTypeName = '';
-                            if (!empty($data['cloth_type_id'])) {
-                                $ct = $clothTypeModel->find($data['cloth_type_id']);
-                                $clothTypeName = $ct['name'] ?? '';
-                            }
                             $waMsg = "*ORDER INVOICE / RECEIPT*\n";
                             $waMsg .= "--------------------------------\n";
                             $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
                             $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
-                            if ($clothTypeName) $waMsg .= "👗 *Cloth Type:* " . $clothTypeName . "\n";
+                            if (!empty($cleanItems)) {
+                                $waMsg .= "👗 *Items (કપડાં):*\n";
+                                foreach ($cleanItems as $ci) {
+                                    $ctName = '';
+                                    foreach ($clothTypes as $ct) {
+                                        if ($ct['id'] == $ci['cloth_type_id']) {
+                                            $ctName = $ct['name'];
+                                            break;
+                                        }
+                                    }
+                                    $waMsg .= "• " . ($ctName ?: 'Garment') . ": ₹" . number_format($ci['price'], 2) . "\n";
+                                }
+                            } elseif (!empty($data['cloth_type_id'])) {
+                                $ct = $clothTypeModel->find($data['cloth_type_id']);
+                                if (!empty($ct['name'])) $waMsg .= "👗 *Cloth Type:* " . $ct['name'] . "\n";
+                            }
                             if (!empty($data['due_date'])) $waMsg .= "📅 *Due Date:* " . $data['due_date'] . "\n";
                             $waMsg .= "--------------------------------\n";
                             $waMsg .= "💰 *Total Amount:* ₹" . number_format($totalAmount, 2) . "\n";
@@ -158,15 +221,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $orderId = (int)$_POST['order_id'];
                 $prevOrder = $orderModel->find($orderId);
                 $prevTailorId = $prevOrder['assigned_tailor_id'] ?? null;
+                $items = $_POST['items'] ?? [];
+                $cleanItems = [];
+                $primaryClothTypeId = !empty($_POST['cloth_type_id']) ? (int)$_POST['cloth_type_id'] : null;
+                $primaryMeasurementId = !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null;
+                $primaryTailorId = !empty($_POST['assigned_tailor_id']) ? (int)$_POST['assigned_tailor_id'] : null;
+                $calculatedTotal = 0.0;
 
-                if (empty($_POST['assigned_tailor_id'])) {
-                    $_SESSION['message'] = 'Please select an assigned tailor.';
-                    $_SESSION['messageType'] = 'error';
-                    header('Location: orders.php');
-                    exit;
+                if (!empty($items) && is_array($items)) {
+                    foreach ($items as $it) {
+                        $cId = !empty($it['cloth_type_id']) ? (int)$it['cloth_type_id'] : null;
+                        if (!$cId) continue;
+                        $mId = !empty($it['measurement_id']) ? (int)$it['measurement_id'] : null;
+                        $tId = !empty($it['assigned_tailor_id']) ? (int)$it['assigned_tailor_id'] : null;
+                        $p = isset($it['price']) ? (float)$it['price'] : 0.0;
+                        $q = !empty($it['quantity']) ? (int)$it['quantity'] : 1;
+                        if (!$primaryClothTypeId) {
+                            $primaryClothTypeId = $cId;
+                            $primaryMeasurementId = $mId;
+                            $primaryTailorId = $tId;
+                        }
+                        $calculatedTotal += ($p * $q);
+                        $cleanItems[] = [
+                            'cloth_type_id' => $cId,
+                            'measurement_id' => $mId,
+                            'assigned_tailor_id' => $tId,
+                            'price' => $p,
+                            'quantity' => $q,
+                            'status' => $it['status'] ?? 'pending',
+                            'notes' => sanitize_input($it['notes'] ?? '')
+                        ];
+                    }
                 }
 
-                $totalAmount = (float)$_POST['total_amount'];
+                $totalAmount = (isset($_POST['total_amount']) && (float)$_POST['total_amount'] > 0) ? (float)$_POST['total_amount'] : ($calculatedTotal > 0 ? $calculatedTotal : 0.0);
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
@@ -176,19 +264,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'customer_name' => sanitize_input($_POST['customer_id']),
                     'customer_phone' => $customerPhone,
                     'customer_id' => null,
-                    'cloth_type_id' => (int)$_POST['cloth_type_id'],
-                    'measurement_id' => !empty($_POST['measurement_id']) ? (int)$_POST['measurement_id'] : null,
-                    'assigned_tailor_id' => (int)$_POST['assigned_tailor_id'],
+                    'cloth_type_id' => $primaryClothTypeId ?: (int)($_POST['cloth_type_id'] ?? 0),
+                    'measurement_id' => $primaryMeasurementId,
+                    'assigned_tailor_id' => $primaryTailorId ?: (int)($_POST['assigned_tailor_id'] ?? 0),
                     'order_date' => $_POST['order_date'],
                     'due_date' => $_POST['due_date'],
                     'total_amount' => $totalAmount,
                     'advance_amount' => $advanceAmount,
                     'balance_amount' => $balanceAmount,
                     'payment_method' => $paymentMethod,
-                    'special_instructions' => sanitize_input($_POST['special_instructions'])
+                    'special_instructions' => sanitize_input($_POST['special_instructions'] ?? '')
                 ];
                 
                 if ($orderModel->update($orderId, $data)) {
+                    if (!empty($cleanItems)) {
+                        $orderModel->saveOrderItems($orderId, $cleanItems);
+                    }
                     try {
                         $newTailorId = $data['assigned_tailor_id'] ?? null;
                         if ($newTailorId && (int)$newTailorId !== (int)$prevTailorId) {
@@ -207,16 +298,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         $order = $orderModel->find($orderId);
                         $orderNum = $order['order_number'] ?? ('ORD' . $orderId);
-                        $clothTypeName = '';
-                        if (!empty($data['cloth_type_id'])) {
-                            $ct = $clothTypeModel->find($data['cloth_type_id']);
-                            $clothTypeName = $ct['name'] ?? '';
-                        }
                         $waMsg = "*ORDER INVOICE / RECEIPT*\n";
                         $waMsg .= "--------------------------------\n";
                         $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
                         $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
-                        if ($clothTypeName) $waMsg .= "👗 *Cloth Type:* " . $clothTypeName . "\n";
+                        if (!empty($cleanItems)) {
+                            $waMsg .= "👗 *Items (કપડાં):*\n";
+                            foreach ($cleanItems as $ci) {
+                                $ctName = '';
+                                foreach ($clothTypes as $ct) {
+                                    if ($ct['id'] == $ci['cloth_type_id']) {
+                                        $ctName = $ct['name'];
+                                        break;
+                                    }
+                                }
+                                $waMsg .= "• " . ($ctName ?: 'Garment') . ": ₹" . number_format($ci['price'], 2) . "\n";
+                            }
+                        } elseif (!empty($data['cloth_type_id'])) {
+                            $ct = $clothTypeModel->find($data['cloth_type_id']);
+                            if (!empty($ct['name'])) $waMsg .= "👗 *Cloth Type:* " . $ct['name'] . "\n";
+                        }
                         if (!empty($data['due_date'])) $waMsg .= "📅 *Due Date:* " . $data['due_date'] . "\n";
                         $waMsg .= "--------------------------------\n";
                         $waMsg .= "💰 *Total Amount:* ₹" . number_format($totalAmount, 2) . "\n";
@@ -558,6 +659,159 @@ if (!function_exists('getCustomerAvatarDesign')) {
         font-size: 0.74rem;
     }
 }
+.measurement-search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 42px;
+    padding: 4px 38px 4px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: text;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.measurement-search-container:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.measurement-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 6px;
+    line-height: 1.2;
+    user-select: none;
+}
+.measurement-tag .tag-remove-btn {
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+}
+.measurement-tag .tag-remove-btn:hover {
+    opacity: 1;
+}
+.measurement-search-input {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-size: 0.85rem;
+    flex: 1;
+    min-width: 80px;
+    padding: 4px 4px;
+    background: transparent;
+}
+.measurement-search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+.measurement-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1055;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 4px;
+    display: none;
+}
+.measurement-dropdown-item {
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+.measurement-dropdown-item:last-child {
+    border-bottom: none;
+}
+.measurement-dropdown-item:hover {
+    background: #f8fafc;
+}
+.measurement-dropdown-item.is-selected {
+    background: #eef2ff;
+    color: #4338ca;
+}
+.order-item-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+.order-item-card:hover {
+    border-color: #cbd5e1;
+}
+.order-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #ffffff;
+    flex-wrap: wrap;
+}
+.order-item-body {
+    padding: 12px 14px;
+    border-top: 1px solid #f1f5f9;
+    background: #fafbfe;
+}
+.measurement-pills-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+@media (max-width: 768px) {
+    .measurement-pills-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+.measurement-pill-item {
+    background: #f1f3f9;
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.measurement-pill-label {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 2px;
+    text-transform: capitalize;
+}
+.measurement-pill-value {
+    font-size: 0.92rem;
+    color: #1e293b;
+    font-weight: 600;
+    word-break: break-word;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 </style>
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mb-3" style="border-radius: 12px;">
@@ -800,15 +1054,25 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 </div>
                             </td>
                             <td class="py-3">
+                                <?php 
+                                    $itemCount = (int)($order['item_count'] ?? 0);
+                                    $displayCloth = !empty($order['all_cloth_type_names']) ? $order['all_cloth_type_names'] : display_val($order['cloth_type_name']);
+                                ?>
                                 <span class="badge fw-medium" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px;">
-                                    <?php echo display_val($order['cloth_type_name']); ?>
+                                    <?php echo htmlspecialchars($displayCloth); ?>
                                 </span>
+                                <?php if ($itemCount > 1): ?>
+                                    <span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;"><?php echo $itemCount; ?> Items</span>
+                                <?php endif; ?>
                             </td>
                             <td class="py-3">
-                                <?php if (!empty($order['tailor_name'])): ?>
+                                <?php 
+                                    $displayTailor = !empty($order['all_tailor_names']) ? $order['all_tailor_names'] : display_val($order['tailor_name']);
+                                ?>
+                                <?php if (!empty($displayTailor)): ?>
                                     <div class="d-flex align-items-center gap-1 text-dark" style="font-size: 0.84rem;">
                                         <i class="fas fa-user-tie text-muted" style="font-size: 0.75rem;"></i>
-                                        <span><?php echo display_val($order['tailor_name']); ?></span>
+                                        <span><?php echo htmlspecialchars($displayTailor); ?></span>
                                     </div>
                                 <?php else: ?>
                                     <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Unassigned</span>
@@ -1003,8 +1267,8 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     <input type="hidden" name="order_id" id="orderId">
                     
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="customer_id" class="form-label">Customer *</label>
+                        <div class="col-md-6 mb-3">
+                            <label for="customer_id" class="form-label fw-semibold">Customer *</label>
                             <select class="form-select" id="customer_id" name="customer_id" required>
                                 <option value="">Select Customer</option>
                                 <?php foreach ($measurementCustomers as $mc): ?>
@@ -1014,71 +1278,58 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="customer_phone" class="form-label">Phone Number</label>
+                        <div class="col-md-6 mb-3">
+                            <label for="customer_phone" class="form-label fw-semibold">Phone Number</label>
                             <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15">
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="measurement_id" class="form-label">Measurement</label>
-                            <select class="form-select" id="measurement_id" name="measurement_id">
-                                <option value="">No Measurement</option>
-                            </select>
-                        </div>
                     </div>
-                                        <div id="measurementDetailsPreview" class="mb-3" style="display: none;">
-                        <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; border: 1px solid #e8ecf1;">
-                            <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; padding: 10px 16px;">
-                                <span class="text-white fw-bold" style="font-size: 0.9rem;">
-                                    <i class="fas fa-ruler-combined me-2"></i>Measurements <span id="previewClothType" class="ms-1" style="opacity: 0.85;"></span>
-                                </span>
-                                <span class="badge bg-white text-success" id="previewDateBadge" style="font-size: 0.72rem; display: none;"></span>
-                            </div>
-                            <div class="card-body py-3 px-3" style="background: #fafcff;">
-                                <div id="previewMeasurementValues" class="row g-2 justify-content-center">
-                                </div>
-                                <div id="previewMeasurementNotes" class="mt-2 pt-2 border-top text-muted small" style="display: none;">
-                                    <i class="fas fa-sticky-note text-warning me-1"></i><strong>Notes:</strong> <span id="previewNotesText"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="assigned_tailor_id" class="form-label">Assigned Tailor *</label>
-                            <select class="form-select" id="assigned_tailor_id" name="assigned_tailor_id" required>
-                                <option value="">Select Tailor</option>
-                                <?php foreach ($tailors as $tailor): ?>
-                                    <option value="<?php echo $tailor['id']; ?>">
-                                        <?php echo htmlspecialchars($tailor['full_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="cloth_type_id" class="form-label">Cloth Type *</label>
-                            <select class="form-select" id="cloth_type_id" name="cloth_type_id" required>
-                                <option value="">Select Cloth Type</option>
-                                <?php foreach ($clothTypes as $clothType): ?>
-                                    <option value="<?php echo $clothType['id']; ?>" data-rate="<?php echo $clothType['standard_rate']; ?>">
-                                        <?php echo htmlspecialchars($clothType['name']); ?>
-                                        <?php if ($clothType['standard_rate']): ?>
-                                            - <?php echo format_currency($clothType['standard_rate']); ?>
-                                        <?php endif; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="order_date" class="form-label">Order Date *</label>
+                            <label for="order_date" class="form-label fw-semibold">Order Date *</label>
                             <input type="date" class="form-control" id="order_date" name="order_date" value="<?php echo date('Y-m-d'); ?>" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="due_date" class="form-label">Due Date *</label>
+                            <label for="due_date" class="form-label fw-semibold">Due Date *</label>
                             <input type="date" class="form-control" id="due_date" name="due_date" required>
+                        </div>
+                    </div>
+                    <input type="hidden" id="cloth_type_id" name="cloth_type_id" value="">
+                    <input type="hidden" id="measurement_id" name="measurement_id" value="">
+                    <input type="hidden" id="assigned_tailor_id" name="assigned_tailor_id" value="">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold text-dark" style="font-size: 1.05rem;">
+                                    Order Items & Measurements
+                                </span>
+                                <span class="badge rounded-pill bg-light text-primary border" id="orderItemsLimitBadge" style="font-size: 0.75rem; font-weight: 600; display: none;"></span>
+                            </div>
+                            
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <select class="form-select" id="topClothTypeSelect" style="border-radius: 8px; border-color: #d1d5db;  font-size: 0.88rem; font-weight: 500;">
+                                    <option value="">Cloth Type *</option>
+                                    <?php foreach ($clothTypes as $ct): ?>
+                                        <option value="<?php echo $ct['id']; ?>" data-rate="<?php echo htmlspecialchars($ct['standard_rate'] ?? 0); ?>" data-name="<?php echo htmlspecialchars($ct['name']); ?>">
+                                            <?php echo htmlspecialchars($ct['name']); ?><?php echo !empty($ct['standard_rate']) ? ' - ₹' . number_format($ct['standard_rate'], 2) : ''; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-8 position-relative">
+                                <div class="measurement-search-container" id="measurementSearchContainer" tabindex="0">
+                                    <div id="measurementTagsList" class="d-flex align-items-center flex-wrap gap-1"></div>
+                                    <input type="text" class="measurement-search-input" id="measurementSearchInput" placeholder="Measurement Search" autocomplete="off">
+                                    <i class="fas fa-search measurement-search-icon"></i>
+                                </div>
+                                <div class="measurement-dropdown-menu" id="measurementDropdownMenu">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="orderItemsContainer" class="d-flex flex-column gap-3">
                         </div>
                     </div>
                     
@@ -1266,7 +1517,6 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-4 py-3">
-                <!-- Customer Details -->
                 <div class="row g-2 mb-3">
                     <div class="col-sm-6">
                         <label class="form-label small fw-semibold text-muted mb-1">Customer Name</label>
@@ -1280,8 +1530,6 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         </div>
                     </div>
                 </div>
-
-                <!-- Order Summary Card -->
                 <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.85rem;">
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-muted">Cloth Type:</span>
@@ -1304,8 +1552,6 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         <strong id="sendInvoiceBalance" class="text-danger fw-bold"></strong>
                     </div>
                 </div>
-
-                <!-- Message Preview -->
                 <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label small fw-semibold text-muted mb-0">Message Preview</label>
@@ -1445,6 +1691,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const orderFormEl = document.getElementById('orderForm');
     if (orderFormEl) {
         orderFormEl.addEventListener('submit', function(e) {
+            calculateTotalFromItems();
+            const cards = document.querySelectorAll('.order-item-card');
+            if (cards.length === 0) {
+                e.preventDefault();
+                alert('Please add at least one garment to the order.');
+                return false;
+            }
+            let missingField = false;
+            cards.forEach((card, idx) => {
+                const cloth = card.querySelector('.item-cloth-type-select')?.value;
+                const tailor = card.querySelector('.item-tailor-select')?.value;
+                const price = card.querySelector('.item-price-input')?.value;
+                if (!cloth || !tailor || price === '') {
+                    missingField = true;
+                }
+            });
+            if (missingField) {
+                e.preventDefault();
+                alert('Please select Cloth Type, Assigned Tailor, and Rate for all garments.');
+                return false;
+            }
+
             const total = parseFloat(document.getElementById('total_amount')?.value || 0);
             const advance = parseFloat(document.getElementById('advance_amount')?.value || 0);
             if (advance < 0) {
@@ -1461,6 +1729,689 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+window.availableClothTypes = <?php echo json_encode(array_values($clothTypes)); ?>;
+window.availableTailors = <?php echo json_encode(array_values($tailors)); ?>;
+window.currentCustomerMeasurements = [];
+let orderItemCounter = 0;
+let selectedMeasurementIds = new Set();
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function formatMeasurementLabel(key) {
+    return key.replace(/_/g, ' ')
+              .replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function renderMeasurementPills(mData, notes = '') {
+    if (!mData || typeof mData !== 'object') {
+        return `<div class="text-muted small py-2 text-center" style="font-size: 0.8rem;">
+            <i class="fas fa-info-circle me-1"></i>No measurement values recorded for this item.
+        </div>`;
+    }
+
+    const entries = Object.entries(mData).filter(([k, v]) => v !== null && v !== undefined && String(v).trim() !== '');
+    if (entries.length === 0) {
+        return `<div class="text-muted small py-2 text-center" style="font-size: 0.8rem;">
+            <i class="fas fa-info-circle me-1"></i>No measurement values recorded for this item.
+        </div>`;
+    }
+
+    let pillsHtml = '<div class="measurement-pills-grid">';
+    entries.forEach(([key, val]) => {
+        const label = formatMeasurementLabel(key);
+        const valStr = String(val).trim();
+        const isColor = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(valStr);
+
+        let valueContent;
+        if (isColor) {
+            valueContent = `
+                <span style="width: 12px; height: 12px; border-radius: 50%; background-color: ${escapeHtml(valStr)}; display: inline-block; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0;"></span>
+                <span>${escapeHtml(valStr)}</span>
+            `;
+        } else {
+            valueContent = `<span>${escapeHtml(valStr)}</span>`;
+        }
+
+        pillsHtml += `
+            <div class="measurement-pill-item">
+                <div class="measurement-pill-label">${escapeHtml(label)}</div>
+                <div class="measurement-pill-value">${valueContent}</div>
+            </div>
+        `;
+    });
+    pillsHtml += '</div>';
+
+    if (notes && String(notes).trim() !== '') {
+        pillsHtml += `
+            <div class="mt-2 text-muted small" style="font-size: 0.78rem;">
+                <i class="fas fa-sticky-note text-warning me-1"></i><strong>Notes:</strong> ${escapeHtml(notes)}
+            </div>
+        `;
+    }
+
+    return pillsHtml;
+}
+
+function calculateTotalFromItems() {
+    let sum = 0;
+    const priceInputs = document.querySelectorAll('.item-price-input');
+    priceInputs.forEach(input => {
+        const val = parseFloat(input.value) || 0;
+        sum += val;
+    });
+
+    const totalInput = document.getElementById('total_amount');
+    if (totalInput) {
+        totalInput.value = sum > 0 ? sum.toFixed(2) : '0.00';
+    }
+
+    // Sync primary fallback fields from first item card
+    const firstCard = document.querySelector('.order-item-card');
+    if (firstCard) {
+        const firstCloth = firstCard.querySelector('.item-cloth-type-select')?.value || '';
+        const firstMeas = firstCard.querySelector('.item-measurement-id')?.value || '';
+        const firstTailor = firstCard.querySelector('.item-tailor-select')?.value || '';
+        if (document.getElementById('cloth_type_id')) document.getElementById('cloth_type_id').value = firstCloth;
+        if (document.getElementById('measurement_id')) document.getElementById('measurement_id').value = firstMeas;
+        if (document.getElementById('assigned_tailor_id')) document.getElementById('assigned_tailor_id').value = firstTailor;
+    }
+
+    calculatePendingAmount();
+}
+
+function addOrderItemCard(itemData = {}, isExpanded = true) {
+    const container = document.getElementById('orderItemsContainer');
+    if (!container) return null;
+
+    const index = orderItemCounter++;
+    const card = document.createElement('div');
+    card.className = 'order-item-card';
+    card.setAttribute('data-index', index);
+
+    const measId = itemData.measurement_id ? String(itemData.measurement_id) : '';
+    if (measId) {
+        card.setAttribute('data-measurement-id', measId);
+        selectedMeasurementIds.add(measId);
+    }
+
+    // Determine cloth type & standard rate
+    let currentClothId = itemData.cloth_type_id ? String(itemData.cloth_type_id) : '';
+    
+    // If measurement given but no cloth type, try to match from measurement object
+    let measObj = null;
+    if (measId && window.currentCustomerMeasurements) {
+        measObj = window.currentCustomerMeasurements.find(m => String(m.id) === measId);
+        if (measObj && !currentClothId && measObj.cloth_type_id) {
+            currentClothId = String(measObj.cloth_type_id);
+        }
+    }
+
+    // Determine standard rate of currentClothId
+    let standardRate = 0;
+    const clothTypesList = window.availableClothTypes || [];
+    const foundCt = clothTypesList.find(ct => String(ct.id) === currentClothId);
+    if (foundCt && foundCt.standard_rate) {
+        standardRate = parseFloat(foundCt.standard_rate);
+    }
+
+    // Initial price
+    let initPrice = '';
+    if (itemData.price !== undefined && itemData.price !== null && itemData.price !== '') {
+        initPrice = parseFloat(itemData.price).toFixed(2);
+    } else if (standardRate > 0) {
+        initPrice = standardRate.toFixed(2);
+    }
+
+    // Build cloth types options
+    let clothOptions = '<option value="">Select Cloth Type *</option>';
+    clothTypesList.forEach(ct => {
+        const selected = currentClothId && String(ct.id) === currentClothId ? 'selected' : '';
+        const rateText = ct.standard_rate ? ' - ₹' + parseFloat(ct.standard_rate).toFixed(2) : '';
+        clothOptions += `<option value="${ct.id}" data-rate="${ct.standard_rate || 0}" ${selected}>${escapeHtml(ct.name)}${rateText}</option>`;
+    });
+
+    // Build tailors options
+    let tailorOptions = '<option value="">Select Tailor *</option>';
+    (window.availableTailors || []).forEach(t => {
+        const selected = itemData.assigned_tailor_id && String(itemData.assigned_tailor_id) === String(t.id) ? 'selected' : '';
+        tailorOptions += `<option value="${t.id}" ${selected}>${escapeHtml(t.full_name)}</option>`;
+    });
+
+    // Measurement badge text & pills
+    let measBadgeText = 'Custom / No Measurement';
+    let pillsHtml = '';
+    if (measObj) {
+        measBadgeText = `${escapeHtml(measObj.cloth_type_name)} - ${escapeHtml(measObj.created_at)}`;
+        pillsHtml = renderMeasurementPills(measObj.measurement_data, measObj.notes);
+    } else if (itemData.measurement_data) {
+        measBadgeText = itemData.cloth_type_name ? `${escapeHtml(itemData.cloth_type_name)}` : 'Saved Measurement';
+        pillsHtml = renderMeasurementPills(itemData.measurement_data, itemData.notes);
+    } else if (measId) {
+        measBadgeText = `Measurement #${measId}`;
+        pillsHtml = `<div class="text-muted small py-2 text-center"><i class="fas fa-spinner fa-spin me-1"></i>Loading measurements...</div>`;
+        fetch(`ajax/get_measurement_details.php?id=${encodeURIComponent(measId)}`)
+            .then(res => res.json())
+            .then(mData => {
+                const pillsBox = card.querySelector('.item-pills-container');
+                if (pillsBox && mData && !mData.error) {
+                    pillsBox.innerHTML = renderMeasurementPills(mData.measurement_data, mData.notes);
+                    const badge = card.querySelector('.item-meas-title');
+                    if (badge && mData.cloth_type_name) {
+                        badge.textContent = `${mData.cloth_type_name} - ${mData.created_at || ''}`;
+                    }
+                }
+            })
+            .catch(() => {});
+    } else {
+        pillsHtml = `<div class="text-muted small py-2 text-center" style="font-size: 0.8rem;">
+            <i class="fas fa-info-circle me-1"></i>No measurement linked. (તમે ઉપર Measurement Search માંથી માપ પસંદ કરી શકો છો)
+        </div>`;
+    }
+
+    const standardRateText = standardRate > 0 ? standardRate.toFixed(2) : '0.00';
+
+    card.innerHTML = `
+        <div class="order-item-header">
+            <!-- 1. Cloth Type Select with Rate -->
+            <select class="form-select item-cloth-type-select" name="items[${index}][cloth_type_id]" required style="width: auto; min-width: 170px; border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500; ">
+                ${clothOptions}
+            </select>
+
+            <!-- 2. Measurement Badge -->
+            <div class="item-meas-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; font-weight: 500; height: 38px; display: inline-flex; align-items: center; white-space: nowrap;">
+                <span class="item-meas-title">${measBadgeText}</span>
+            </div>
+            <input type="hidden" class="item-measurement-id" name="items[${index}][measurement_id]" value="${measId}">
+
+            <!-- 3. Assigned Tailor Select -->
+            <select class="form-select item-tailor-select" name="items[${index}][assigned_tailor_id]" required style="width: auto; min-width: 150px; border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
+                ${tailorOptions}
+            </select>
+
+            <!-- 4. Collapse / Expand toggle button -->
+            <button type="button" class="btn btn-link p-1 text-secondary item-collapse-btn ms-auto" title="Expand / Collapse" style="text-decoration: none; font-size: 0.95rem;">
+                <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} toggle-icon"></i>
+            </button>
+
+            <!-- 5. Delete button -->
+            <button type="button" class="btn btn-link p-1 text-secondary item-delete-btn" title="Remove Item" style="text-decoration: none; font-size: 0.95rem;">
+                <i class="far fa-trash-alt"></i>
+            </button>
+        </div>
+
+        <!-- Collapsible Body with Measurement Pills Grid -->
+        <div class="order-item-body" style="display: ${isExpanded ? 'block' : 'none'};">
+            <div class="item-pills-container">
+                ${pillsHtml}
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-wrap gap-2">
+                <span class="small text-muted" style="font-size: 0.78rem;">
+                    <i class="fas fa-tag me-1 text-primary"></i>Standard Rate: ₹<span class="item-standard-rate">${standardRateText}</span>
+                </span>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Rate / Price:</label>
+                    <div class="input-group input-group-sm" style="width: 125px;">
+                        <span class="input-group-text bg-white text-muted fw-bold">₹</span>
+                        <input type="number" class="form-control form-control-sm item-price-input" name="items[${index}][price]" step="0.01" min="0" placeholder="0.00" value="${initPrice}" required style="font-weight: 600; border-radius: 0 6px 6px 0;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(card);
+
+    // Event listeners inside the card
+    const clothSelect = card.querySelector('.item-cloth-type-select');
+    const priceInput = card.querySelector('.item-price-input');
+    const collapseBtn = card.querySelector('.item-collapse-btn');
+    const toggleIcon = card.querySelector('.toggle-icon');
+    const bodyEl = card.querySelector('.order-item-body');
+    const deleteBtn = card.querySelector('.item-delete-btn');
+    const stdRateSpan = card.querySelector('.item-standard-rate');
+
+    collapseBtn.addEventListener('click', function() {
+        if (bodyEl.style.display === 'none') {
+            bodyEl.style.display = 'block';
+            toggleIcon.className = 'fas fa-chevron-up toggle-icon';
+        } else {
+            bodyEl.style.display = 'none';
+            toggleIcon.className = 'fas fa-chevron-down toggle-icon';
+        }
+    });
+
+    clothSelect.addEventListener('change', function() {
+        const selectedOpt = this.options[this.selectedIndex];
+        const rate = selectedOpt ? parseFloat(selectedOpt.getAttribute('data-rate')) || 0 : 0;
+        if (stdRateSpan) stdRateSpan.textContent = rate > 0 ? rate.toFixed(2) : '0.00';
+        if (priceInput && (!priceInput.value || parseFloat(priceInput.value) === 0 || priceInput.dataset.autoFilled === 'true' || !itemData.price)) {
+            priceInput.value = rate > 0 ? rate.toFixed(2) : '0.00';
+            priceInput.dataset.autoFilled = 'true';
+        }
+        calculateTotalFromItems();
+    });
+
+    priceInput.addEventListener('input', function() {
+        priceInput.dataset.autoFilled = 'false';
+        calculateTotalFromItems();
+    });
+    priceInput.addEventListener('change', function() {
+        priceInput.dataset.autoFilled = 'false';
+        calculateTotalFromItems();
+    });
+
+    deleteBtn.addEventListener('click', function() {
+        const cardMeasId = card.getAttribute('data-measurement-id');
+        if (cardMeasId) {
+            selectedMeasurementIds.delete(cardMeasId);
+            updateMeasurementTagsUI();
+        }
+        card.remove();
+        calculateTotalFromItems();
+        updateAddItemButtonState();
+    });
+
+    calculateTotalFromItems();
+    updateAddItemButtonState();
+    return card;
+}
+
+function updateAddItemButtonState() {
+    const addBtn = document.getElementById('addOrderItemBtn');
+    const topCloth = document.getElementById('topClothTypeSelect');
+    const limitBadge = document.getElementById('orderItemsLimitBadge');
+    const customerName = document.getElementById('customer_id')?.value;
+    const measurements = window.currentCustomerMeasurements || [];
+    const cards = document.querySelectorAll('.order-item-card');
+
+    if (!customerName) {
+        if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.style.opacity = '0.5';
+            addBtn.style.cursor = 'not-allowed';
+            addBtn.title = 'Please select a customer first';
+        }
+        if (topCloth) topCloth.disabled = true;
+        if (limitBadge) limitBadge.style.display = 'none';
+        return;
+    }
+
+    if (limitBadge) {
+        limitBadge.style.display = 'inline-block';
+        limitBadge.textContent = `${cards.length}/${measurements.length} Measurements Added`;
+    }
+
+    if (measurements.length === 0) {
+        if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.style.opacity = '0.5';
+            addBtn.style.cursor = 'not-allowed';
+            addBtn.title = 'આ કસ્ટમરના કોઈ માપ નથી. પહેલા Measurement માં માપ ઉમેરો.';
+        }
+        if (topCloth) topCloth.disabled = true;
+        return;
+    }
+
+    // Limit reached: cannot add more than customer's available measurements
+    if (cards.length >= measurements.length) {
+        if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.style.opacity = '0.5';
+            addBtn.style.cursor = 'not-allowed';
+            addBtn.title = `આ કસ્ટમરના તમામ (${measurements.length}) માપ ઉમેરાઈ ગયા છે. વધુ ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`;
+        }
+        if (topCloth) topCloth.disabled = true;
+    } else {
+        if (addBtn) {
+            addBtn.disabled = false;
+            addBtn.style.opacity = '1';
+            addBtn.style.cursor = 'pointer';
+            addBtn.title = 'Add Remaining Measurement';
+        }
+        if (topCloth) topCloth.disabled = false;
+    }
+}
+
+function updateMeasurementTagsUI() {
+    const tagsContainer = document.getElementById('measurementTagsList');
+    const measSearchInput = document.getElementById('measurementSearchInput');
+    if (!tagsContainer) return;
+
+    tagsContainer.innerHTML = '';
+    selectedMeasurementIds.forEach(id => {
+        const meas = (window.currentCustomerMeasurements || []).find(m => String(m.id) === String(id));
+        const tagName = meas ? meas.cloth_type_name : `Meas #${id}`;
+
+        const tag = document.createElement('span');
+        tag.className = 'measurement-tag';
+        tag.innerHTML = `
+            <span>${escapeHtml(tagName)}</span>
+            <span class="tag-remove-btn" data-id="${id}">&times;</span>
+        `;
+        tag.querySelector('.tag-remove-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            removeMeasurement(id);
+        });
+        tagsContainer.appendChild(tag);
+    });
+
+    if (measSearchInput) {
+        if (selectedMeasurementIds.size > 0) {
+            measSearchInput.placeholder = '';
+        } else {
+            measSearchInput.placeholder = 'Measurement Search';
+        }
+    }
+
+    renderMeasurementDropdownOptions();
+    updateAddItemButtonState();
+}
+
+function removeMeasurement(id) {
+    selectedMeasurementIds.delete(String(id));
+    updateMeasurementTagsUI();
+
+    const card = document.querySelector(`.order-item-card[data-measurement-id="${id}"]`);
+    if (card) {
+        card.remove();
+        calculateTotalFromItems();
+    }
+    updateAddItemButtonState();
+}
+
+function addMeasurement(id) {
+    const idStr = String(id);
+    if (selectedMeasurementIds.has(idStr)) return;
+
+    const measurements = window.currentCustomerMeasurements || [];
+    const cards = document.querySelectorAll('.order-item-card');
+    if (cards.length >= measurements.length) {
+        alert(`આ કસ્ટમરના ફક્ત ${measurements.length} માપ સેવ કરેલા છે. વધુ કપડાં ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`);
+        return;
+    }
+
+    selectedMeasurementIds.add(idStr);
+    updateMeasurementTagsUI();
+
+    const meas = measurements.find(m => String(m.id) === idStr);
+    addOrderItemCard({
+        measurement_id: idStr,
+        cloth_type_id: meas ? meas.cloth_type_id : '',
+        price: ''
+    }, true);
+    updateAddItemButtonState();
+}
+
+function renderMeasurementDropdownOptions(filterText = '') {
+    const dropdown = document.getElementById('measurementDropdownMenu');
+    if (!dropdown) return;
+
+    const measurements = window.currentCustomerMeasurements || [];
+    if (!document.getElementById('customer_id')?.value) {
+        dropdown.innerHTML = `<div class="p-3 text-muted text-center small"><i class="fas fa-user-clock me-1"></i>Please select a customer first</div>`;
+        return;
+    }
+
+    if (measurements.length === 0) {
+        dropdown.innerHTML = `<div class="p-3 text-muted text-center small"><i class="fas fa-exclamation-circle me-1"></i>No measurements found for this customer</div>`;
+        return;
+    }
+
+    const filter = filterText.toLowerCase().trim();
+    const filtered = measurements.filter(m => {
+        if (!filter) return true;
+        return (m.cloth_type_name && m.cloth_type_name.toLowerCase().includes(filter)) ||
+               (m.created_at && m.created_at.toLowerCase().includes(filter));
+    });
+
+    if (filtered.length === 0) {
+        dropdown.innerHTML = `<div class="p-2 text-muted text-center small">No matching measurements</div>`;
+        return;
+    }
+
+    let html = '';
+    filtered.forEach(m => {
+        const isSelected = selectedMeasurementIds.has(String(m.id));
+        html += `
+            <div class="measurement-dropdown-item ${isSelected ? 'is-selected' : ''}" data-id="${m.id}">
+                <div>
+                    <strong>${escapeHtml(m.cloth_type_name)}</strong>
+                    <small class="text-muted ms-1">(${escapeHtml(m.created_at)})</small>
+                </div>
+                <div>
+                    ${isSelected 
+                        ? '<span class="badge bg-primary" style="font-size: 0.7rem;"><i class="fas fa-check me-1"></i>Added</span>' 
+                        : '<i class="fas fa-plus text-primary"></i>'}
+                </div>
+            </div>
+        `;
+    });
+
+    dropdown.innerHTML = html;
+
+    dropdown.querySelectorAll('.measurement-dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = this.getAttribute('data-id');
+            if (selectedMeasurementIds.has(String(id))) {
+                removeMeasurement(id);
+            } else {
+                addMeasurement(id);
+            }
+            const measSearchInput = document.getElementById('measurementSearchInput');
+            if (measSearchInput) {
+                measSearchInput.value = '';
+                measSearchInput.focus();
+            }
+        });
+    });
+}
+
+// Search box interactions
+const measSearchContainer = document.getElementById('measurementSearchContainer');
+const measSearchInput = document.getElementById('measurementSearchInput');
+const measDropdownMenu = document.getElementById('measurementDropdownMenu');
+
+if (measSearchContainer && measDropdownMenu) {
+    measSearchContainer.addEventListener('click', function() {
+        if (measSearchInput) measSearchInput.focus();
+        measDropdownMenu.style.display = 'block';
+        renderMeasurementDropdownOptions(measSearchInput ? measSearchInput.value : '');
+    });
+
+    if (measSearchInput) {
+        measSearchInput.addEventListener('input', function() {
+            measDropdownMenu.style.display = 'block';
+            renderMeasurementDropdownOptions(this.value);
+        });
+
+        measSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !this.value && selectedMeasurementIds.size > 0) {
+                const ids = Array.from(selectedMeasurementIds);
+                const lastId = ids[ids.length - 1];
+                removeMeasurement(lastId);
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!measSearchContainer.contains(e.target) && !measDropdownMenu.contains(e.target)) {
+            measDropdownMenu.style.display = 'none';
+        }
+    });
+}
+
+// Top Cloth Type dropdown interaction
+const topClothTypeSelect = document.getElementById('topClothTypeSelect');
+if (topClothTypeSelect) {
+    topClothTypeSelect.addEventListener('change', function() {
+        const clothId = this.value;
+        if (!clothId) return;
+
+        const measurements = window.currentCustomerMeasurements || [];
+        const cards = document.querySelectorAll('.order-item-card');
+        const customerName = document.getElementById('customer_id')?.value;
+
+        if (!customerName) {
+            alert('કૃપા કરીને પહેલા Customer પસંદ કરો.');
+            this.value = '';
+            return;
+        }
+
+        if (measurements.length === 0) {
+            alert('આ કસ્ટમરના કોઈ માપ સેવ કરેલા નથી. કૃપા કરીને પહેલા Measurement સેક્શનમાં જઈને માપ ઉમેરો.');
+            this.value = '';
+            return;
+        }
+
+        if (cards.length >= measurements.length) {
+            alert(`આ કસ્ટમરના તમામ (${measurements.length}) માપ ઓર્ડરમાં ઉમેરાઈ ગયા છે. વધુ કપડાં ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`);
+            this.value = '';
+            return;
+        }
+
+        // Find unused measurement matching this cloth type
+        const matchingMeas = measurements.find(m => String(m.cloth_type_id) === String(clothId) && !selectedMeasurementIds.has(String(m.id)));
+        if (matchingMeas) {
+            addMeasurement(matchingMeas.id);
+        } else {
+            alert('આ કસ્ટમર માટે આ કપડાંનું કોઈ અન-યુઝ્ડ માપ નોંધાયેલું નથી. કૃપા કરીને પહેલા Measurement પેજમાં માપ ઉમેરો.');
+        }
+
+        this.value = '';
+    });
+}
+
+// + Add Item button interaction
+const addOrderItemBtn = document.getElementById('addOrderItemBtn');
+if (addOrderItemBtn) {
+    addOrderItemBtn.addEventListener('click', function() {
+        const measurements = window.currentCustomerMeasurements || [];
+        const cards = document.querySelectorAll('.order-item-card');
+        const customerName = document.getElementById('customer_id')?.value;
+
+        if (!customerName) {
+            alert('કૃપા કરીને પહેલા Customer પસંદ કરો.');
+            return;
+        }
+
+        if (measurements.length === 0) {
+            alert('આ કસ્ટમરના કોઈ માપ સેવ કરેલા નથી. કૃપા કરીને પહેલા Measurement સેક્શનમાં જઈને માપ ઉમેરો.');
+            return;
+        }
+
+        if (cards.length >= measurements.length) {
+            alert(`આ કસ્ટમરના ફક્ત ${measurements.length} માપ સેવ કરેલા છે, જે તમામ ઓર્ડરમાં ઉમેરાઈ ગયા છે. વધુ કપડાં ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`);
+            return;
+        }
+
+        // Find unused measurement and add it
+        const unused = measurements.find(m => !selectedMeasurementIds.has(String(m.id)));
+        if (unused) {
+            addMeasurement(unused.id);
+        }
+    });
+}
+
+// Customer change handler
+const customerSelectEl = document.getElementById('customer_id');
+if (customerSelectEl) {
+    customerSelectEl.addEventListener('change', function() {
+        const customerName = this.value;
+        
+        // Auto-fill customer phone number
+        const selectedOpt = this.options[this.selectedIndex];
+        const optPhone = selectedOpt ? selectedOpt.getAttribute('data-phone') : '';
+        const phoneInput = document.getElementById('customer_phone');
+        if (phoneInput) {
+            phoneInput.value = optPhone || '';
+        }
+
+        // Reset measurement tags & clear existing cards
+        selectedMeasurementIds.clear();
+        updateMeasurementTagsUI();
+        const container = document.getElementById('orderItemsContainer');
+        
+        if (customerName) {
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2 text-primary"></i>
+                        <div>Loading measurements for ${escapeHtml(customerName)}...</div>
+                    </div>
+                `;
+            }
+
+            fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error loading measurements');
+                    return response.json();
+                })
+                .then(data => {
+                    if (phoneInput && !phoneInput.value && data && data.length > 0 && data[0].phone_number) {
+                        phoneInput.value = data[0].phone_number;
+                    }
+                    window.currentCustomerMeasurements = data || [];
+                    if (container) container.innerHTML = '';
+                    selectedMeasurementIds.clear();
+
+                    // Load ONLY this customer's measurements as cards and tags
+                    if (data && data.length > 0) {
+                        data.forEach((m, idx) => {
+                            selectedMeasurementIds.add(String(m.id));
+                            addOrderItemCard({
+                                measurement_id: m.id,
+                                cloth_type_id: m.cloth_type_id,
+                                price: ''
+                            }, idx === 0);
+                        });
+                        updateMeasurementTagsUI();
+                    } else {
+                        updateMeasurementTagsUI();
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="alert alert-warning py-3 px-3 d-flex align-items-center justify-content-between rounded-3" style="border-radius: 10px;">
+                                    <div>
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                        <strong>આ કસ્ટમરના કોઈ માપ નોંધાયેલા નથી!</strong> ઓર્ડર બનાવવા માટે પહેલા Measurement સેક્શનમાં માપ ઉમેરો.
+                                    </div>
+                                    <a href="measurements.php" class="btn btn-sm btn-warning text-dark fw-semibold ms-3" target="_blank">
+                                        <i class="fas fa-plus me-1"></i>Add Measurement
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    }
+                    updateAddItemButtonState();
+                })
+                .catch(error => {
+                    console.error('Error loading measurements:', error);
+                    window.currentCustomerMeasurements = [];
+                    if (container) container.innerHTML = '';
+                    selectedMeasurementIds.clear();
+                    updateMeasurementTagsUI();
+                    updateAddItemButtonState();
+                });
+        } else {
+            window.currentCustomerMeasurements = [];
+            if (container) container.innerHTML = '';
+            selectedMeasurementIds.clear();
+            updateMeasurementTagsUI();
+            updateAddItemButtonState();
+        }
+    });
+}
+
 function editOrder(order) {
     console.log('Editing order:', order);
     const waSwitch = document.getElementById('send_whatsapp_invoice');
@@ -1470,11 +2421,7 @@ function editOrder(order) {
     document.getElementById('orderAction').value = 'update';
     document.getElementById('orderId').value = order.id || '';
     const customerName = order.customer_name || '';
-    const clothTypeId = order.cloth_type_id ? String(order.cloth_type_id) : '';
-    const assignedTailorId = order.assigned_tailor_id ? String(order.assigned_tailor_id) : '';
     document.getElementById('customer_id').value = customerName;
-    document.getElementById('cloth_type_id').value = clothTypeId;
-    document.getElementById('assigned_tailor_id').value = assignedTailorId;
     document.getElementById('order_date').value = order.order_date || '';
     document.getElementById('due_date').value = order.due_date || '';
     if (document.getElementById('customer_phone')) {
@@ -1487,165 +2434,109 @@ function editOrder(order) {
     }
     document.getElementById('special_instructions').value = order.special_instructions || '';
     calculatePendingAmount();
-    
-    console.log('Set values:', { customerName, clothTypeId, assignedTailorId }); // Debug log
-        const measurementSelect = document.getElementById('measurement_id');
-    
+
+    // Clear items and tags
+    selectedMeasurementIds.clear();
+    const container = document.getElementById('orderItemsContainer');
+    if (container) container.innerHTML = '';
+    updateMeasurementTagsUI();
+
     if (customerName) {
-        measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
-        
         fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
             .then(response => response.json())
-            .then(data => {
-                measurementSelect.innerHTML = '<option value="">No Measurement</option>';
-                window.currentCustomerMeasurements = data || [];
-                
-                if (data && data.length > 0) {
-                    data.forEach(measurement => {
-                        const option = document.createElement('option');
-                        option.value = measurement.id;
-                        option.setAttribute('data-cloth-type-id', measurement.cloth_type_id);
-                        option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
-                        measurementSelect.appendChild(option);
+            .then(measurements => {
+                window.currentCustomerMeasurements = measurements || [];
+                renderMeasurementDropdownOptions();
+                return fetch(`ajax/get_order_items.php?order_id=${encodeURIComponent(order.id)}`);
+            })
+            .then(res => res.json())
+            .then(items => {
+                if (container) container.innerHTML = '';
+                selectedMeasurementIds.clear();
+
+                if (items && items.length > 0) {
+                    items.forEach((it, idx) => {
+                        addOrderItemCard({
+                            cloth_type_id: it.cloth_type_id,
+                            measurement_id: it.measurement_id,
+                            assigned_tailor_id: it.assigned_tailor_id,
+                            price: it.price,
+                            measurement_data: it.measurement_data,
+                            cloth_type_name: it.cloth_type_name,
+                            notes: it.notes
+                        }, idx === 0);
                     });
                 } else {
-                    const noMeasurementsOption = document.createElement('option');
-                    noMeasurementsOption.value = '';
-                    noMeasurementsOption.textContent = 'No measurements available for this customer';
-                    noMeasurementsOption.disabled = true;
-                    measurementSelect.appendChild(noMeasurementsOption);
+                    // Fallback to legacy single order
+                    addOrderItemCard({
+                        cloth_type_id: order.cloth_type_id,
+                        measurement_id: order.measurement_id,
+                        assigned_tailor_id: order.assigned_tailor_id,
+                        price: order.total_amount
+                    }, true);
                 }
-                if (order.measurement_id) {
-                    measurementSelect.value = String(order.measurement_id);
-                }
-                displaySelectedMeasurement();
+                updateMeasurementTagsUI();
+                calculateTotalFromItems();
             })
-            .catch(error => {
-                console.error('Error loading measurements:', error);
-                measurementSelect.innerHTML = '<option value="">Error loading measurements</option>';
-                if (order.measurement_id) {
-                    measurementSelect.value = String(order.measurement_id);
-                }
-                displaySelectedMeasurement();
+            .catch(err => {
+                console.error('Error loading order items:', err);
+                if (container) container.innerHTML = '';
+                addOrderItemCard({
+                    cloth_type_id: order.cloth_type_id,
+                    measurement_id: order.measurement_id,
+                    assigned_tailor_id: order.assigned_tailor_id,
+                    price: order.total_amount
+                }, true);
+                updateMeasurementTagsUI();
             });
     } else {
-        measurementSelect.innerHTML = '<option value="">No Measurement</option>';
-        window.currentCustomerMeasurements = [];
-        if (order.measurement_id) {
-            measurementSelect.value = String(order.measurement_id);
-        }
-        displaySelectedMeasurement();
+        addOrderItemCard({
+            cloth_type_id: order.cloth_type_id,
+            measurement_id: order.measurement_id,
+            assigned_tailor_id: order.assigned_tailor_id,
+            price: order.total_amount
+        }, true);
+        updateMeasurementTagsUI();
     }
+
     new bootstrap.Modal(document.getElementById('orderModal')).show();
 }
 
 function updateOrderStatusAjax(orderId, status, clickedElement) {
-    
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
+    if (window.event) {
+        window.event.preventDefault();
+        window.event.stopPropagation();
     }
     const originalText = clickedElement.innerHTML;
     clickedElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
     clickedElement.style.pointerEvents = 'none';
-        const row = clickedElement.closest('tr');
-    const statusCell = row.children[6];
-    const statusBadge = statusCell.querySelector('.badge');
-    const originalBadgeHtml = statusBadge.innerHTML;
-    const originalStatus = row.dataset.status || getCurrentStatusFromBadge(statusBadge);
-    
-    statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating';
-    statusBadge.className = 'badge rounded-pill fw-semibold px-2 py-1 bg-secondary text-white';
-    
-    const formData = new FormData();
-    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
-    formData.append('order_id', orderId);
-    formData.append('status', status);
-    
+
     fetch('ajax/update_order_status.php', {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `order_id=${orderId}&status=${status}&csrf_token=<?php echo generate_csrf_token(); ?>`
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const statusClasses = {
-                'pending': 'cat-badge-pending',
-                'in_progress': 'cat-badge-in_progress',
-                'completed': 'cat-badge-completed',
-                'delivered': 'cat-badge-delivered',
-                'cancelled': 'cat-badge-cancelled'
-            };
-            
-            statusBadge.className = `badge rounded-pill fw-semibold px-2 py-1 ${statusClasses[status] || 'bg-secondary'}`;
-            statusBadge.innerHTML = data.status_display;
-            row.dataset.status = status;
-            updateOrderStatistics(originalStatus, status);
-            
-            showToast('Success', data.message, 'success');
-            
-            const dropdownMenu = clickedElement.closest('.dropdown-menu');
-            if (dropdownMenu) {
-                const dropdown = dropdownMenu.closest('.dropdown');
-                if (dropdown) {
-                    const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
-                    if (dropdownToggle) {
-                        const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownToggle);
-                        if (dropdownInstance) {
-                            dropdownInstance.hide();
-                        }
-                    }
-                }
-            }
+            showToast('Success', 'Order status updated successfully', 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
         } else {
-            statusBadge.innerHTML = originalBadgeHtml;
-            
-            showToast('Error', data.error || 'Failed to update status', 'error');
+            showToast('Error', data.message || 'Failed to update order status', 'error');
+            clickedElement.innerHTML = originalText;
+            clickedElement.style.pointerEvents = 'auto';
         }
     })
     .catch(error => {
-        console.error('Error updating status:', error);
-        statusBadge.innerHTML = originalBadgeHtml;
-        showToast('Error', 'Network error occurred', 'error');
-    })
-    .finally(() => {
+        console.error('Error:', error);
+        showToast('Error', 'An error occurred while updating status', 'error');
         clickedElement.innerHTML = originalText;
         clickedElement.style.pointerEvents = 'auto';
     });
-}
-
-function getCurrentStatusFromBadge(badge) {
-    const text = badge.textContent.toLowerCase().trim();
-    if (text.includes('pending')) return 'pending';
-    if (text.includes('progress')) return 'in_progress';
-    if (text.includes('completed')) return 'completed';
-    if (text.includes('delivered')) return 'delivered';
-    if (text.includes('cancelled')) return 'cancelled';
-    return null;
-}
-
-function updateOrderStatistics(oldStatus, newStatus) {
-    if (oldStatus === newStatus) return;
-    const statElements = {
-        'pending': document.getElementById('stat-pending'),
-        'in_progress': document.getElementById('stat-in_progress'),
-        'completed': document.getElementById('stat-completed'),
-        'delivered': document.getElementById('stat-delivered')
-    };
-        if (oldStatus && statElements[oldStatus]) {
-        const oldCount = parseInt(statElements[oldStatus].textContent.replace(/,/g, ''));
-        if (oldCount > 0) {
-            statElements[oldStatus].textContent = formatNumber(oldCount - 1);
-        }
-    }
-        if (newStatus && statElements[newStatus]) {
-        const newCount = parseInt(statElements[newStatus].textContent.replace(/,/g, ''));
-        statElements[newStatus].textContent = formatNumber(newCount + 1);
-    }
-}
-
-function formatNumber(num) {
-    return num.toLocaleString('en-US');
 }
 
 function showToast(title, message, type = 'info') {
@@ -1664,10 +2555,6 @@ function showToast(title, message, type = 'info') {
     toastElement.setAttribute('role', 'alert');
     toastElement.setAttribute('aria-live', 'assertive');
     toastElement.setAttribute('aria-atomic', 'true');
-    
-    const iconClass = type === 'error' ? 'fas fa-exclamation-circle' : 
-                     type === 'success' ? 'fas fa-check-circle' : 
-                     'fas fa-info-circle';
     
     toastElement.innerHTML = `
         <div class="d-flex">
@@ -1693,226 +2580,28 @@ function showToast(title, message, type = 'info') {
 function viewOrder(orderId) {
     window.location.href = 'order-details.php?id=' + orderId;
 }
-const clothTypeSelectEl = document.getElementById('cloth_type_id');
-if (clothTypeSelectEl) {
-    clothTypeSelectEl.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const rate = selectedOption ? selectedOption.getAttribute('data-rate') : null;
-        if (rate && rate > 0) {
-            const totalAmountEl = document.getElementById('total_amount');
-            if (totalAmountEl) {
-                totalAmountEl.value = rate;
-                calculatePendingAmount();
-            }
-        }
-    });
-}
-window.currentCustomerMeasurements = [];
-const customerSelectEl = document.getElementById('customer_id');
-if (customerSelectEl) {
-    customerSelectEl.addEventListener('change', function() {
-        const customerName = this.value;
-        const measurementSelect = document.getElementById('measurement_id');
-        if (!measurementSelect) return;
-        hideMeasurementPreview();
-        
-        // Auto-fill customer phone number
-        const selectedOpt = this.options[this.selectedIndex];
-        const optPhone = selectedOpt ? selectedOpt.getAttribute('data-phone') : '';
-        const phoneInput = document.getElementById('customer_phone');
-        if (phoneInput && optPhone) {
-            phoneInput.value = optPhone;
-        }
-        
-        if (customerName) {
-            measurementSelect.innerHTML = '<option value="">Loading measurements...</option>';
-            
-            fetch(`ajax/get_measurements_by_name.php?name=${encodeURIComponent(customerName)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (phoneInput && !phoneInput.value && data && data.length > 0 && data[0].phone_number) {
-                        phoneInput.value = data[0].phone_number;
-                    }
-                    measurementSelect.innerHTML = '<option value="">No Measurement</option>';
-                    window.currentCustomerMeasurements = data || [];
-                    
-                    if (data && data.length > 0) {
-                        data.forEach(measurement => {
-                            const option = document.createElement('option');
-                            option.value = measurement.id;
-                            option.setAttribute('data-cloth-type-id', measurement.cloth_type_id);
-                            option.textContent = measurement.cloth_type_name + ' - ' + measurement.created_at;
-                            measurementSelect.appendChild(option);
-                        });
-                    } else {
-                        const noMeasurementsOption = document.createElement('option');
-                        noMeasurementsOption.value = '';
-                        noMeasurementsOption.textContent = 'No measurements available for this customer';
-                        noMeasurementsOption.disabled = true;
-                        measurementSelect.appendChild(noMeasurementsOption);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading measurements:', error);
-                    measurementSelect.innerHTML = '<option value="">Error loading measurements</option>';
-                    window.currentCustomerMeasurements = [];
-                });
-        } else {
-            measurementSelect.innerHTML = '<option value="">No Measurement</option>';
-            window.currentCustomerMeasurements = [];
-        }
-    });
-}
-const measurementSelectEl = document.getElementById('measurement_id');
-if (measurementSelectEl) {
-    measurementSelectEl.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        if (selectedOption) {
-            const clothTypeId = selectedOption.getAttribute('data-cloth-type-id');
-            if (clothTypeId) {
-                const clothTypeSelect = document.getElementById('cloth_type_id');
-                if (clothTypeSelect) {
-                    clothTypeSelect.value = clothTypeId;
-                    clothTypeSelect.dispatchEvent(new Event('change'));
-                }
-            }
-        }
-        
-        displaySelectedMeasurement();
-    });
-}
-function displaySelectedMeasurement() {
-    const measurementSelect = document.getElementById('measurement_id');
-    const previewContainer = document.getElementById('measurementDetailsPreview');
-    if (!measurementSelect || !previewContainer) return;
-    
-    const measurementId = measurementSelect.value;
-    if (!measurementId) {
-        hideMeasurementPreview();
-        return;
-    }
-    let measurement = (window.currentCustomerMeasurements || []).find(m => String(m.id) === String(measurementId));
-    
-    if (measurement && measurement.measurement_data) {
-        renderMeasurementPreview(measurement);
-    } else {
-        fetch(`ajax/get_measurement_details.php?id=${encodeURIComponent(measurementId)}`)
-            .then(res => res.json())
-            .then(resData => {
-                if (resData.success && resData.measurement) {
-                    renderMeasurementPreview(resData.measurement);
-                } else {
-                    hideMeasurementPreview();
-                }
-            })
-            .catch(err => {
-                console.error('Error fetching measurement details:', err);
-                hideMeasurementPreview();
-            });
-    }
-}
 
-function renderMeasurementPreview(measurement) {
-    const previewContainer = document.getElementById('measurementDetailsPreview');
-    const valuesContainer = document.getElementById('previewMeasurementValues');
-    const clothTypeSpan = document.getElementById('previewClothType');
-    const dateBadge = document.getElementById('previewDateBadge');
-    const notesContainer = document.getElementById('previewMeasurementNotes');
-    const notesText = document.getElementById('previewNotesText');
-    
-    if (!previewContainer || !valuesContainer) return;
-    
-    if (clothTypeSpan) {
-        clothTypeSpan.textContent = measurement.cloth_type_name ? '(' + measurement.cloth_type_name + ')' : '';
+// Ensure at least 1 item is added on page load or modal open
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('orderItemsContainer');
+    if (container && container.children.length === 0) {
+        addOrderItemCard({}, true);
     }
-    
-    if (dateBadge) {
-        if (measurement.created_at) {
-            dateBadge.textContent = measurement.created_at;
-            dateBadge.style.display = 'inline-block';
-        } else {
-            dateBadge.style.display = 'none';
-        }
-    }
-    
-    valuesContainer.innerHTML = '';
-    const mData = measurement.measurement_data;
-    let hasValues = false;
-    const measurementIcons = {
-        'chest': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M24 8c-4 0-8 2-10 5l-4 8v12c0 2 1 3 3 3h22c2 0 3-1 3-3V21l-4-8c-2-3-6-5-10-5z" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 21h20" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="24" cy="16" r="2" fill="#4a7cff"/></svg>`,
-        'waist': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M14 12c0 0 2 8 10 8s10-8 10-8" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 12v24h20V12" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 26h20" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
-        'length': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><rect x="20" y="6" width="8" height="36" rx="2" stroke="#4a7cff" stroke-width="2" fill="none"/><line x1="22" y1="12" x2="26" y2="12" stroke="#4a7cff" stroke-width="1.5"/><line x1="22" y1="18" x2="26" y2="18" stroke="#4a7cff" stroke-width="1.5"/><line x1="22" y1="24" x2="26" y2="24" stroke="#4a7cff" stroke-width="1.5"/><line x1="22" y1="30" x2="26" y2="30" stroke="#4a7cff" stroke-width="1.5"/><line x1="22" y1="36" x2="26" y2="36" stroke="#4a7cff" stroke-width="1.5"/></svg>`,
-        'shoulder': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M10 24c4-6 8-8 14-8s10 2 14 8" stroke="#4a7cff" stroke-width="2" fill="none"/><circle cx="24" cy="12" r="4" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M10 24h28" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
-        'hip': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M14 14v6c0 6 4 10 10 10s10-4 10-10v-6" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M14 22h20" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
-        'sleeve': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M18 10l-6 26h8l4-18 4 18h8l-6-26" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M16 24h16" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
-        'neck': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="18" r="8" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M16 18c0-4 4-8 8-8s8 4 8 8" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M20 30h8v6h-8z" stroke="#4a7cff" stroke-width="2" fill="none"/></svg>`,
-        'inseam': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M18 8v14l-4 18h8l2-14 2 14h8l-4-18V8" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M18 22h12" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
-        'arm': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M20 10c0 0-2 12-2 20s2 8 6 8 6-2 6-8-2-20-2-20" stroke="#4a7cff" stroke-width="2" fill="none"/><path d="M18 24h12" stroke="#4a7cff" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`,
-        'width': `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M8 24h32M8 20v8M40 20v8" stroke="#4a7cff" stroke-width="2"/><path d="M12 24l4-3v6l-4-3zM36 24l-4-3v6l4-3z" fill="#4a7cff"/></svg>`,
-    };
-    const defaultIcon = `<svg width="36" height="36" viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="3" stroke="#4a7cff" stroke-width="2" fill="none"/><line x1="16" y1="14" x2="32" y2="14" stroke="#4a7cff" stroke-width="1.5"/><line x1="16" y1="20" x2="28" y2="20" stroke="#4a7cff" stroke-width="1.5"/><line x1="16" y1="26" x2="30" y2="26" stroke="#4a7cff" stroke-width="1.5"/><line x1="16" y1="32" x2="24" y2="32" stroke="#4a7cff" stroke-width="1.5"/></svg>`;
-    
-    if (mData && typeof mData === 'object') {
-        const entries = Object.entries(mData).filter(([k, v]) => v !== null && v !== undefined && String(v).trim() !== '');
-        const colClass = entries.length <= 3 ? 'col-4' : (entries.length === 4 ? 'col-3' : 'col-4 col-sm-3');
-        
-        entries.forEach(([key, val]) => {
-            hasValues = true;
-            const keyLower = key.toLowerCase().replace(/[_\s-]/g, '');
-            const icon = measurementIcons[keyLower] || defaultIcon;
-            const label = key.replace(/_/g, ' ').toUpperCase();
-            
-            const col = document.createElement('div');
-            col.className = colClass;
-            col.innerHTML = `
-                <div class="text-center py-2">
-                    <div class="mb-1" style="opacity: 0.8;">${icon}</div>
-                    <div class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px; margin-bottom: 2px;">${escapeHtml(label)}</div>
-                    <div class="fw-bold text-primary" style="font-size: 1.4rem; line-height: 1.2;">${escapeHtml(String(val))}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">inch</div>
-                </div>
-            `;
-            valuesContainer.appendChild(col);
-        });
-    }
-    
-    if (!hasValues) {
-        valuesContainer.innerHTML = `
-            <div class="col-12 text-center text-muted py-3">
-                <i class="fas fa-info-circle me-1"></i>No measurement values recorded.
-            </div>
-        `;
-    }
-    
-    if (measurement.notes && String(measurement.notes).trim() !== '') {
-        if (notesText) notesText.textContent = measurement.notes;
-        if (notesContainer) notesContainer.style.display = 'block';
-    } else {
-        if (notesContainer) notesContainer.style.display = 'none';
-    }
-    
-    previewContainer.style.display = 'block';
-}
+});
 
-function hideMeasurementPreview() {
-    const previewContainer = document.getElementById('measurementDetailsPreview');
-    if (previewContainer) {
-        previewContainer.style.display = 'none';
-    }
-}
-
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
-}
 const orderModalEl = document.getElementById('orderModal');
 if (orderModalEl) {
+    orderModalEl.addEventListener('show.bs.modal', function() {
+        const action = document.getElementById('orderAction')?.value;
+        const container = document.getElementById('orderItemsContainer');
+        const custVal = document.getElementById('customer_id')?.value;
+        if (action === 'create' && custVal) {
+            document.getElementById('customer_id').dispatchEvent(new Event('change'));
+        } else if (action === 'create' && container && container.children.length === 0) {
+            addOrderItemCard({}, true);
+        }
+    });
+
     orderModalEl.addEventListener('hidden.bs.modal', function() {
         const titleEl = document.getElementById('orderModalTitle');
         if (titleEl) titleEl.textContent = 'Create Order';
@@ -1932,11 +2621,26 @@ if (orderModalEl) {
         if (advanceEl) advanceEl.value = '0';
         const paymentMethodEl = document.getElementById('payment_method');
         if (paymentMethodEl) paymentMethodEl.value = 'cash';
-        hideMeasurementPreview();
+        
         window.currentCustomerMeasurements = [];
+        selectedMeasurementIds.clear();
+        updateMeasurementTagsUI();
+        const topCloth = document.getElementById('topClothTypeSelect');
+        if (topCloth) topCloth.value = '';
+        const measSearchInp = document.getElementById('measurementSearchInput');
+        if (measSearchInp) measSearchInp.value = '';
+        const dropdown = document.getElementById('measurementDropdownMenu');
+        if (dropdown) dropdown.style.display = 'none';
+
+        const container = document.getElementById('orderItemsContainer');
+        if (container) {
+            container.innerHTML = '';
+            addOrderItemCard({}, true);
+        }
         calculatePendingAmount();
     });
 }
+
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
@@ -2258,14 +2962,15 @@ function displayFilterResults(orders) {
                 </td>
                 <td class="py-3">
                     <span class="badge fw-medium" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px;">
-                        ${escapeHtml(order.cloth_type_name || '-')}
+                        ${escapeHtml(order.all_cloth_type_names || order.cloth_type_name || '-')}
                     </span>
+                    ${order.item_count && order.item_count > 1 ? `<span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;">${order.item_count} Items</span>` : ''}
                 </td>
                 <td class="py-3">
-                    ${order.tailor_name ? `
+                    ${(order.all_tailor_names || order.tailor_name) ? `
                         <div class="d-flex align-items-center gap-1 text-dark" style="font-size: 0.84rem;">
                             <i class="fas fa-user-tie text-muted" style="font-size: 0.75rem;"></i>
-                            <span>${escapeHtml(order.tailor_name)}</span>
+                            <span>${escapeHtml(order.all_tailor_names || order.tailor_name)}</span>
                         </div>
                     ` : '<span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Unassigned</span>'}
                 </td>

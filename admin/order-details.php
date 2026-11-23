@@ -41,11 +41,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: orders.php');
                 exit;
             }
-                        if (has_role('tailor') && (!isset($order['assigned_tailor_id']) || $order['assigned_tailor_id'] != get_user_id())) {
-                $_SESSION['message'] = 'You can only update orders assigned to you';
-                $_SESSION['messageType'] = 'error';
-                header('Location: orders.php');
-                exit;
+            if (has_role('tailor')) {
+                $curUserId = (int)get_user_id();
+                $isAuthorizedTailor = (!empty($order['assigned_tailor_id']) && (int)$order['assigned_tailor_id'] === $curUserId);
+                if (!$isAuthorizedTailor) {
+                    $orderItems = $orderModel->getOrderItems($orderId);
+                    foreach ($orderItems as $oi) {
+                        if (!empty($oi['assigned_tailor_id']) && (int)$oi['assigned_tailor_id'] === $curUserId) {
+                            $isAuthorizedTailor = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$isAuthorizedTailor) {
+                    $_SESSION['message'] = 'You can only update orders assigned to you';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                try {
+                    $stmt = $orderModel->conn->prepare("UPDATE order_items SET status = :status WHERE order_id = :order_id AND assigned_tailor_id = :tailor_id");
+                    $stmt->execute([':status' => $status, ':order_id' => $orderId, ':tailor_id' => $curUserId]);
+                } catch (\Throwable $e) {}
             }
             error_log("Order found and authorized. Order ID: $orderId, Current Status: " . ($order['status'] ?? 'null') . ", New Status: $status");
             try {
@@ -130,11 +147,46 @@ if (empty($orders)) {
 } else {
     $order = $orders[0];
 }
-if (has_role('tailor') && (!isset($order['assigned_tailor_id']) || $order['assigned_tailor_id'] != get_user_id())) {
-    $_SESSION['message'] = 'Unauthorized access to this order';
-    $_SESSION['messageType'] = 'error';
-    header('Location: orders.php');
-    exit;
+$orderItems = $orderModel->getOrderItems($orderId);
+if (has_role('tailor')) {
+    $curUserId = (int)get_user_id();
+    $isAuthorizedTailor = (!empty($order['assigned_tailor_id']) && (int)$order['assigned_tailor_id'] === $curUserId);
+    if (!$isAuthorizedTailor && !empty($orderItems)) {
+        foreach ($orderItems as $oi) {
+            if (!empty($oi['assigned_tailor_id']) && (int)$oi['assigned_tailor_id'] === $curUserId) {
+                $isAuthorizedTailor = true;
+                break;
+            }
+        }
+    }
+    if (!$isAuthorizedTailor) {
+        $_SESSION['message'] = 'Unauthorized access to this order';
+        $_SESSION['messageType'] = 'error';
+        header('Location: orders.php');
+        exit;
+    }
+    if (!empty($orderItems)) {
+        $myItems = array_values(array_filter($orderItems, function($oi) use ($curUserId) {
+            return !empty($oi['assigned_tailor_id']) && (int)$oi['assigned_tailor_id'] === $curUserId;
+        }));
+        if (!empty($myItems)) {
+            $orderItems = $myItems;
+            $myPrimaryItem = $myItems[0];
+            if (!empty($myPrimaryItem['cloth_type_name'])) {
+                $order['cloth_type_name'] = $myPrimaryItem['cloth_type_name'];
+            }
+            if (!empty($myPrimaryItem['cloth_type_id'])) {
+                $order['cloth_type_id'] = $myPrimaryItem['cloth_type_id'];
+            }
+            if (!empty($myPrimaryItem['status'])) {
+                $order['status'] = $myPrimaryItem['status'];
+            }
+            $order['assigned_tailor_id'] = $curUserId;
+            if (!empty($myPrimaryItem['measurement_id'])) {
+                $order['measurement_id'] = $myPrimaryItem['measurement_id'];
+            }
+        }
+    }
 }
 
 if ($orderId > 0 && is_logged_in()) {
@@ -458,11 +510,11 @@ require_once 'includes/header.php';
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Standard Rate</span>
-                            <span class="fw-bold text-dark"><?php echo $clothType && $clothType['standard_rate'] ? format_currency($clothType['standard_rate']) : format_currency($order['total_amount']); ?></span>
+                            <span class="fw-bold text-dark"><?php echo $clothType && $clothType['standard_rate'] ? format_currency($clothType['standard_rate']) : (has_role('tailor') && !empty($orderItems) ? format_currency($orderItems[0]['price']) : format_currency($order['total_amount'])); ?></span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Total Amount</span>
-                            <span class="fw-bold text-dark"><?php echo format_currency($order['total_amount']); ?></span>
+                            <span class="fw-bold text-dark"><?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_column($orderItems, 'price')) : $order['total_amount']); ?></span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Status</span>
@@ -549,6 +601,100 @@ require_once 'includes/header.php';
             </div>
         </div>
     </div>
+    <?php if (!empty($orderItems)): ?>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: none;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-primary" style="font-size: 0.95rem;">
+                            <i class="fas fa-tshirt me-2"></i>Garments & Assigned Tailors (કપડાં અને માપ)
+                        </span>
+                        <span class="badge rounded-pill bg-primary" style="font-size: 0.72rem;"><?php echo count($orderItems); ?> <?php echo count($orderItems) === 1 ? 'Garment' : 'Garments'; ?></span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead style="background: #f8fafc; font-size: 0.78rem; font-weight: 700; color: #475569;">
+                            <tr>
+                                <th class="ps-4 py-3">#</th>
+                                <th class="py-3">GARMENT / CLOTH TYPE</th>
+                                <th class="py-3">MEASUREMENT</th>
+                                <th class="py-3">ASSIGNED TAILOR</th>
+                                <th class="py-3 text-end">RATE / PRICE</th>
+                                <th class="pe-4 py-3 text-center">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($orderItems as $idx => $oi): 
+                                $isMyItem = (has_role('tailor') && !empty($oi['assigned_tailor_id']) && (int)$oi['assigned_tailor_id'] === (int)get_user_id());
+                            ?>
+                            <tr style="<?php echo $isMyItem ? 'background: #f0fdf4;' : ''; ?>">
+                                <td class="ps-4 py-3 fw-bold text-muted" style="font-size: 0.85rem;">
+                                    <?php echo $idx + 1; ?>
+                                </td>
+                                <td class="py-3">
+                                    <span class="fw-bold text-dark" style="font-size: 0.88rem;">
+                                        <?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Garment'); ?>
+                                    </span>
+                                    <?php if (!empty($oi['category'])): ?>
+                                        <span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;"><?php echo htmlspecialchars($oi['category']); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-3">
+                                    <?php if (!empty($oi['measurement_id'])): ?>
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <span class="badge rounded-pill px-2 py-1" style="background: #dcfce7; color: #15803d; font-size: 0.75rem;">
+                                                <i class="fas fa-ruler-combined me-1"></i><?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Measurement'); ?>
+                                            </span>
+                                            <?php if (!has_role('tailor')): ?>
+                                                <a href="measurements.php?edit=<?php echo $oi['measurement_id']; ?>" class="btn btn-sm btn-link text-decoration-none p-0 text-muted ms-1" title="View Measurement" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted small">No Measurement Attached</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-3">
+                                    <?php if (!empty($oi['tailor_name'])): ?>
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <span class="fw-semibold text-primary" style="font-size: 0.84rem;">
+                                                <i class="fas fa-user-tie me-1"></i><?php echo htmlspecialchars($oi['tailor_name']); ?>
+                                            </span>
+                                            <?php if ($isMyItem): ?>
+                                                <span class="badge rounded-pill bg-success text-white ms-1" style="font-size: 0.65rem;">Assigned to You</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted small" style="font-style: italic;">Unassigned</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-3 text-end fw-bold text-dark" style="font-size: 0.88rem;">
+                                    <?php echo format_currency($oi['price']); ?>
+                                </td>
+                                <td class="pe-4 py-3 text-center">
+                                    <span class="badge rounded-pill px-2 py-1" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1;">
+                                        <?php echo ucfirst(str_replace('_', ' ', $oi['status'] ?? 'pending')); ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot style="background: #f8fafc; font-size: 0.84rem; font-weight: 700;">
+                            <tr>
+                                <td colspan="4" class="ps-4 py-2 text-muted text-uppercase">Total Items Combined:</td>
+                                <td class="py-2 text-end text-primary"><?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_column($orderItems, 'price')) : $order['total_amount']); ?></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">

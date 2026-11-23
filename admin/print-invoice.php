@@ -264,22 +264,53 @@ $company = $companyId ? $companyModel->find($companyId) : null;
             <thead>
                 <tr>
                     <th>Description</th>
+                    <th class="text-center" width="80">Qty</th>
+                    <th class="text-end" width="120">Rate</th>
                     <th class="text-end" width="120">Amount</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <strong>Tailoring Services</strong><br>
-                        <small class="text-muted">
-                            Order: <?php echo htmlspecialchars($invoice['order_number']); ?>
-                            <?php if (!empty($invoice['cloth_type_name'])): ?>
-                                - <?php echo htmlspecialchars($invoice['cloth_type_name']); ?>
+                <?php 
+                    $orderItems = !empty($invoice['order_id']) ? $orderModel->getOrderItems($invoice['order_id']) : [];
+                    if (!empty($orderItems)):
+                        foreach ($orderItems as $oi):
+                            $qty = !empty($oi['quantity']) ? (int)$oi['quantity'] : 1;
+                            $rate = (float)$oi['price'];
+                            $itemAmount = $qty * $rate;
+                ?>
+                    <tr>
+                        <td>
+                            <strong><?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Tailoring Garment'); ?></strong>
+                            <?php if (!empty($oi['tailor_name'])): ?>
+                                <br><small class="text-muted"><i class="fas fa-cut me-1"></i>Tailor: <?php echo htmlspecialchars($oi['tailor_name']); ?></small>
                             <?php endif; ?>
-                        </small>
-                    </td>
-                    <td class="text-end"><?php echo format_currency($invoice['subtotal']); ?></td>
-                </tr>
+                            <?php if (!empty($oi['notes'])): ?>
+                                <br><small class="text-muted"><?php echo htmlspecialchars($oi['notes']); ?></small>
+                            <?php endif; ?>
+                        </td>
+                        <td class="text-center"><?php echo $qty; ?></td>
+                        <td class="text-end"><?php echo format_currency($rate); ?></td>
+                        <td class="text-end"><?php echo format_currency($itemAmount); ?></td>
+                    </tr>
+                <?php 
+                        endforeach;
+                    else: 
+                ?>
+                    <tr>
+                        <td>
+                            <strong>Tailoring Services</strong><br>
+                            <small class="text-muted">
+                                Order: <?php echo htmlspecialchars($invoice['order_number']); ?>
+                                <?php if (!empty($invoice['cloth_type_name'])): ?>
+                                    - <?php echo htmlspecialchars($invoice['cloth_type_name']); ?>
+                                <?php endif; ?>
+                            </small>
+                        </td>
+                        <td class="text-center">1</td>
+                        <td class="text-end"><?php echo format_currency($invoice['subtotal']); ?></td>
+                        <td class="text-end"><?php echo format_currency($invoice['subtotal']); ?></td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
         </table>
         

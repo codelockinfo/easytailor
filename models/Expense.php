@@ -269,9 +269,9 @@ class Expense extends BaseModel {
         $query = "SELECT e.*, u.full_name as created_by_name
                   FROM " . $this->table . " e
                   LEFT JOIN users u ON e.created_by = u.id
-                  WHERE (e.category LIKE :search 
-                      OR e.description LIKE :search
-                      OR e.reference_number LIKE :search)";
+                  WHERE (e.category LIKE :search_cat 
+                      OR e.description LIKE :search_desc
+                      OR e.reference_number LIKE :search_ref)";
         if ($companyId) {
             $query .= " AND e.company_id = :company_id";
         }
@@ -279,7 +279,9 @@ class Expense extends BaseModel {
         
         $stmt = $this->conn->prepare($query);
         $search_pattern = '%' . $search_term . '%';
-        $stmt->bindParam(':search', $search_pattern);
+        $stmt->bindParam(':search_cat', $search_pattern);
+        $stmt->bindParam(':search_desc', $search_pattern);
+        $stmt->bindParam(':search_ref', $search_pattern);
         if ($companyId) {
             $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
         }

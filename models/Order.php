@@ -20,6 +20,22 @@ class Order extends BaseModel {
             if ($phoneCheck && $phoneCheck->rowCount() === 0) {
                 $this->conn->exec("ALTER TABLE " . $this->table . " ADD COLUMN customer_phone VARCHAR(25) DEFAULT NULL AFTER special_instructions");
             }
+            // Auto-ensure order_items columns exist
+            $itemTableCheck = $this->conn->query("SHOW TABLES LIKE 'order_items'");
+            if ($itemTableCheck && $itemTableCheck->rowCount() > 0) {
+                $tailorCol = $this->conn->query("SHOW COLUMNS FROM order_items LIKE 'assigned_tailor_id'");
+                if ($tailorCol && $tailorCol->rowCount() === 0) {
+                    $this->conn->exec("ALTER TABLE order_items ADD COLUMN assigned_tailor_id INT NULL DEFAULT NULL AFTER measurement_id");
+                }
+                $statusCol = $this->conn->query("SHOW COLUMNS FROM order_items LIKE 'status'");
+                if ($statusCol && $statusCol->rowCount() === 0) {
+                    $this->conn->exec("ALTER TABLE order_items ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending' AFTER price");
+                }
+                $notesCol = $this->conn->query("SHOW COLUMNS FROM order_items LIKE 'notes'");
+                if ($notesCol && $notesCol->rowCount() === 0) {
+                    $this->conn->exec("ALTER TABLE order_items ADD COLUMN notes TEXT NULL AFTER status");
+                }
+            }
         } catch (\Throwable $e) {
             // Silently ignore if column already exists or table locked
         }
@@ -111,21 +127,37 @@ class Order extends BaseModel {
     }
     public function getOrdersWithDetails($conditions = [], $limit = null, $offset = 0) {
         $companyId = $this->getCompanyId();
+        $isTailor = has_role('tailor');
+        $tailorId = $isTailor ? (int)get_user_id() : (!empty($conditions['assigned_tailor_id']) ? (int)$conditions['assigned_tailor_id'] : null);
+
+        $params = [];
+        $where_clauses = [];
+
+        $itemCountSub = "(SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_1" : "") . ") as item_count";
+        $clothNamesSub = "(SELECT GROUP_CONCAT(DISTINCT ct2.name SEPARATOR ', ') FROM order_items oi JOIN cloth_types ct2 ON oi.cloth_type_id = ct2.id WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_2" : "") . ") as all_cloth_type_names";
+        $tailorNamesSub = "(SELECT GROUP_CONCAT(DISTINCT u2.full_name SEPARATOR ', ') FROM order_items oi JOIN users u2 ON oi.assigned_tailor_id = u2.id WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_3" : "") . ") as all_tailor_names";
+
+        if ($isTailor) {
+            $params['tailor_ctx_1'] = $tailorId;
+            $params['tailor_ctx_2'] = $tailorId;
+            $params['tailor_ctx_3'] = $tailorId;
+        }
+
         $query = "SELECT o.*, 
                          c.first_name, c.last_name, c.customer_code, COALESCE(NULLIF(o.customer_phone, ''), NULLIF(c.phone, ''), NULLIF(ms.phone_number, '')) as customer_phone, c.email as customer_email,
                          ct.name as cloth_type_name,
                          u.full_name as tailor_name,
                          creator.full_name as created_by_name,
-                         COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, '')) as measurement_customer_name
+                         COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, '')) as measurement_customer_name,
+                         $itemCountSub,
+                         $clothNamesSub,
+                         $tailorNamesSub
                   FROM " . $this->table . " o
                   LEFT JOIN customers c ON o.customer_id = c.id
                   LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
                   LEFT JOIN users u ON o.assigned_tailor_id = u.id
                   LEFT JOIN users creator ON o.created_by = creator.id
                   LEFT JOIN measurements ms ON o.measurement_id = ms.id";
-        
-        $params = [];
-        $where_clauses = [];
         if ($companyId) {
             $where_clauses[] = "o.company_id = :company_id";
             $params['company_id'] = $companyId;
@@ -179,6 +211,20 @@ class Order extends BaseModel {
             }
             $where_clauses[] = "(" . implode(" OR ", $custClauses) . ")";
             unset($conditions['customer_id']);
+        }
+
+        if (!empty($conditions['assigned_tailor_id'])) {
+            $where_clauses[] = "(o.assigned_tailor_id = :assigned_tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id AND oi.assigned_tailor_id = :assigned_tailor_id_item))";
+            $params['assigned_tailor_id'] = $conditions['assigned_tailor_id'];
+            $params['assigned_tailor_id_item'] = $conditions['assigned_tailor_id'];
+            unset($conditions['assigned_tailor_id']);
+        }
+
+        if (!empty($conditions['cloth_type_id'])) {
+            $where_clauses[] = "(o.cloth_type_id = :cloth_type_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id AND oi.cloth_type_id = :cloth_type_id_item))";
+            $params['cloth_type_id'] = $conditions['cloth_type_id'];
+            $params['cloth_type_id_item'] = $conditions['cloth_type_id'];
+            unset($conditions['cloth_type_id']);
         }
         
         if (!empty($conditions)) {
@@ -246,7 +292,7 @@ class Order extends BaseModel {
             $query .= " AND company_id = :company_id";
         }
         if ($isTailor) {
-            $query .= " AND assigned_tailor_id = :tailor_id";
+            $query .= " AND (assigned_tailor_id = :tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = " . $this->table . ".id AND oi.assigned_tailor_id = :tailor_id_item))";
         }
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
@@ -255,6 +301,7 @@ class Order extends BaseModel {
         }
         if ($isTailor) {
             $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+            $stmt->bindParam(':tailor_id_item', $tailorId, PDO::PARAM_INT);
         }
         $stmt->execute();
         $result = $stmt->fetch();
@@ -265,7 +312,7 @@ class Order extends BaseModel {
             $query .= " AND company_id = :company_id";
         }
         if ($isTailor) {
-            $query .= " AND assigned_tailor_id = :tailor_id";
+            $query .= " AND (assigned_tailor_id = :tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = " . $this->table . ".id AND oi.assigned_tailor_id = :tailor_id_item))";
         }
         $stmt = $this->conn->prepare($query);
         if ($companyId) {
@@ -273,6 +320,7 @@ class Order extends BaseModel {
         }
         if ($isTailor) {
             $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+            $stmt->bindParam(':tailor_id_item', $tailorId, PDO::PARAM_INT);
         }
         $stmt->execute();
         $result = $stmt->fetch();
@@ -283,7 +331,7 @@ class Order extends BaseModel {
             $query .= " AND company_id = :company_id";
         }
         if ($isTailor) {
-            $query .= " AND assigned_tailor_id = :tailor_id";
+            $query .= " AND (assigned_tailor_id = :tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = " . $this->table . ".id AND oi.assigned_tailor_id = :tailor_id_item))";
         }
         $stmt = $this->conn->prepare($query);
         if ($companyId) {
@@ -291,6 +339,7 @@ class Order extends BaseModel {
         }
         if ($isTailor) {
             $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+            $stmt->bindParam(':tailor_id_item', $tailorId, PDO::PARAM_INT);
         }
         $stmt->execute();
         $result = $stmt->fetch();
@@ -463,6 +512,20 @@ class Order extends BaseModel {
         if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
         }
+        if (isset($conditions['assigned_tailor_id'])) {
+            $tailorId = (int)$conditions['assigned_tailor_id'];
+            unset($conditions['assigned_tailor_id']);
+            $query = "SELECT COUNT(*) as count FROM " . $this->table . " o WHERE (o.assigned_tailor_id = :tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id AND oi.assigned_tailor_id = :tailor_id_item))";
+            $params = [':tailor_id' => $tailorId, ':tailor_id_item' => $tailorId];
+            foreach ($conditions as $k => $v) {
+                $query .= " AND o.$k = :$k";
+                $params[":$k"] = $v;
+            }
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute($params);
+            $row = $stmt->fetch();
+            return (int)($row['count'] ?? 0);
+        }
         return parent::count($conditions);
     }
     public function update($id, $data) {
@@ -484,6 +547,85 @@ class Order extends BaseModel {
             }
         }
         return parent::delete($id);
+    }
+
+    public function getOrderItems($orderId, $tailorId = null) {
+        if (!$this->conn || !$orderId) return [];
+        $query = "SELECT oi.*, 
+                         ct.name as cloth_type_name, ct.standard_rate, ct.category,
+                         u.full_name as tailor_name,
+                         ms.name as measurement_customer_name, ms.measurement_data, ms.created_at as measurement_created_at
+                  FROM order_items oi
+                  LEFT JOIN cloth_types ct ON oi.cloth_type_id = ct.id
+                  LEFT JOIN users u ON oi.assigned_tailor_id = u.id
+                  LEFT JOIN measurements ms ON oi.measurement_id = ms.id
+                  WHERE oi.order_id = :order_id";
+        if ($tailorId !== null) {
+            $query .= " AND oi.assigned_tailor_id = :tailor_id";
+        }
+        $query .= " ORDER BY oi.id ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':order_id', $orderId, PDO::PARAM_INT);
+        if ($tailorId !== null) {
+            $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($items as &$item) {
+            if (!empty($item['measurement_data']) && is_string($item['measurement_data'])) {
+                $item['measurement_data'] = json_decode($item['measurement_data'], true);
+            }
+        }
+        return $items;
+    }
+
+    public function saveOrderItems($orderId, array $items) {
+        if (!$this->conn || !$orderId || empty($items)) {
+            return false;
+        }
+        try {
+            $delStmt = $this->conn->prepare("DELETE FROM order_items WHERE order_id = :order_id");
+            $delStmt->bindParam(':order_id', $orderId, PDO::PARAM_INT);
+            $delStmt->execute();
+
+            $insertStmt = $this->conn->prepare("
+                INSERT INTO order_items (order_id, cloth_type_id, measurement_id, assigned_tailor_id, quantity, price, status, notes)
+                VALUES (:order_id, :cloth_type_id, :measurement_id, :assigned_tailor_id, :quantity, :price, :status, :notes)
+            ");
+
+            foreach ($items as $item) {
+                $clothTypeId = !empty($item['cloth_type_id']) ? (int)$item['cloth_type_id'] : null;
+                if (!$clothTypeId) continue;
+                $measId = !empty($item['measurement_id']) ? (int)$item['measurement_id'] : null;
+                $tailorId = !empty($item['assigned_tailor_id']) ? (int)$item['assigned_tailor_id'] : null;
+                $qty = !empty($item['quantity']) ? (int)$item['quantity'] : 1;
+                $price = isset($item['price']) ? (float)$item['price'] : 0.00;
+                $status = !empty($item['status']) ? $item['status'] : 'pending';
+                $notes = !empty($item['notes']) ? $item['notes'] : null;
+
+                $insertStmt->bindValue(':order_id', $orderId, PDO::PARAM_INT);
+                $insertStmt->bindValue(':cloth_type_id', $clothTypeId, PDO::PARAM_INT);
+                $insertStmt->bindValue(':measurement_id', $measId, $measId ? PDO::PARAM_INT : PDO::PARAM_NULL);
+                $insertStmt->bindValue(':assigned_tailor_id', $tailorId, $tailorId ? PDO::PARAM_INT : PDO::PARAM_NULL);
+                $insertStmt->bindValue(':quantity', $qty, PDO::PARAM_INT);
+                $insertStmt->bindValue(':price', $price);
+                $insertStmt->bindValue(':status', $status);
+                $insertStmt->bindValue(':notes', $notes);
+                $insertStmt->execute();
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("saveOrderItems error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateOrderItemStatus($itemId, $status) {
+        if (!$this->conn || !$itemId) return false;
+        $stmt = $this->conn->prepare("UPDATE order_items SET status = :status WHERE id = :id");
+        $stmt->bindParam(':status', $status);
+        $stmt->bindParam(':id', $itemId, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }
 ?>

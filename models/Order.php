@@ -20,6 +20,26 @@ class Order extends BaseModel {
             if ($phoneCheck && $phoneCheck->rowCount() === 0) {
                 $this->conn->exec("ALTER TABLE " . $this->table . " ADD COLUMN customer_phone VARCHAR(25) DEFAULT NULL AFTER special_instructions");
             }
+            // Auto-ensure order_items table exists
+            $this->conn->exec("
+                CREATE TABLE IF NOT EXISTS order_items (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    order_id INT NOT NULL,
+                    cloth_type_id INT NOT NULL,
+                    measurement_id INT NULL DEFAULT NULL,
+                    assigned_tailor_id INT NULL DEFAULT NULL,
+                    quantity INT DEFAULT 1,
+                    price DECIMAL(10,2) DEFAULT 0.00,
+                    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                    notes TEXT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_order_id (order_id),
+                    INDEX idx_cloth_type_id (cloth_type_id),
+                    INDEX idx_measurement_id (measurement_id),
+                    INDEX idx_assigned_tailor_id (assigned_tailor_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            ");
+
             // Auto-ensure order_items columns exist
             $itemTableCheck = $this->conn->query("SHOW TABLES LIKE 'order_items'");
             if ($itemTableCheck && $itemTableCheck->rowCount() > 0) {

@@ -685,7 +685,12 @@ include 'includes/page-header.php';
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Measurements</label>
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                            <label class="form-label mb-0">Measurements</label>
+                            <span id="measurementValidationError" class="text-danger small fw-medium" style="display: none; background-color: #fee2e2; color: #dc2626 !important; border: 1px solid #fca5a5; padding: 2px 10px; border-radius: 6px; font-size: 0.82rem;">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please add at least one measurement with both name and value.
+                            </span>
+                        </div>
                         <div id="measurementFieldsContainer">
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomMeasurementField()">
@@ -867,13 +872,19 @@ function debugFormSubmission(event) {
     const clothTypeId = document.getElementById('cloth_type_id').value;
     
     if (!name) {
-        alert('Please enter customer name.');
+        const nameInput = document.getElementById('name');
+        if (nameInput) {
+            nameInput.reportValidity ? nameInput.reportValidity() : nameInput.focus();
+        }
         event.preventDefault();
         return false;
     }
     
     if (!clothTypeId) {
-        alert('Please select a cloth type.');
+        const clothSelect = document.getElementById('cloth_type_id');
+        if (clothSelect) {
+            clothSelect.reportValidity ? clothSelect.reportValidity() : clothSelect.focus();
+        }
         event.preventDefault();
         return false;
     }
@@ -890,11 +901,24 @@ function debugFormSubmission(event) {
     }
     
     if (!hasValidMeasurement) {
-        alert('Please add at least one measurement with both name and value.');
+        const valError = document.getElementById('measurementValidationError');
+        if (valError) {
+            valError.style.display = 'inline-flex';
+            valError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        const firstValInput = document.querySelector('#measurementFieldsContainer input[name="measurement_values[]"], #measurementFieldsContainer select[name="measurement_values[]"]');
+        if (firstValInput) {
+            firstValInput.focus();
+            firstValInput.classList.add('is-invalid');
+        }
         event.preventDefault();
         return false;
     }
     
+    const valSuccess = document.getElementById('measurementValidationError');
+    if (valSuccess) {
+        valSuccess.style.display = 'none';
+    }
     console.log('Form validation passed, submitting...');
     return true;
 }
@@ -1175,15 +1199,30 @@ function editMeasurement(measurement) {
 }
 
 
-// Reset modal when closed
+// Remove validation error on user input inside measurement container
+const measurementFieldsCont = document.getElementById('measurementFieldsContainer');
+if (measurementFieldsCont) {
+    ['input', 'change'].forEach(evt => {
+        measurementFieldsCont.addEventListener(evt, function(e) {
+            const valError = document.getElementById('measurementValidationError');
+            if (valError) valError.style.display = 'none';
+            if (e.target && e.target.classList.contains('is-invalid')) {
+                e.target.classList.remove('is-invalid');
+            }
+        });
+    });
+}
+
 document.getElementById('addMeasurementModal').addEventListener('hidden.bs.modal', function() {
-    // Reset modal title
+    const valErrorEl = document.getElementById('measurementValidationError');
+    if (valErrorEl) {
+        valErrorEl.style.display = 'none';
+    }
+
     document.querySelector('#addMeasurementModal .modal-title').textContent = 'Add New Measurement';
     
-    // Reset form action
     document.querySelector('#addMeasurementModal form input[name="action"]').value = 'add';
     
-    // Remove measurement ID field if exists
     const measurementIdField = document.querySelector('input[name="measurement_id"]');
     if (measurementIdField) {
         measurementIdField.remove();

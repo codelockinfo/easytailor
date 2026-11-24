@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
                             $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
                             if (!empty($cleanItems)) {
-                                $waMsg .= "👗 *Items (કપડાં):*\n";
+                                $waMsg .= "👗 *Items :*\n";
                                 foreach ($cleanItems as $ci) {
                                     $ctName = '';
                                     if (!empty($clothTypes) && is_array($clothTypes)) {
@@ -313,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
                         $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
                         if (!empty($cleanItems)) {
-                            $waMsg .= "👗 *Items (કપડાં):*\n";
+                            $waMsg .= "👗 *Items:*\n";
                             foreach ($cleanItems as $ci) {
                                 $ctName = '';
                                 if (!empty($clothTypes) && is_array($clothTypes)) {
@@ -466,6 +466,9 @@ if (!empty($customer_id_filter)) {
     $custObj = $customerModel->find((int)$customer_id_filter);
     if ($custObj) {
         $filteredCustomerName = trim(($custObj['first_name'] ?? '') . ' ' . ($custObj['last_name'] ?? ''));
+        if (empty($filteredCustomerName) && !empty($custObj['name'])) {
+            $filteredCustomerName = trim($custObj['name']);
+        }
     }
     if (empty($allOrders)) {
         $custOrders = $orderModel->getCustomerOrders((int)$customer_id_filter, $custObj);
@@ -487,9 +490,11 @@ if (!empty($search)) {
     $allOrders = array_filter($allOrders, function($order) use ($searchLower) {
         $displayCustName = !empty($order['measurement_customer_name']) 
             ? $order['measurement_customer_name'] 
-            : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+            : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
+        $clothNames = ($order['all_cloth_type_names'] ?? '') . ' ' . ($order['cloth_type_name'] ?? '');
         return strpos(strtolower($order['order_number'] ?? ''), $searchLower) !== false ||
                strpos(strtolower($displayCustName), $searchLower) !== false ||
+               strpos(strtolower($clothNames), $searchLower) !== false ||
                strpos(strtolower($order['customer_phone'] ?? ''), $searchLower) !== false;
     });
     $allOrders = array_values($allOrders);
@@ -1140,7 +1145,10 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     </thead>
                     <tbody id="ordersTableBody">
                         <?php foreach ($orders as $index => $order): 
-                            $custName = display_val($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name']));
+                            $rawCustName = !empty($order['measurement_customer_name']) 
+                                ? $order['measurement_customer_name'] 
+                                : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
+                            $custName = display_val($rawCustName);
                             $initial = strtoupper(mb_substr(trim($custName), 0, 1) ?: 'C');
                             $avColor = getCustomerAvatarDesign($custName, $index);
                             $isOverdue = $order['due_date'] < date('Y-m-d') && !in_array($order['status'], ['completed', 'delivered', 'cancelled']);
@@ -1343,7 +1351,10 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
             </div>
             <div class="d-md-none d-flex flex-column gap-3 mb-3" id="ordersMobileCardsList">
                 <?php foreach ($orders as $index => $order): 
-                    $custName = display_val($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name']));
+                    $rawCustName = !empty($order['measurement_customer_name']) 
+                        ? $order['measurement_customer_name'] 
+                        : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
+                    $custName = display_val($rawCustName);
                     $initial = strtoupper(mb_substr(trim($custName), 0, 1) ?: 'C');
                     $avColor = getCustomerAvatarDesign($custName, $index);
                     $isOverdue = $order['due_date'] < date('Y-m-d') && !in_array($order['status'], ['completed', 'delivered', 'cancelled']);

@@ -203,4 +203,6 @@ foreach ($upload_subdirs as $subdir) {
 define('RAZORPAY_KEY_ID', getenv('RAZORPAY_KEY_ID') ?: 'rzp_test_RfbZw5apB4THcH');
 define('RAZORPAY_KEY_SECRET', getenv('RAZORPAY_KEY_SECRET') ?: 'CEpjpNKALClK7tuKFf20D9VM');
 define('RAZORPAY_MODE', getenv('RAZORPAY_MODE') ?: 'test'); 
+define('SLACK_API_KEY', getenv('SLACK_API_KEY') ?: 'xoxb-8593020489572-12713477653856-df4IYSuYaRtL52OJrvU92RdR');
+define('CHANNEL_ID', getenv('CHANNEL_ID') ?: 'C0CLMJC15DJ'); 
 ?>

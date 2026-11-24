@@ -389,7 +389,7 @@ include 'includes/page-header.php';
     <div class="col-6 col-sm-3 col-md-2">
         <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
     </div>
-    <div class="col-12 col-md-4 d-flex gap-2 justify-content-end">
+    <div class="col-6  col-sm-3 col-md-2">
         <button type="button" id="clearSearch" class="btn btn-outline-danger align-items-center justify-content-center" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo empty($search) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
             <i class="fas fa-times me-1"></i> Clear
         </button>
@@ -405,10 +405,7 @@ include 'includes/page-header.php';
                 <i class="fas fa-lock me-1 text-warning"></i> Export
             </a>
         <?php endif; ?>
-        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 flex-grow-1 text-nowrap px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#customerModal">
-            <i class="fas fa-plus"></i>
-            <span>Add Customer</span>
-        </button>
+       
     </div>
 </div>
 

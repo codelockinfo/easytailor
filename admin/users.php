@@ -279,6 +279,15 @@ require_once 'includes/header.php';
     cursor: pointer;
     text-decoration: none;
 }
+.cat-action-view {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+.cat-action-view:hover {
+    background: #dcfce7;
+    color: #15803d;
+}
 .cat-action-edit {
     background: #eff6ff;
     color: #2563eb;
@@ -551,10 +560,21 @@ include 'includes/page-header.php';
                                 <?php endif; ?>
                             </td>
                             <td class="py-3">
-                                <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;">
-                                    <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
-                                    <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
-                                </span>
+                                <?php if ($user['role'] === 'tailor'): ?>
+                                    <span class="badge fw-medium d-inline-flex align-items-center gap-1" 
+                                          style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: transform 0.15s ease;" 
+                                          onclick="viewTailorAssignments(<?php echo (int)$user['id']; ?>)" 
+                                          title="Click to view assigned orders & garments">
+                                        <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
+                                        <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
+                                        <i class="fas fa-external-link-alt ms-1" style="font-size: 0.6rem; opacity: 0.75;"></i>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;">
+                                        <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
+                                        <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td class="py-3">
                                 <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: <?php echo $isActive ? '#dcfce7' : '#f1f5f9'; ?>; color: <?php echo $isActive ? '#15803d' : '#64748b'; ?>; border: 1px solid <?php echo $isActive ? '#bbf7d0' : '#e2e8f0'; ?>; font-size: 0.72rem;">
@@ -566,6 +586,14 @@ include 'includes/page-header.php';
                             </td>
                             <td class="pe-3 py-3 text-end">
                                 <div class="d-inline-flex align-items-center gap-1">
+                                    <?php if ($user['role'] === 'tailor'): ?>
+                                    <button type="button" 
+                                            class="cat-action-btn cat-action-view" 
+                                            onclick="viewTailorAssignments(<?php echo (int)$user['id']; ?>)"
+                                            title="View Tailor Orders & Garments">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <?php endif; ?>
                                     <button type="button" 
                                             class="cat-action-btn cat-action-edit" 
                                             onclick="editUser(<?php echo htmlspecialchars(json_encode($user)); ?>)"
@@ -610,10 +638,21 @@ include 'includes/page-header.php';
                             </div>
                         </div>
                         <div class="d-flex flex-column align-items-end gap-1">
-                            <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px;">
-                                <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
-                                <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
-                            </span>
+                            <?php if ($user['role'] === 'tailor'): ?>
+                                <span class="badge fw-medium d-inline-flex align-items-center gap-1" 
+                                      style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px; cursor: pointer;" 
+                                      onclick="viewTailorAssignments(<?php echo (int)$user['id']; ?>)" 
+                                      title="Click to view assigned orders">
+                                    <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
+                                    <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
+                                    <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem; opacity: 0.75;"></i>
+                                </span>
+                            <?php else: ?>
+                                <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px;">
+                                    <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
+                                    <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
+                                </span>
+                            <?php endif; ?>
                             <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: <?php echo $isActive ? '#dcfce7' : '#f1f5f9'; ?>; color: <?php echo $isActive ? '#15803d' : '#64748b'; ?>; border: 1px solid <?php echo $isActive ? '#bbf7d0' : '#e2e8f0'; ?>; font-size: 0.7rem;">
                                 <?php echo ucfirst($user['status'] ?? 'Active'); ?>
                             </span>
@@ -645,6 +684,14 @@ include 'includes/page-header.php';
 
                     <!-- Footer: Actions -->
                     <div class="d-flex align-items-center justify-content-end gap-1 pt-1">
+                        <?php if ($user['role'] === 'tailor'): ?>
+                        <button type="button" 
+                                class="cat-action-btn cat-action-view" 
+                                onclick="viewTailorAssignments(<?php echo (int)$user['id']; ?>)"
+                                title="View Tailor Orders & Garments">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <?php endif; ?>
                         <button type="button" 
                                 class="cat-action-btn cat-action-edit" 
                                 onclick="editUser(<?php echo htmlspecialchars(json_encode($user)); ?>)"
@@ -855,8 +902,409 @@ include 'includes/page-header.php';
     </div>
 </div>
 
+<!-- Tailor Assigned Orders & Garments Modal -->
+<div class="modal fade" id="tailorViewModal" tabindex="-1" aria-labelledby="tailorViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 18px; overflow: hidden;">
+            <!-- Modal Header -->
+            <div class="modal-header border-bottom py-3 px-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; border-radius: 12px; background: #ede9fe; color: #7c3aed; font-size: 1.1rem; border: 1px solid #ddd6fe;">
+                        <i class="fas fa-cut"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="tailorViewModalLabel">Tailor Details & Assigned Orders</h5>
+                        <small class="text-muted" style="font-size: 0.78rem;">View tailor profile, assigned garments, and order progress</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-3 p-md-4" style="background-color: #fafbfc;">
+                <!-- Loader -->
+                <div id="tailorModalLoader" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 2.8rem; height: 2.8rem;"></div>
+                    <div class="fw-semibold text-dark mb-1">Loading Tailor Information...</div>
+                    <small class="text-muted">Fetching assigned orders and garments</small>
+                </div>
+
+                <!-- Error Box -->
+                <div id="tailorModalError" class="alert alert-danger py-3 px-4 mb-3" style="display: none; border-radius: 12px;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="tailorModalErrorMsg">Unable to load tailor details.</span>
+                </div>
+
+                <!-- Content Container -->
+                <div id="tailorModalContent" style="display: none;">
+                    <!-- 1. Tailor Profile Summary Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0 !important;">
+                        <div class="card-body p-3 p-md-4">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div id="tailorViewAvatar" class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 52px; height: 52px; border-radius: 14px; font-size: 1.3rem; background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe;">
+                                        T
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <h5 class="fw-bold text-dark mb-0" id="tailorViewName">Tailor Name</h5>
+                                            <span class="badge fw-medium d-inline-flex align-items-center gap-1" id="tailorViewRoleBadge" style="background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">
+                                                <i class="fas fa-cut"></i> Tailor
+                                            </span>
+                                            <span class="badge rounded-pill fw-semibold px-2 py-1" id="tailorViewStatusBadge" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 0.7rem;">
+                                                Active
+                                            </span>
+                                        </div>
+                                        <div class="text-muted small mt-1">
+                                            <span>@<span id="tailorViewUsername">username</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 gap-md-4 align-items-center" style="font-size: 0.83rem;">
+                                    <div id="tailorViewEmailWrap">
+                                        <i class="fas fa-envelope text-muted me-1"></i>
+                                        <span id="tailorViewEmail" class="text-dark fw-medium">—</span>
+                                    </div>
+                                    <div id="tailorViewPhoneWrap">
+                                        <i class="fas fa-phone text-muted me-1"></i>
+                                        <span id="tailorViewPhone" class="text-dark fw-medium">—</span>
+                                    </div>
+                                    <div>
+                                        <i class="far fa-calendar-alt text-muted me-1"></i>
+                                        <span class="text-muted">Joined:</span> <span id="tailorViewJoined" class="text-dark fw-medium">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Pastel Stat Boxes -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center rounded-3 h-100" style="background: #eff6ff; border: 1px solid #dbeafe;">
+                                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.5px;">TOTAL ASSIGNED</span>
+                                <div class="fs-4 fw-bold text-dark mt-1" id="tailorStatTotal">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center rounded-3 h-100" style="background: #fffbeb; border: 1px solid #fef3c7;">
+                                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.5px;">PENDING</span>
+                                <div class="fs-4 fw-bold text-dark mt-1" id="tailorStatPending">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center rounded-3 h-100" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+                                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.5px;">IN PROGRESS</span>
+                                <div class="fs-4 fw-bold text-dark mt-1" id="tailorStatInProgress">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center rounded-3 h-100" style="background: #faf5ff; border: 1px solid #ede9fe;">
+                                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.5px;">COMPLETED / DONE</span>
+                                <div class="fs-4 fw-bold text-dark mt-1" id="tailorStatCompleted">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Filter Row inside Modal -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3 flex-wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-dark" style="font-size: 0.92rem;">Assigned Garments & Orders</span>
+                            <span class="badge rounded-pill bg-light text-dark border px-2 py-1" id="tailorItemsCountBadge" style="font-size: 0.72rem;">0 Items</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 justify-content-end">
+                            <select id="tailorModalStatusFilter" class="form-select form-select-sm" style="width: auto; min-width: 130px; border-radius: 10px; font-size: 0.8rem; height: 36px;">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="delivered">Delivered</option>
+                            </select>
+                            <div class="position-relative" style="min-width: 160px;">
+                                <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.75rem;"></i>
+                                <input type="text" id="tailorModalSearchInput" class="form-control form-control-sm ps-4" placeholder="Filter cloth/customer..." style="border-radius: 10px; font-size: 0.8rem; height: 36px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Table (Desktop) -->
+                    <div class="card border-0 shadow-sm" style="border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0 !important;">
+                        <div class="table-responsive d-none d-md-block">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead>
+                                    <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                        <th class="ps-3 py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">#</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">ORDER #</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">CUSTOMER</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">GARMENT / CLOTH TYPE</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">DUE DATE</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">STATUS</th>
+                                        <th class="pe-3 py-2 text-end text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tailorModalTableBody">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 5. Cards (Mobile) -->
+                        <div class="d-md-none p-2 d-flex flex-column gap-2" id="tailorModalCardsBody">
+                            <!-- Rendered dynamically -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="tailorModalEmptyState" class="text-center py-5" style="display: none;">
+                            <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                                <i class="fas fa-clipboard-list fa-lg"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">No assigned garments found</div>
+                            <small class="text-muted">No orders match the selected filter criteria.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer border-top py-2 px-4" style="background: #fafafa;">
+                <button type="button" class="btn btn-secondary px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 10px; font-size: 0.85rem;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const currentLoggedInUserId = <?php echo (int)get_user_id(); ?>;
+let currentTailorData = null;
+
+function viewTailorAssignments(userId) {
+    const modalEl = document.getElementById('tailorViewModal');
+    if (!modalEl) return;
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    bsModal.show();
+
+    const loader = document.getElementById('tailorModalLoader');
+    const content = document.getElementById('tailorModalContent');
+    const errorBox = document.getElementById('tailorModalError');
+    const errorMsg = document.getElementById('tailorModalErrorMsg');
+
+    loader.style.display = 'block';
+    content.style.display = 'none';
+    errorBox.style.display = 'none';
+
+    // Reset filters
+    const statusFilter = document.getElementById('tailorModalStatusFilter');
+    const searchFilter = document.getElementById('tailorModalSearchInput');
+    if (statusFilter) statusFilter.value = '';
+    if (searchFilter) searchFilter.value = '';
+
+    fetch(`ajax/get_tailor_assignments.php?user_id=${encodeURIComponent(userId)}`)
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch tailor assignments');
+            }
+            currentTailorData = data;
+            renderTailorModal(data);
+            loader.style.display = 'none';
+            content.style.display = 'block';
+        })
+        .catch(err => {
+            console.error('Error fetching tailor assignments:', err);
+            loader.style.display = 'none';
+            errorBox.style.display = 'block';
+            errorMsg.textContent = err.message || 'Error loading tailor details';
+        });
+}
+
+function renderTailorModal(data) {
+    const user = data.user || {};
+    const stats = data.stats || {};
+    const items = data.items || [];
+
+    // Profile info
+    const cleanName = user.full_name || user.username || 'Tailor';
+    const initial = cleanName.charAt(0).toUpperCase() || 'T';
+    document.getElementById('tailorViewName').textContent = cleanName;
+    document.getElementById('tailorViewAvatar').textContent = initial;
+    document.getElementById('tailorViewUsername').textContent = user.username || '';
+    document.getElementById('tailorViewEmail').textContent = user.email || '—';
+    document.getElementById('tailorViewPhone').textContent = user.phone || '—';
+
+    const joinedDate = (() => {
+        if (!user.created_at) return '—';
+        try {
+            const d = new Date(user.created_at);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch (e) {
+            return user.created_at;
+        }
+    })();
+    document.getElementById('tailorViewJoined').textContent = joinedDate;
+
+    // Status badge
+    const isActive = (user.status || 'active').toLowerCase() === 'active';
+    const statusBadge = document.getElementById('tailorViewStatusBadge');
+    statusBadge.textContent = isActive ? 'Active' : 'Inactive';
+    statusBadge.style.background = isActive ? '#dcfce7' : '#f1f5f9';
+    statusBadge.style.color = isActive ? '#15803d' : '#64748b';
+    statusBadge.style.borderColor = isActive ? '#bbf7d0' : '#e2e8f0';
+
+    // Stats
+    document.getElementById('tailorStatTotal').textContent = stats.total || 0;
+    document.getElementById('tailorStatPending').textContent = stats.pending || 0;
+    document.getElementById('tailorStatInProgress').textContent = stats.in_progress || 0;
+    document.getElementById('tailorStatCompleted').textContent = (stats.completed || 0) + (stats.delivered || 0);
+
+    renderTailorItemsList(items);
+}
+
+function renderTailorItemsList(items) {
+    const tableBody = document.getElementById('tailorModalTableBody');
+    const cardsBody = document.getElementById('tailorModalCardsBody');
+    const emptyState = document.getElementById('tailorModalEmptyState');
+    const countBadge = document.getElementById('tailorItemsCountBadge');
+
+    const statusFilterVal = (document.getElementById('tailorModalStatusFilter')?.value || '').toLowerCase();
+    const searchVal = (document.getElementById('tailorModalSearchInput')?.value || '').toLowerCase().trim();
+
+    const filtered = items.filter(it => {
+        const st = (it.garment_status || 'pending').toLowerCase();
+        if (statusFilterVal && st !== statusFilterVal) return false;
+        if (searchVal) {
+            const matchesOrder = (it.order_number || '').toLowerCase().includes(searchVal);
+            const matchesCust = (it.customer_name || '').toLowerCase().includes(searchVal);
+            const matchesCloth = (it.cloth_type_name || '').toLowerCase().includes(searchVal);
+            const matchesPhone = (it.customer_phone || '').toLowerCase().includes(searchVal);
+            if (!matchesOrder && !matchesCust && !matchesCloth && !matchesPhone) return false;
+        }
+        return true;
+    });
+
+    if (countBadge) {
+        countBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Item' : 'Items'}`;
+    }
+
+    if (filtered.length === 0) {
+        if (tableBody) tableBody.innerHTML = '';
+        if (cardsBody) cardsBody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    const statusBadgeMap = {
+        'pending': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7', label: 'Pending' },
+        'in_progress': { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe', label: 'In Progress' },
+        'completed': { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0', label: 'Completed' },
+        'delivered': { bg: '#faf5ff', color: '#7c3aed', border: '#ede9fe', label: 'Delivered' },
+        'cancelled': { bg: '#fef2f2', color: '#b91c1c', border: '#fee2e2', label: 'Cancelled' }
+    };
+
+    let tableHtml = '';
+    let cardsHtml = '';
+
+    filtered.forEach((it, idx) => {
+        const stKey = (it.garment_status || 'pending').toLowerCase();
+        const bStyle = statusBadgeMap[stKey] || statusBadgeMap['pending'];
+        const dueFormatted = it.due_date ? it.due_date : '—';
+        const isOverdue = it.due_date && new Date(it.due_date) < new Date() && !['completed', 'delivered', 'cancelled'].includes(stKey);
+
+        // Desktop row
+        tableHtml += `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td class="ps-3 py-3 text-muted" style="font-size: 0.78rem;">${idx + 1}</td>
+                <td class="py-3">
+                    <a href="order-details.php?id=${encodeURIComponent(it.order_id)}" class="badge fw-semibold text-decoration-none" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">
+                        #${escapeHtml(it.order_number)} <i class="fas fa-external-link-alt ms-1" style="font-size: 0.6rem;"></i>
+                    </a>
+                </td>
+                <td class="py-3">
+                    <div class="fw-bold text-dark" style="font-size: 0.85rem;">${escapeHtml(it.customer_name)}</div>
+                    ${it.customer_phone ? `<small class="text-muted" style="font-size: 0.72rem;">${escapeHtml(it.customer_phone)}</small>` : ''}
+                </td>
+                <td class="py-3">
+                    <span class="badge fw-medium" style="background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; font-size: 0.8rem; padding: 5px 9px; border-radius: 8px;">
+                        <i class="fas fa-tshirt me-1 text-primary" style="font-size: 0.75rem;"></i>${escapeHtml(it.cloth_type_name)}
+                    </span>
+                    ${it.quantity && it.quantity > 1 ? `<span class="badge bg-light text-muted border ms-1" style="font-size: 0.68rem;">Qty: ${it.quantity}</span>` : ''}
+                </td>
+                <td class="py-3" style="font-size: 0.82rem;">
+                    <span class="${isOverdue ? 'text-danger fw-bold' : 'text-dark'}">
+                        ${isOverdue ? '<i class="fas fa-exclamation-circle text-danger me-1"></i>' : ''}${escapeHtml(dueFormatted)}
+                    </span>
+                </td>
+                <td class="py-3">
+                    <span class="badge fw-semibold px-2 py-1" style="background: ${bStyle.bg}; color: ${bStyle.color}; border: 1px solid ${bStyle.border}; font-size: 0.72rem; border-radius: 6px;">
+                        ${escapeHtml(bStyle.label)}
+                    </span>
+                </td>
+                <td class="pe-3 py-3 text-end">
+                    <a href="order-details.php?id=${encodeURIComponent(it.order_id)}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" style="border-radius: 8px; font-size: 0.75rem; padding: 3px 8px;">
+                        <i class="fas fa-eye"></i> View Order
+                    </a>
+                </td>
+            </tr>
+        `;
+
+        // Mobile card
+        cardsHtml += `
+            <div class="p-3 bg-white rounded-3 border shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <a href="order-details.php?id=${encodeURIComponent(it.order_id)}" class="badge fw-semibold text-decoration-none" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.78rem;">
+                        #${escapeHtml(it.order_number)}
+                    </a>
+                    <span class="badge fw-semibold px-2 py-1" style="background: ${bStyle.bg}; color: ${bStyle.color}; border: 1px solid ${bStyle.border}; font-size: 0.7rem; border-radius: 6px;">
+                        ${escapeHtml(bStyle.label)}
+                    </span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 0.88rem;">${escapeHtml(it.customer_name)}</div>
+                        ${it.customer_phone ? `<small class="text-muted" style="font-size: 0.72rem;">${escapeHtml(it.customer_phone)}</small>` : ''}
+                    </div>
+                    <span class="badge fw-medium" style="background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; font-size: 0.78rem;">
+                        ${escapeHtml(it.cloth_type_name)}
+                    </span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="font-size: 0.78rem;">
+                    <span class="${isOverdue ? 'text-danger fw-bold' : 'text-muted'}">
+                        Due: ${escapeHtml(dueFormatted)}
+                    </span>
+                    <a href="order-details.php?id=${encodeURIComponent(it.order_id)}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.72rem; border-radius: 6px;">
+                        <i class="fas fa-eye me-1"></i>View
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+
+    if (tableBody) tableBody.innerHTML = tableHtml;
+    if (cardsBody) cardsBody.innerHTML = cardsHtml;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSel = document.getElementById('tailorModalStatusFilter');
+    const searchInp = document.getElementById('tailorModalSearchInput');
+    if (statusSel) {
+        statusSel.addEventListener('change', function() {
+            if (currentTailorData && currentTailorData.items) {
+                renderTailorItemsList(currentTailorData.items);
+            }
+        });
+    }
+    if (searchInp) {
+        searchInp.addEventListener('input', function() {
+            if (currentTailorData && currentTailorData.items) {
+                renderTailorItemsList(currentTailorData.items);
+            }
+        });
+    }
+});
 
 function editUser(user) {
     document.getElementById('userModalTitle').textContent = 'Edit User';
@@ -1271,9 +1719,10 @@ function updateUsersTable(users) {
                     ` : '<span class="text-muted small">—</span>'}
                 </td>
                 <td class="py-3">
-                    <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: ${roleBadge.bg}; color: ${roleBadge.color}; border: 1px solid ${roleBadge.border}; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;">
+                    <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: ${roleBadge.bg}; color: ${roleBadge.color}; border: 1px solid ${roleBadge.border}; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; ${user.role === 'tailor' ? 'cursor: pointer;' : ''}" ${user.role === 'tailor' ? `onclick="viewTailorAssignments(${user.id})" title="Click to view assigned orders"` : ''}>
                         <i class="fas fa-${roleBadge.icon}"></i>
                         <span>${escapeHtml(user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User')}</span>
+                        ${user.role === 'tailor' ? '<i class="fas fa-external-link-alt ms-1" style="font-size: 0.6rem; opacity: 0.75;"></i>' : ''}
                     </span>
                 </td>
                 <td class="py-3">
@@ -1286,6 +1735,14 @@ function updateUsersTable(users) {
                 </td>
                 <td class="pe-3 py-3 text-end">
                     <div class="d-inline-flex align-items-center gap-1">
+                        ${user.role === 'tailor' ? `
+                        <button type="button" 
+                                class="cat-action-btn cat-action-view" 
+                                onclick="viewTailorAssignments(${user.id})" 
+                                title="View Tailor Orders & Garments">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ` : ''}
                         <button type="button" 
                                 class="cat-action-btn cat-action-edit edit-user-btn" 
                                 data-user='${userJson}' 
@@ -1318,9 +1775,10 @@ function updateUsersTable(users) {
                         </div>
                     </div>
                     <div class="d-flex flex-column align-items-end gap-1">
-                        <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: ${roleBadge.bg}; color: ${roleBadge.color}; border: 1px solid ${roleBadge.border}; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px;">
+                        <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: ${roleBadge.bg}; color: ${roleBadge.color}; border: 1px solid ${roleBadge.border}; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px; ${user.role === 'tailor' ? 'cursor: pointer;' : ''}" ${user.role === 'tailor' ? `onclick="viewTailorAssignments(${user.id})" title="Click to view assigned orders"` : ''}>
                             <i class="fas fa-${roleBadge.icon}"></i>
                             <span>${escapeHtml(user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User')}</span>
+                            ${user.role === 'tailor' ? '<i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem; opacity: 0.75;"></i>' : ''}
                         </span>
                         <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: ${isActive ? '#dcfce7' : '#f1f5f9'}; color: ${isActive ? '#15803d' : '#64748b'}; border: 1px solid ${isActive ? '#bbf7d0' : '#e2e8f0'}; font-size: 0.7rem;">
                             ${isActive ? 'Active' : 'Inactive'}
@@ -1351,6 +1809,14 @@ function updateUsersTable(users) {
                 </div>
 
                 <div class="d-flex align-items-center justify-content-end gap-1 pt-1">
+                    ${user.role === 'tailor' ? `
+                    <button type="button" 
+                            class="cat-action-btn cat-action-view" 
+                            onclick="viewTailorAssignments(${user.id})" 
+                            title="View Tailor Orders & Garments">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ` : ''}
                     <button type="button" 
                             class="cat-action-btn cat-action-edit edit-user-btn" 
                             data-user='${userJson}' 

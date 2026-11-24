@@ -72,17 +72,28 @@ try {
     
     // If search is provided, filter results manually
     if (!empty($search)) {
-        $searchLower = strtolower($search);
-        $orders = array_filter($orders, function($order) use ($searchLower) {
-            $customerName = trim($order['first_name'] . ' ' . $order['last_name']);
-            return strpos(strtolower($order['order_number']), $searchLower) !== false ||
+        $searchLower = strtolower(trim($search));
+        $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+        $orders = array_filter($allOrders, function($order) use ($searchLower) {
+            $customerName = !empty($order['measurement_customer_name']) 
+                ? $order['measurement_customer_name'] 
+                : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
+            $clothNames = ($order['all_cloth_type_names'] ?? '') . ' ' . ($order['cloth_type_name'] ?? '');
+            return strpos(strtolower($order['order_number'] ?? ''), $searchLower) !== false ||
                    strpos(strtolower($customerName), $searchLower) !== false ||
+                   strpos(strtolower($clothNames), $searchLower) !== false ||
                    strpos(strtolower($order['customer_phone'] ?? ''), $searchLower) !== false;
         });
+        $orders = array_values($orders);
+        $totalOrders = count($orders);
+        $orders = array_slice($orders, $offset, $limit);
+    } else {
+        $allOrders = $orderModel->getOrdersWithDetails($conditions, null, 0);
+        $totalOrders = count($allOrders);
+        $orders = array_slice($allOrders, $offset, $limit);
     }
     
-    $totalOrders = count($orders);
-    $totalPages = ceil($totalOrders / $limit);
+    $totalPages = $limit > 0 ? ceil($totalOrders / $limit) : 1;
     
     // Get filter options
     $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
@@ -99,9 +110,17 @@ try {
     // Format orders for display - match original table structure exactly
     $formattedOrders = [];
     foreach ($orders as $order) {
+        $cName = !empty($order['measurement_customer_name']) 
+            ? $order['measurement_customer_name'] 
+            : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
         $formattedOrders[] = [
             'id' => $order['id'],
             'order_number' => htmlspecialchars($order['order_number']),
+            'customer_name' => htmlspecialchars($cName),
+            'display_customer_name' => htmlspecialchars($cName),
+            'item_count' => (int)($order['item_count'] ?? 0),
+            'all_cloth_type_names' => htmlspecialchars($order['all_cloth_type_names'] ?? ''),
+            'all_tailor_names' => htmlspecialchars($order['all_tailor_names'] ?? ''),
             'first_name' => htmlspecialchars($order['first_name'] ?? ''),
             'last_name' => htmlspecialchars($order['last_name'] ?? ''),
             'customer_code' => htmlspecialchars($order['customer_code'] ?? ''),
@@ -146,6 +165,7 @@ try {
         }, $tailors ?: [])
     ];
     
+    ob_clean();
     echo json_encode([
         'success' => true,
         'orders' => $formattedOrders,

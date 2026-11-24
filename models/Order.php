@@ -212,7 +212,10 @@ class Order extends BaseModel {
             $phone = '';
             if ($cData) {
                 $fullName = trim(($cData['first_name'] ?? '') . ' ' . ($cData['last_name'] ?? ''));
-                $phone = !empty($cData['phone']) ? preg_replace('/\D/', '', $cData['phone']) : '';
+                if (empty($fullName) && !empty($cData['name'])) {
+                    $fullName = trim($cData['name']);
+                }
+                $phone = !empty($cData['phone']) ? preg_replace('/\D/', '', $cData['phone']) : (!empty($cData['phone_number']) ? preg_replace('/\D/', '', $cData['phone_number']) : '');
             }
             $custClauses = ["o.customer_id = :cust_filter_id", "o.measurement_id = :cust_filter_m_id"];
             $params['cust_filter_id'] = $custId;
@@ -223,14 +226,29 @@ class Order extends BaseModel {
                 $params['cust_filter_name'] = strtolower($fullName);
                 $params['cust_filter_ms_name'] = strtolower($fullName);
             }
-            if (!empty($phone)) {
-                $custClauses[] = "REPLACE(REPLACE(o.customer_phone, '+', ''), ' ', '') = :cust_filter_phone";
-                $custClauses[] = "REPLACE(REPLACE(c.phone, '+', ''), ' ', '') = :cust_filter_c_phone";
+            if (!empty($phone) && !empty($fullName)) {
+                $custClauses[] = "(REPLACE(REPLACE(o.customer_phone, '+', ''), ' ', '') = :cust_filter_phone AND (o.customer_name IS NULL OR TRIM(o.customer_name) = '' OR LOWER(TRIM(o.customer_name)) = :cust_filter_phone_name))";
                 $params['cust_filter_phone'] = $phone;
-                $params['cust_filter_c_phone'] = $phone;
+                $params['cust_filter_phone_name'] = strtolower($fullName);
             }
             $where_clauses[] = "(" . implode(" OR ", $custClauses) . ")";
             unset($conditions['customer_id']);
+        }
+
+        if (!empty($conditions['search'])) {
+            $searchTerm = '%' . strtolower(trim($conditions['search'])) . '%';
+            $cleanSearchPhone = '%' . preg_replace('/\D/', '', $conditions['search']) . '%';
+            $where_clauses[] = "(LOWER(o.order_number) LIKE :search_term 
+                                OR LOWER(o.customer_name) LIKE :search_term 
+                                OR LOWER(ms.name) LIKE :search_term 
+                                OR LOWER(CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, ''))) LIKE :search_term 
+                                OR ct.name LIKE :search_term
+                                OR EXISTS (SELECT 1 FROM order_items oi2 JOIN cloth_types ct3 ON oi2.cloth_type_id = ct3.id WHERE oi2.order_id = o.id AND LOWER(ct3.name) LIKE :search_term_item)
+                                OR REPLACE(REPLACE(o.customer_phone, '+', ''), ' ', '') LIKE :search_term_phone)";
+            $params['search_term'] = $searchTerm;
+            $params['search_term_item'] = $searchTerm;
+            $params['search_term_phone'] = $cleanSearchPhone;
+            unset($conditions['search']);
         }
 
         if (!empty($conditions['assigned_tailor_id'])) {
@@ -394,14 +412,19 @@ class Order extends BaseModel {
         
         if (!empty($customer)) {
             $fullName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
-            if (!empty($fullName)) {
-                $query .= " OR LOWER(TRIM(o.customer_name)) = :full_name";
-                $params[':full_name'] = strtolower($fullName);
+            if (empty($fullName) && !empty($customer['name'])) {
+                $fullName = trim($customer['name']);
             }
-            if (!empty($customer['phone'])) {
+            if (!empty($fullName)) {
+                $query .= " OR LOWER(TRIM(o.customer_name)) = :full_name OR LOWER(TRIM(ms.name)) = :ms_full_name";
+                $params[':full_name'] = strtolower($fullName);
+                $params[':ms_full_name'] = strtolower($fullName);
+            }
+            if (!empty($customer['phone']) && !empty($fullName)) {
                 $cleanPhone = preg_replace('/\D/', '', $customer['phone']);
-                $query .= " OR REPLACE(REPLACE(c.phone, '+', ''), ' ', '') = :clean_phone";
+                $query .= " OR (REPLACE(REPLACE(o.customer_phone, '+', ''), ' ', '') = :clean_phone AND (o.customer_name IS NULL OR TRIM(o.customer_name) = '' OR LOWER(TRIM(o.customer_name)) = :clean_phone_name))";
                 $params[':clean_phone'] = $cleanPhone;
+                $params[':clean_phone_name'] = strtolower($fullName);
             }
         }
     

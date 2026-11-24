@@ -79,8 +79,8 @@ try {
         $filteredOrders = array_filter($allOrders, function($order) use ($searchLower) {
             $displayCustomerName = !empty($order['measurement_customer_name']) 
                 ? $order['measurement_customer_name'] 
-                : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
-            $clothTypeName = $order['cloth_type_name'] ?? '';
+                : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
+            $clothTypeName = ($order['all_cloth_type_names'] ?? '') . ' ' . ($order['cloth_type_name'] ?? '');
             $customerPhone = $order['customer_phone'] ?? '';
             $orderNumber = $order['order_number'] ?? '';
                 
@@ -112,14 +112,15 @@ try {
     }
     $formattedOrders = [];
     foreach ($orders as $order) {
+            $cName = !empty($order['measurement_customer_name']) 
+                ? $order['measurement_customer_name'] 
+                : (!empty($order['customer_name']) ? $order['customer_name'] : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')));
         $formattedOrders[] = [
             'id' => $order['id'],
             'order_number' => $order['order_number'],
             'customer_id' => $order['customer_id'] ?? null,
-            'customer_name' => $order['measurement_customer_name'] ?? '',
-            'display_customer_name' => !empty($order['measurement_customer_name']) 
-                                        ? $order['measurement_customer_name'] 
-                                        : trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? '')),
+            'customer_name' => $cName,
+            'display_customer_name' => $cName,
             'cloth_type_id' => $order['cloth_type_id'] ?? null,
             'measurement_id' => $order['measurement_id'] ?? null,
             'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,
@@ -167,6 +168,7 @@ try {
             ];
         }, $tailors ?: [])
     ];
+    ob_clean();
     echo json_encode([
         'success' => true,
         'can_send_invoice' => SubscriptionHelper::canSendInvoice(get_company_id())['allowed'],

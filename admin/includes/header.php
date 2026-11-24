@@ -976,6 +976,7 @@ $seoOptions = [
             color: #64748b;
             width: 38px;
             height: 38px;
+            min-width: 38px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -984,10 +985,14 @@ $seoOptions = [
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
+            flex-shrink: 0;
+            padding: 0;
+            font-size: 0.95rem;
         }
         .notif-bell-btn:hover {
             background: #f1f5f9;
             color: #4f46e5;
+            transform: translateY(-1px);
         }
         .notif-dot {
             position: absolute;
@@ -1000,6 +1005,78 @@ $seoOptions = [
             border-radius: 50%;
         }
 
+        #enablePushBtn {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+            border-radius: 50% !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.92rem !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease !important;
+            white-space: nowrap !important;
+            cursor: pointer !important;
+            flex-shrink: 0 !important;
+            border: 1px solid #c7d2fe !important;
+            box-sizing: border-box !important;
+        }
+        #enablePushBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        #enablePushBtn.btn-primary {
+            background-color: #4f46e5 !important;
+            border-color: #4f46e5 !important;
+            color: #ffffff !important;
+        }
+        #enablePushBtn.btn-outline-primary {
+            background-color: #eef2ff !important;
+            border-color: #c7d2fe !important;
+            color: #4338ca !important;
+        }
+        #enablePushBtn.btn-outline-danger {
+            background-color: #fef2f2 !important;
+            border-color: #fecaca !important;
+            color: #dc2626 !important;
+        }
+        #enablePushBtn.btn-outline-secondary {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            color: #475569 !important;
+        }
+        #enablePushBtn.btn-outline-success {
+            background-color: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+            color: #059669 !important;
+        }
+
+        #mobileSearchToggle {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+            border-radius: 50% !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.92rem !important;
+            color: #4f46e5 !important;
+            background: #eef2ff !important;
+            border: 1px solid #c7d2fe !important;
+            flex-shrink: 0 !important;
+            transition: all 0.2s ease !important;
+            box-sizing: border-box !important;
+        }
+        #mobileSearchToggle:hover {
+            background: #e0e7ff !important;
+            transform: translateY(-1px);
+        }
+
         .user-pill-btn {
             background: transparent;
             border: none;
@@ -1008,26 +1085,31 @@ $seoOptions = [
             align-items: center;
             gap: 6px;
             cursor: pointer;
-            border-radius: 30px;
+            border-radius: 38px;
             transition: background 0.2s ease;
+            flex-shrink: 0;
+            height: 38px;
         }
         .user-pill-btn:hover, .user-pill-btn:focus {
             background: #f8fafc;
         }
         .user-avatar-circle {
-            width: 32px;
-            height: 32px;
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            max-width: 38px;
             border-radius: 50%;
             background: #2563eb;
             color: #ffffff;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
             flex-shrink: 0;
+            box-sizing: border-box;
         }
         .user-avatar-circle img {
             width: 100%;
@@ -1308,14 +1390,10 @@ $seoOptions = [
             
             <div class="d-flex align-items-center gap-2">
                 <?php if (in_array($currScript, ['dashboard.php', 'dashboard'])): ?>
-                    <button type="button" id="mobileSearchToggle" class="btn btn-sm btn-light rounded-circle d-lg-none d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; color: #4f46e5; background: #eef2ff; border: none;" title="Search">
-                        <i class="fas fa-search" style="font-size: 0.82rem;"></i>
+                    <button type="button" id="mobileSearchToggle" class="btn btn-sm btn-light rounded-circle d-lg-none" title="Search" aria-label="Search">
+                        <i class="fas fa-search"></i>
                     </button>
                 <?php endif; ?>
-                <button id="enablePushBtn" class="btn btn-sm btn-outline-primary rounded-pill px-2 px-sm-3 py-1 d-flex align-items-center gap-1" style="font-size: 0.78rem; transition: all 0.2s;" title="Enable Browser Push Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="d-none d-sm-inline">Enable Notifications</span>
-                </button>
 
                 <div class="d-none d-md-block">
                     <?php include __DIR__ . '/../../lang/language_switcher.php'; ?>
@@ -1331,7 +1409,11 @@ $seoOptions = [
                                 <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e293b;">Notifications</h6>
                                 <span id="notifHeaderCountBadge" class="badge bg-danger rounded-pill" style="font-size: 0.68rem; <?php echo ($unreadNotifCount > 0) ? '' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?> new</span>
                             </div>
-                            <a href="#" onclick="window.markAllNotificationsRead(event)" class="text-decoration-none text-primary fw-medium" style="font-size: 0.72rem;">Mark all read</a>
+                            <div class="d-flex align-items-center">
+                                <a href="#" onclick="window.sendTestNotification(event)" class="text-decoration-none text-secondary fw-medium me-2" style="font-size: 0.72rem;" title="Send Test Notification"><i class="fas fa-vial me-1"></i>Test</a>
+                                <span class="text-muted me-2" style="font-size: 0.7rem;">•</span>
+                                <a href="#" onclick="window.markAllNotificationsRead(event)" class="text-decoration-none text-primary fw-medium" style="font-size: 0.72rem;">Mark all read</a>
+                            </div>
                         </li>
                         <div id="notifDropdownItems" style="max-height: 360px; overflow-y: auto;">
                             <?php if (!empty($recentNotifs)): ?>
@@ -1377,7 +1459,7 @@ $seoOptions = [
                     $firstName = $nameParts[0] ?? $name;
                     $hasHeaderImage = !empty($current_user['profile_image']) && file_exists(__DIR__ . '/../../' . $current_user['profile_image']);
                     ?>
-                    <button class="user-pill-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="user-pill-btn dropdown-toggle p-0 p-sm-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="user-avatar-circle">
                             <?php if ($hasHeaderImage): ?>
                                 <img src="../<?php echo htmlspecialchars($current_user['profile_image']); ?>" alt="<?php echo htmlspecialchars($initials); ?>">
@@ -1386,7 +1468,7 @@ $seoOptions = [
                             <?php endif; ?>
                         </div>
                         <span class="user-pill-name d-none d-sm-inline"><?php echo htmlspecialchars($firstName); ?></span>
-                        <i class="fas fa-chevron-down user-pill-chevron ms-1"></i>
+                        <i class="fas fa-chevron-down user-pill-chevron ms-1 d-none d-sm-inline"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px; min-width: 200px; z-index: 1060;">
                         <li class="px-3 py-2">

@@ -322,6 +322,44 @@
         endif; 
         ?>
     </script>
+    <div class="modal fade" id="pushNotificationBlockedModal" tabindex="-1" aria-labelledby="notifBlockedModalLabel" aria-hidden="true" style="z-index: 1070;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0 pt-3 px-4">
+                    <h6 class="modal-title fw-bold text-danger d-flex align-items-center gap-2" id="notifBlockedModalLabel">
+                        <i class="fas fa-bell-slash"></i> Browser Notifications Blocked
+                    </h6>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-3 text-center">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle mb-3" style="width: 58px; height: 58px;">
+                        <i class="fas fa-bell-slash fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1" style="color: #1e293b; font-size: 1.05rem;">Notifications are Blocked in Browser</h6>
+                    <p class="text-muted small mb-3">Your browser has blocked notifications for this site, so order alerts cannot be shown.</p>
+
+                    <div class="card border-0 bg-light p-3 mb-3 text-start" style="border-radius: 12px; font-size: 0.85rem;">
+                        <div class="fw-semibold text-dark mb-2 d-flex align-items-center gap-2">
+                            <i class="fas fa-key text-primary"></i> How to Allow Notifications:
+                        </div>
+                        <ol class="mb-0 ps-3 text-secondary" style="line-height: 1.7;">
+                            <li>Look at the top browser URL address bar.</li>
+                            <li>Click the <strong>Settings / Tune / Padlock (🔒 or 🎛️)</strong> icon next to the URL.</li>
+                            <li>Find <strong>Notifications</strong> and change it from <strong>Block</strong> to <strong>Allow</strong>.</li>
+                            <li>Click <strong>Reload Page</strong> below to activate.</li>
+                        </ol>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-sm btn-light px-3" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-sm btn-primary px-3 d-flex align-items-center gap-1" onclick="window.location.reload()">
+                            <i class="fas fa-redo"></i> Reload Page
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
     <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;"></div>
     <script src="../assets/js/push-notifications.js"></script>

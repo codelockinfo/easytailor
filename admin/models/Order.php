@@ -688,7 +688,7 @@ class Order extends BaseModel {
     public function getOrderItems($orderId, $tailorId = null) {
         if (!$this->conn || !$orderId) return [];
         $query = "SELECT oi.*, 
-                         ct.name as cloth_type_name, ct.standard_rate, ct.category,
+                         ct.name as cloth_type_name, ct.standard_rate, ct.category, ct.measurement_chart_image,
                          u.full_name as tailor_name,
                          ms.name as measurement_customer_name, ms.measurement_data, ms.created_at as measurement_created_at
                   FROM order_items oi
@@ -710,6 +710,9 @@ class Order extends BaseModel {
         foreach ($items as &$item) {
             if (!empty($item['measurement_data']) && is_string($item['measurement_data'])) {
                 $item['measurement_data'] = json_decode($item['measurement_data'], true);
+            }
+            if (!empty($item['measurement_chart_image'])) {
+                $item['measurement_chart'] = '../' . ltrim($item['measurement_chart_image'], './');
             }
         }
         return $items;

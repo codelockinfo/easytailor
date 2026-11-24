@@ -695,7 +695,6 @@ include 'includes/page-header.php';
                                 </div>
                             </th>
                             <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">CLOTH TYPE</th>
-                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">MEASUREMENTS</th>
                             <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">NOTES</th>
                             <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">DATE</th>
                             <th class="text-end pe-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">ACTIONS</th>
@@ -742,58 +741,6 @@ include 'includes/page-header.php';
                                         </span>
                                     <?php endif; ?>
                                 </div>
-                            </td>
-                            <td class="py-3">
-                                <?php if (!empty($cGarments)): ?>
-                                    <div class="d-flex flex-column gap-1" style="max-width: 320px;">
-                                        <?php foreach ($cGarments as $g): 
-                                            $gData = $g['measurement_data'] ?? [];
-                                            if (is_string($gData)) $gData = json_decode($gData, true) ?: [];
-                                        ?>
-                                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span class="fw-bold text-secondary me-1" style="font-size: 0.73rem;">
-                                                    <?php echo htmlspecialchars($g['cloth_type_name']); ?>:
-                                                </span>
-                                                <?php if (!empty($gData) && is_array($gData)): ?>
-                                                    <?php foreach (array_slice($gData, 0, 4) as $key => $value): 
-                                                        $shortKey = formatMeasurementShortKey($key);
-                                                        $fullKey = ucfirst(str_replace('_', ' ', $key));
-                                                    ?>
-                                                        <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.73rem; border-radius: 6px;" title="<?php echo htmlspecialchars($fullKey . ': ' . $value); ?>">
-                                                            <strong style="color: #475569;"><?php echo htmlspecialchars($shortKey); ?>:</strong> <?php echo htmlspecialchars($value); ?>
-                                                        </span>
-                                                    <?php endforeach; ?>
-                                                    <?php if (count($gData) > 4): ?>
-                                                        <span class="text-muted small" style="font-size: 0.70rem;">+<?php echo count($gData) - 4; ?> more</span>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    <span class="text-muted small">—</span>
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <?php 
-                                    $measurementData = is_array($measurement['measurement_data'] ?? null) ? $measurement['measurement_data'] : json_decode($measurement['measurement_data'] ?? '', true);
-                                    if (is_array($measurementData) && !empty($measurementData)): 
-                                    ?>
-                                        <div class="d-flex flex-wrap gap-1 align-items-center" style="max-width: 280px;">
-                                            <?php foreach (array_slice($measurementData, 0, 4) as $key => $value): 
-                                                $shortKey = formatMeasurementShortKey($key);
-                                                $fullKey = ucfirst(str_replace('_', ' ', $key));
-                                            ?>
-                                                <span class="badge fw-medium px-2 py-1" style="background: #f1f5f9; color: #334155; font-size: 0.73rem; border-radius: 6px;" title="<?php echo htmlspecialchars($fullKey . ': ' . $value); ?>">
-                                                    <strong style="color: #475569;"><?php echo htmlspecialchars($shortKey); ?>:</strong> <?php echo htmlspecialchars($value); ?>
-                                                </span>
-                                            <?php endforeach; ?>
-                                            <?php if (count($measurementData) > 4): ?>
-                                                <span class="text-muted small" style="font-size: 0.72rem;">+<?php echo count($measurementData) - 4; ?> more</span>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php else: ?>
-                                        <span class="text-muted small">—</span>
-                                    <?php endif; ?>
-                                <?php endif; ?>
                             </td>
                             <td class="py-3">
                                 <?php if (!empty($measurement['notes'])): ?>
@@ -927,9 +874,9 @@ include 'includes/page-header.php';
                         </div>
                         
                         <div id="addGarmentBtnWrapper" class="mb-3">
-                            <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 w-100 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="addGarmentBlock()" style="border: 2px dashed #4f46e5; background-color: #f8faff; transition: all 0.2s ease;">
+                            <button type="button" class="btn w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" id="addAnotherClothTypeBtn" onclick="addGarmentBlock()">
                                 <i class="fas fa-plus-circle text-primary"></i>
-                                <span>+ Add Another Cloth Type </span>
+                                <span>Add Another Cloth Type</span>
                             </button>
                         </div>
                     </div>
@@ -1235,8 +1182,8 @@ function getDefaultFieldsForClothType(clothTypeName) {
 
 let garmentBlockCounter = 0;
 
-// Add a garment block as an Accordion Dropdown
-function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId = '') {
+// Add a garment block as an Accordion Dropdown (default open)
+function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId = '', isOpen = true) {
     garmentBlockCounter++;
     const currentId = garmentBlockCounter;
     const container = document.getElementById('garmentsContainer');
@@ -1246,8 +1193,8 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
     const existingBlocks = container.querySelectorAll('.garment-block');
     const isFirst = (existingBlocks.length === 0);
     
-    // If not first, collapse all existing blocks so the new one gets full focus!
-    if (!isFirst) {
+    // If the new block is set to be open, collapse any currently open blocks so the new one has focus
+    if (isOpen && !isFirst) {
         existingBlocks.forEach(b => {
             const collapseEl = b.querySelector('.accordion-collapse');
             const btnEl = b.querySelector('.accordion-button');
@@ -1278,11 +1225,11 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
     item.innerHTML = `
         <h2 class="accordion-header" id="heading-${currentId}">
             <div class="d-flex align-items-center justify-content-between bg-light p-1 pe-2 border-bottom">
-                <button class="accordion-button py-2 px-3 bg-transparent border-0 shadow-none text-dark fw-bold d-flex align-items-center gap-2 ${isFirst ? '' : 'collapsed'}" 
+                <button class="accordion-button py-2 px-3 bg-transparent border-0 shadow-none text-dark fw-bold d-flex align-items-center gap-2 ${isOpen ? '' : 'collapsed'}" 
                         type="button" 
                         data-bs-toggle="collapse" 
                         data-bs-target="#collapse-${currentId}" 
-                        aria-expanded="${isFirst ? 'true' : 'false'}" 
+                        aria-expanded="${isOpen ? 'true' : 'false'}" 
                         aria-controls="collapse-${currentId}"
                         style="flex: 1; text-align: left; font-size: 0.92rem;">
                     <span class="badge bg-primary rounded-pill garment-index-badge">#1</span>
@@ -1298,7 +1245,7 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
                 </div>
             </div>
         </h2>
-        <div id="collapse-${currentId}" class="accordion-collapse collapse ${isFirst ? 'show' : ''}" aria-labelledby="heading-${currentId}" data-bs-parent="#garmentsContainer">
+        <div id="collapse-${currentId}" class="accordion-collapse collapse ${isOpen ? 'show' : ''}" aria-labelledby="heading-${currentId}" data-bs-parent="#garmentsContainer">
             <div class="accordion-body p-3 bg-white">
                 <input type="hidden" class="garment-id-input" name="garments[${currentId}][measurement_id]" value="${measurementId || ''}">
                 <div class="row align-items-end g-2 mb-3">
@@ -1315,7 +1262,7 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
                 <div class="garment-chart-box mb-3" id="garment-chart-box-${currentId}" style="display: none;">
                     <div class="card border-primary bg-light" style="border-radius: 10px; overflow: hidden; border: 1px solid #c7d2fe !important;">
                         <div class="card-header bg-primary bg-opacity-10 py-1 px-3 d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
-                            <span class="fw-semibold text-primary"><i class="fas fa-ruler-combined me-1"></i>Measurement Guide Image</span>
+                            <span class="fw-semibold text-light"><i class="fas fa-ruler-combined me-1"></i>Measurement Guide Image</span>
                         </div>
                         <div class="card-body text-center p-2">
                             <img src="" alt="Guide" class="img-fluid garment-chart-img" style="max-height: 220px; border-radius: 8px;">
@@ -1349,6 +1296,14 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
     }
 
     updateGarmentNumbering();
+
+    if (isOpen) {
+        setTimeout(() => {
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const select = item.querySelector('.garment-cloth-type-select');
+            if (select) select.focus();
+        }, 80);
+    }
 }
 
 // Update garment measurement count in the accordion badge
@@ -1732,12 +1687,12 @@ function editCustomerMeasurements(group) {
     if (container) container.innerHTML = '';
     
     if (group.garments && group.garments.length > 0) {
-        group.garments.forEach(garment => {
+        group.garments.forEach((garment, idx) => {
             let mData = garment.measurement_data;
             if (typeof mData === 'string') {
                 try { mData = JSON.parse(mData); } catch (e) { mData = {}; }
             }
-            addGarmentBlock(garment.cloth_type_id, mData, garment.measurement_id);
+            addGarmentBlock(garment.cloth_type_id, mData, garment.measurement_id, idx === 0);
         });
     } else {
         addGarmentBlock();
@@ -1861,7 +1816,7 @@ document.getElementById('customer_id')?.addEventListener('change', function() {
     }
 });
 
-function viewCustomerMeasurements(group) {
+function viewCustomerMeasurements(group, targetClothName = '') {
     if (!group) return;
     
     // Fallback if passed ID or single record without garments
@@ -1889,6 +1844,7 @@ function viewCustomerMeasurements(group) {
     if (garments.length === 0) {
         garmentsHtml = '<p class="text-muted text-center py-3">No garment measurements recorded.</p>';
     } else {
+        garmentsHtml = '<div class="accordion d-flex flex-column gap-2 mb-3" id="viewGarmentsAccordion">';
         garments.forEach((garment, gIdx) => {
             let measurementData = garment.measurement_data || {};
             if (typeof measurementData === 'string') {
@@ -1929,37 +1885,50 @@ function viewCustomerMeasurements(group) {
                 `;
             }
             
+            const isItemOpen = targetClothName
+                ? (String(garment.cloth_type_name || '').toLowerCase().trim() === String(targetClothName).toLowerCase().trim())
+                : (gIdx === 0);
+            
             garmentsHtml += `
-                <div class="card mb-3 border shadow-none" style="border-radius: 12px; overflow: hidden; border-color: #e2e8f0 !important;">
-                    <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary rounded-pill">#${gIdx + 1}</span>
-                            <strong class="text-light" style="font-size: 0.95rem;">${escapeHtml(garment.cloth_type_name || 'Cloth')}</strong>
-                            ${garment.cloth_category ? `<span class="badge bg-secondary small">${escapeHtml(garment.cloth_category)}</span>` : ''}
-                        </div>
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">
-                            ${keys.length} ${keys.length === 1 ? 'Field' : 'Fields'}
-                        </span>
-                    </div>
-                    <div class="card-body p-3">
-                        <div class="row align-items-start">
-                            <div class="${garment.measurement_chart ? 'col-md-7' : 'col-12'}">
-                                <div class="row g-2">
-                                    ${fieldsHtml}
+                <div class="accordion-item border shadow-sm" style="border-radius: 12px; overflow: hidden; border-color: #e2e8f0 !important;">
+                    <h2 class="accordion-header" id="view-garment-heading-${gIdx}">
+                        <button class="accordion-button py-2 px-3 bg-light text-dark fw-bold d-flex align-items-center gap-2 ${isItemOpen ? '' : 'collapsed'}" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#view-garment-collapse-${gIdx}" 
+                                aria-expanded="${isItemOpen ? 'true' : 'false'}" 
+                                aria-controls="view-garment-collapse-${gIdx}"
+                                style="font-size: 0.92rem; box-shadow: none;">
+                            <span class="badge bg-primary rounded-pill me-1">#${gIdx + 1}</span>
+                            <span class="text-dark fw-bold">${escapeHtml(garment.cloth_type_name || 'Cloth')}</span>
+                            ${garment.cloth_category ? `<span class="badge bg-light text-primary border small ms-1" style="font-size: 0.70rem;">${escapeHtml(garment.cloth_category)}</span>` : ''}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small ms-auto me-2">
+                                ${keys.length} ${keys.length === 1 ? 'Field' : 'Fields'}
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="view-garment-collapse-${gIdx}" class="accordion-collapse collapse ${isItemOpen ? 'show' : ''}" aria-labelledby="view-garment-heading-${gIdx}" data-bs-parent="#viewGarmentsAccordion">
+                        <div class="accordion-body p-3 bg-white">
+                            <div class="row align-items-start">
+                                <div class="${garment.measurement_chart ? 'col-md-7' : 'col-12'}">
+                                    <div class="row g-2">
+                                        ${fieldsHtml}
+                                    </div>
                                 </div>
+                                ${chartHtml}
                             </div>
-                            ${chartHtml}
                         </div>
                     </div>
                 </div>
             `;
         });
+        garmentsHtml += '</div>';
     }
 
     contentDiv.innerHTML = `
-        <div class="card mb-3 border shadow-none" style="border-radius: 12px; border-color: #e2e8f0 !important;">
-            <div class="card-header bg-light py-2 px-3">
-                <h6 class="mb-0 fw-bold text-light"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h6>
+        <div class="card mb-3 border shadow-none" style="border-radius: 12px; border-color: #e2e8f0 !important; overflow: hidden;">
+            <div class="py-2 px-3" style="background: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important;">
+                <h6 class="mb-0 fw-bold" style="color: #1e293b !important; font-size: 0.92rem;"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h6>
             </div>
             <div class="card-body p-3">
                 <div class="row g-3">
@@ -2451,7 +2420,7 @@ function executeFilter() {
                     if (measurementsTable) {
                         measurementsTable.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center py-4">
+                            <td colspan="5" class="text-center py-4">
                                 <div class="alert alert-danger mb-0">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
                                     ${data.error || 'Unknown error'}
@@ -2467,7 +2436,7 @@ function executeFilter() {
                 if (measurementsTable) {
                     measurementsTable.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-4">
+                        <td colspan="5" class="text-center py-4">
                             <div class="alert alert-danger mb-0">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 Invalid response from server.
@@ -2508,7 +2477,7 @@ function displayFilterResults(measurements) {
         if (measurementsTable) {
             measurementsTable.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center py-5">
+                <td colspan="5" class="text-center py-5">
                     <i class="fas fa-search fa-2x text-muted mb-2"></i>
                     <h5 class="text-muted">No measurements found</h5>
                     <p class="text-muted small">Try adjusting your filter criteria</p>
@@ -2646,9 +2615,6 @@ function displayFilterResults(measurements) {
                     ${clothTypesHtml}
                 </td>
                 <td class="py-3">
-                    ${measurementSummaryHtml}
-                </td>
-                <td class="py-3">
                     ${notesDisplay}
                 </td>
                 <td class="py-3">
@@ -2774,5 +2740,27 @@ function displayFilterResults(measurements) {
 }
 .garment-summary-badge {
     transition: all 0.2s ease;
+}
+#addAnotherClothTypeBtn {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1 !important;
+    color: #4f46e5;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 9px 16px;
+    box-shadow: none !important;
+    transition: none !important;
+    cursor: pointer;
+}
+#addAnotherClothTypeBtn:hover,
+#addAnotherClothTypeBtn:focus,
+#addAnotherClothTypeBtn:active {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #4f46e5 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    outline: none !important;
 }
 </style>

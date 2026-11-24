@@ -209,6 +209,51 @@ if (!empty($order['measurement_id'])) {
 }
 $clothType = !empty($order['cloth_type_id']) ? $clothTypeModel->find($order['cloth_type_id']) : false;
 
+// Prepare garments list for measurement modal
+$orderGarmentsForModal = [];
+if (!empty($orderItems)) {
+    foreach ($orderItems as $idx => $oi) {
+        $mData = $oi['measurement_data'] ?? [];
+        if (is_string($mData)) {
+            $mData = json_decode($mData, true) ?: [];
+        }
+        if (empty($mData) && !empty($oi['measurement_id'])) {
+            $mRow = $measurementModel->find($oi['measurement_id']);
+            if ($mRow && !empty($mRow['measurement_data'])) {
+                $mData = is_string($mRow['measurement_data']) ? json_decode($mRow['measurement_data'], true) : $mRow['measurement_data'];
+            }
+        }
+        $chartUrl = $oi['measurement_chart'] ?? null;
+        if (empty($chartUrl) && !empty($oi['cloth_type_id'])) {
+            $ctRow = $clothTypeModel->find($oi['cloth_type_id']);
+            if (!empty($ctRow['measurement_chart_image'])) {
+                $chartUrl = '../' . ltrim($ctRow['measurement_chart_image'], './');
+            }
+        }
+        $orderGarmentsForModal[] = [
+            'measurement_id' => $oi['measurement_id'] ?? null,
+            'cloth_type_id' => $oi['cloth_type_id'] ?? null,
+            'cloth_type_name' => $oi['cloth_type_name'] ?? 'Garment',
+            'cloth_category' => $oi['category'] ?? '',
+            'measurement_data' => $mData ?: [],
+            'measurement_chart' => $chartUrl,
+            'tailor_name' => $oi['tailor_name'] ?? ''
+        ];
+    }
+}
+if (empty($orderGarmentsForModal) && !empty($measurement)) {
+    $fallbackChart = !empty($clothType['measurement_chart_image']) ? ('../' . ltrim($clothType['measurement_chart_image'], './')) : ($measurement['measurement_chart'] ?? null);
+    $orderGarmentsForModal[] = [
+        'measurement_id' => $order['measurement_id'] ?? null,
+        'cloth_type_id' => $order['cloth_type_id'] ?? null,
+        'cloth_type_name' => $order['cloth_type_name'] ?? ($clothType['name'] ?? 'Garment'),
+        'cloth_category' => $clothType['category'] ?? '',
+        'measurement_data' => $measurement['measurement_data'] ?? [],
+        'measurement_chart' => $fallbackChart,
+        'tailor_name' => $tailor['full_name'] ?? ''
+    ];
+}
+
 $tailor = null;
 if ($order['assigned_tailor_id']) {
     $tailor = $userModel->find($order['assigned_tailor_id']);
@@ -297,8 +342,8 @@ require_once 'includes/header.php';
                 <i class="fas fa-print me-2"></i>Print Order
             </button>
             <?php 
-                $canGenerateInvoice = SubscriptionHelper::canGenerateInvoice($order['company_id'] ?? get_company_id())['allowed'];
-                $canSendInvoice = SubscriptionHelper::canSendInvoice($order['company_id'] ?? get_company_id())['allowed'];
+                $canGenerateInvoice = !has_role('tailor') && (SubscriptionHelper::canGenerateInvoice($order['company_id'] ?? get_company_id())['allowed'] ?? false);
+                $canSendInvoice = !has_role('tailor') && (SubscriptionHelper::canSendInvoice($order['company_id'] ?? get_company_id())['allowed'] ?? false);
             ?>
             <?php if ($canGenerateInvoice): ?>
             <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-outline-secondary rounded-pill px-3 py-1 bg-white shadow-xs" style="border-color: #8b5cf6; color: #7c3aed; font-size: 0.88rem; font-weight: 500;">
@@ -465,11 +510,16 @@ require_once 'includes/header.php';
                     <span class="fw-bold" style="color: #2563eb; font-size: 0.95rem;">
                         <i class="fas fa-user me-2"></i>Customer Information
                     </span>
-                    <?php if (!has_role('tailor') && $customer): ?>
-                    <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #cbd5e1; color: #2563eb;">
-                        <i class="fas fa-edit me-1"></i>Edit
-                    </a>
-                    <?php endif; ?>
+                    <div class="d-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0 bg-white" onclick="openOrderMeasurementsModal()" style="font-size: 0.75rem; border-color: #cbd5e1; color: #2563eb;" title="View Measurements">
+                            <i class="fas fa-ruler-combined me-1"></i>View Measurements
+                        </button>
+                        <?php if (!has_role('tailor') && $customer): ?>
+                        <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #cbd5e1; color: #2563eb;">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="d-flex align-items-center gap-3 w-100">
@@ -543,11 +593,16 @@ require_once 'includes/header.php';
                     <span class="fw-bold" style="color: #15803d; font-size: 0.95rem;">
                         <i class="fas fa-ruler-combined me-2"></i>Measurements
                     </span>
-                    <?php if (!has_role('tailor') && !empty($order['measurement_id'])): ?>
-                    <a href="measurements.php?edit=<?php echo $order['measurement_id']; ?>" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #cbd5e1; color: #15803d;">
-                        <i class="fas fa-edit me-1"></i>Edit
-                    </a>
-                    <?php endif; ?>
+                    <div class="d-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0 bg-white" onclick="openOrderMeasurementsModal()" style="font-size: 0.75rem; border-color: #cbd5e1; color: #15803d;" title="View All Measurements">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </button>
+                        <?php if (!has_role('tailor') && !empty($order['measurement_id'])): ?>
+                        <a href="measurements.php?edit=<?php echo $order['measurement_id']; ?>" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #cbd5e1; color: #15803d;">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="card-body p-3" style="max-height: 350px; overflow-y: auto;">
                     <?php if ($measurement && !empty($measurement['measurement_data']) && is_array($measurement['measurement_data'])): ?>
@@ -647,14 +702,19 @@ require_once 'includes/header.php';
                                     <?php endif; ?>
                                 </td>
                                 <td class="py-3">
-                                    <?php if (!empty($oi['measurement_id'])): ?>
+                                    <?php if (!empty($oi['measurement_id']) || !empty($oi['measurement_data'])): ?>
                                         <div class="d-inline-flex align-items-center gap-1">
-                                            <span class="badge rounded-pill px-2 py-1" style="background: #dcfce7; color: #15803d; font-size: 0.75rem;">
-                                                <i class="fas fa-ruler-combined me-1"></i><?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Measurement'); ?>
-                                            </span>
-                                            <?php if (!has_role('tailor')): ?>
-                                                <a href="measurements.php?edit=<?php echo $oi['measurement_id']; ?>" class="btn btn-sm btn-link text-decoration-none p-0 text-muted ms-1" title="View Measurement" style="font-size: 0.75rem;">
-                                                    <i class="fas fa-external-link-alt"></i>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1 shadow-sm border-0" 
+                                                    style="background: #ecfdf5; color: #047857; font-size: 0.78rem; font-weight: 600; border: 1px solid #a7f3d0 !important; cursor: pointer;" 
+                                                    onclick="openOrderMeasurementsModal(<?php echo (int)($oi['measurement_id'] ?? 0); ?>, '<?php echo htmlspecialchars(addslashes($oi['cloth_type_name'] ?? '')); ?>')"
+                                                    title="View <?php echo htmlspecialchars($oi['cloth_type_name'] ?? ''); ?> measurement">
+                                                <i class="fas fa-ruler-combined text-success"></i>
+                                                <span><?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Measurement'); ?></span>
+                                                <i class="fas fa-chevron-down ms-1 text-muted" style="font-size: 0.65rem;"></i>
+                                            </button>
+                                            <?php if (!has_role('tailor') && !empty($oi['measurement_id'])): ?>
+                                                <a href="measurements.php?edit=<?php echo $oi['measurement_id']; ?>" class="btn btn-sm btn-link text-decoration-none p-0 text-muted ms-1" title="Edit Measurement" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-edit"></i>
                                                 </a>
                                             <?php endif; ?>
                                         </div>
@@ -796,7 +856,7 @@ require_once 'includes/header.php';
                                             <a href="invoice-details.php?id=<?php echo $inv['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                                 View
                                             </a>
-                                            <?php if ($canGenerateInvoice): ?>
+                                            <?php if ($canGenerateInvoice && !has_role('tailor')): ?>
                                             <a href="print-invoice.php?id=<?php echo $inv['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 ms-1">
                                                 <i class="fas fa-print me-1"></i>Print
                                             </a>
@@ -913,10 +973,204 @@ require_once 'includes/header.php';
         </div>
     </div>
 </div>
+
+<!-- Order Customer Measurements Modal -->
+<div class="modal fade" id="orderMeasurementModal" tabindex="-1" aria-labelledby="orderMeasurementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold" id="orderMeasurementModalLabel">
+                    <i class="fas fa-ruler-combined me-2"></i>Measurement Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="orderMeasurementModalContent">
+                <!-- Dynamically loaded -->
+            </div>
+            <div class="modal-footer border-0 bg-light py-2 px-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="printOrderMeasurementsModal()">
+                    <i class="fas fa-print me-1"></i>Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function printOrder() {
     window.print();
 }
+
+const orderGarmentsData = <?php echo json_encode($orderGarmentsForModal, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+const orderCustomerDetails = {
+    name: <?php echo json_encode($displayName); ?>,
+    phone: <?php echo json_encode($displayPhone); ?>,
+    email: <?php echo json_encode($displayEmail); ?>,
+    orderNumber: <?php echo json_encode($order['order_number'] ?? ''); ?>,
+    orderDate: <?php echo json_encode($order['order_date'] ? date('M d, Y', strtotime($order['order_date'])) : ''); ?>
+};
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function openOrderMeasurementsModal(targetMeasurementId = 0, targetClothName = '') {
+    const modalEl = document.getElementById('orderMeasurementModal');
+    const contentEl = document.getElementById('orderMeasurementModalContent');
+    if (!modalEl || !contentEl) return;
+
+    let garmentsAccordionHtml = '';
+    if (!orderGarmentsData || orderGarmentsData.length === 0) {
+        garmentsAccordionHtml = '<div class="alert alert-info text-center py-3">No measurement data attached to this order.</div>';
+    } else {
+        garmentsAccordionHtml = '<div class="accordion d-flex flex-column gap-2 mb-3" id="orderGarmentsAccordion">';
+        orderGarmentsData.forEach((garment, gIdx) => {
+            const mData = garment.measurement_data || {};
+            const keys = Object.keys(mData);
+            let fieldsHtml = '';
+            if (keys.length > 0) {
+                keys.forEach(k => {
+                    const label = String(k).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const val = mData[k];
+                    fieldsHtml += `
+                        <div class="col-sm-4 col-6 mb-2">
+                            <div class="p-2 border rounded bg-light text-center h-100">
+                                <small class="text-muted d-block text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.3px;">${escapeHtml(label)}</small>
+                                <strong class="text-primary fs-6">${escapeHtml(val)}</strong>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                fieldsHtml = '<div class="col-12 text-muted small p-2">No measurement fields recorded</div>';
+            }
+
+            let chartHtml = '';
+            if (garment.measurement_chart) {
+                chartHtml = `
+                    <div class="col-md-5 text-center mt-3 mt-md-0">
+                        <div class="border rounded p-2 bg-light">
+                            <small class="text-muted d-block mb-1 fw-bold" style="font-size: 0.74rem;">Measurement Guide</small>
+                            <img src="${escapeHtml(garment.measurement_chart)}" class="img-fluid rounded" style="max-height: 220px;" alt="Guide">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Determine if this item should be open
+            let isItemOpen = false;
+            if (targetClothName) {
+                isItemOpen = (String(garment.cloth_type_name || '').toLowerCase().trim() === String(targetClothName).toLowerCase().trim());
+            } else if (targetMeasurementId && Number(targetMeasurementId) > 0) {
+                isItemOpen = (Number(garment.measurement_id) === Number(targetMeasurementId));
+            } else {
+                isItemOpen = (gIdx === 0);
+            }
+
+            garmentsAccordionHtml += `
+                <div class="accordion-item border shadow-sm" style="border-radius: 12px; overflow: hidden; border-color: #e2e8f0 !important;">
+                    <h2 class="accordion-header" id="heading-order-garment-${gIdx}">
+                        <button class="accordion-button py-2 px-3 bg-light text-dark fw-bold d-flex align-items-center gap-2 ${isItemOpen ? '' : 'collapsed'}" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapse-order-garment-${gIdx}" 
+                                aria-expanded="${isItemOpen ? 'true' : 'false'}" 
+                                aria-controls="collapse-order-garment-${gIdx}"
+                                style="font-size: 0.92rem; box-shadow: none;">
+                            <span class="badge bg-primary rounded-pill me-1">#${gIdx + 1}</span>
+                            <span class="text-dark fw-bold">${escapeHtml(garment.cloth_type_name || 'Cloth')}</span>
+                            ${garment.cloth_category ? `<span class="badge bg-light text-primary border small ms-1" style="font-size: 0.70rem;">${escapeHtml(garment.cloth_category)}</span>` : ''}
+                            ${garment.tailor_name ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border small ms-1" style="font-size: 0.70rem;"><i class="fas fa-cut me-1"></i>${escapeHtml(garment.tailor_name)}</span>` : ''}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small ms-auto me-2">
+                                ${keys.length} ${keys.length === 1 ? 'Field' : 'Fields'}
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="collapse-order-garment-${gIdx}" class="accordion-collapse collapse ${isItemOpen ? 'show' : ''}" aria-labelledby="heading-order-garment-${gIdx}" data-bs-parent="#orderGarmentsAccordion">
+                        <div class="accordion-body p-3 bg-white">
+                            <div class="row align-items-start">
+                                <div class="${garment.measurement_chart ? 'col-md-7' : 'col-12'}">
+                                    <div class="row g-2">
+                                        ${fieldsHtml}
+                                    </div>
+                                </div>
+                                ${chartHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        garmentsAccordionHtml += '</div>';
+    }
+
+    contentEl.innerHTML = `
+        <div class="card mb-3 border shadow-none" style="border-radius: 12px; border-color: #e2e8f0 !important; overflow: hidden;">
+            <div class="py-2 px-3" style="background: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important;">
+                <h6 class="mb-0 fw-bold" style="color: #1e293b !important; font-size: 0.92rem;"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Customer Name</small>
+                        <strong class="text-dark">${escapeHtml(orderCustomerDetails.name || 'Customer')}</strong>
+                    </div>
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Phone Number</small>
+                        <span>${escapeHtml(orderCustomerDetails.phone || '—')}</span>
+                    </div>
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Email</small>
+                        <span>${escapeHtml(orderCustomerDetails.email || '—')}</span>
+                    </div>
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Order #</small>
+                        <span class="badge bg-light text-dark border">${escapeHtml(orderCustomerDetails.orderNumber || '—')}</span>
+                    </div>
+                    <div class="col-sm-4 col-6">
+                        <small class="text-muted d-block">Total Garments</small>
+                        <span class="badge bg-primary rounded-pill">${orderGarmentsData.length} ${orderGarmentsData.length === 1 ? 'Garment' : 'Garments'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h6 class="fw-bold text-dark mb-2 ms-1"><i class="fas fa-tshirt me-2 text-primary"></i>Garment Measurements (${orderGarmentsData.length})</h6>
+        ${garmentsAccordionHtml}
+    `;
+
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    bsModal.show();
+}
+
+function printOrderMeasurementsModal() {
+    const modalBody = document.getElementById('orderMeasurementModalContent');
+    if (!modalBody) return;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write('<html><head><title>Customer Measurements</title>');
+    printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+    printWindow.document.write('<style>body { padding: 20px; font-family: sans-serif; } .collapse:not(.show) { display: block !important; } .accordion-button::after { display: none; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h3 class="text-center mb-3">Measurement Details</h3>');
+    printWindow.document.write(modalBody.innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('updateStatusForm');
     const updateBtn = document.getElementById('updateStatusBtn');
@@ -971,6 +1225,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <style>
+#orderGarmentsAccordion .accordion-button:not(.collapsed) {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    box-shadow: none !important;
+}
+#orderGarmentsAccordion .accordion-button:focus {
+    box-shadow: none !important;
+    border-color: #e2e8f0 !important;
+}
 @media print {
     .no-print, .btn, .card-header button, .card-header a {
         display: none !important;

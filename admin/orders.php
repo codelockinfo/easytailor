@@ -509,9 +509,9 @@ if (isset($_GET['edit'])) {
 }
 $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
 $orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
-$canGenerateInvoice = SubscriptionHelper::canGenerateInvoice($companyId)['allowed'];
-$canSendInvoice = SubscriptionHelper::canSendInvoice($companyId)['allowed'];
-$autoWhatsApp = $_SESSION['auto_whatsapp'] ?? null;
+$canGenerateInvoice = !has_role('tailor') && (SubscriptionHelper::canGenerateInvoice($companyId)['allowed'] ?? false);
+$canSendInvoice = !has_role('tailor') && (SubscriptionHelper::canSendInvoice($companyId)['allowed'] ?? false);
+$autoWhatsApp = !has_role('tailor') ? ($_SESSION['auto_whatsapp'] ?? null) : null;
 unset($_SESSION['auto_whatsapp']);
 
 $orderStats = $orderModel->getOrderStats();

@@ -247,7 +247,7 @@ if ($company['subscription_expiry']) {
                         <th>Feature</th>
                         <th class="text-center">Free</th>
                         <th class="text-center">Basic</th>
-                        <th class="text-center bg-primary text-white">Premium</th>
+                        <th class="text-center">Premium</th>
                         <th class="text-center">Enterprise</th>
                     </tr>
                 </thead>

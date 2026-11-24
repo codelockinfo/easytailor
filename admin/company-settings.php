@@ -155,10 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'PIN Code must be a valid 6-digit Indian PIN Code (e.g., 395006).';
         }
 
-        // Company Logo validation
         $hasExistingLogo = Company::hasCustomLogo($existingCompany);
 
-        // Website validation
         if (!empty($website)) {
             if (!preg_match('/^https?:\/\//i', $website)) {
                 $website = 'https://' . $website;
@@ -168,14 +166,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // GSTIN validation
         if (!empty($taxNumber)) {
             if (!preg_match('/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/', $taxNumber)) {
                 $errors[] = 'GST Number must be a valid 15-character GSTIN (e.g., 24AAAAA0000A1Z5).';
             }
         }
 
-        // Working Hours validation
         $daysList = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         $whData = [];
         $whClosed = $_POST['wh_closed'] ?? [];

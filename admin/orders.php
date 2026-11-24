@@ -701,9 +701,66 @@ if (!function_exists('getCustomerAvatarDesign')) {
 }
 @media (max-width: 575.98px) {
     .cat-action-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 0.74rem;
+        width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
+    }
+}
+/* Orders Main Listing Card */
+.orders-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .orders-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .orders-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #ordersMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.order-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    position: relative;
+}
+.order-mobile-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.order-mobile-card .cat-action-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 0.82rem;
+    border-radius: 8px;
+}
+@media (max-width: 575.98px) {
+    .order-mobile-card {
+        padding: 12px;
+    }
+    .order-mobile-card .cat-action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
     }
 }
 #topClothTypeSelect,
@@ -1054,10 +1111,10 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
         </button>
     </div>
 </div>
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 orders-main-card">
     <div class="card-body p-0">
         <?php if (!empty($orders)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -1230,15 +1287,16 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                        title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <div class="dropdown d-inline-block" style="position: static;">
+                                    <div class="dropdown d-inline-block">
                                         <button class="cat-action-btn cat-action-status dropdown-toggle" 
                                                 type="button" 
                                                 data-bs-toggle="dropdown"
+                                                data-bs-popper-config='{"strategy":"fixed"}'
                                                 aria-expanded="false"
                                                 title="Change Status">
                                             <i class="fas fa-cog"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" onclick="event.stopPropagation();" style="border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" onclick="event.stopPropagation();" style="border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.85rem; z-index: 1060;">
                                             <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Update Status</h6></li>
                                             <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'pending', this); return false;"><i class="fas fa-clock text-warning me-2"></i>Pending</a></li>
                                             <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'in_progress', this); return false;"><i class="fas fa-cogs text-primary me-2"></i>In Progress</a></li>
@@ -1282,6 +1340,223 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="ordersMobileCardsList">
+                <?php foreach ($orders as $index => $order): 
+                    $custName = display_val($order['measurement_customer_name'] ?? ($order['first_name'] . ' ' . $order['last_name']));
+                    $initial = strtoupper(mb_substr(trim($custName), 0, 1) ?: 'C');
+                    $avColor = getCustomerAvatarDesign($custName, $index);
+                    $isOverdue = $order['due_date'] < date('Y-m-d') && !in_array($order['status'], ['completed', 'delivered', 'cancelled']);
+                    $itemCount = (int)($order['item_count'] ?? 0);
+                    $displayCloth = !empty($order['all_cloth_type_names']) ? $order['all_cloth_type_names'] : display_val($order['cloth_type_name']);
+                    $displayTailor = !empty($order['all_tailor_names']) ? $order['all_tailor_names'] : display_val($order['tailor_name']);
+                    $pending = isset($order['balance_amount']) ? (float)$order['balance_amount'] : max(0.0, ((float)$order['total_amount'] - (float)$order['advance_amount']));
+                    $pm = strtolower($order['payment_method'] ?? 'cash');
+                    $pmBadgeClass = $pm === 'online' ? 'bg-primary text-white' : 'bg-light text-dark border';
+                    $pmLabel = $pm === 'online' ? 'Online' : ucfirst($pm);
+                ?>
+                <div class="order-mobile-card shadow-sm" id="orderCard_<?php echo $order['id']; ?>" data-status="<?php echo htmlspecialchars($order['status']); ?>" data-customer="<?php echo htmlspecialchars($custName); ?>">
+                   
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                        <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8rem; padding: 5px 9px; border-radius: 8px;">
+                            #<?php echo htmlspecialchars($order['order_number']); ?>
+                        </span>
+                        <span class="badge rounded-pill fw-semibold px-2 py-1 cat-badge-<?php echo htmlspecialchars($order['status']); ?>" style="font-size: 0.75rem;">
+                            <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2 min-w-0">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 10px; background: <?php echo $avColor['bg']; ?>; border: 1px solid <?php echo $avColor['border']; ?>; color: <?php echo $avColor['color']; ?>; font-size: 0.9rem;">
+                                <?php echo $initial; ?>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">
+                                    <?php echo htmlspecialchars($custName); ?>
+                                </div>
+                                <?php if (!empty($order['customer_phone'])): ?>
+                                    <a href="tel:<?php echo htmlspecialchars($order['customer_phone']); ?>" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                                        <i class="fas fa-phone-alt text-primary" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars($order['customer_phone']); ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light border text-primary fw-semibold px-2 py-1" style="border-radius: 8px; font-size: 0.75rem;">
+                            View <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Cloth Type</div>
+                                <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+                                    <span class="badge fw-medium text-dark text-truncate" style="background: #ffffff; border: 1px solid #e2e8f0; font-size: 0.75rem; max-width: 100%;">
+                                        <?php echo htmlspecialchars($displayCloth); ?>
+                                    </span>
+                                    <?php if ($itemCount > 1): ?>
+                                        <span class="badge rounded-pill bg-light text-primary border" style="font-size: 0.65rem;"><?php echo $itemCount; ?> Items</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php if (!has_role('tailor')): ?>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Tailor</div>
+                                <div class="mt-1">
+                                    <?php if (!empty($displayTailor)): ?>
+                                        <div class="d-flex align-items-center gap-1 text-dark text-truncate" style="font-size: 0.8rem;">
+                                            <i class="fas fa-user-tie text-muted flex-shrink-0" style="font-size: 0.72rem;"></i>
+                                            <span class="text-truncate"><?php echo htmlspecialchars($displayTailor); ?></span>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">Unassigned</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Order Date</div>
+                                <div class="text-dark fw-medium mt-1"><?php echo format_date($order['order_date']); ?></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Due Date</div>
+                                <div class="mt-1 <?php echo $isOverdue ? 'text-danger fw-bold' : 'text-dark fw-medium'; ?>">
+                                    <?php if ($isOverdue): ?><i class="fas fa-exclamation-circle text-danger me-1"></i><?php endif; ?>
+                                    <?php echo format_date($order['due_date']); ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: #ffffff; border: 1px solid #e2e8f0;">
+                        <div>
+                            <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Total Amount</div>
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;"><?php echo format_currency($order['total_amount']); ?></div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Advance</div>
+                            <div class="text-success fw-semibold" style="font-size: 0.85rem;">
+                                <?php echo format_currency($order['advance_amount']); ?>
+                                <span class="badge <?php echo $pmBadgeClass; ?>" style="font-size: 0.62rem;"><?php echo htmlspecialchars($pmLabel); ?></span>
+                            </div>
+                        </div>
+                        <div class="text-end" id="orderCardAmount_<?php echo $order['id']; ?>">
+                            <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Balance</div>
+                            <?php if ($pending > 0): ?>
+                                <div class="text-danger fw-bold" style="font-size: 0.85rem;">
+                                    <?php echo format_currency($pending); ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-success fw-bold" style="font-size: 0.8rem;">
+                                    <i class="fas fa-check-circle me-1"></i>Fully Paid
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <?php if (!has_role('tailor')): ?>
+                                <?php if ($pending > 0): ?>
+                                    <button type="button" 
+                                            class="cat-action-btn cat-action-pay quick-pay-btn" 
+                                            id="mobileQuickPayBtn_<?php echo $order['id']; ?>"
+                                            onclick="openQuickPayModal(<?php echo htmlspecialchars(json_encode([
+                                                'id' => $order['id'],
+                                                'order_number' => $order['order_number'] ?? ('ORD' . $order['id']),
+                                                'customer_name' => $order['measurement_customer_name'] ?? $order['customer_name'] ?? $custName,
+                                                'total_amount' => (float)$order['total_amount'],
+                                                'advance_amount' => (float)$order['advance_amount'],
+                                                'balance_amount' => (float)$pending,
+                                                'payment_method' => $order['payment_method'] ?? 'cash'
+                                            ])); ?>)" 
+                                            title="Mark as Fully Paid (Pending: <?php echo format_currency($pending); ?>)">
+                                        <i class="fas fa-rupee-sign"></i>
+                                    </button>
+                                <?php else: ?>
+                                    <span class="cat-action-btn cat-action-paid" 
+                                          id="mobileQuickPayBtn_<?php echo $order['id']; ?>"
+                                          title="Fully Paid (<?php echo format_currency($order['total_amount']); ?>)">
+                                        <i class="fas fa-check text-success"></i>
+                                    </span>
+                                <?php endif; ?>
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-edit" 
+                                    id="mobileEditOrderBtn_<?php echo $order['id']; ?>"
+                                    onclick="editOrder(<?php echo htmlspecialchars(json_encode([
+                                        'id' => $order['id'],
+                                        'customer_id' => $order['customer_id'],
+                                        'customer_name' => $order['measurement_customer_name'] ?? '',
+                                        'customer_phone' => $order['customer_phone'] ?? '',
+                                        'cloth_type_id' => $order['cloth_type_id'],
+                                        'measurement_id' => $order['measurement_id'],
+                                        'assigned_tailor_id' => $order['assigned_tailor_id'],
+                                        'order_date' => $order['order_date'],
+                                        'due_date' => $order['due_date'],
+                                        'total_amount' => $order['total_amount'],
+                                        'advance_amount' => $order['advance_amount'],
+                                        'balance_amount' => $order['balance_amount'] ?? 0,
+                                        'payment_method' => $order['payment_method'] ?? 'cash',
+                                        'special_instructions' => $order['special_instructions']
+                                    ])); ?>)"
+                                    title="Edit Order">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <?php endif; ?>
+                            <a href="order-details.php?id=<?php echo $order['id']; ?>" 
+                               class="cat-action-btn cat-action-view" 
+                               title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <div class="dropdown d-inline-block">
+                                <button class="cat-action-btn cat-action-status dropdown-toggle" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown"
+                                        data-bs-popper-config='{"strategy":"fixed"}'
+                                        aria-expanded="false"
+                                        title="Change Status">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" onclick="event.stopPropagation();" style="border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.85rem; z-index: 1060;">
+                                    <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Update Status</h6></li>
+                                    <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'pending', this); return false;"><i class="fas fa-clock text-warning me-2"></i>Pending</a></li>
+                                    <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'in_progress', this); return false;"><i class="fas fa-cogs text-primary me-2"></i>In Progress</a></li>
+                                    <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'completed', this); return false;"><i class="fas fa-check-circle text-success me-2"></i>Completed</a></li>
+                                    <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'delivered', this); return false;"><i class="fas fa-truck text-purple me-2" style="color: #8b5cf6;"></i>Delivered</a></li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li><a class="dropdown-item py-1 text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(<?php echo $order['id']; ?>, 'cancelled', this); return false;"><i class="fas fa-times-circle me-2"></i>Cancelled</a></li>
+                                </ul>
+                            </div>
+                            <?php if ($canGenerateInvoice): ?>
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-print" 
+                                    onclick="printOrderInvoice(<?php echo $order['id']; ?>)" 
+                                    title="Print Invoice">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <?php endif; ?>
+                            <?php if ($canSendInvoice): ?>
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-whatsapp" 
+                                    onclick='openSendInvoiceModal(<?php echo htmlspecialchars(json_encode([
+                                        "id" => $order["id"],
+                                        "order_number" => $order["order_number"] ?? ("ORD" . $order["id"]),
+                                        "customer_name" => $order["measurement_customer_name"] ?? $order["customer_name"] ?? "Customer",
+                                        "customer_phone" => $order["customer_phone"] ?? "",
+                                        "cloth_type_name" => $order["cloth_type_name"] ?? "",
+                                        "total_amount" => (float)$order["total_amount"],
+                                        "advance_amount" => (float)($order["advance_amount"] ?? 0),
+                                        "balance_amount" => isset($order["balance_amount"]) ? (float)$order["balance_amount"] : max(0.0, (float)$order["total_amount"] - (float)($order["advance_amount"] ?? 0)),
+                                        "payment_method" => $order["payment_method"] ?? "cash",
+                                        "order_date" => $order["order_date"] ?? "",
+                                        "due_date" => $order["due_date"] ?? ""
+                                    ])); ?>)' 
+                                    title="Send Invoice">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
             <div id="paginationContainer" class="p-3">
             <?php if ($totalPages > 1): ?>
@@ -2831,7 +3106,7 @@ function submitQuickPay() {
 
             showToast('Success', data.message || 'Payment settled successfully! Order marked as Fully Paid.', 'success');
 
-            // 1. Update Amount column UI
+            // 1. Update Amount column UI (Desktop & Mobile)
             const amountCell = document.getElementById('orderAmountCell_' + orderId);
             if (amountCell) {
                 const methodLower = (data.order.payment_method || 'cash').toLowerCase();
@@ -2854,8 +3129,17 @@ function submitQuickPay() {
                     </div>
                 `;
             }
+            const cardAmountBox = document.getElementById('orderCardAmount_' + orderId);
+            if (cardAmountBox) {
+                cardAmountBox.innerHTML = `
+                    <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Balance</div>
+                    <div class="text-success fw-bold" style="font-size: 0.8rem;">
+                        <i class="fas fa-check-circle me-1"></i>Fully Paid
+                    </div>
+                `;
+            }
 
-            // 2. Replace Quick Pay button with Fully Paid checkmark
+            // 2. Replace Quick Pay button with Fully Paid checkmark (Desktop & Mobile)
             const payBtn = document.getElementById('quickPayBtn_' + orderId);
             if (payBtn) {
                 const paidSpan = document.createElement('span');
@@ -2865,11 +3149,20 @@ function submitQuickPay() {
                 paidSpan.innerHTML = '<i class="fas fa-check text-success"></i>';
                 payBtn.parentNode.replaceChild(paidSpan, payBtn);
             }
+            const mobilePayBtn = document.getElementById('mobileQuickPayBtn_' + orderId);
+            if (mobilePayBtn) {
+                const paidSpan = document.createElement('span');
+                paidSpan.className = 'cat-action-btn cat-action-paid';
+                paidSpan.id = 'mobileQuickPayBtn_' + orderId;
+                paidSpan.title = `Fully Paid (${data.order.formatted_total})`;
+                paidSpan.innerHTML = '<i class="fas fa-check text-success"></i>';
+                mobilePayBtn.parentNode.replaceChild(paidSpan, mobilePayBtn);
+            }
 
-            // 3. Update Edit button's data so opening Edit modal shows 0 pending
-            const editBtn = document.getElementById('editOrderBtn_' + orderId);
-            if (editBtn) {
-                const currentOnClick = editBtn.getAttribute('onclick');
+            // 3. Update Edit button's data so opening Edit modal shows 0 pending (Desktop & Mobile)
+            const updateEditBtnData = (btnEl) => {
+                if (!btnEl) return;
+                const currentOnClick = btnEl.getAttribute('onclick');
                 if (currentOnClick && currentOnClick.includes('editOrder(')) {
                     try {
                         const match = currentOnClick.match(/editOrder\(([\s\S]+)\)/);
@@ -2878,25 +3171,27 @@ function submitQuickPay() {
                             orderObj.advance_amount = data.order.advance_amount;
                             orderObj.balance_amount = 0.00;
                             orderObj.payment_method = data.order.payment_method;
-                            editBtn.setAttribute('onclick', `editOrder(${JSON.stringify(orderObj)})`);
+                            btnEl.setAttribute('onclick', `editOrder(${JSON.stringify(orderObj)})`);
                         }
                     } catch (e) {
                         console.error('Error updating edit button onclick:', e);
                     }
                 }
-                const dataOrderAttr = editBtn.getAttribute('data-order');
+                const dataOrderAttr = btnEl.getAttribute('data-order');
                 if (dataOrderAttr) {
                     try {
                         const orderObj = JSON.parse(dataOrderAttr.replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
                         orderObj.advance_amount = data.order.advance_amount;
                         orderObj.balance_amount = 0.00;
                         orderObj.payment_method = data.order.payment_method;
-                        editBtn.setAttribute('data-order', JSON.stringify(orderObj));
+                        btnEl.setAttribute('data-order', JSON.stringify(orderObj));
                     } catch (e) {
                         console.error('Error updating edit button data-order:', e);
                     }
                 }
-            }
+            };
+            updateEditBtnData(document.getElementById('editOrderBtn_' + orderId));
+            updateEditBtnData(document.getElementById('mobileEditOrderBtn_' + orderId));
         } else {
             showToast('Error', data.error || 'Failed to update payment', 'error');
         }
@@ -2953,7 +3248,6 @@ function viewOrder(orderId) {
     window.location.href = 'order-details.php?id=' + orderId;
 }
 
-// Ensure at least 1 item is added on page load or modal open
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('orderItemsContainer');
     if (container && container.children.length === 0) {
@@ -3248,6 +3542,18 @@ function showFilterError(errorMessage) {
             </tr>
         `;
     }
+    const mobileErrorList = document.getElementById('ordersMobileCardsList');
+    if (mobileErrorList) {
+        mobileErrorList.innerHTML = `
+            <div class="text-center py-5">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #fef2f2; color: #ef4444;">
+                    <i class="fas fa-exclamation-circle fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Error filtering orders</h5>
+                <p class="text-muted small mb-0">Please clear your filters and try again.</p>
+            </div>
+        `;
+    }
 }
 
 function displayFilterResults(orders) {
@@ -3257,6 +3563,7 @@ function displayFilterResults(orders) {
     }
     
     const isTailor = <?php echo has_role('tailor') ? 'true' : 'false'; ?>;
+    const ordersMobileList = document.getElementById('ordersMobileCardsList');
     
     if (orders.length === 0) {
         ordersTable.innerHTML = `
@@ -3270,6 +3577,17 @@ function displayFilterResults(orders) {
                 </td>
             </tr>
         `;
+        if (ordersMobileList) {
+            ordersMobileList.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">No orders found</h5>
+                    <p class="text-muted small">Try adjusting your filter criteria</p>
+                </div>
+            `;
+        }
         return;
     }
     
@@ -3303,6 +3621,7 @@ function displayFilterResults(orders) {
     };
     
     let tableHTML = '';
+    let cardsHTML = '';
     orders.forEach((order, index) => {
         const orderDate = formatDate(order.order_date);
         const dueDate = formatDate(order.due_date);
@@ -3317,6 +3636,11 @@ function displayFilterResults(orders) {
         const advAmt = parseFloat(order.advance_amount) || 0;
         const pendingAmt = (order.balance_amount !== undefined && order.balance_amount !== null) ? parseFloat(order.balance_amount) : Math.max(0, totalAmt - advAmt);
 
+        const pmLower = (order.payment_method || 'cash').toLowerCase();
+        const pmDisplay = pmLower === 'online' ? 'Online' : (pmLower.charAt(0).toUpperCase() + pmLower.slice(1));
+        const pmBadgeClass = pmLower === 'online' ? 'bg-primary text-white' : 'bg-light text-dark border';
+
+        // 1. Desktop Table Row
         tableHTML += `
             <tr class="order-row" id="orderRow_${order.id}" data-status="${escapeHtml(order.status)}" data-customer="${escapeHtml(customerName)}">
                 <td class="ps-3 py-3">
@@ -3370,8 +3694,8 @@ function displayFilterResults(orders) {
                         <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.72rem;">
                             <div class="text-muted">
                                 Adv: <span class="text-success fw-semibold">${formatCurrency(order.advance_amount || 0)}</span>
-                                <span class="badge ${((order.payment_method || 'cash').toLowerCase() === 'online') ? 'bg-primary text-white' : 'bg-light text-dark border'} ms-1" style="font-size: 0.65rem;">
-                                    ${escapeHtml((order.payment_method || 'cash').toLowerCase() === 'online' ? 'Online' : ((order.payment_method || 'cash').charAt(0).toUpperCase() + (order.payment_method || 'cash').slice(1)))}
+                                <span class="badge ${pmBadgeClass} ms-1" style="font-size: 0.65rem;">
+                                    ${escapeHtml(pmDisplay)}
                                 </span>
                             </div>
                             ${pendingAmt > 0 ? `
@@ -3440,15 +3764,16 @@ function displayFilterResults(orders) {
                            title="View Details">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <div class="dropdown d-inline-block" style="position: static;">
+                        <div class="dropdown d-inline-block">
                             <button class="cat-action-btn cat-action-status dropdown-toggle" 
                                     type="button" 
                                     data-bs-toggle="dropdown"
+                                    data-bs-popper-config='{"strategy":"fixed"}'
                                     aria-expanded="false"
                                     title="Change Status">
                                 <i class="fas fa-cog"></i>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" onclick="event.stopPropagation();" style="border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" onclick="event.stopPropagation();" style="border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.85rem; z-index: 1060;">
                                 <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Update Status</h6></li>
                                 <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'pending', this); return false;"><i class="fas fa-clock text-warning me-2"></i>Pending</a></li>
                                 <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'in_progress', this); return false;"><i class="fas fa-cogs text-primary me-2"></i>In Progress</a></li>
@@ -3490,10 +3815,223 @@ function displayFilterResults(orders) {
                 </td>
             </tr>
         `;
+
+        // 2. Mobile Card
+        cardsHTML += `
+            <div class="order-mobile-card shadow-sm" id="orderCard_${order.id}" data-status="${escapeHtml(order.status)}" data-customer="${escapeHtml(customerName)}">
+                <!-- Header: Order # & Status -->
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8rem; padding: 5px 9px; border-radius: 8px;">
+                        #${escapeHtml(order.order_number)}
+                    </span>
+                    <span class="badge rounded-pill fw-semibold px-2 py-1 ${statusBadgeClass}" style="font-size: 0.75rem;">
+                        ${escapeHtml(statusDisplay)}
+                    </span>
+                </div>
+
+                <!-- Customer Row -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 10px; background: ${pal.bg}; border: 1px solid ${pal.border}; color: ${pal.color}; font-size: 0.9rem;">
+                            ${escapeHtml(initial)}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">
+                                ${escapeHtml(customerName)}
+                            </div>
+                            ${order.customer_phone ? `
+                                <a href="tel:${escapeHtml(order.customer_phone)}" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                                    <i class="fas fa-phone-alt text-primary" style="font-size: 0.7rem;"></i> ${escapeHtml(order.customer_phone)}
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <a href="order-details.php?id=${order.id}" class="btn btn-sm btn-light border text-primary fw-semibold px-2 py-1" style="border-radius: 8px; font-size: 0.75rem;">
+                        View <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                <!-- Order Info Grid -->
+                <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Cloth Type</div>
+                            <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+                                <span class="badge fw-medium text-dark text-truncate" style="background: #ffffff; border: 1px solid #e2e8f0; font-size: 0.75rem; max-width: 100%;">
+                                    ${escapeHtml(order.all_cloth_type_names || order.cloth_type_name || '-')}
+                                </span>
+                                ${order.item_count && order.item_count > 1 ? `<span class="badge rounded-pill bg-light text-primary border" style="font-size: 0.65rem;">${order.item_count} Items</span>` : ''}
+                            </div>
+                        </div>
+                        ${!isTailor ? `
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Tailor</div>
+                            <div class="mt-1">
+                                ${(order.all_tailor_names || order.tailor_name) ? `
+                                    <div class="d-flex align-items-center gap-1 text-dark text-truncate" style="font-size: 0.8rem;">
+                                        <i class="fas fa-user-tie text-muted flex-shrink-0" style="font-size: 0.72rem;"></i>
+                                        <span class="text-truncate">${escapeHtml(order.all_tailor_names || order.tailor_name)}</span>
+                                    </div>
+                                ` : '<span class="text-muted" style="font-size: 0.75rem; font-style: italic;">Unassigned</span>'}
+                            </div>
+                        </div>
+                        ` : ''}
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Order Date</div>
+                            <div class="text-dark fw-medium mt-1">${orderDate}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Due Date</div>
+                            <div class="mt-1 ${isOverdue ? 'text-danger fw-bold' : 'text-dark fw-medium'}">
+                                ${isOverdue ? '<i class="fas fa-exclamation-circle text-danger me-1"></i>' : ''}${dueDate}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Box -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: #ffffff; border: 1px solid #e2e8f0;">
+                    <div>
+                        <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Total Amount</div>
+                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">${formatCurrency(order.total_amount)}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Advance</div>
+                        <div class="text-success fw-semibold" style="font-size: 0.85rem;">
+                            ${formatCurrency(order.advance_amount || 0)}
+                            <span class="badge ${pmBadgeClass}" style="font-size: 0.62rem;">${escapeHtml(pmDisplay)}</span>
+                        </div>
+                    </div>
+                    <div class="text-end" id="orderCardAmount_${order.id}">
+                        <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Balance</div>
+                        ${pendingAmt > 0 ? `
+                            <div class="text-danger fw-bold" style="font-size: 0.85rem;">
+                                ${formatCurrency(pendingAmt)}
+                            </div>
+                        ` : `
+                            <div class="text-success fw-bold" style="font-size: 0.8rem;">
+                                <i class="fas fa-check-circle me-1"></i>Fully Paid
+                            </div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- Action Bar in Card Footer -->
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                    <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                    <div class="d-inline-flex align-items-center gap-1">
+                        ${!isTailor ? `
+                        ${pendingAmt > 0 ? `
+                        <button type="button" 
+                                class="cat-action-btn cat-action-pay quick-pay-btn" 
+                                id="mobileQuickPayBtn_${order.id}"
+                                data-order='${JSON.stringify({
+                                    id: order.id,
+                                    order_number: order.order_number || ('ORD' + order.id),
+                                    customer_name: order.display_customer_name || order.customer_name || 'Customer',
+                                    total_amount: totalAmt,
+                                    advance_amount: advAmt,
+                                    balance_amount: pendingAmt,
+                                    payment_method: order.payment_method || 'cash'
+                                }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
+                                title="Mark as Fully Paid (Pending: ${formatCurrency(pendingAmt)})">
+                            <i class="fas fa-rupee-sign"></i>
+                        </button>
+                        ` : `
+                        <span class="cat-action-btn cat-action-paid" 
+                              id="mobileQuickPayBtn_${order.id}"
+                              title="Fully Paid (${formatCurrency(totalAmt)})">
+                            <i class="fas fa-check text-success"></i>
+                        </span>
+                        `}
+                        <button type="button" 
+                                class="cat-action-btn cat-action-edit edit-order-btn" 
+                                id="mobileEditOrderBtn_${order.id}"
+                                data-order='${JSON.stringify({
+                                    id: order.id,
+                                    customer_id: order.customer_id,
+                                    customer_name: order.customer_name || '',
+                                    customer_phone: order.customer_phone || '',
+                                    cloth_type_id: order.cloth_type_id,
+                                    measurement_id: order.measurement_id,
+                                    assigned_tailor_id: order.assigned_tailor_id,
+                                    order_date: order.order_date,
+                                    due_date: order.due_date,
+                                    total_amount: order.total_amount,
+                                    advance_amount: order.advance_amount,
+                                    balance_amount: order.balance_amount,
+                                    payment_method: order.payment_method || 'cash',
+                                    special_instructions: order.special_instructions || ''
+                                }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
+                                title="Edit Order">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ` : ''}
+                        <a href="order-details.php?id=${order.id}" 
+                           class="cat-action-btn cat-action-view" 
+                           title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <div class="dropdown d-inline-block">
+                            <button class="cat-action-btn cat-action-status dropdown-toggle" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown"
+                                    data-bs-popper-config='{"strategy":"fixed"}'
+                                    aria-expanded="false"
+                                    title="Change Status">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" onclick="event.stopPropagation();" style="border-radius: 12px; border: 1px solid #e2e8f0; font-size: 0.85rem; z-index: 1060;">
+                                <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Update Status</h6></li>
+                                <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'pending', this); return false;"><i class="fas fa-clock text-warning me-2"></i>Pending</a></li>
+                                <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'in_progress', this); return false;"><i class="fas fa-cogs text-primary me-2"></i>In Progress</a></li>
+                                <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'completed', this); return false;"><i class="fas fa-check-circle text-success me-2"></i>Completed</a></li>
+                                <li><a class="dropdown-item py-1" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'delivered', this); return false;"><i class="fas fa-truck text-purple me-2" style="color: #8b5cf6;"></i>Delivered</a></li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li><a class="dropdown-item py-1 text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); updateOrderStatusAjax(${order.id}, 'cancelled', this); return false;"><i class="fas fa-times-circle me-2"></i>Cancelled</a></li>
+                            </ul>
+                        </div>
+                        ${canGenerateInvoice ? `
+                        <button type="button" 
+                                class="cat-action-btn cat-action-print" 
+                                onclick="printOrderInvoice(${order.id})" 
+                                title="Print Invoice">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        ` : ''}
+                        ${canSendInvoice ? `
+                        <button type="button" 
+                                class="cat-action-btn cat-action-whatsapp send-order-invoice-btn" 
+                                data-order='${JSON.stringify({
+                                    id: order.id,
+                                    order_number: order.order_number || ('ORD' + order.id),
+                                    customer_name: order.display_customer_name || order.customer_name || 'Customer',
+                                    customer_phone: order.customer_phone || '',
+                                    cloth_type_name: order.cloth_type_name || '',
+                                    total_amount: order.total_amount,
+                                    advance_amount: order.advance_amount,
+                                    balance_amount: order.balance_amount,
+                                    payment_method: order.payment_method || 'cash',
+                                    order_date: order.order_date,
+                                    due_date: order.due_date
+                                }).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}'
+                                title="Send Invoice">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
     });
     
     ordersTable.innerHTML = tableHTML;
-    ordersTable.querySelectorAll('.quick-pay-btn').forEach(btn => {
+    if (ordersMobileList) {
+        ordersMobileList.innerHTML = cardsHTML;
+    }
+    
+    // Bind click events to both desktop and mobile buttons
+    document.querySelectorAll('.quick-pay-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
                 const orderJson = this.getAttribute('data-order')
@@ -3509,7 +4047,7 @@ function displayFilterResults(orders) {
             }
         });
     });
-    ordersTable.querySelectorAll('.edit-order-btn').forEach(btn => {
+    document.querySelectorAll('.edit-order-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
                 const orderJson = this.getAttribute('data-order')
@@ -3526,7 +4064,7 @@ function displayFilterResults(orders) {
             }
         });
     });
-    ordersTable.querySelectorAll('.send-order-invoice-btn').forEach(btn => {
+    document.querySelectorAll('.send-order-invoice-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
                 const orderJson = this.getAttribute('data-order')
@@ -3562,12 +4100,22 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
         });
         rows.forEach(r => tableBody.appendChild(r));
     }
+    const mobileCardsList = document.getElementById('ordersMobileCardsList');
+    if (mobileCardsList) {
+        const cards = Array.from(mobileCardsList.querySelectorAll('.order-mobile-card'));
+        cards.sort((a, b) => {
+            const nameA = a.getAttribute('data-customer') || '';
+            const nameB = b.getAttribute('data-customer') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        cards.forEach(c => mobileCardsList.appendChild(c));
+    }
 });
 document.addEventListener('shown.bs.dropdown', function(e) {
     const toggle = e.target;
     const dropdown = toggle.closest('.dropdown');
     
-    if (!dropdown || !dropdown.closest('.table td')) return;
+    if (!dropdown || (!dropdown.closest('.table td') && !dropdown.closest('.order-mobile-card'))) return;
     
     const menu = dropdown.querySelector('.dropdown-menu');
     if (!menu) return;

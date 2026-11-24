@@ -6,6 +6,7 @@
  */
 
 class SubscriptionHelper {
+    private static $planCache = [];
     
     /**
      * Get plan limits
@@ -54,28 +55,43 @@ class SubscriptionHelper {
     }
     
     /**
-     * Get current company subscription plan
+     * Get current company subscription plan (cached per request)
      */
     public static function getCurrentPlan($companyId) {
-        require_once __DIR__ . '/../admin/models/Company.php';
-        $companyModel = new Company();
-        $company = $companyModel->find($companyId);
-        
-        if (!$company) {
+        if (!$companyId) {
             return 'free';
         }
-        
-        // Check if subscription is expired
-        if ($company['subscription_expiry']) {
-            $expiry = strtotime($company['subscription_expiry']);
-            $today = strtotime(date('Y-m-d'));
-            if ($expiry < $today && $company['subscription_plan'] !== 'free') {
-                // Subscription expired, downgrade to free
+        if (isset(self::$planCache[$companyId])) {
+            return self::$planCache[$companyId];
+        }
+
+        try {
+            require_once __DIR__ . '/../admin/models/Company.php';
+            $companyModel = new Company();
+            $company = $companyModel->find($companyId);
+            
+            if (!$company) {
+                self::$planCache[$companyId] = 'free';
                 return 'free';
             }
+            
+            // Check if subscription is expired
+            if (!empty($company['subscription_expiry'])) {
+                $expiry = strtotime($company['subscription_expiry']);
+                $today = strtotime(date('Y-m-d'));
+                if ($expiry < $today && ($company['subscription_plan'] ?? '') !== 'free') {
+                    self::$planCache[$companyId] = 'free';
+                    return 'free';
+                }
+            }
+            
+            $plan = $company['subscription_plan'] ?? 'free';
+            self::$planCache[$companyId] = $plan;
+            return $plan;
+        } catch (Throwable $e) {
+            error_log("SubscriptionHelper::getCurrentPlan error: " . $e->getMessage());
+            return 'free';
         }
-        
-        return $company['subscription_plan'] ?? 'free';
     }
     
     /**

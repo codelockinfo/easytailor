@@ -507,10 +507,18 @@ $editOrder = null;
 if (isset($_GET['edit'])) {
     $editOrder = $orderModel->find((int)$_GET['edit']);
 }
-$currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
-$orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
-$canGenerateInvoice = !has_role('tailor') && (SubscriptionHelper::canGenerateInvoice($companyId)['allowed'] ?? false);
-$canSendInvoice = !has_role('tailor') && (SubscriptionHelper::canSendInvoice($companyId)['allowed'] ?? false);
+try {
+    $currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
+    $orderLimitCheck = SubscriptionHelper::canAddOrder($companyId);
+    $canGenerateInvoice = !has_role('tailor') && (SubscriptionHelper::canGenerateInvoice($companyId)['allowed'] ?? false);
+    $canSendInvoice = !has_role('tailor') && (SubscriptionHelper::canSendInvoice($companyId)['allowed'] ?? false);
+} catch (Throwable $planEx) {
+    error_log("Subscription check error on orders page: " . $planEx->getMessage());
+    $currentPlan = 'free';
+    $orderLimitCheck = ['allowed' => true];
+    $canGenerateInvoice = !has_role('tailor');
+    $canSendInvoice = !has_role('tailor');
+}
 $autoWhatsApp = !has_role('tailor') ? ($_SESSION['auto_whatsapp'] ?? null) : null;
 unset($_SESSION['auto_whatsapp']);
 

@@ -240,20 +240,6 @@ if (count($nameParts) >= 2) {
                 </form>
             </div>
         </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-key me-2"></i>Change Password
-                </h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">To change your password, please visit the Change Password page.</p>
-                <a href="change-password.php" class="btn btn-warning">
-                    <i class="fas fa-key me-2"></i>Change Password
-                </a>
-            </div>
-        </div>
     </div>
 </div>
 

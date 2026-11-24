@@ -11,17 +11,37 @@ class BaseModel {
     protected $table;
     protected $primary_key = 'id';
 
-    public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+    public function __construct($db = null) {
+        if ($db) {
+            $this->conn = $db;
+        } else {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+        }
+    }
+
+    /**
+     * Get database connection with auto-reconnect fallback
+     */
+    protected function getConn() {
+        if (!$this->conn) {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+        }
+        return $this->conn;
     }
 
     /**
      * Find record by ID
      */
     public function find($id) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::find - database connection unavailable for table: {$this->table}");
+            return false;
+        }
         $query = "SELECT * FROM " . $this->table . " WHERE " . $this->primary_key . " = :id LIMIT 1";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $conn->prepare($query);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
         
@@ -32,6 +52,11 @@ class BaseModel {
      * Find all records with optional conditions
      */
     public function findAll($conditions = [], $order_by = null, $limit = null) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::findAll - database connection unavailable for table: {$this->table}");
+            return [];
+        }
         $query = "SELECT * FROM " . $this->table;
         $params = [];
 
@@ -52,7 +77,7 @@ class BaseModel {
             $query .= " LIMIT " . $limit;
         }
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $conn->prepare($query);
         $stmt->execute($params);
         
         return $stmt->fetchAll();
@@ -62,6 +87,11 @@ class BaseModel {
      * Find one record with conditions
      */
     public function findOne($conditions = []) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::findOne - database connection unavailable for table: {$this->table}");
+            return false;
+        }
         $query = "SELECT * FROM " . $this->table;
         $params = [];
 
@@ -75,7 +105,7 @@ class BaseModel {
         }
 
         $query .= " LIMIT 1";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $conn->prepare($query);
         $stmt->execute($params);
         
         return $stmt->fetch();
@@ -85,25 +115,29 @@ class BaseModel {
      * Create new record
      */
     public function create($data) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::create - database connection unavailable for table: {$this->table}");
+            return false;
+        }
         $columns = array_keys($data);
         $placeholders = array_map(function($col) { return ':' . $col; }, $columns);
         
         $query = "INSERT INTO " . $this->table . " (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
         
         try {
-            $stmt = $this->conn->prepare($query);
+            $stmt = $conn->prepare($query);
             
             foreach ($data as $column => $value) {
                 $stmt->bindValue(':' . $column, $value);
             }
             
             if ($stmt->execute()) {
-                return $this->conn->lastInsertId();
+                return $conn->lastInsertId();
             }
             
             return false;
         } catch (PDOException $e) {
-            // Re-throw the exception so it can be caught by the calling method
             throw $e;
         }
     }
@@ -112,6 +146,11 @@ class BaseModel {
      * Update record
      */
     public function update($id, $data) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::update - database connection unavailable for table: {$this->table}");
+            return false;
+        }
         if (empty($data)) {
             error_log("BaseModel::update called with empty data array for table: {$this->table}, id: $id");
             return false;
@@ -125,7 +164,7 @@ class BaseModel {
         $query = "UPDATE " . $this->table . " SET " . implode(', ', $set_clauses) . " WHERE " . $this->primary_key . " = :id";
         
         try {
-            $stmt = $this->conn->prepare($query);
+            $stmt = $conn->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             
             foreach ($data as $column => $value) {
@@ -162,8 +201,13 @@ class BaseModel {
      * Delete record
      */
     public function delete($id) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::delete - database connection unavailable for table: {$this->table}");
+            return false;
+        }
         $query = "DELETE FROM " . $this->table . " WHERE " . $this->primary_key . " = :id";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $conn->prepare($query);
         $stmt->bindParam(':id', $id);
         
         return $stmt->execute();
@@ -173,6 +217,11 @@ class BaseModel {
      * Count records with optional conditions
      */
     public function count($conditions = []) {
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::count - database connection unavailable for table: {$this->table}");
+            return 0;
+        }
         $query = "SELECT COUNT(*) as count FROM " . $this->table;
         $params = [];
 
@@ -185,18 +234,23 @@ class BaseModel {
             $query .= " WHERE " . implode(" AND ", $where_clauses);
         }
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $conn->prepare($query);
         $stmt->execute($params);
         
         $result = $stmt->fetch();
-        return $result['count'];
+        return $result['count'] ?? 0;
     }
 
     /**
      * Execute custom query
      */
     public function query($sql, $params = []) {
-        $stmt = $this->conn->prepare($sql);
+        $conn = $this->getConn();
+        if (!$conn) {
+            error_log("BaseModel::query - database connection unavailable for table: {$this->table}");
+            return false;
+        }
+        $stmt = $conn->prepare($sql);
         $stmt->execute($params);
         return $stmt;
     }
@@ -205,28 +259,32 @@ class BaseModel {
      * Begin transaction
      */
     public function beginTransaction() {
-        return $this->conn->beginTransaction();
+        $conn = $this->getConn();
+        return $conn ? $conn->beginTransaction() : false;
     }
 
     /**
      * Commit transaction
      */
     public function commit() {
-        return $this->conn->commit();
+        $conn = $this->getConn();
+        return $conn ? $conn->commit() : false;
     }
 
     /**
      * Rollback transaction
      */
     public function rollback() {
-        return $this->conn->rollback();
+        $conn = $this->getConn();
+        return $conn ? $conn->rollback() : false;
     }
 
     /**
      * Get last insert ID
      */
     public function lastInsertId() {
-        return $this->conn->lastInsertId();
+        $conn = $this->getConn();
+        return $conn ? $conn->lastInsertId() : false;
     }
 }
 ?>

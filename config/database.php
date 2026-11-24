@@ -6,6 +6,7 @@
  */
 
 class Database {
+    private static $sharedConn = null;
     private $host;
     private $db_name;
     private $username;
@@ -79,25 +80,49 @@ class Database {
     }
 
     /**
-     * Get database connection
+     * Get database connection (Singleton shared connection per request)
      */
     public function getConnection() {
+        if (self::$sharedConn !== null) {
+            $this->conn = self::$sharedConn;
+            return $this->conn;
+        }
+
         $this->conn = null;
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
 
         try {
             $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=" . $this->charset;
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ];
-            
             $this->conn = new PDO($dsn, $this->username, $this->password, $options);
+            self::$sharedConn = $this->conn;
         } catch(PDOException $exception) {
-            echo "Connection error: " . $exception->getMessage();
+            // Fallback: If 'localhost' socket connection fails on Linux (e.g. 2002 Operation not permitted),
+            // attempt TCP connection via 127.0.0.1
+            if ($this->host === 'localhost') {
+                try {
+                    $dsnFallback = "mysql:host=127.0.0.1;port=3306;dbname=" . $this->db_name . ";charset=" . $this->charset;
+                    $this->conn = new PDO($dsnFallback, $this->username, $this->password, $options);
+                    self::$sharedConn = $this->conn;
+                    return $this->conn;
+                } catch(PDOException $fallbackEx) {
+                    error_log("Database TCP fallback error: " . $fallbackEx->getMessage());
+                }
+            }
+            error_log("Database Connection error: " . $exception->getMessage());
         }
 
         return $this->conn;
+    }
+
+    /**
+     * Reset shared connection (useful if connection was dropped)
+     */
+    public static function resetConnection() {
+        self::$sharedConn = null;
     }
     
     /**

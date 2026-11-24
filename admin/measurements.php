@@ -535,11 +535,51 @@ if (!function_exists('getCustomerAvatarDesign')) {
         white-space: nowrap !important;
     }
 }
+/* Measurements Main Listing Card */
+.measurements-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .measurements-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .measurements-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #measurementMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.measurement-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+.measurement-mobile-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
 @media (max-width: 575.98px) {
     .cat-action-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 0.74rem;
+        width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
     }
 }
 </style>
@@ -679,10 +719,10 @@ include 'includes/page-header.php';
         <span><strong id="filterCount">0</strong> measurements found</span>
     </div>
 </div>
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 measurements-main-card">
     <div class="card-body p-0">
         <?php if (!empty($measurements)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -771,6 +811,80 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards Listing (Visible only on screens < 768px) -->
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="measurementMobileCardsList">
+                <?php foreach ($measurements as $idx => $measurement): 
+                    $custKey = 'cust_' . $idx;
+                    $cleanCustName = !empty($measurement['name']) ? $measurement['name'] : trim(($measurement['first_name'] ?? '') . ' ' . ($measurement['last_name'] ?? ''));
+                    if (empty($cleanCustName)) $cleanCustName = 'Walk-in Customer';
+                    $custDesign = getCustomerAvatarDesign($cleanCustName, $idx);
+                    $initial = strtoupper(substr($cleanCustName, 0, 1) ?: 'C');
+                    $cClothTypes = $measurement['cloth_types'] ?? [];
+                    $cGarments = $measurement['garments'] ?? [];
+                ?>
+                <div class="measurement-mobile-card shadow-sm measurement-card-row" data-name="<?php echo strtolower($cleanCustName); ?>">
+                    <!-- Card Header -->
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2 min-w-0">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 10px; background: <?php echo $custDesign['bg']; ?>; border: 1px solid <?php echo $custDesign['border']; ?>; color: <?php echo $custDesign['color']; ?>; font-size: 0.9rem;">
+                                <?php echo $initial; ?>
+                            </div>
+                            <div class="min-w-0">
+                                <strong class="text-dark cust-name text-truncate d-block" style="font-size: 0.95rem;"><?php echo htmlspecialchars($cleanCustName); ?></strong>
+                                <div class="text-muted small" style="font-size: 0.74rem;"><?php echo htmlspecialchars(!empty($measurement['phone_number']) ? $measurement['phone_number'] : ($measurement['customer_code'] ?? '')); ?></div>
+                            </div>
+                        </div>
+                        <span class="text-muted small" style="font-size: 0.76rem;"><?php echo format_date($measurement['created_at'], 'M j, Y'); ?></span>
+                    </div>
+
+                    <!-- Cloth Types & Items -->
+                    <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
+                        <div class="text-muted mb-1" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Cloth Types & Garments</div>
+                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                            <?php if (!empty($cClothTypes)): ?>
+                                <?php foreach ($cClothTypes as $ctName): ?>
+                                    <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                        <?php echo htmlspecialchars($ctName); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                                <?php if (count($cClothTypes) > 1): ?>
+                                    <span class="badge rounded-pill px-2 py-1 fw-bold" style="background: #f1f5f9; color: #475569; font-size: 0.72rem;">
+                                        <?php echo count($cGarments); ?> Items
+                                    </span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                    <?php echo htmlspecialchars($measurement['cloth_type_name'] ?? 'Custom'); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <?php if (!empty($measurement['notes'])): ?>
+                            <div class="mt-2 pt-2 border-top">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Notes</div>
+                                <div class="text-dark small mt-1" style="font-size: 0.78rem;"><?php echo htmlspecialchars($measurement['notes']); ?></div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomerByKey('<?php echo $custKey; ?>')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="cat-action-btn cat-action-view" onclick="viewCustomerByKey('<?php echo $custKey; ?>')" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomerByKey('<?php echo $custKey; ?>')" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
 
             <div id="paginationContainer">
@@ -2256,6 +2370,16 @@ document.getElementById('sortMeasurementsBtn')?.addEventListener('click', functi
         });
         rows.forEach(r => tableBody.appendChild(r));
     }
+    const mobileCardsList = document.getElementById('measurementMobileCardsList');
+    if (mobileCardsList) {
+        const cards = Array.from(mobileCardsList.querySelectorAll('.measurement-card-row'));
+        cards.sort((a, b) => {
+            const nameA = a.getAttribute('data-name') || '';
+            const nameB = b.getAttribute('data-name') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        cards.forEach(c => mobileCardsList.appendChild(c));
+    }
 });
 
 // Auto-dismiss alerts
@@ -2473,6 +2597,7 @@ function escapeHtml(str) {
 }
 
 function displayFilterResults(measurements) {
+    const mobileCardsList = document.getElementById('measurementMobileCardsList');
     if (!measurements || measurements.length === 0) {
         if (measurementsTable) {
             measurementsTable.innerHTML = `
@@ -2485,10 +2610,20 @@ function displayFilterResults(measurements) {
             </tr>
         `;
         }
+        if (mobileCardsList) {
+            mobileCardsList.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No measurements found</h5>
+                    <p class="text-muted small">Try adjusting your filter criteria</p>
+                </div>
+            `;
+        }
         return;
     }
     
     let tableHTML = '';
+    let cardsHTML = '';
     measurements.forEach((measurement, idx) => {
         let cleanCustName = measurement.name || ((measurement.first_name || '') + ' ' + (measurement.last_name || '')).trim();
         if (!cleanCustName) cleanCustName = 'Walk-in Customer';
@@ -2635,10 +2770,54 @@ function displayFilterResults(measurements) {
                 </td>
             </tr>
         `;
+
+        cardsHTML += `
+            <div class="measurement-mobile-card shadow-sm measurement-card-row" data-name="${escapeHtml(cleanCustName.toLowerCase())}">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 10px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.9rem;">
+                            ${initial}
+                        </div>
+                        <div class="min-w-0">
+                            <strong class="text-dark cust-name text-truncate d-block" style="font-size: 0.95rem;">${escapeHtml(cleanCustName)}</strong>
+                            <div class="text-muted small" style="font-size: 0.74rem;">${escapeHtml(subText)}</div>
+                        </div>
+                    </div>
+                    <span class="text-muted small" style="font-size: 0.76rem;">${formattedDate}</span>
+                </div>
+                <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
+                    <div class="text-muted mb-1" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Cloth Types & Garments</div>
+                    ${clothTypesHtml}
+                    ${measurement.notes ? `
+                        <div class="mt-2 pt-2 border-top">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Notes</div>
+                            <div class="text-dark small mt-1" style="font-size: 0.78rem;">${escapeHtml(measurement.notes)}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                    <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomerByKey('${custKey}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="cat-action-btn cat-action-view" onclick="viewCustomerByKey('${custKey}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomerByKey('${custKey}')" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     });
     
     if (measurementsTable) {
         measurementsTable.innerHTML = tableHTML;
+    }
+    if (mobileCardsList) {
+        mobileCardsList.innerHTML = cardsHTML;
     }
 }
     }, 100);

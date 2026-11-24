@@ -234,6 +234,41 @@ if (!function_exists('getCustomerAvatarDesign')) {
         font-size: 0.74rem;
     }
 }
+.customers-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .customers-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .customers-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #customerMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.customer-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
 </style>
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mb-3" style="border-radius: 12px;">
@@ -383,10 +418,10 @@ include 'includes/page-header.php';
         <span><strong id="searchCount">0</strong> customers found</span>
     </div>
 </div>
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 customers-main-card" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
     <div class="card-body p-0">
         <?php if (!empty($customers)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -424,7 +459,7 @@ include 'includes/page-header.php';
                                             <strong class="text-dark cust-name" style="font-size: 0.9rem;"><?php echo htmlspecialchars($cleanCustName); ?></strong>
                                         </a>
                                         <div class="d-flex align-items-center gap-2 mt-1">
-                                            <span class="badge rounded-pill px-2 py-0 fw-medium" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;">
+                                             <span class="badge rounded-pill px-2 py-0 fw-medium" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;">
                                                 <?php echo htmlspecialchars($customer['customer_code']); ?>
                                             </span>
                                             <?php if ($dobDisplay): ?>
@@ -502,6 +537,102 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards View -->
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="customerMobileCardsList">
+                <?php foreach ($customers as $idx => $customer): 
+                    $cleanCustName = display_val($customer['first_name'] . ' ' . $customer['last_name']);
+                    if (empty(trim($cleanCustName))) $cleanCustName = 'Walk-in Customer';
+                    $custDesign = getCustomerAvatarDesign($cleanCustName, $idx);
+                    $initial = strtoupper(substr(trim($cleanCustName), 0, 1) ?: 'C');
+                    $dobDisplay = !empty($customer['date_of_birth']) ? format_date($customer['date_of_birth']) : '';
+                    $custOrderCount = (int)($customer['order_count'] ?? 0);
+                    $loc = trim(($customer['address'] ?? '') . (!empty($customer['city']) ? ', ' . $customer['city'] : ''));
+                ?>
+                <div class="customer-mobile-card customer-card-row" data-name="<?php echo strtolower($cleanCustName); ?>">
+                    <div class="d-flex align-items-start justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 12px; background: <?php echo $custDesign['bg']; ?>; border: 1px solid <?php echo $custDesign['border']; ?>; color: <?php echo $custDesign['color']; ?>; font-size: 0.92rem;">
+                                <?php echo $initial; ?>
+                            </div>
+                            <div>
+                                <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="text-decoration-none">
+                                    <strong class="text-dark cust-name d-block" style="font-size: 0.92rem; line-height: 1.2;"><?php echo htmlspecialchars($cleanCustName); ?></strong>
+                                </a>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge rounded-pill px-2 py-0 fw-medium" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;">
+                                        <?php echo htmlspecialchars($customer['customer_code']); ?>
+                                    </span>
+                                    <?php if ($dobDisplay): ?>
+                                        <span class="text-muted small" style="font-size: 0.72rem;">
+                                            <i class="fas fa-birthday-cake me-1 text-muted"></i><?php echo $dobDisplay; ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <?php if (($customer['status'] ?? 'active') === 'active'): ?>
+                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #dcfce7; color: #15803d; font-size: 0.72rem;">Active</span>
+                            <?php else: ?>
+                                <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #f1f5f9; color: #64748b; font-size: 0.72rem;">Inactive</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="p-2 mb-2 rounded-3" style="background: #f8fafc; font-size: 0.82rem;">
+                        <?php if (!empty($customer['phone'])): ?>
+                            <div class="text-dark mb-1">
+                                <i class="fas fa-phone me-2 text-muted" style="width: 14px;"></i>
+                                <a href="tel:<?php echo htmlspecialchars($customer['phone']); ?>" class="text-dark text-decoration-none fw-medium">
+                                    <?php echo display_val($customer['phone']); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($customer['email'])): ?>
+                            <div class="text-muted mb-1 text-truncate">
+                                <i class="fas fa-envelope me-2 text-muted" style="width: 14px;"></i>
+                                <a href="mailto:<?php echo htmlspecialchars($customer['email']); ?>" class="text-muted text-decoration-none">
+                                    <?php echo display_val($customer['email']); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($loc): ?>
+                            <div class="text-muted text-truncate" title="<?php echo htmlspecialchars($loc); ?>">
+                                <i class="fas fa-map-marker-alt me-2 text-muted" style="width: 14px;"></i>
+                                <?php echo htmlspecialchars($loc); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (empty($customer['phone']) && empty($customer['email']) && empty($loc)): ?>
+                            <div class="text-muted small">—</div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-1">
+                        <div>
+                            <?php if ($custOrderCount > 0): ?>
+                                <a href="orders.php?customer_id=<?php echo $customer['id']; ?>" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                    <?php echo $custOrderCount; ?> <?php echo $custOrderCount === 1 ? 'Order' : 'Orders'; ?> <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                                </a>
+                            <?php else: ?>
+                                <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0 Orders</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <a href="customer-details.php?id=<?php echo $customer['id']; ?>" class="cat-action-btn cat-action-view" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomer(<?php echo htmlspecialchars(json_encode($customer)); ?>)" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomer(<?php echo $customer['id']; ?>, '<?php echo htmlspecialchars($cleanCustName); ?>')" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
@@ -843,6 +974,17 @@ document.getElementById('sortCustomersBtn')?.addEventListener('click', function(
         });
         rows.forEach(r => tableBody.appendChild(r));
     }
+
+    const cardsContainer = document.getElementById('customerMobileCardsList');
+    if (cardsContainer) {
+        const cards = Array.from(cardsContainer.querySelectorAll('.customer-card-row'));
+        cards.sort((a, b) => {
+            const nameA = a.getAttribute('data-name') || '';
+            const nameB = b.getAttribute('data-name') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        cards.forEach(c => cardsContainer.appendChild(c));
+    }
 });
 
 let searchTimeout;
@@ -853,10 +995,15 @@ const searchResults = document.getElementById('searchResults');
 const searchCount = document.getElementById('searchCount');
 const clearSearch = document.getElementById('clearSearch');
 const customersTable = document.getElementById('customersTableBody') || document.querySelector('.table tbody');
+const customerMobileCards = document.getElementById('customerMobileCardsList');
 
 let originalTableContent = '';
 if (customersTable) {
     originalTableContent = customersTable.innerHTML;
+}
+let originalCardsContent = '';
+if (customerMobileCards) {
+    originalCardsContent = customerMobileCards.innerHTML;
 }
 
 function performSearch() {
@@ -872,6 +1019,9 @@ function performSearch() {
     if (!hasFilter) {
         if (customersTable && originalTableContent) {
             customersTable.innerHTML = originalTableContent;
+        }
+        if (customerMobileCards && originalCardsContent) {
+            customerMobileCards.innerHTML = originalCardsContent;
         }
         if (searchResults) {
             searchResults.style.display = 'none';
@@ -945,6 +1095,9 @@ if (clearSearch) {
         if (customersTable && originalTableContent) {
             customersTable.innerHTML = originalTableContent;
         }
+        if (customerMobileCards && originalCardsContent) {
+            customerMobileCards.innerHTML = originalCardsContent;
+        }
         if (searchResults) {
             searchResults.style.display = 'none';
         }
@@ -976,6 +1129,7 @@ function displaySearchResults(customers) {
         console.warn('Customers table not found');
         return;
     }
+    const mobileCardsContainer = document.getElementById('customerMobileCardsList');
     if (!customers || customers.length === 0) {
         customersTable.innerHTML = `
             <tr>
@@ -986,10 +1140,20 @@ function displaySearchResults(customers) {
                 </td>
             </tr>
         `;
+        if (mobileCardsContainer) {
+            mobileCardsContainer.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted">No customers found</h5>
+                    <p class="text-muted small">Try adjusting your search terms</p>
+                </div>
+            `;
+        }
         return;
     }
     
     let tableHTML = '';
+    let cardsHTML = '';
     customers.forEach((customer, idx) => {
         let cleanCustName = customer.name || ((customer.first_name || '') + ' ' + (customer.last_name || '')).trim();
         if (!cleanCustName) cleanCustName = 'Walk-in Customer';
@@ -1004,17 +1168,26 @@ function displaySearchResults(customers) {
             `<span class="text-muted small" style="font-size: 0.72rem;"><i class="fas fa-birthday-cake me-1 text-muted"></i>${escapeHtml(customer.date_of_birth)}</span>` : '';
         
         let phoneDisplay = '';
+        let phoneCardDisplay = '';
         if (customer.phone) {
             phoneDisplay = `<div class="text-dark" style="font-size: 0.84rem;"><i class="fas fa-phone me-1 text-muted" style="font-size: 0.75rem;"></i>${escapeHtml(customer.phone)}</div>`;
+            phoneCardDisplay = `<div class="text-dark mb-1"><i class="fas fa-phone me-2 text-muted" style="width: 14px;"></i><a href="tel:${escapeHtml(customer.phone)}" class="text-dark text-decoration-none fw-medium">${escapeHtml(customer.phone)}</a></div>`;
         }
         let emailDisplay = '';
+        let emailCardDisplay = '';
         if (customer.email) {
             emailDisplay = `<div class="text-muted" style="font-size: 0.78rem;"><i class="fas fa-envelope me-1 text-muted" style="font-size: 0.72rem;"></i>${escapeHtml(customer.email)}</div>`;
+            emailCardDisplay = `<div class="text-muted mb-1 text-truncate"><i class="fas fa-envelope me-2 text-muted" style="width: 14px;"></i><a href="mailto:${escapeHtml(customer.email)}" class="text-muted text-decoration-none">${escapeHtml(customer.email)}</a></div>`;
         }
         const contactHtml = (phoneDisplay || emailDisplay) ? `${phoneDisplay}${emailDisplay}` : '<span class="text-muted small">—</span>';
-        const locationDisplay = customer.address ? 
-            `<span class="text-muted small text-truncate d-inline-block" style="max-width: 180px; font-size: 0.8rem;" title="${escapeHtml(customer.address)}">${escapeHtml(customer.address)}</span>` : 
+        
+        const rawLoc = customer.address || '';
+        const locationDisplay = rawLoc ? 
+            `<span class="text-muted small text-truncate d-inline-block" style="max-width: 180px; font-size: 0.8rem;" title="${escapeHtml(rawLoc)}">${escapeHtml(rawLoc)}</span>` : 
             '<span class="text-muted small">—</span>';
+        const locationCardDisplay = rawLoc ? 
+            `<div class="text-muted text-truncate" title="${escapeHtml(rawLoc)}"><i class="fas fa-map-marker-alt me-2 text-muted" style="width: 14px;"></i>${escapeHtml(rawLoc)}</div>` : '';
+            
         const orderCount = customer.total_orders || customer.order_count || 0;
         const status = (customer.status || 'active').toLowerCase();
         const statusBadge = status === 'active' ?
@@ -1075,8 +1248,67 @@ function displaySearchResults(customers) {
                 </td>
             </tr>
         `;
+
+        cardsHTML += `
+            <div class="customer-mobile-card customer-card-row" data-name="${escapeHtml(cleanCustName.toLowerCase())}">
+                <div class="d-flex align-items-start justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 12px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.92rem;">
+                            ${initial}
+                        </div>
+                        <div>
+                            <a href="customer-details.php?id=${customer.id}" class="text-decoration-none">
+                                <strong class="text-dark cust-name d-block" style="font-size: 0.92rem; line-height: 1.2;">${escapeHtml(cleanCustName)}</strong>
+                            </a>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge rounded-pill px-2 py-0 fw-medium" style="background: #f1f5f9; color: #475569; font-size: 0.7rem;">
+                                    ${escapeHtml(customer.customer_code || '')}
+                                </span>
+                                ${dobDisplay}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        ${statusBadge}
+                    </div>
+                </div>
+
+                <div class="p-2 mb-2 rounded-3" style="background: #f8fafc; font-size: 0.82rem;">
+                    ${phoneCardDisplay}
+                    ${emailCardDisplay}
+                    ${locationCardDisplay}
+                    ${(!phoneCardDisplay && !emailCardDisplay && !locationCardDisplay) ? '<div class="text-muted small">—</div>' : ''}
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between pt-1">
+                    <div>
+                        ${(orderCount > 0) ? `
+                            <a href="orders.php?customer_id=${customer.id}" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.75rem;">
+                                ${orderCount} ${orderCount === 1 ? 'Order' : 'Orders'} <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                            </a>
+                        ` : `
+                            <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0 Orders</span>
+                        `}
+                    </div>
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <a href="customer-details.php?id=${customer.id}" class="cat-action-btn cat-action-view" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button type="button" class="cat-action-btn cat-action-edit" onclick="editCustomer(${customerJson})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="cat-action-btn cat-action-del" onclick="deleteCustomer(${customer.id}, '${escapeHtml(cleanCustName)}')" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     });
     customersTable.innerHTML = tableHTML;
+    if (mobileCardsContainer) {
+        mobileCardsContainer.innerHTML = cardsHTML;
+    }
 }
 </script>
 <?php require_once 'includes/footer.php'; ?>

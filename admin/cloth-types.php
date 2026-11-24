@@ -306,11 +306,50 @@ if (!function_exists('getCategoryDesign')) {
         white-space: nowrap;
     }
 }
+.cloth-types-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .cloth-types-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .cloth-types-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #clothTypeMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.cloth-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+.cloth-mobile-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
 @media (max-width: 575.98px) {
     .cat-action-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 0.74rem;
+        width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
     }
 }
    @media (max-width: 768px) {
@@ -430,10 +469,10 @@ include 'includes/page-header.php';
         <span><strong id="filterCount">0</strong> cloth types found</span>
     </div>
 </div>
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 cloth-types-main-card">
     <div class="card-body p-0">
         <?php if (!empty($clothTypes)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -508,14 +547,7 @@ include 'includes/page-header.php';
                             </td>
                             <td class="text-end pe-3 py-3">
                                 <div class="d-inline-flex align-items-center gap-1">
-                                    <?php if (!empty($chartUrl)): ?>
-                                        <button type="button" 
-                                                class="cat-action-btn cat-action-view" 
-                                                onclick="viewChartModal('<?php echo htmlspecialchars($chartUrl, ENT_QUOTES); ?>', '<?php echo addslashes($cleanName); ?>')"
-                                                title="View Chart">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    <?php endif; ?>
+                                   
                                     <button type="button" 
                                             class="cat-action-btn cat-action-edit" 
                                             onclick="editClothType(<?php echo htmlspecialchars(json_encode($clothType)); ?>)"
@@ -534,6 +566,101 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="clothTypeMobileCardsList">
+                <?php foreach ($clothTypes as $idx => $clothType): 
+                    $design = getCategoryDesign($clothType['name'], $idx);
+                    $cleanName = display_val($clothType['name']);
+                    $cleanDesc = display_val($clothType['description'] ?? '');
+                    $rawChart = $clothType['measurement_chart_image'] ?? '';
+                    $cleanChart = !empty($rawChart) ? ltrim($rawChart, './') : '';
+                    $chartUrl = !empty($cleanChart) ? ('../' . $cleanChart) : '';
+                ?>
+                <div class="cloth-mobile-card shadow-sm cloth-card-row" data-name="<?php echo strtolower($cleanName); ?>">
+                    <!-- Card Header -->
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2 min-w-0">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: <?php echo $design['bg']; ?>; border: 1px solid <?php echo $design['border']; ?>; color: <?php echo $design['color']; ?>;">
+                                <?php echo $design['svg']; ?>
+                            </div>
+                            <div class="min-w-0">
+                                <strong class="cloth-name text-dark text-truncate d-block" style="font-size: 0.95rem;"><?php echo ucwords($cleanName); ?></strong>
+                                <?php if (!empty($cleanDesc)): ?>
+                                    <div class="text-muted small cloth-desc text-truncate" style="font-size: 0.74rem;"><?php echo $cleanDesc; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill fw-semibold px-2 py-1" style="font-size: 0.72rem; background-color: <?php echo $clothType['status'] === 'active' ? '#10b981' : '#94a3b8'; ?>; color: #ffffff;">
+                            <?php echo ucfirst($clothType['status']); ?>
+                        </span>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Category</div>
+                                <div class="mt-1">
+                                    <?php if (!empty($clothType['category'])): ?>
+                                        <span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.72rem;">
+                                            <?php echo ucwords(display_val($clothType['category'])); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted small">—</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Standard Rate</div>
+                                <div class="mt-1 fw-bold text-dark" style="font-size: 0.88rem;">
+                                    <?php echo !empty($clothType['standard_rate']) ? format_currency($clothType['standard_rate']) : '<span class="text-muted fw-normal small">Not set</span>'; ?>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Orders</div>
+                                <div class="mt-1">
+                                    <?php if (!empty($clothType['order_count']) && (int)$clothType['order_count'] > 0): ?>
+                                        <a href="orders.php?cloth_type_id=<?php echo $clothType['id']; ?>" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.72rem;">
+                                            <?php echo $clothType['order_count']; ?> Orders <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0 Orders</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Measurement Chart</div>
+                                <div class="mt-1">
+                                    <?php if (!empty($chartUrl)): ?>
+                                        <button type="button" class="btn btn-sm btn-light border py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.74rem; border-radius: 6px;" onclick="viewChartModal('<?php echo htmlspecialchars($chartUrl, ENT_QUOTES); ?>', '<?php echo addslashes($cleanName); ?>')">
+                                            <i class="fas fa-image text-primary"></i> View Chart
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="text-muted small">No Chart</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-edit" 
+                                    onclick="editClothType(<?php echo htmlspecialchars(json_encode($clothType)); ?>)"
+                                    title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-del" 
+                                    onclick="deleteClothType(<?php echo $clothType['id']; ?>, '<?php echo addslashes($cleanName); ?>')"
+                                    title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
@@ -719,8 +846,6 @@ include 'includes/page-header.php';
         </div>
     </div>
 </div>
-
-<!-- View Measurement Chart Modal -->
 <div class="modal fade" id="viewChartModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
@@ -834,6 +959,16 @@ document.getElementById('sortClothTypesBtn')?.addEventListener('click', function
             return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
         });
         rows.forEach(r => tableBody.appendChild(r));
+    }
+    const mobileCardsList = document.getElementById('clothTypeMobileCardsList');
+    if (mobileCardsList) {
+        const cards = Array.from(mobileCardsList.querySelectorAll('.cloth-card-row'));
+        cards.sort((a, b) => {
+            const nameA = a.getAttribute('data-name') || '';
+            const nameB = b.getAttribute('data-name') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        cards.forEach(c => mobileCardsList.appendChild(c));
     }
 });
 const garmentIcons = [
@@ -961,6 +1096,7 @@ function executeFilter() {
 
 function displayFilterResults(clothTypes) {
     if (!clothTypesTable) return;
+    const mobileCardsList = document.getElementById('clothTypeMobileCardsList');
     
     if (!clothTypes || clothTypes.length === 0) {
         clothTypesTable.innerHTML = `
@@ -972,10 +1108,20 @@ function displayFilterResults(clothTypes) {
                 </td>
             </tr>
         `;
+        if (mobileCardsList) {
+            mobileCardsList.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h5 class="text-muted" style="font-size: 0.95rem;">No cloth types found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
+                </div>
+            `;
+        }
         return;
     }
     
     let tableHTML = '';
+    let cardsHTML = '';
     clothTypes.forEach((clothType, idx) => {
         const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
         const iconInfo = getClothIcon(clothType.name, idx);
@@ -1058,15 +1204,98 @@ function displayFilterResults(clothTypes) {
                                 class="cat-action-btn cat-action-del" 
                                 onclick="deleteClothType(${clothType.id}, '${cleanName.replace(/'/g, "\\'")}')"
                                 title="Delete">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                     </div>
                 </td>
             </tr>
         `;
+
+        cardsHTML += `
+            <div class="cloth-mobile-card shadow-sm cloth-card-row" data-name="${cleanName.toLowerCase()}">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        ${iconBox}
+                        <div class="min-w-0">
+                            <strong class="cloth-name text-dark text-truncate d-block" style="font-size: 0.95rem;">${cleanName}</strong>
+                            ${cleanDesc ? `<div class="text-muted small cloth-desc text-truncate" style="font-size: 0.74rem;">${cleanDesc}</div>` : ''}
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill fw-semibold px-2 py-1" style="font-size: 0.72rem; background-color: ${isStatusActive ? '#10b981' : '#94a3b8'}; color: #ffffff;">
+                        ${statusVal.charAt(0).toUpperCase() + statusVal.slice(1)}
+                    </span>
+                </div>
+                <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Category</div>
+                            <div class="mt-1">
+                                ${clothType.category ? `<span class="badge rounded-pill px-2 py-1 fw-medium" style="background: #e0f2fe; color: #0284c7; font-size: 0.72rem;">${clothType.category}</span>` : '<span class="text-muted small">—</span>'}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Standard Rate</div>
+                            <div class="mt-1 fw-bold text-dark" style="font-size: 0.88rem;">
+                                ${clothType.standard_rate ? formatCurrency(clothType.standard_rate) : '<span class="text-muted fw-normal small">Not set</span>'}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Orders</div>
+                            <div class="mt-1">
+                                ${(clothType.order_count && parseInt(clothType.order_count) > 0) ? `
+                                    <a href="orders.php?cloth_type_id=${clothType.id}" class="badge rounded-pill px-2 py-1 fw-semibold text-decoration-none shadow-sm" style="background: #e0f2fe; color: #0284c7; font-size: 0.72rem;">
+                                        ${clothType.order_count} Orders <i class="fas fa-external-link-alt ms-1" style="font-size: 0.55rem;"></i>
+                                    </a>
+                                ` : `
+                                    <span class="badge rounded-pill px-2 py-1 fw-semibold" style="background: #f1f5f9; color: #94a3b8; font-size: 0.72rem;">0 Orders</span>
+                                `}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Measurement Chart</div>
+                            <div class="mt-1">
+                                ${chartUrl ? `
+                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.74rem; border-radius: 6px;" onclick="viewChartModal('${chartUrl}', '${cleanName.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-image text-primary"></i> View Chart
+                                    </button>
+                                ` : '<span class="text-muted small">No Chart</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                    <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                    <div class="d-inline-flex align-items-center gap-1">
+                        ${chartUrl ? `
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-view" 
+                                    onclick="viewChartModal('${chartUrl}', '${cleanName.replace(/'/g, "\\'")}')"
+                                    title="View Chart">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        ` : ''}
+                        <button type="button" 
+                                class="cat-action-btn cat-action-edit" 
+                                onclick="editClothType(${JSON.stringify(clothType).replace(/"/g, '&quot;')})"
+                                title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" 
+                                class="cat-action-btn cat-action-del" 
+                                onclick="deleteClothType(${clothType.id}, '${cleanName.replace(/'/g, "\\'")}')"
+                                title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
     });
     
     clothTypesTable.innerHTML = tableHTML;
+    if (mobileCardsList) {
+        mobileCardsList.innerHTML = cardsHTML;
+    }
 }
 
 function updatePagination(pagination, search, category) {

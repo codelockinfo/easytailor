@@ -534,7 +534,7 @@ require_once 'includes/header.php';
     <?php if (!empty($orderItems)): ?>
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 bg-white" style="overflow: visible;">
+            <div class="card border-0 shadow-sm rounded-4 bg-white garments-main-card" style="overflow: visible;">
                 <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: none; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
                     <div class="d-flex align-items-center gap-2">
                         <span class="fw-bold text-primary" style="font-size: 0.95rem;">
@@ -543,7 +543,7 @@ require_once 'includes/header.php';
                         <span class="badge rounded-pill bg-primary" style="font-size: 0.72rem;"><?php echo count($orderItems); ?> <?php echo count($orderItems) === 1 ? 'Garment' : 'Garments'; ?></span>
                     </div>
                 </div>
-                <div class="table-responsive" style="overflow-x: auto; overflow-y: visible; min-height: 260px; padding-bottom: 75px;">
+                <div class="table-responsive d-none d-md-block" style="overflow-x: auto; overflow-y: visible; min-height: 260px; padding-bottom: 75px;">
                     <table class="table table-hover align-middle mb-0">
                         <thead style="background: #f8fafc; font-size: 0.78rem; font-weight: 700; color: #475569;">
                             <tr>
@@ -624,7 +624,7 @@ require_once 'includes/header.php';
                                     <?php if ($canEditItem): ?>
                                         <div class="dropdown d-inline-block">
                                             <button type="button" 
-                                                    class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm item-status-badge-btn" 
+                                                    class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm item-status-badge-btn item-status-btn-<?php echo $oi['id']; ?>" 
                                                     id="itemStatusBtn_<?php echo $oi['id']; ?>"
                                                     data-bs-toggle="dropdown" 
                                                     data-bs-popper-config='{"strategy":"fixed"}'
@@ -665,6 +665,124 @@ require_once 'includes/header.php';
                             </tr>
                         </tfoot>
                     </table>
+                </div>
+
+                <!-- MOBILE CARDS VIEW -->
+                <div class="d-md-none d-flex flex-column gap-3 mb-3" id="garmentsMobileCardsList">
+                    <?php 
+                    foreach ($orderItems as $idx => $oi): 
+                        $isMyItem = (has_role('tailor') && !empty($oi['assigned_tailor_id']) && (int)$oi['assigned_tailor_id'] === (int)get_user_id());
+                        $canEditItem = (!has_role('tailor') || $isMyItem);
+                        $oiStatus = !empty($oi['status']) ? $oi['status'] : 'pending';
+                        $stStyle = $itemStatusStyles[$oiStatus] ?? $itemStatusStyles['pending'];
+                    ?>
+                    <div class="garment-mobile-card <?php echo $isMyItem ? 'my-assigned-item' : ''; ?>">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge rounded-pill bg-light text-muted border px-2 py-1 fw-bold" style="font-size: 0.72rem;">#<?php echo $idx + 1; ?></span>
+                                <span class="fw-bold text-dark" style="font-size: 0.92rem;"><?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Garment'); ?></span>
+                                <?php if (!empty($oi['category'])): ?>
+                                    <span class="badge rounded-pill bg-light text-primary border" style="font-size: 0.68rem;"><?php echo htmlspecialchars($oi['category']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <?php if ($canEditItem): ?>
+                                    <div class="dropdown d-inline-block">
+                                        <button type="button" 
+                                                class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm item-status-badge-btn item-status-btn-<?php echo $oi['id']; ?>" 
+                                                id="itemStatusBtn_mob_<?php echo $oi['id']; ?>"
+                                                data-bs-toggle="dropdown" 
+                                                data-bs-popper-config='{"strategy":"fixed"}'
+                                                aria-expanded="false"
+                                                style="background: <?php echo $stStyle['bg']; ?>; color: <?php echo $stStyle['color']; ?>; border: 1px solid <?php echo $stStyle['border']; ?>; font-size: 0.75rem;"
+                                                title="Click to update garment status">
+                                            <i class="fas <?php echo $stStyle['icon']; ?>" id="itemStatusIcon_mob_<?php echo $oi['id']; ?>"></i>
+                                            <span id="itemStatusText_mob_<?php echo $oi['id']; ?>"><?php echo ucfirst(str_replace('_', ' ', $oiStatus)); ?></span>
+                                            <i class="fas fa-chevron-down ms-1" style="font-size: 0.58rem; opacity: 0.7;"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2" style="border-radius: 12px; font-size: 0.82rem; min-width: 165px; z-index: 1060; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1) !important;">
+                                            <li><h6 class="dropdown-header text-uppercase text-muted py-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Update Status</h6></li>
+                                            <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'pending' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'pending', <?php echo $order['id']; ?>);"><span class="text-warning"><i class="fas fa-clock me-2"></i>Pending</span> <?php echo $oiStatus === 'pending' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                            <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'in_progress' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'in_progress', <?php echo $order['id']; ?>);"><span class="text-info"><i class="fas fa-cogs me-2"></i>In Progress</span> <?php echo $oiStatus === 'in_progress' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                            <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'completed' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'completed', <?php echo $order['id']; ?>);"><span class="text-success"><i class="fas fa-check-circle me-2"></i>Completed</span> <?php echo $oiStatus === 'completed' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                            <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'delivered' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'delivered', <?php echo $order['id']; ?>);"><span class="text-primary"><i class="fas fa-truck me-2"></i>Delivered</span> <?php echo $oiStatus === 'delivered' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between text-danger <?php echo $oiStatus === 'cancelled' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'cancelled', <?php echo $order['id']; ?>);"><span><i class="fas fa-times-circle me-2"></i>Cancelled</span> <?php echo $oiStatus === 'cancelled' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                        </ul>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="badge rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" 
+                                          style="background: <?php echo $stStyle['bg']; ?>; color: <?php echo $stStyle['color']; ?>; border: 1px solid <?php echo $stStyle['border']; ?>; font-size: 0.75rem;"
+                                          title="Assigned to <?php echo htmlspecialchars($oi['tailor_name'] ?? 'another tailor'); ?>">
+                                        <i class="fas <?php echo $stStyle['icon']; ?>"></i>
+                                        <span><?php echo ucfirst(str_replace('_', ' ', $oiStatus)); ?></span>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="px-3 py-2 my-2 rounded-3" style="background: #f8fafc; border: 1px solid #eef2f6;">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-6">
+                                    <span class="text-muted d-block text-uppercase" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Measurement</span>
+                                    <div class="mt-1">
+                                        <?php if (!empty($oi['measurement_id']) || !empty($oi['measurement_data'])): ?>
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                <button type="button" class="btn btn-sm rounded-pill px-2 py-0.5 d-inline-flex align-items-center gap-1 shadow-sm border-0" 
+                                                        style="background: #ecfdf5; color: #047857; font-size: 0.72rem; font-weight: 600; border: 1px solid #a7f3d0 !important; cursor: pointer; line-height: 1.5;" 
+                                                        onclick="openOrderMeasurementsModal(<?php echo (int)($oi['measurement_id'] ?? 0); ?>, '<?php echo htmlspecialchars(addslashes($oi['cloth_type_name'] ?? '')); ?>')"
+                                                        title="View <?php echo htmlspecialchars($oi['cloth_type_name'] ?? ''); ?> measurement">
+                                                    <i class="fas fa-ruler-combined text-success"></i>
+                                                    <span class="text-truncate" style="max-width: 80px;"><?php echo htmlspecialchars($oi['cloth_type_name'] ?? 'Measurement'); ?></span>
+                                                    <i class="fas fa-chevron-down ms-1 text-muted" style="font-size: 0.58rem;"></i>
+                                                </button>
+                                                <?php if (!has_role('tailor') && !empty($oi['measurement_id'])): ?>
+                                                    <a href="measurements.php?edit=<?php echo $oi['measurement_id']; ?>" class="btn btn-sm btn-link text-decoration-none p-0 text-muted ms-1" title="Edit Measurement" style="font-size: 0.72rem;">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted" style="font-size: 0.75rem;">None</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted d-block text-uppercase" style="font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;">Assigned Tailor</span>
+                                    <div class="mt-1">
+                                        <?php if (!empty($oi['tailor_name'])): ?>
+                                            <div class="d-inline-flex align-items-center gap-1 flex-wrap">
+                                                <span class="fw-semibold text-primary" style="font-size: 0.78rem;">
+                                                    <i class="fas fa-user-tie me-1"></i><?php echo htmlspecialchars($oi['tailor_name']); ?>
+                                                </span>
+                                                <?php if ($isMyItem): ?>
+                                                    <span class="badge rounded-pill bg-success text-white" style="font-size: 0.6rem; padding: 2px 6px;">You</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted" style="font-style: italic; font-size: 0.75rem;">Unassigned</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-1">
+                            <span class="text-muted fw-semibold" style="font-size: 0.78rem;">Rate / Price:</span>
+                            <span class="fw-bold text-dark fs-6"><?php echo format_currency($oi['price']); ?></span>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+
+                    <!-- Mobile Summary Card -->
+                    <div class="p-3 bg-white rounded-3 border d-flex justify-content-between align-items-center shadow-sm" style="border-radius: 14px; border-color: #e2e8f0 !important;">
+                        <span class="text-muted fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="fas fa-calculator me-1 text-primary"></i>Total Items Combined:
+                        </span>
+                        <span class="fw-bold text-primary fs-6">
+                            <?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_column($orderItems, 'price')) : $order['total_amount']); ?>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -721,92 +839,32 @@ require_once 'includes/header.php';
         </div>
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
-                <div class="card-header px-4 py-3" style="background: #fff7ed; border: none;">
-                    <span class="fw-bold" style="color: #c2410c; font-size: 0.95rem;">
-                        <i class="fas fa-file-invoice text-warning me-2"></i>Invoice (<?php echo count($invoices); ?>)
+                <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: #fefce8; border: none;">
+                    <span class="fw-bold" style="color: #a16207; font-size: 0.95rem;">
+                        <i class="fas fa-sticky-note me-2" style="color: #ca8a04;"></i>Notes
                     </span>
-                </div>
-                <div class="card-body p-4 text-center d-flex flex-column align-items-center justify-content-center">
-                    <?php if (empty($invoices)): ?>
-                        <div class="mb-3 position-relative d-inline-block">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 64px; height: 64px; background: #dbeafe; color: #3b82f6;">
-                                <i class="fas fa-file-alt" style="font-size: 2.2rem;"></i>
-                            </div>
-                            <div class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; background: #ef4444; color: white; font-size: 0.65rem; border: 2px solid white; transform: translate(25%, 25%);">
-                                <i class="fas fa-times"></i>
-                            </div>
-                        </div>
-                        <div class="fw-bold text-dark fs-6 mb-1">No invoice generated yet</div>
-                        <div class="text-muted small mb-3">Generate an invoice to share with the customer.</div>
-                        <?php if ($canGenerateInvoice && !has_role('tailor')): ?>
-                        <a href="print-invoice.php?order_id=<?php echo $order['id']; ?>" target="_blank" class="btn btn-success rounded-pill px-4" style="background-color: #107548; border-color: #107548;">
-                            <i class="fas fa-print me-2"></i>Print Invoice
-                        </a>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <div class="table-responsive w-100 text-start">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Invoice #</th>
-                                        <th>Date</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($invoices as $inv): ?>
-                                    <tr>
-                                        <td class="fw-bold"><?php echo htmlspecialchars($inv['invoice_number']); ?></td>
-                                        <td><?php echo format_date($inv['invoice_date'], 'M j, Y'); ?></td>
-                                        <td class="fw-bold"><?php echo format_currency($inv['total_amount']); ?></td>
-                                        <td><span class="badge bg-success rounded-pill"><?php echo ucfirst($inv['payment_status']); ?></span></td>
-                                        <td>
-                                            <a href="invoice-details.php?id=<?php echo $inv['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                View
-                                            </a>
-                                            <?php if ($canGenerateInvoice && !has_role('tailor')): ?>
-                                            <a href="print-invoice.php?id=<?php echo $inv['id']; ?>" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 ms-1">
-                                                <i class="fas fa-print me-1"></i>Print
-                                            </a>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                    <?php if (!empty($order['special_instructions'])): ?>
+                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #fde047; color: #a16207;" data-bs-toggle="modal" data-bs-target="#editNotesModal">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
                     <?php endif; ?>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-            <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: #fefce8; border: none;">
-                <span class="fw-bold" style="color: #a16207; font-size: 0.95rem;">
-                    <i class="fas fa-sticky-note me-2" style="color: #ca8a04;"></i>Notes
-                </span>
-                <?php if (!empty($order['special_instructions'])): ?>
-                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #fde047; color: #a16207;" data-bs-toggle="modal" data-bs-target="#editNotesModal">
-                    <i class="fas fa-edit me-1"></i>Edit
-                </button>
-                <?php endif; ?>
-            </div>
-            <div class="card-body p-4 text-center">
-                <?php if (!empty($order['special_instructions'])): ?>
-                    <p class="mb-0 text-dark text-start"><?php echo nl2br(htmlspecialchars($order['special_instructions'])); ?></p>
-                <?php else: ?>
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-2" style="width: 48px; height: 48px; background: #fef08a; color: #ca8a04;">
-                        <i class="fas fa-sticky-note fs-4"></i>
-                    </div>
-                    <div class="fw-bold text-dark fs-6 mb-1">No notes added yet.</div>
-                    <div class="text-muted small mb-3">Add internal notes for this order.</div>
-                    <button type="button" class="btn btn-outline-primary rounded-3 px-4 py-2 w-100" style="max-width: 380px; border-color: #3b82f6; color: #2563eb; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#editNotesModal">
-                        <i class="fas fa-plus-circle me-2"></i>Add Note
-                    </button>
-                <?php endif; ?>
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center justify-content-center">
+                    <?php if (!empty($order['special_instructions'])): ?>
+                        <div class="w-100 text-start">
+                            <p class="mb-0 text-dark"><?php echo nl2br(htmlspecialchars($order['special_instructions'])); ?></p>
+                        </div>
+                    <?php else: ?>
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-2" style="width: 48px; height: 48px; background: #fef08a; color: #ca8a04;">
+                            <i class="fas fa-sticky-note fs-4"></i>
+                        </div>
+                        <div class="fw-bold text-dark fs-6 mb-1">No notes added yet.</div>
+                        <div class="text-muted small mb-3">Add internal notes for this order.</div>
+                        <button type="button" class="btn btn-outline-primary rounded-3 px-4 py-2 w-100" style="max-width: 320px; border-color: #3b82f6; color: #2563eb; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#editNotesModal">
+                            <i class="fas fa-plus-circle me-2"></i>Add Note
+                        </button>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
@@ -1169,12 +1227,13 @@ function showToast(title, message, type = 'info') {
 }
 
 function updateOrderItemStatus(itemId, status, orderId) {
-    const btn = document.getElementById('itemStatusBtn_' + itemId);
-    const originalHtml = btn ? btn.innerHTML : '';
-    if (btn) {
+    const btns = document.querySelectorAll('#itemStatusBtn_' + itemId + ', #itemStatusBtn_mob_' + itemId + ', .item-status-btn-' + itemId);
+    const originalStates = [];
+    btns.forEach(btn => {
+        originalStates.push({ btn: btn, html: btn.innerHTML });
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
         btn.style.pointerEvents = 'none';
-    }
+    });
 
     const formData = new FormData();
     formData.append('item_id', itemId);
@@ -1189,35 +1248,42 @@ function updateOrderItemStatus(itemId, status, orderId) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            if (btn && data.item_style) {
-                btn.style.background = data.item_style.bg;
-                btn.style.color = data.item_style.color;
-                btn.style.borderColor = data.item_style.border;
-                btn.innerHTML = `
-                    <i class="fas ${data.item_style.icon}" id="itemStatusIcon_${itemId}"></i>
-                    <span id="itemStatusText_${itemId}">${data.item_status_display}</span>
-                    <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.7;"></i>
-                `;
+            btns.forEach(btn => {
+                if (data.item_style) {
+                    btn.style.background = data.item_style.bg;
+                    btn.style.color = data.item_style.color;
+                    btn.style.borderColor = data.item_style.border;
+                    const isMob = btn.id.includes('mob');
+                    const iconId = isMob ? `itemStatusIcon_mob_${itemId}` : `itemStatusIcon_${itemId}`;
+                    const textId = isMob ? `itemStatusText_mob_${itemId}` : `itemStatusText_${itemId}`;
+                    btn.innerHTML = `
+                        <i class="fas ${data.item_style.icon}" id="${iconId}"></i>
+                        <span id="${textId}">${data.item_status_display}</span>
+                        <i class="fas fa-chevron-down ms-1" style="font-size: ${isMob ? '0.58rem' : '0.6rem'}; opacity: 0.7;"></i>
+                    `;
+                }
                 btn.style.pointerEvents = 'auto';
-            }
-            // Update active checkmarks in this item's dropdown
-            const parentDropdown = btn ? btn.closest('.dropdown') : null;
-            if (parentDropdown) {
-                const items = parentDropdown.querySelectorAll('.dropdown-item');
-                items.forEach(it => {
-                    const isNowActive = it.textContent.trim().toLowerCase().replace(/\s+/g, '_').includes(status);
-                    if (isNowActive) {
-                        it.classList.add('active', 'fw-bold');
-                        if (!it.querySelector('.fa-check')) {
-                            it.insertAdjacentHTML('beforeend', ' <i class="fas fa-check small"></i>');
+
+                // Update active checkmarks in this button's dropdown
+                const parentDropdown = btn.closest('.dropdown');
+                if (parentDropdown) {
+                    const items = parentDropdown.querySelectorAll('.dropdown-item');
+                    items.forEach(it => {
+                        const isNowActive = it.textContent.trim().toLowerCase().replace(/\s+/g, '_').includes(status);
+                        if (isNowActive) {
+                            it.classList.add('active', 'fw-bold');
+                            if (!it.querySelector('.fa-check')) {
+                                it.insertAdjacentHTML('beforeend', ' <i class="fas fa-check small"></i>');
+                            }
+                        } else {
+                            it.classList.remove('active', 'fw-bold');
+                            const chk = it.querySelector('.fa-check');
+                            if (chk) chk.remove();
                         }
-                    } else {
-                        it.classList.remove('active', 'fw-bold');
-                        const chk = it.querySelector('.fa-check');
-                        if (chk) chk.remove();
-                    }
-                });
-            }
+                    });
+                }
+            });
+
             // Update overall order status badge if returned
             const overallBadge = document.getElementById('overallOrderStatusBadge');
             if (overallBadge && data.overall_status_display) {
@@ -1235,24 +1301,69 @@ function updateOrderItemStatus(itemId, status, orderId) {
             }
             showToast('Success', data.message || 'Garment status updated successfully', 'success');
         } else {
-            if (btn) {
-                btn.innerHTML = originalHtml;
-                btn.style.pointerEvents = 'auto';
-            }
+            originalStates.forEach(os => {
+                os.btn.innerHTML = os.html;
+                os.btn.style.pointerEvents = 'auto';
+            });
             showToast('Error', data.error || 'Failed to update garment status', 'error');
         }
     })
     .catch(err => {
         console.error('Error updating garment status:', err);
-        if (btn) {
-            btn.innerHTML = originalHtml;
-            btn.style.pointerEvents = 'auto';
-        }
+        originalStates.forEach(os => {
+            os.btn.innerHTML = os.html;
+            os.btn.style.pointerEvents = 'auto';
+        });
         showToast('Error', 'Network error occurred while updating status', 'error');
     });
 }
 </script>
 <style>
+@media (max-width: 767.98px) {
+    .garments-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .garments-main-card > .card-header {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        padding-top: 0 !important;
+        padding-bottom: 12px !important;
+    }
+    #garmentsMobileCardsList {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.garment-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    position: relative;
+}
+.garment-mobile-card.my-assigned-item {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+.garment-mobile-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+@media (max-width: 575.98px) {
+    .garment-mobile-card {
+        padding: 12px;
+    }
+}
 #orderGarmentsAccordion .accordion-button:not(.collapsed) {
     background-color: #eff6ff !important;
     color: #1d4ed8 !important;

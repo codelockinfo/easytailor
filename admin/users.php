@@ -313,6 +313,41 @@ require_once 'includes/header.php';
 .category-table tbody tr:hover {
     background-color: #f8fafc;
 }
+.users-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .users-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .users-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #userMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.user-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
 </style>
 
 <?php if ($message): ?>
@@ -448,10 +483,10 @@ include 'includes/page-header.php';
 </div>
 
 <!-- 4. Users Table -->
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 users-main-card" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
     <div class="card-body p-0">
         <?php if (!empty($users)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -551,6 +586,82 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards View -->
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="userMobileCardsList">
+                <?php foreach ($users as $index => $user): 
+                    $cleanName = trim($user['full_name'] ?? 'User');
+                    $initial = strtoupper(mb_substr($cleanName, 0, 1) ?: 'U');
+                    $avColor = getUserAvatarDesign($cleanName, $index);
+                    $roleBadge = getUserRoleBadge($user['role'] ?? '');
+                    $isActive = ($user['status'] ?? 'active') === 'active';
+                ?>
+                <div class="user-mobile-card user-card-row" data-name="<?php echo htmlspecialchars(strtolower($cleanName)); ?>">
+                    <!-- Top bar: Avatar + Name + Role + Status -->
+                    <div class="d-flex align-items-start justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 12px; background: <?php echo $avColor['bg']; ?>; border: 1px solid <?php echo $avColor['border']; ?>; color: <?php echo $avColor['color']; ?>; font-size: 0.92rem;">
+                                <?php echo $initial; ?>
+                            </div>
+                            <div>
+                                <strong class="text-dark d-block" style="font-size: 0.92rem; line-height: 1.2;"><?php echo htmlspecialchars($user['full_name']); ?></strong>
+                                <span class="text-muted small" style="font-size: 0.75rem;">@<?php echo htmlspecialchars($user['username']); ?></span>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column align-items-end gap-1">
+                            <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: <?php echo $roleBadge['bg']; ?>; color: <?php echo $roleBadge['color']; ?>; border: 1px solid <?php echo $roleBadge['border']; ?>; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px;">
+                                <i class="fas fa-<?php echo $roleBadge['icon']; ?>"></i>
+                                <span><?php echo ucfirst($user['role'] ?? 'User'); ?></span>
+                            </span>
+                            <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: <?php echo $isActive ? '#dcfce7' : '#f1f5f9'; ?>; color: <?php echo $isActive ? '#15803d' : '#64748b'; ?>; border: 1px solid <?php echo $isActive ? '#bbf7d0' : '#e2e8f0'; ?>; font-size: 0.7rem;">
+                                <?php echo ucfirst($user['status'] ?? 'Active'); ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Details Body -->
+                    <div class="p-2 mb-2 rounded-3" style="background: #f8fafc; font-size: 0.82rem;">
+                        <?php if (!empty($user['email'])): ?>
+                            <div class="text-dark mb-1 text-truncate">
+                                <i class="fas fa-envelope me-2 text-muted" style="width: 14px;"></i>
+                                <a href="mailto:<?php echo htmlspecialchars($user['email']); ?>" class="text-dark text-decoration-none">
+                                    <?php echo htmlspecialchars($user['email']); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($user['phone'])): ?>
+                            <div class="text-dark mb-1">
+                                <i class="fas fa-phone me-2 text-muted" style="width: 14px;"></i>
+                                <a href="tel:<?php echo htmlspecialchars($user['phone']); ?>" class="text-dark text-decoration-none fw-medium">
+                                    <?php echo htmlspecialchars($user['phone']); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <div class="text-muted" style="font-size: 0.78rem;">
+                            <i class="far fa-calendar-alt me-2 text-muted" style="width: 14px;"></i>Joined: <?php echo format_date($user['created_at']); ?>
+                        </div>
+                    </div>
+
+                    <!-- Footer: Actions -->
+                    <div class="d-flex align-items-center justify-content-end gap-1 pt-1">
+                        <button type="button" 
+                                class="cat-action-btn cat-action-edit" 
+                                onclick="editUser(<?php echo htmlspecialchars(json_encode($user)); ?>)"
+                                title="Edit User">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <?php if ($user['id'] != get_user_id()): ?>
+                        <button type="button" 
+                                class="cat-action-btn cat-action-del" 
+                                onclick="deleteUser(<?php echo (int)$user['id']; ?>, '<?php echo htmlspecialchars(addslashes($user['full_name'])); ?>')"
+                                title="Delete User">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
 
             <div id="paginationContainer" class="p-3">
@@ -671,7 +782,12 @@ include 'includes/page-header.php';
                     
                     <div class="mb-3">
                         <label for="password" class="form-label fw-semibold small text-muted">Password <span id="passwordRequired">*</span></label>
-                        <input type="password" class="form-control" id="password" name="password" style="border-radius: 10px;">
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;" autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility('password', this)" style="border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-color: #dee2e6; " title="Show/Hide Password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         <small class="text-muted" id="passwordHelp">Minimum 6 characters</small>
                     </div>
                     
@@ -778,6 +894,25 @@ function deleteUser(userId, userName) {
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
+function togglePasswordVisibility(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    const icon = btn.querySelector('i');
+    if (field.type === 'password') {
+        field.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        field.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+
 // Reset modal when closed
 document.getElementById('userModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('userModalTitle').textContent = 'Add User';
@@ -786,6 +921,15 @@ document.getElementById('userModal').addEventListener('hidden.bs.modal', functio
     document.getElementById('password').required = true;
     document.getElementById('passwordRequired').style.display = 'inline';
     document.getElementById('passwordHelp').textContent = 'Minimum 6 characters';
+    
+    const pwdField = document.getElementById('password');
+    if (pwdField) pwdField.type = 'password';
+    const pwdIcon = document.querySelector('#togglePasswordBtn i');
+    if (pwdIcon) {
+        pwdIcon.classList.remove('fa-eye-slash');
+        pwdIcon.classList.add('fa-eye');
+    }
+    
     document.getElementById('userForm').reset();
 });
 
@@ -910,31 +1054,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sortBtn) {
         sortBtn.addEventListener('click', function() {
             const tableBody = document.getElementById('usersTableBody');
-            if (!tableBody) return;
-            const rows = Array.from(tableBody.querySelectorAll('tr.user-row'));
-            if (rows.length === 0) return;
-            
-            sortAsc = !sortAsc;
-            const sortIcon = document.getElementById('sortIcon');
-            if (sortIcon) {
-                sortIcon.className = sortAsc ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+            if (tableBody) {
+                const rows = Array.from(tableBody.querySelectorAll('tr.user-row'));
+                if (rows.length > 0) {
+                    sortAsc = !sortAsc;
+                    const sortIcon = document.getElementById('sortIcon');
+                    if (sortIcon) {
+                        sortIcon.className = sortAsc ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+                    }
+                    
+                    rows.sort((a, b) => {
+                        const nameA = (a.getAttribute('data-name') || '').toLowerCase();
+                        const nameB = (b.getAttribute('data-name') || '').toLowerCase();
+                        return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                    });
+                    
+                    rows.forEach(row => tableBody.appendChild(row));
+                }
             }
-            
-            rows.sort((a, b) => {
-                const nameA = (a.getAttribute('data-name') || '').toLowerCase();
-                const nameB = (b.getAttribute('data-name') || '').toLowerCase();
-                return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-            });
-            
-            rows.forEach(row => tableBody.appendChild(row));
+            const cardsContainer = document.getElementById('userMobileCardsList');
+            if (cardsContainer) {
+                const cards = Array.from(cardsContainer.querySelectorAll('.user-card-row'));
+                if (cards.length > 0) {
+                    cards.sort((a, b) => {
+                        const nameA = (a.getAttribute('data-name') || '').toLowerCase();
+                        const nameB = (b.getAttribute('data-name') || '').toLowerCase();
+                        return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                    });
+                    cards.forEach(card => cardsContainer.appendChild(card));
+                }
+            }
         });
+    }
+
+    const tableBody = document.getElementById('usersTableBody');
+    if (tableBody) {
+        window.originalUsersTableContent = tableBody.innerHTML;
+    }
+    const cardsContainer = document.getElementById('userMobileCardsList');
+    if (cardsContainer) {
+        window.originalUsersCardsContent = cardsContainer.innerHTML;
     }
 });
 
 function bindDynamicEditButtons() {
-    const tableBody = document.getElementById('usersTableBody');
-    if (!tableBody) return;
-    tableBody.querySelectorAll('.edit-user-btn').forEach(btn => {
+    document.querySelectorAll('.edit-user-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
                 const userJson = this.getAttribute('data-user')
@@ -959,20 +1123,30 @@ function performFilter() {
     const search = searchInput ? searchInput.value.trim() : '';
     const role = roleFilter ? roleFilter.value : '';
     const usersTableBody = document.getElementById('usersTableBody');
+    const userMobileCards = document.getElementById('userMobileCardsList');
 
-    if (!usersTableBody) return;
+    if (!usersTableBody && !userMobileCards) return;
 
     // If no filters are applied, show original content
     if (!search && !role) {
-        if (window.originalUsersTableContent) {
+        if (window.originalUsersTableContent && usersTableBody) {
             usersTableBody.innerHTML = window.originalUsersTableContent;
-            updateSearchResults(0, '');
         }
+        if (window.originalUsersCardsContent && userMobileCards) {
+            userMobileCards.innerHTML = window.originalUsersCardsContent;
+        }
+        updateSearchResults(0, '');
+        bindDynamicEditButtons();
         return;
     }
 
     // Show loading state
-    usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>Loading users...</td></tr>';
+    if (usersTableBody) {
+        usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>Loading users...</td></tr>';
+    }
+    if (userMobileCards) {
+        userMobileCards.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>Loading users...</div>';
+    }
 
     // Build query parameters
     const params = new URLSearchParams();
@@ -990,35 +1164,52 @@ function performFilter() {
                 updateSearchResults(data.pagination.total_users, search, data.pagination.total_pages);
             } else {
                 console.error('Filter error:', data.error);
-                usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading users</td></tr>';
+                if (usersTableBody) usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading users</td></tr>';
+                if (userMobileCards) userMobileCards.innerHTML = '<div class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading users</div>';
             }
         })
         .catch(error => {
             console.error('Filter error:', error);
-            usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading users</td></tr>';
+            if (usersTableBody) usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading users</td></tr>';
+            if (userMobileCards) userMobileCards.innerHTML = '<div class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading users</div>';
         });
 }
 
 function updateUsersTable(users) {
     const usersTableBody = document.getElementById('usersTableBody');
-    if (!usersTableBody) return;
+    const userMobileCards = document.getElementById('userMobileCardsList');
+    if (!usersTableBody && !userMobileCards) return;
 
     if (!users || users.length === 0) {
-        usersTableBody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-5">
+        if (usersTableBody) {
+            usersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                            <i class="fas fa-users fa-lg"></i>
+                        </div>
+                        <div class="fw-semibold text-dark">No users found</div>
+                        <small class="text-muted">Try adjusting your search or role filter.</small>
+                    </td>
+                </tr>
+            `;
+        }
+        if (userMobileCards) {
+            userMobileCards.innerHTML = `
+                <div class="text-center py-5">
                     <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
                         <i class="fas fa-users fa-lg"></i>
                     </div>
                     <div class="fw-semibold text-dark">No users found</div>
                     <small class="text-muted">Try adjusting your search or role filter.</small>
-                </td>
-            </tr>
-        `;
+                </div>
+            `;
+        }
         return;
     }
 
     let tableHTML = '';
+    let cardsHTML = '';
     users.forEach((user, index) => {
         const cleanName = (user.full_name || user.username || 'User').trim();
         const initial = cleanName.charAt(0).toUpperCase() || 'U';
@@ -1113,9 +1304,74 @@ function updateUsersTable(users) {
                 </td>
             </tr>
         `;
+
+        cardsHTML += `
+            <div class="user-mobile-card user-card-row" data-name="${escapeHtml(cleanName.toLowerCase())}">
+                <div class="d-flex align-items-start justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 12px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.92rem;">
+                            ${escapeHtml(initial)}
+                        </div>
+                        <div>
+                            <strong class="text-dark d-block" style="font-size: 0.92rem; line-height: 1.2;">${escapeHtml(user.full_name || '')}</strong>
+                            <span class="text-muted small" style="font-size: 0.75rem;">@${escapeHtml(user.username || '')}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                        <span class="badge fw-medium d-inline-flex align-items-center gap-1" style="background: ${roleBadge.bg}; color: ${roleBadge.color}; border: 1px solid ${roleBadge.border}; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px;">
+                            <i class="fas fa-${roleBadge.icon}"></i>
+                            <span>${escapeHtml(user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User')}</span>
+                        </span>
+                        <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: ${isActive ? '#dcfce7' : '#f1f5f9'}; color: ${isActive ? '#15803d' : '#64748b'}; border: 1px solid ${isActive ? '#bbf7d0' : '#e2e8f0'}; font-size: 0.7rem;">
+                            ${isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-2 mb-2 rounded-3" style="background: #f8fafc; font-size: 0.82rem;">
+                    ${user.email ? `
+                        <div class="text-dark mb-1 text-truncate">
+                            <i class="fas fa-envelope me-2 text-muted" style="width: 14px;"></i>
+                            <a href="mailto:${escapeHtml(user.email)}" class="text-dark text-decoration-none">
+                                ${escapeHtml(user.email)}
+                            </a>
+                        </div>
+                    ` : ''}
+                    ${user.phone ? `
+                        <div class="text-dark mb-1">
+                            <i class="fas fa-phone me-2 text-muted" style="width: 14px;"></i>
+                            <a href="tel:${escapeHtml(user.phone)}" class="text-dark text-decoration-none fw-medium">
+                                ${escapeHtml(user.phone)}
+                            </a>
+                        </div>
+                    ` : ''}
+                    <div class="text-muted" style="font-size: 0.78rem;">
+                        <i class="far fa-calendar-alt me-2 text-muted" style="width: 14px;"></i>Joined: ${escapeHtml(dateFormatted)}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-end gap-1 pt-1">
+                    <button type="button" 
+                            class="cat-action-btn cat-action-edit edit-user-btn" 
+                            data-user='${userJson}' 
+                            title="Edit User">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${user.id != currentLoggedInUserId ? `
+                    <button type="button" 
+                            class="cat-action-btn cat-action-del" 
+                            onclick="deleteUser(${user.id}, '${safeNameForDelete}')" 
+                            title="Delete User">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
     });
 
-    usersTableBody.innerHTML = tableHTML;
+    if (usersTableBody) usersTableBody.innerHTML = tableHTML;
+    if (userMobileCards) userMobileCards.innerHTML = cardsHTML;
     bindDynamicEditButtons();
 }
 

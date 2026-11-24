@@ -118,6 +118,46 @@ for ($i = 11; $i >= 0; $i--) {
     border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
 }
+.reports-main-card {
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    overflow: hidden;
+    background: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .reports-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .reports-main-card > .card-header {
+        background: transparent !important;
+        background-color: transparent !important;
+        border-bottom: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    .reports-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #recentOrdersMobileCardsList {
+        padding: 0 !important;
+    }
+}
+.report-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
 @media (max-width: 768px) {
     .cat-stat-box .fs-4 {
         font-size: 1.15rem !important;
@@ -298,7 +338,7 @@ include 'includes/page-header.php';
 </div>
 
 <!-- 5. Recent Orders Table -->
-<div class="card cat-report-card mb-3">
+<div class="card cat-report-card mb-3 reports-main-card">
     <div class="card-header d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
             <div class="d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; border-radius: 8px; background: #faf5ff; color: #8b5cf6; font-size: 0.85rem;">
@@ -315,7 +355,8 @@ include 'includes/page-header.php';
         $recentOrders = $orderModel->getOrdersWithDetails([], 5);
         if (!empty($recentOrders)): 
         ?>
-            <div class="table-responsive">
+            <!-- Desktop Table View -->
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -335,6 +376,7 @@ include 'includes/page-header.php';
                                 'cancelled' => ['bg' => '#fef2f2', 'color' => '#b91c1c', 'border' => '#fecaca'],
                             ];
                             $st = $statusMap[$order['status']] ?? ['bg' => '#f1f5f9', 'color' => '#475569', 'border' => '#e2e8f0'];
+                            $custName = trim($order['first_name'] . ' ' . $order['last_name']) ?: ($order['measurement_customer_name'] ?? 'Walk-in Customer');
                         ?>
                         <tr>
                             <td class="ps-3 py-3">
@@ -344,7 +386,7 @@ include 'includes/page-header.php';
                             </td>
                             <td class="py-3">
                                 <span class="fw-semibold text-dark" style="font-size: 0.88rem;">
-                                    <?php echo htmlspecialchars(trim($order['first_name'] . ' ' . $order['last_name']) ?: ($order['measurement_customer_name'] ?? 'Unknown')); ?>
+                                    <?php echo htmlspecialchars($custName); ?>
                                 </span>
                             </td>
                             <td class="py-3">
@@ -359,6 +401,42 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards View -->
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="recentOrdersMobileCardsList">
+                <?php foreach ($recentOrders as $order): 
+                    $statusMap = [
+                        'pending' => ['bg' => '#fffbeb', 'color' => '#b45309', 'border' => '#fde68a'],
+                        'in_progress' => ['bg' => '#eff6ff', 'color' => '#1d4ed8', 'border' => '#bfdbfe'],
+                        'completed' => ['bg' => '#f0fdf4', 'color' => '#15803d', 'border' => '#bbf7d0'],
+                        'delivered' => ['bg' => '#f0fdfa', 'color' => '#0f766e', 'border' => '#99f6e4'],
+                        'cancelled' => ['bg' => '#fef2f2', 'color' => '#b91c1c', 'border' => '#fecaca'],
+                    ];
+                    $st = $statusMap[$order['status']] ?? ['bg' => '#f1f5f9', 'color' => '#475569', 'border' => '#e2e8f0'];
+                    $custName = trim($order['first_name'] . ' ' . $order['last_name']) ?: ($order['measurement_customer_name'] ?? 'Walk-in Customer');
+                ?>
+                <div class="report-mobile-card">
+                    <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+                        <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">
+                            <?php echo htmlspecialchars($order['order_number']); ?>
+                        </span>
+                        <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: <?php echo $st['bg']; ?>; color: <?php echo $st['color']; ?>; border: 1px solid <?php echo $st['border']; ?>; font-size: 0.75rem;">
+                            <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small d-block" style="font-size: 0.72rem; text-transform: uppercase;">Customer</span>
+                            <span class="fw-bold text-dark" style="font-size: 0.92rem;"><?php echo htmlspecialchars($custName); ?></span>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted small d-block" style="font-size: 0.72rem; text-transform: uppercase;">Total</span>
+                            <strong class="text-dark" style="font-size: 1.05rem;"><?php echo format_currency($order['total_amount']); ?></strong>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
         <?php else: ?>
             <div class="text-center py-4 text-muted small">No recent orders found.</div>
@@ -698,7 +776,7 @@ function updateSummaryTables(data) {
     if (recentOrdersTable) {
         if (data.tables.recent_orders && data.tables.recent_orders.length > 0) {
             let tableHTML = `
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover mb-0 align-middle category-table">
                         <thead class="cat-table-head">
                             <tr>
@@ -711,6 +789,10 @@ function updateSummaryTables(data) {
                         <tbody>
             `;
             
+            let cardsHTML = `
+                <div class="d-md-none d-flex flex-column gap-3 mb-3" id="recentOrdersMobileCardsList">
+            `;
+
             const statusBadgeMap = {
                 'pending': 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;',
                 'in_progress': 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;',
@@ -739,6 +821,29 @@ function updateSummaryTables(data) {
                         </td>
                     </tr>
                 `;
+
+                cardsHTML += `
+                    <div class="report-mobile-card">
+                        <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+                            <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;">
+                                ${order.order_number}
+                            </span>
+                            <span class="badge rounded-pill fw-semibold px-2 py-1" style="${badgeStyle} font-size: 0.75rem;">
+                                ${order.status}
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small d-block" style="font-size: 0.72rem; text-transform: uppercase;">Customer</span>
+                                <span class="fw-bold text-dark" style="font-size: 0.92rem;">${order.customer_name}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted small d-block" style="font-size: 0.72rem; text-transform: uppercase;">Total</span>
+                                <strong class="text-dark" style="font-size: 1.05rem;">${order.total_amount}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
             
             tableHTML += `
@@ -746,7 +851,8 @@ function updateSummaryTables(data) {
                     </table>
                 </div>
             `;
-            recentOrdersTable.innerHTML = tableHTML;
+            cardsHTML += `</div>`;
+            recentOrdersTable.innerHTML = tableHTML + cardsHTML;
         } else {
             recentOrdersTable.innerHTML = '<div class="text-center py-4 text-muted small">No recent orders found.</div>';
         }

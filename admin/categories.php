@@ -190,6 +190,33 @@ if (!function_exists('getCategoryDesign')) {
     background: #fee2e2;
     color: #dc2626;
 }
+.categories-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .categories-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .categories-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #categoryMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
 .cat-mobile-card {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -318,10 +345,10 @@ include 'includes/page-header.php';
         <span>Add Category</span>
     </button>
 </div>
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 categories-main-card">
     <div class="card-body p-0">
         <?php if (!empty($categories)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -374,6 +401,46 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="categoryMobileCardsList">
+                <?php foreach ($categories as $idx => $cat): 
+                    $design = getCategoryDesign($cat['name'], $idx);
+                    $cleanName = htmlspecialchars(html_entity_decode($cat['name'], ENT_QUOTES, 'UTF-8'));
+                    $cleanDesc = htmlspecialchars(html_entity_decode($cat['description'] ?? '', ENT_QUOTES, 'UTF-8'));
+                    $jsonCat = htmlspecialchars(json_encode(array_map(function($v){ return is_string($v) ? html_entity_decode($v, ENT_QUOTES, 'UTF-8') : $v; }, $cat)));
+                ?>
+                <div class="cat-mobile-card shadow-sm category-card-row" data-name="<?php echo strtolower($cleanName); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px 16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2 min-w-0">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: <?php echo $design['bg']; ?>; border: 1px solid <?php echo $design['border']; ?>; color: <?php echo $design['color']; ?>;">
+                                <?php echo $design['svg']; ?>
+                            </div>
+                            <div class="min-w-0">
+                                <strong class="cat-name text-dark text-truncate d-block" style="font-size: 0.95rem;"><?php echo ucwords($cleanName); ?></strong>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill fw-semibold px-2 py-1" style="font-size: 0.72rem; background-color: <?php echo $cat['status'] === 'active' ? '#10b981' : '#94a3b8'; ?>; color: #ffffff;">
+                            <?php echo ucfirst($cat['status']); ?>
+                        </span>
+                    </div>
+                    <?php if (!empty($cleanDesc)): ?>
+                        <p class="cat-desc text-muted mb-3" style="font-size: 0.82rem; line-height: 1.4;"><?php echo $cleanDesc; ?></p>
+                    <?php else: ?>
+                        <p class="cat-desc text-muted mb-3" style="font-size: 0.8rem; font-style: italic;">No description provided</p>
+                    <?php endif; ?>
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0;" onclick="editCategory(<?php echo $jsonCat; ?>)" title="Edit Category">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0;" onclick="deleteCategory(<?php echo $cat['id']; ?>, '<?php echo $cleanName; ?>')" title="Delete Category">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
         <?php else: ?>
             <div class="text-center py-5">
@@ -485,7 +552,7 @@ function deleteCategory(id, name) {
 }
 document.getElementById('categorySearch')?.addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('.category-row');
+    const rows = document.querySelectorAll('.category-row, .category-card-row');
     let visibleCount = 0;
     rows.forEach(row => {
         const nameEl = row.querySelector('.cat-name');
@@ -526,6 +593,16 @@ document.getElementById('sortCategoriesBtn')?.addEventListener('click', function
             return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
         });
         rows.forEach(r => tableBody.appendChild(r));
+    }
+    const mobileCardsList = document.getElementById('categoryMobileCardsList');
+    if (mobileCardsList) {
+        const cards = Array.from(mobileCardsList.querySelectorAll('.category-card-row'));
+        cards.sort((a, b) => {
+            const nameA = a.getAttribute('data-name') || '';
+            const nameB = b.getAttribute('data-name') || '';
+            return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+        cards.forEach(c => mobileCardsList.appendChild(c));
     }
 });
 

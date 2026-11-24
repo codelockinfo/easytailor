@@ -235,6 +235,41 @@ $categories = $expenseCategories;
     border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
 }
+.expenses-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .expenses-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .expenses-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #expenseMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.expense-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
 @media (max-width: 768px) {
     .cat-stat-box .fs-4 {
         font-size: 1.15rem !important;
@@ -360,10 +395,10 @@ include 'includes/page-header.php';
 </div>
 
 <!-- 4. Expenses Table -->
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 expenses-main-card" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
     <div class="card-body p-0">
         <?php if (!empty($expenses)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -460,6 +495,86 @@ include 'includes/page-header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards View -->
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="expenseMobileCardsList">
+                <?php foreach ($expenses as $expense): 
+                    $isCashIn = $expense['payment_method'] === 'cash_in';
+                    $pmBadgeClass = $isCashIn ? 'cat-badge-cash-in' : 'cat-badge-cash-out';
+                    $pmText = ucfirst(str_replace('_', ' ', $expense['payment_method']));
+                    $pmIcon = $isCashIn ? 'fa-arrow-down' : 'fa-arrow-up';
+                    $amountClass = $isCashIn ? 'text-success' : 'text-danger';
+                ?>
+                <div class="expense-mobile-card expense-card-row" data-description="<?php echo htmlspecialchars(strtolower($expense['description'])); ?>">
+                    <!-- Top bar: Date & Payment method badge -->
+                    <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.78rem;">
+                            <i class="far fa-calendar-alt text-muted"></i>
+                            <span class="fw-semibold text-dark"><?php echo format_date($expense['expense_date']); ?></span>
+                            <span class="text-muted small ms-1"><?php echo format_date($expense['created_at'], 'H:i'); ?></span>
+                        </div>
+                        <div>
+                            <span class="badge rounded-pill fw-semibold px-2 py-1 <?php echo $pmBadgeClass; ?>" style="font-size: 0.72rem;">
+                                <i class="fas <?php echo $pmIcon; ?> me-1"></i><?php echo $pmText; ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Middle section: Description + Category + Amount -->
+                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                        <div class="min-w-0">
+                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.92rem; line-height: 1.3;">
+                                <?php echo display_val($expense['description']); ?>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <?php if (!empty($expense['category'])): ?>
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.7rem; font-weight: 500;"><?php echo htmlspecialchars($expense['category']); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($expense['receipt_image'])): ?>
+                                    <span class="text-muted small" style="font-size: 0.72rem;">
+                                        <i class="fas fa-paperclip text-primary me-1"></i>Receipt
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                            <strong class="<?php echo $amountClass; ?>" style="font-size: 1.05rem;">
+                                <?php echo ($isCashIn ? '+ ' : '- ') . format_currency($expense['amount']); ?>
+                            </strong>
+                        </div>
+                    </div>
+
+                    <!-- Footer: Creator + Action buttons -->
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <div class="text-muted" style="font-size: 0.78rem;">
+                            <i class="fas fa-user-circle me-1 text-muted"></i><?php echo display_val($expense['created_by_name'] ?: 'Staff'); ?>
+                        </div>
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-edit" 
+                                    onclick="editExpense(<?php echo htmlspecialchars(json_encode($expense)); ?>)"
+                                    title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <?php if (!empty($expense['receipt_image'])): ?>
+                                <button type="button" 
+                                        class="cat-action-btn cat-action-view" 
+                                        onclick="viewReceipt('<?php echo htmlspecialchars($expense['receipt_image']); ?>')"
+                                        title="View Receipt">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            <?php endif; ?>
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-del" 
+                                    onclick="deleteExpense(<?php echo $expense['id']; ?>, '<?php echo htmlspecialchars($expense['description']); ?>')"
+                                    title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
             <div id="paginationContainer" class="p-3">
             <?php if ($totalPages > 1): ?>
@@ -989,29 +1104,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayFilterResults(expenses) {
         const tableBody = document.getElementById('expensesTableBody') || document.querySelector('.table tbody');
-        if (!tableBody) return;
+        const mobileCardsContainer = document.getElementById('expenseMobileCardsList');
+        if (!tableBody && !mobileCardsContainer) return;
 
         if (!expenses || expenses.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center py-5">
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                            <h5 class="text-muted">No expenses found</h5>
+                            <p class="text-muted small">Try adjusting your filter criteria</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            if (mobileCardsContainer) {
+                mobileCardsContainer.innerHTML = `
+                    <div class="text-center py-5">
                         <i class="fas fa-search fa-2x text-muted mb-2"></i>
                         <h5 class="text-muted">No expenses found</h5>
                         <p class="text-muted small">Try adjusting your filter criteria</p>
-                    </td>
-                </tr>
-            `;
+                    </div>
+                `;
+            }
             return;
         }
         
         let tableHTML = '';
+        let cardsHTML = '';
         expenses.forEach(expense => {
             const expenseDateObj = new Date(expense.expense_date);
             const expenseDate = isNaN(expenseDateObj.getTime()) ? (expense.expense_date || 'N/A') :
                 expenseDateObj.getFullYear() + '-' + 
                 String(expenseDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
                 String(expenseDateObj.getDate()).padStart(2, '0');
-                        let createdTime = '';
+            let createdTime = '';
             if (expense.created_at) {
                 const createdTimeObj = new Date(expense.created_at);
                 if (!isNaN(createdTimeObj.getTime())) {
@@ -1096,8 +1224,75 @@ document.addEventListener('DOMContentLoaded', function() {
                     </td>
                 </tr>
             `;
+
+            cardsHTML += `
+                <div class="expense-mobile-card expense-card-row" data-description="${cleanDesc.toLowerCase()}">
+                    <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.78rem;">
+                            <i class="far fa-calendar-alt text-muted"></i>
+                            <span class="fw-semibold text-dark">${expenseDate}</span>
+                            ${createdTime ? `<span class="text-muted small ms-1">${createdTime}</span>` : ''}
+                        </div>
+                        <div>
+                            <span class="badge rounded-pill fw-semibold px-2 py-1 ${badgeClass}" style="font-size: 0.72rem;">
+                                <i class="fas ${pmIcon} me-1"></i>${pmLabel}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                        <div class="min-w-0">
+                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.92rem; line-height: 1.3;">
+                                ${cleanDesc}
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                ${expense.category ? `<span class="badge bg-light text-secondary border" style="font-size: 0.7rem; font-weight: 500;">${escapeHtml(expense.category)}</span>` : ''}
+                                ${expense.receipt_image ? `
+                                    <span class="text-muted small" style="font-size: 0.72rem;">
+                                        <i class="fas fa-paperclip text-primary me-1"></i>Receipt
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                            <strong class="${amountClass}" style="font-size: 1.05rem;">
+                                ${amountPrefix}${formatCurrency(expense.amount)}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <div class="text-muted" style="font-size: 0.78rem;">
+                            <i class="fas fa-user-circle me-1 text-muted"></i>${escapeHtml(expense.created_by_name || 'Staff')}
+                        </div>
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-edit" 
+                                    onclick="editExpense(${expenseJson})"
+                                    title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${expense.receipt_image ? `
+                                <button type="button" 
+                                        class="cat-action-btn cat-action-view" 
+                                        onclick="viewReceipt('${escapeHtml(expense.receipt_image)}')"
+                                        title="View Receipt">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            ` : ''}
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-del" 
+                                    onclick="deleteExpense(${expense.id}, '${cleanDesc.replace(/'/g, "\\'")}')"
+                                    title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
-        tableBody.innerHTML = tableHTML;
+        if (tableBody) tableBody.innerHTML = tableHTML;
+        if (mobileCardsContainer) mobileCardsContainer.innerHTML = cardsHTML;
     }
     let sortAscending = true;
     const sortBtn = document.getElementById('sortExpensesBtn');
@@ -1117,6 +1312,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
                 });
                 rows.forEach(r => tableBody.appendChild(r));
+            }
+            const cardsContainer = document.getElementById('expenseMobileCardsList');
+            if (cardsContainer) {
+                const cards = Array.from(cardsContainer.querySelectorAll('.expense-card-row'));
+                cards.sort((a, b) => {
+                    const nameA = a.getAttribute('data-description') || '';
+                    const nameB = b.getAttribute('data-description') || '';
+                    return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                });
+                cards.forEach(c => cardsContainer.appendChild(c));
             }
         });
     }

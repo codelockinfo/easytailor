@@ -239,6 +239,41 @@ require_once 'includes/header.php';
     border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
 }
+.contacts-main-card {
+    border-radius: 14px;
+    border: 1px solid #f1f5f9 !important;
+    background-color: #ffffff;
+}
+@media (max-width: 767.98px) {
+    .contacts-main-card {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .contacts-main-card > .card-body {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+    #contactMobileCardsList {
+        padding: 0 !important;
+    }
+    #paginationContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+.contact-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
 @media (max-width: 768px) {
     .cat-stat-box .fs-4 {
         font-size: 1.15rem !important;
@@ -355,10 +390,10 @@ include 'includes/page-header.php';
         </button>
     </div>
 </div>
-<div class="card shadow-sm border-0 mb-3" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
+<div class="card shadow-sm border-0 mb-3 contacts-main-card" style="border-radius: 14px; overflow: hidden; border: 1px solid #f1f5f9 !important;">
     <div class="card-body p-0">
         <?php if (!empty($contacts)): ?>
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0 align-middle category-table">
                     <thead class="cat-table-head">
                         <tr>
@@ -476,6 +511,99 @@ include 'includes/page-header.php';
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards View -->
+            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="contactMobileCardsList">
+                <?php foreach ($contacts as $index => $contact): 
+                    $cleanName = trim($contact['name'] ?? 'Contact');
+                    $initial = strtoupper(mb_substr($cleanName, 0, 1) ?: 'C');
+                    $avColor = getContactAvatarDesign($cleanName, $index);
+                    $catBadge = getContactCategoryBadge($contact['category'] ?? '');
+                    $isActive = ($contact['status'] ?? 'active') === 'active';
+                    $searchPayload = strtolower($cleanName . ' ' . ($contact['company'] ?? '') . ' ' . ($contact['email'] ?? '') . ' ' . ($contact['phone'] ?? '') . ' ' . ($contact['category'] ?? '') . ' ' . ($contact['notes'] ?? ''));
+                ?>
+                <div class="contact-mobile-card contact-card-row" data-name="<?php echo htmlspecialchars(strtolower($cleanName)); ?>" data-search="<?php echo htmlspecialchars($searchPayload); ?>" data-category="<?php echo htmlspecialchars($contact['category'] ?? ''); ?>">
+                    <!-- Header: Avatar + Name + Category + Status -->
+                    <div class="d-flex align-items-start justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 12px; background: <?php echo $avColor['bg']; ?>; border: 1px solid <?php echo $avColor['border']; ?>; color: <?php echo $avColor['color']; ?>; font-size: 0.92rem;">
+                                <?php echo $initial; ?>
+                            </div>
+                            <div>
+                                <strong class="text-dark d-block" style="font-size: 0.92rem; line-height: 1.2;"><?php echo display_val($contact['name']); ?></strong>
+                                <?php if (!empty($contact['company'])): ?>
+                                    <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                        <i class="fas fa-building me-1 text-muted"></i><?php echo display_val($contact['company']); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column align-items-end gap-1">
+                            <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: <?php echo $isActive ? '#dcfce7' : '#f1f5f9'; ?>; color: <?php echo $isActive ? '#15803d' : '#64748b'; ?>; border: 1px solid <?php echo $isActive ? '#bbf7d0' : '#e2e8f0'; ?>; font-size: 0.72rem;">
+                                <?php echo ucfirst($contact['status'] ?? 'Active'); ?>
+                            </span>
+                            <?php if (!empty($contact['category'])): ?>
+                                <span class="badge fw-medium" style="background: <?php echo $catBadge['bg']; ?>; color: <?php echo $catBadge['color']; ?>; border: 1px solid <?php echo $catBadge['border']; ?>; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px;">
+                                    <?php echo display_val($contact['category']); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Contact info body -->
+                    <div class="p-2 mb-2 rounded-3" style="background: #f8fafc; font-size: 0.82rem;">
+                        <?php if (!empty($contact['phone'])): ?>
+                            <div class="text-dark mb-1">
+                                <i class="fas fa-phone me-2 text-muted" style="width: 14px;"></i>
+                                <a href="tel:<?php echo htmlspecialchars($contact['phone']); ?>" class="text-dark text-decoration-none fw-medium">
+                                    <?php echo display_val($contact['phone']); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($contact['email'])): ?>
+                            <div class="text-muted mb-1 text-truncate">
+                                <i class="fas fa-envelope me-2 text-muted" style="width: 14px;"></i>
+                                <a href="mailto:<?php echo htmlspecialchars($contact['email']); ?>" class="text-muted text-decoration-none">
+                                    <?php echo display_val($contact['email']); ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($contact['notes'])): ?>
+                            <div class="text-muted text-truncate" title="<?php echo htmlspecialchars($contact['notes']); ?>">
+                                <i class="fas fa-sticky-note me-2 text-muted" style="width: 14px;"></i>
+                                <?php echo display_val($contact['notes']); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (empty($contact['phone']) && empty($contact['email']) && empty($contact['notes'])): ?>
+                            <div class="text-muted small">—</div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Footer: Actions -->
+                    <div class="d-flex align-items-center justify-content-end gap-1 pt-1">
+                        <button type="button" 
+                                class="cat-action-btn cat-action-edit" 
+                                onclick="editContact(<?php echo htmlspecialchars(json_encode($contact)); ?>)"
+                                title="Edit Contact">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" 
+                                class="cat-action-btn cat-action-del" 
+                                onclick="deleteContact(<?php echo (int)$contact['id']; ?>, '<?php echo htmlspecialchars(addslashes($contact['name'])); ?>')"
+                                title="Delete Contact">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <div id="noResultsCards" class="text-center py-5 text-muted" style="display: none;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                        <i class="fas fa-address-book fa-lg"></i>
+                    </div>
+                    <div class="fw-semibold text-dark">No contacts found</div>
+                    <small class="text-muted">Try adjusting your search or category filter.</small>
+                </div>
             </div>
             <div id="paginationContainer" class="p-3">
             <?php if ($totalPages > 1): ?>
@@ -747,9 +875,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
         const selectedCat = (categoryFilter ? categoryFilter.value : '').toLowerCase().trim();
         const rows = document.querySelectorAll('#contactsTableBody tr.contact-row');
+        const cards = document.querySelectorAll('#contactMobileCardsList .contact-card-row');
         const searchResults = document.getElementById('searchResults');
         const searchCount = document.getElementById('searchCount');
         const noResultsRow = document.getElementById('noResultsRow');
+        const noResultsCards = document.getElementById('noResultsCards');
 
         if (clearBtn) {
             clearBtn.style.display = searchTerm ? 'block' : 'none';
@@ -770,8 +900,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        cards.forEach(card => {
+            const dataSearch = (card.getAttribute('data-search') || card.innerText || '').toLowerCase();
+            const dataCat = (card.getAttribute('data-category') || '').toLowerCase();
+            const matchesSearch = !searchTerm || dataSearch.includes(searchTerm);
+            const matchesCat = !selectedCat || dataCat === selectedCat;
+
+            if (matchesSearch && matchesCat) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
         if (noResultsRow) {
             noResultsRow.style.display = (visibleCount === 0 && (searchTerm || selectedCat)) ? '' : 'none';
+        }
+        if (noResultsCards) {
+            noResultsCards.style.display = (visibleCount === 0 && (searchTerm || selectedCat)) ? '' : 'none';
         }
 
         if (searchResults && searchCount) {
@@ -840,23 +986,36 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sortBtn) {
         sortBtn.addEventListener('click', function() {
             const tableBody = document.getElementById('contactsTableBody');
-            if (!tableBody) return;
-            const rows = Array.from(tableBody.querySelectorAll('tr.contact-row'));
-            if (rows.length === 0) return;
-            
-            sortAsc = !sortAsc;
-            const sortIcon = document.getElementById('sortIcon');
-            if (sortIcon) {
-                sortIcon.className = sortAsc ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+            if (tableBody) {
+                const rows = Array.from(tableBody.querySelectorAll('tr.contact-row'));
+                if (rows.length > 0) {
+                    sortAsc = !sortAsc;
+                    const sortIcon = document.getElementById('sortIcon');
+                    if (sortIcon) {
+                        sortIcon.className = sortAsc ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+                    }
+                    
+                    rows.sort((a, b) => {
+                        const nameA = (a.getAttribute('data-name') || '').toLowerCase();
+                        const nameB = (b.getAttribute('data-name') || '').toLowerCase();
+                        return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                    });
+                    
+                    rows.forEach(row => tableBody.appendChild(row));
+                }
             }
-            
-            rows.sort((a, b) => {
-                const nameA = (a.getAttribute('data-name') || '').toLowerCase();
-                const nameB = (b.getAttribute('data-name') || '').toLowerCase();
-                return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-            });
-            
-            rows.forEach(row => tableBody.appendChild(row));
+            const cardsContainer = document.getElementById('contactMobileCardsList');
+            if (cardsContainer) {
+                const cards = Array.from(cardsContainer.querySelectorAll('.contact-card-row'));
+                if (cards.length > 0) {
+                    cards.sort((a, b) => {
+                        const nameA = (a.getAttribute('data-name') || '').toLowerCase();
+                        const nameB = (b.getAttribute('data-name') || '').toLowerCase();
+                        return sortAsc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                    });
+                    cards.forEach(card => cardsContainer.appendChild(card));
+                }
+            }
         });
     }
     if (searchInput) {
@@ -875,12 +1034,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tableBody) {
         window.originalContactsTableContent = tableBody.innerHTML;
     }
+    const cardsContainer = document.getElementById('contactMobileCardsList');
+    if (cardsContainer) {
+        window.originalContactsCardsContent = cardsContainer.innerHTML;
+    }
 });
 
 function bindDynamicEditButtons() {
-    const tableBody = document.getElementById('contactsTableBody');
-    if (!tableBody) return;
-    tableBody.querySelectorAll('.edit-contact-btn').forEach(btn => {
+    document.querySelectorAll('.edit-contact-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
                 const contactJson = this.getAttribute('data-contact')
@@ -905,20 +1066,30 @@ function filterContacts() {
     const searchTerm = searchInput ? searchInput.value.trim() : '';
     const category = categoryFilter ? categoryFilter.value : '';
     const tableBody = document.getElementById('contactsTableBody');
+    const cardsContainer = document.getElementById('contactMobileCardsList');
     
-    if (!tableBody) {
-        console.error('Table body element not found');
+    if (!tableBody && !cardsContainer) {
+        console.error('Contact containers not found');
         return;
     }
     if (!searchTerm && !category) {
-        if (window.originalContactsTableContent) {
+        if (window.originalContactsTableContent && tableBody) {
             tableBody.innerHTML = window.originalContactsTableContent;
-            updateSearchResults(0, '');
         }
+        if (window.originalContactsCardsContent && cardsContainer) {
+            cardsContainer.innerHTML = window.originalContactsCardsContent;
+        }
+        updateSearchResults(0, '');
+        bindDynamicEditButtons();
         return;
     }
     
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>Loading contacts...</td></tr>';
+    if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>Loading contacts...</td></tr>';
+    }
+    if (cardsContainer) {
+        cardsContainer.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>Loading contacts...</div>';
+    }
     const params = new URLSearchParams();
     if (searchTerm) params.append('search', searchTerm);
     if (category) params.append('category', category);
@@ -930,39 +1101,56 @@ function filterContacts() {
                 updateSearchResults(data.pagination.total_contacts, searchTerm, data.pagination.total_pages);
             } else {
                 console.error('Filter error:', data.error);
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading contacts</td></tr>';
+                if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading contacts</td></tr>';
+                if (cardsContainer) cardsContainer.innerHTML = '<div class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading contacts</div>';
             }
         })
         .catch(error => {
             console.error('AJAX error:', error);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading contacts</td></tr>';
+            if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading contacts</td></tr>';
+            if (cardsContainer) cardsContainer.innerHTML = '<div class="text-center py-4 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading contacts</div>';
         });
 }
 
 function updateContactsTable(contacts) {
     const tableBody = document.getElementById('contactsTableBody');
+    const cardsContainer = document.getElementById('contactMobileCardsList');
     
-    if (!tableBody) {
-        console.error('Table body element not found in updateContactsTable');
+    if (!tableBody && !cardsContainer) {
+        console.error('Contact containers not found in updateContactsTable');
         return;
     }
     
     if (!contacts || contacts.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center py-5">
+        if (tableBody) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                            <i class="fas fa-address-book fa-lg"></i>
+                        </div>
+                        <div class="fw-semibold text-dark">No contacts found</div>
+                        <small class="text-muted">Try adjusting your search or category filter.</small>
+                    </td>
+                </tr>
+            `;
+        }
+        if (cardsContainer) {
+            cardsContainer.innerHTML = `
+                <div class="text-center py-5">
                     <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
                         <i class="fas fa-address-book fa-lg"></i>
                     </div>
                     <div class="fw-semibold text-dark">No contacts found</div>
                     <small class="text-muted">Try adjusting your search or category filter.</small>
-                </td>
-            </tr>
-        `;
+                </div>
+            `;
+        }
         return;
     }
     
     let html = '';
+    let cardsHtml = '';
     contacts.forEach((contact, index) => {
         const cleanName = (contact.name || 'Contact').trim();
         const initial = cleanName.charAt(0).toUpperCase() || 'C';
@@ -1053,9 +1241,81 @@ function updateContactsTable(contacts) {
                 </td>
             </tr>
         `;
+
+        cardsHtml += `
+            <div class="contact-mobile-card contact-card-row" data-name="${escapeHtml(cleanName.toLowerCase())}" data-search="${escapeHtml(searchPayload)}" data-category="${escapeHtml(contact.category || '')}">
+                <div class="d-flex align-items-start justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 12px; background: ${palette.bg}; border: 1px solid ${palette.border}; color: ${palette.color}; font-size: 0.92rem;">
+                            ${escapeHtml(initial)}
+                        </div>
+                        <div>
+                            <strong class="text-dark d-block" style="font-size: 0.92rem; line-height: 1.2;">${escapeHtml(contact.name || '')}</strong>
+                            ${contact.company ? `
+                                <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                    <i class="fas fa-building me-1 text-muted"></i>${escapeHtml(contact.company)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                        <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: ${isActive ? '#dcfce7' : '#f1f5f9'}; color: ${isActive ? '#15803d' : '#64748b'}; border: 1px solid ${isActive ? '#bbf7d0' : '#e2e8f0'}; font-size: 0.72rem;">
+                            ${isActive ? 'Active' : 'Inactive'}
+                        </span>
+                        ${contact.category ? `
+                            <span class="badge fw-medium" style="background: ${catBadge.bg}; color: ${catBadge.color}; border: 1px solid ${catBadge.border}; font-size: 0.7rem; padding: 2px 6px; border-radius: 6px;">
+                                ${escapeHtml(contact.category)}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="p-2 mb-2 rounded-3" style="background: #f8fafc; font-size: 0.82rem;">
+                    ${contact.phone ? `
+                        <div class="text-dark mb-1">
+                            <i class="fas fa-phone me-2 text-muted" style="width: 14px;"></i>
+                            <a href="tel:${escapeHtml(contact.phone)}" class="text-dark text-decoration-none fw-medium">
+                                ${escapeHtml(contact.phone)}
+                            </a>
+                        </div>
+                    ` : ''}
+                    ${contact.email ? `
+                        <div class="text-muted mb-1 text-truncate">
+                            <i class="fas fa-envelope me-2 text-muted" style="width: 14px;"></i>
+                            <a href="mailto:${escapeHtml(contact.email)}" class="text-muted text-decoration-none">
+                                ${escapeHtml(contact.email)}
+                            </a>
+                        </div>
+                    ` : ''}
+                    ${contact.notes ? `
+                        <div class="text-muted text-truncate" title="${escapeHtml(contact.notes)}">
+                            <i class="fas fa-sticky-note me-2 text-muted" style="width: 14px;"></i>
+                            ${escapeHtml(contact.notes)}
+                        </div>
+                    ` : ''}
+                    ${(!contact.phone && !contact.email && !contact.notes) ? '<div class="text-muted small">—</div>' : ''}
+                </div>
+
+                <div class="d-flex align-items-center justify-content-end gap-1 pt-1">
+                    <button type="button" 
+                            class="cat-action-btn cat-action-edit edit-contact-btn" 
+                            data-contact='${contactJson}' 
+                            title="Edit Contact">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" 
+                            class="cat-action-btn cat-action-del" 
+                            onclick="deleteContact(${contact.id}, '${safeNameForDelete}')" 
+                            title="Delete Contact">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `;
     });
     
-    tableBody.innerHTML = html;
+    if (tableBody) tableBody.innerHTML = html;
+    if (cardsContainer) cardsContainer.innerHTML = cardsHtml;
     bindDynamicEditButtons();
 }
 

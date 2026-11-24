@@ -1376,7 +1376,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 </div>
                                 <?php if (!empty($order['customer_phone'])): ?>
                                     <a href="tel:<?php echo htmlspecialchars($order['customer_phone']); ?>" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
-                                        <i class="fas fa-phone-alt text-primary" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars($order['customer_phone']); ?>
+                                        <i class="fas fa-phone text-primary" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars($order['customer_phone']); ?>
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -3841,7 +3841,7 @@ function displayFilterResults(orders) {
                             </div>
                             ${order.customer_phone ? `
                                 <a href="tel:${escapeHtml(order.customer_phone)}" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
-                                    <i class="fas fa-phone-alt text-primary" style="font-size: 0.7rem;"></i> ${escapeHtml(order.customer_phone)}
+                                    <i class="fas fa-phone text-primary" style="font-size: 0.7rem;"></i> ${escapeHtml(order.customer_phone)}
                                 </a>
                             ` : ''}
                         </div>

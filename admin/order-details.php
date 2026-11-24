@@ -435,21 +435,7 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-xl-2">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #fffbeb; color: #f59e0b;">
-                            <i class="fas fa-hourglass-half fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small fw-medium" style="font-size: 0.78rem;">Status</div>
-                            <div>
-                                <span class="badge rounded-pill text-white" style="<?php echo $statusBadgeBg; ?> padding: 5px 14px; font-weight: 500; font-size: 0.78rem;">
-                                    <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              
                 <div class="col-6 col-md-4 col-xl-2">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #f5f3ff; color: #8b5cf6;">
@@ -504,7 +490,7 @@ require_once 'includes/header.php';
         </div>
     </div>
     <div class="row g-4 mb-4">
-        <div class="col-lg-4">
+        <div class="col-lg-12   ">
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
                 <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: #eef2ff; border: none;">
                     <span class="fw-bold" style="color: #2563eb; font-size: 0.95rem;">
@@ -542,130 +528,14 @@ require_once 'includes/header.php';
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
-                <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: #f5f0ff; border: none;">
-                    <span class="fw-bold" style="color: #6d28d9; font-size: 0.95rem;">
-                        <i class="fas fa-file-invoice me-2"></i>Order Information
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #cbd5e1; color: #6d28d9;" data-bs-toggle="modal" data-bs-target="#statusModal">
-                        <i class="fas fa-edit me-1"></i>Edit
-                    </button>
-                </div>
-                <div class="card-body p-4">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Cloth Type</span>
-                            <span class="fw-bold text-dark">
-                                <?php echo htmlspecialchars($order['cloth_type_name'] ?? 'N/A'); ?>
-                                <?php if ($clothType && !empty($clothType['category'])): ?>
-                                    <span class="badge rounded-pill bg-primary ms-1" style="font-size: 0.72rem; font-weight: 500; background-color: #2563eb !important;"><?php echo htmlspecialchars($clothType['category']); ?></span>
-                                <?php endif; ?>
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Standard Rate</span>
-                            <span class="fw-bold text-dark"><?php echo $clothType && $clothType['standard_rate'] ? format_currency($clothType['standard_rate']) : (has_role('tailor') && !empty($orderItems) ? format_currency($orderItems[0]['price']) : format_currency($order['total_amount'])); ?></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Total Amount</span>
-                            <span class="fw-bold text-dark"><?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_column($orderItems, 'price')) : $order['total_amount']); ?></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Status</span>
-                            <span class="badge rounded-pill text-white" style="<?php echo $statusBadgeBg; ?> padding: 4px 12px; font-weight: 500;">
-                                <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                            </span>
-                        </div>
-                        <?php if ($tailor): ?>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                            <span class="text-muted small">Assigned Tailor</span>
-                            <span class="fw-semibold text-primary"><i class="fas fa-cut me-1"></i><?php echo htmlspecialchars($tailor['full_name']); ?></span>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
-                <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: #f0fdf4; border: none;">
-                    <span class="fw-bold" style="color: #15803d; font-size: 0.95rem;">
-                        <i class="fas fa-ruler-combined me-2"></i>Measurements
-                    </span>
-                    <div class="d-flex align-items-center gap-1">
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0 bg-white" onclick="openOrderMeasurementsModal()" style="font-size: 0.75rem; border-color: #cbd5e1; color: #15803d;" title="View All Measurements">
-                            <i class="fas fa-eye me-1"></i>View Details
-                        </button>
-                        <?php if (!has_role('tailor') && !empty($order['measurement_id'])): ?>
-                        <a href="measurements.php?edit=<?php echo $order['measurement_id']; ?>" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0 bg-white" style="font-size: 0.75rem; border-color: #cbd5e1; color: #15803d;">
-                            <i class="fas fa-edit me-1"></i>Edit
-                        </a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <div class="card-body p-3" style="max-height: 350px; overflow-y: auto;">
-                    <?php if ($measurement && !empty($measurement['measurement_data']) && is_array($measurement['measurement_data'])): ?>
-                        <div class="row g-2 justify-content-center text-center">
-                            <?php 
-                            foreach ($measurement['measurement_data'] as $mKey => $mVal): 
-                                if ($mVal === null || $mVal === '' || !is_scalar($mVal)) continue;
-                                $keyLower = strtolower(str_replace([' ', '_', '-'], '', $mKey));
-                                $hasUnit = preg_match('/\d/', (string)$mVal);
-                            ?>
-                                <div class="col-4 mb-2">
-                                    <div class="p-1 h-100 d-flex flex-column align-items-center justify-content-center">
-                                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-1" style="width: 42px; height: 42px; background: #eff6ff; flex-shrink: 0;">
-                                            <?php if (str_contains($keyLower, 'collar') || str_contains($keyLower, 'neck')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4c-3 0-5 2-6 5l6 2 6-2c-1-3-3-5-6-5z"></path><path d="M6 9l6 11 6-11"></path></svg>
-                                            <?php elseif (str_contains($keyLower, 'shoulder')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l3-8h10l3 8"></path><circle cx="12" cy="7" r="3"></circle><line x1="4" y1="18" x2="20" y2="18" stroke-dasharray="2 2"></line></svg>
-                                            <?php elseif (str_contains($keyLower, 'chest') || str_contains($keyLower, 'bust')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><line x1="8" y1="14" x2="16" y2="14" stroke-dasharray="2 2"></line></svg>
-                                            <?php elseif (str_contains($keyLower, 'waist')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4c0 0 2 5 5 5s5-5 5-5"></path><path d="M7 4v16h10V4"></path><line x1="7" y1="12" x2="17" y2="12" stroke-dasharray="2 2"></line></svg>
-                                            <?php elseif (str_contains($keyLower, 'sleeve') || str_contains($keyLower, 'arm') || str_contains($keyLower, 'hand')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l-4 14h6l2-10 2 10h6l-4-14"></path><line x1="6" y1="12" x2="18" y2="12" stroke-dasharray="2 2"></line></svg>
-                                            <?php elseif (str_contains($keyLower, 'length') || str_contains($keyLower, 'height')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="20" rx="2"></rect><line x1="8" y1="6" x2="12" y2="6"></line><line x1="8" y1="10" x2="12" y2="10"></line><line x1="8" y1="14" x2="12" y2="14"></line><line x1="8" y1="18" x2="12" y2="18"></line></svg>
-                                            <?php elseif (str_contains($keyLower, 'pocket')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v8a5 5 0 0 0 5 5h2a5 5 0 0 0 5-5V5H6z"></path><line x1="6" y1="9" x2="18" y2="9"></line></svg>
-                                            <?php elseif (str_contains($keyLower, 'hip')): ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v6c0 4 3 7 6 7s6-3 6-7V7"></path><line x1="6" y1="13" x2="18" y2="13" stroke-dasharray="2 2"></line></svg>
-                                            <?php else: ?>
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><line x1="8" y1="4" x2="8" y2="8"></line><line x1="12" y1="4" x2="12" y2="10"></line><line x1="16" y1="4" x2="16" y2="8"></line></svg>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="text-muted fw-bold text-uppercase text-truncate w-100" style="font-size: 0.65rem; letter-spacing: 0.5px;" title="<?php echo htmlspecialchars(str_replace('_', ' ', $mKey)); ?>">
-                                            <?php echo strtoupper(str_replace('_', ' ', $mKey)); ?>
-                                        </div>
-                                        <div class="fw-bold text-primary my-1 text-truncate w-100" style="font-size: 1.25rem; line-height: 1.2;">
-                                            <?php echo htmlspecialchars($mVal); ?>
-                                        </div>
-                                        <?php if ($hasUnit): ?>
-                                            <div class="text-muted" style="font-size: 0.68rem;">inch</div>
-                                        <?php else: ?>
-                                            <div style="height: 0.68rem;"></div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-ruler fa-2x text-muted mb-2"></i>
-                            <p class="text-muted small mb-0">No measurements attached</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
+        
+        
     </div>
     <?php if (!empty($orderItems)): ?>
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: none;">
+            <div class="card border-0 shadow-sm rounded-4 bg-white" style="overflow: visible;">
+                <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: none; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
                     <div class="d-flex align-items-center gap-2">
                         <span class="fw-bold text-primary" style="font-size: 0.95rem;">
                             <i class="fas fa-tshirt me-2"></i>Garments & Assigned Tailors 
@@ -673,7 +543,7 @@ require_once 'includes/header.php';
                         <span class="badge rounded-pill bg-primary" style="font-size: 0.72rem;"><?php echo count($orderItems); ?> <?php echo count($orderItems) === 1 ? 'Garment' : 'Garments'; ?></span>
                     </div>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive" style="overflow-x: auto; overflow-y: visible; min-height: 260px; padding-bottom: 75px;">
                     <table class="table table-hover align-middle mb-0">
                         <thead style="background: #f8fafc; font-size: 0.78rem; font-weight: 700; color: #475569;">
                             <tr>
@@ -686,8 +556,19 @@ require_once 'includes/header.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($orderItems as $idx => $oi): 
+                            <?php 
+                            $itemStatusStyles = [
+                                'pending' => ['bg' => '#fef3c7', 'color' => '#b45309', 'border' => '#fde68a', 'icon' => 'fa-clock'],
+                                'in_progress' => ['bg' => '#e0f2fe', 'color' => '#0284c7', 'border' => '#bae6fd', 'icon' => 'fa-cogs'],
+                                'completed' => ['bg' => '#dcfce7', 'color' => '#15803d', 'border' => '#bbf7d0', 'icon' => 'fa-check-circle'],
+                                'delivered' => ['bg' => '#eff6ff', 'color' => '#2563eb', 'border' => '#bfdbfe', 'icon' => 'fa-truck'],
+                                'cancelled' => ['bg' => '#fee2e2', 'color' => '#dc2626', 'border' => '#fecaca', 'icon' => 'fa-times-circle']
+                            ];
+                            foreach ($orderItems as $idx => $oi): 
                                 $isMyItem = (has_role('tailor') && !empty($oi['assigned_tailor_id']) && (int)$oi['assigned_tailor_id'] === (int)get_user_id());
+                                $canEditItem = (!has_role('tailor') || $isMyItem);
+                                $oiStatus = !empty($oi['status']) ? $oi['status'] : 'pending';
+                                $stStyle = $itemStatusStyles[$oiStatus] ?? $itemStatusStyles['pending'];
                             ?>
                             <tr style="<?php echo $isMyItem ? 'background: #f0fdf4;' : ''; ?>">
                                 <td class="ps-4 py-3 fw-bold text-muted" style="font-size: 0.85rem;">
@@ -740,9 +621,38 @@ require_once 'includes/header.php';
                                     <?php echo format_currency($oi['price']); ?>
                                 </td>
                                 <td class="pe-4 py-3 text-center">
-                                    <span class="badge rounded-pill px-2 py-1" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1;">
-                                        <?php echo ucfirst(str_replace('_', ' ', $oi['status'] ?? 'pending')); ?>
-                                    </span>
+                                    <?php if ($canEditItem): ?>
+                                        <div class="dropdown d-inline-block">
+                                            <button type="button" 
+                                                    class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm item-status-badge-btn" 
+                                                    id="itemStatusBtn_<?php echo $oi['id']; ?>"
+                                                    data-bs-toggle="dropdown" 
+                                                    data-bs-popper-config='{"strategy":"fixed"}'
+                                                    aria-expanded="false"
+                                                    style="background: <?php echo $stStyle['bg']; ?>; color: <?php echo $stStyle['color']; ?>; border: 1px solid <?php echo $stStyle['border']; ?>; font-size: 0.76rem;"
+                                                    title="Click to update garment status">
+                                                <i class="fas <?php echo $stStyle['icon']; ?>" id="itemStatusIcon_<?php echo $oi['id']; ?>"></i>
+                                                <span id="itemStatusText_<?php echo $oi['id']; ?>"><?php echo ucfirst(str_replace('_', ' ', $oiStatus)); ?></span>
+                                                <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.7;"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2" style="border-radius: 12px; font-size: 0.82rem; min-width: 165px; z-index: 1060; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1) !important;">
+                                                <li><h6 class="dropdown-header text-uppercase text-muted py-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Update Status</h6></li>
+                                                <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'pending' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'pending', <?php echo $order['id']; ?>);"><span class="text-warning"><i class="fas fa-clock me-2"></i>Pending</span> <?php echo $oiStatus === 'pending' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                                <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'in_progress' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'in_progress', <?php echo $order['id']; ?>);"><span class="text-info"><i class="fas fa-cogs me-2"></i>In Progress</span> <?php echo $oiStatus === 'in_progress' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                                <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'completed' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'completed', <?php echo $order['id']; ?>);"><span class="text-success"><i class="fas fa-check-circle me-2"></i>Completed</span> <?php echo $oiStatus === 'completed' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                                <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between <?php echo $oiStatus === 'delivered' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'delivered', <?php echo $order['id']; ?>);"><span class="text-primary"><i class="fas fa-truck me-2"></i>Delivered</span> <?php echo $oiStatus === 'delivered' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                                <li><hr class="dropdown-divider my-1"></li>
+                                                <li><a class="dropdown-item py-1 px-3 d-flex align-items-center justify-content-between text-danger <?php echo $oiStatus === 'cancelled' ? 'active fw-bold' : ''; ?>" href="#" onclick="event.preventDefault(); updateOrderItemStatus(<?php echo $oi['id']; ?>, 'cancelled', <?php echo $order['id']; ?>);"><span><i class="fas fa-times-circle me-2"></i>Cancelled</span> <?php echo $oiStatus === 'cancelled' ? '<i class="fas fa-check small"></i>' : ''; ?></a></li>
+                                            </ul>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="badge rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" 
+                                              style="background: <?php echo $stStyle['bg']; ?>; color: <?php echo $stStyle['color']; ?>; border: 1px solid <?php echo $stStyle['border']; ?>; font-size: 0.76rem;"
+                                              title="Assigned to <?php echo htmlspecialchars($oi['tailor_name'] ?? 'another tailor'); ?>">
+                                            <i class="fas <?php echo $stStyle['icon']; ?>"></i>
+                                            <span><?php echo ucfirst(str_replace('_', ' ', $oiStatus)); ?></span>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -1223,6 +1133,124 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function showToast(title, message, type = 'info') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    const toastId = 'toast-' + Date.now();
+    const toastElement = document.createElement('div');
+    toastElement.id = toastId;
+    toastElement.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} border-0 shadow-lg`;
+    toastElement.setAttribute('role', 'alert');
+    toastElement.setAttribute('aria-live', 'assertive');
+    toastElement.setAttribute('aria-atomic', 'true');
+    
+    toastElement.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    toastContainer.appendChild(toastElement);
+    const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+    toast.show();
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
+function updateOrderItemStatus(itemId, status, orderId) {
+    const btn = document.getElementById('itemStatusBtn_' + itemId);
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        btn.style.pointerEvents = 'none';
+    }
+
+    const formData = new FormData();
+    formData.append('item_id', itemId);
+    formData.append('order_id', orderId);
+    formData.append('status', status);
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+
+    fetch('ajax/update_order_item_status.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (btn && data.item_style) {
+                btn.style.background = data.item_style.bg;
+                btn.style.color = data.item_style.color;
+                btn.style.borderColor = data.item_style.border;
+                btn.innerHTML = `
+                    <i class="fas ${data.item_style.icon}" id="itemStatusIcon_${itemId}"></i>
+                    <span id="itemStatusText_${itemId}">${data.item_status_display}</span>
+                    <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.7;"></i>
+                `;
+                btn.style.pointerEvents = 'auto';
+            }
+            // Update active checkmarks in this item's dropdown
+            const parentDropdown = btn ? btn.closest('.dropdown') : null;
+            if (parentDropdown) {
+                const items = parentDropdown.querySelectorAll('.dropdown-item');
+                items.forEach(it => {
+                    const isNowActive = it.textContent.trim().toLowerCase().replace(/\s+/g, '_').includes(status);
+                    if (isNowActive) {
+                        it.classList.add('active', 'fw-bold');
+                        if (!it.querySelector('.fa-check')) {
+                            it.insertAdjacentHTML('beforeend', ' <i class="fas fa-check small"></i>');
+                        }
+                    } else {
+                        it.classList.remove('active', 'fw-bold');
+                        const chk = it.querySelector('.fa-check');
+                        if (chk) chk.remove();
+                    }
+                });
+            }
+            // Update overall order status badge if returned
+            const overallBadge = document.getElementById('overallOrderStatusBadge');
+            if (overallBadge && data.overall_status_display) {
+                overallBadge.textContent = data.overall_status_display;
+                if (data.overall_status_bg) {
+                    overallBadge.setAttribute('style', data.overall_status_bg + ' padding: 4px 12px; font-weight: 500;');
+                }
+            }
+            const topBadge = document.getElementById('topOrderStatusBadge');
+            if (topBadge && data.overall_status_display) {
+                topBadge.textContent = data.overall_status_display;
+                if (data.overall_status_bg) {
+                    topBadge.setAttribute('style', data.overall_status_bg + ' padding: 5px 14px; font-weight: 500; font-size: 0.78rem;');
+                }
+            }
+            showToast('Success', data.message || 'Garment status updated successfully', 'success');
+        } else {
+            if (btn) {
+                btn.innerHTML = originalHtml;
+                btn.style.pointerEvents = 'auto';
+            }
+            showToast('Error', data.error || 'Failed to update garment status', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error updating garment status:', err);
+        if (btn) {
+            btn.innerHTML = originalHtml;
+            btn.style.pointerEvents = 'auto';
+        }
+        showToast('Error', 'Network error occurred while updating status', 'error');
+    });
+}
 </script>
 <style>
 #orderGarmentsAccordion .accordion-button:not(.collapsed) {

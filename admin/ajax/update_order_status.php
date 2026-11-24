@@ -53,8 +53,29 @@ try {
             exit;
         }
         try {
-            $updateItemStmt = $orderModel->conn->prepare("UPDATE order_items SET status = :status WHERE order_id = :order_id AND assigned_tailor_id = :tailor_id");
+            $db = $orderModel->getConn();
+            $updateItemStmt = $db->prepare("UPDATE order_items SET status = :status WHERE order_id = :order_id AND assigned_tailor_id = :tailor_id");
             $updateItemStmt->execute([':status' => $status, ':order_id' => $orderId, ':tailor_id' => $curUserId]);
+            // Sync overall status based on remaining items
+            $orderModel->syncOrderStatusFromItems($orderId);
+        } catch (\Throwable $e) {}
+    } else {
+        // Admin / manager updated overall status -> propagate to order items
+        try {
+            $db = $orderModel->getConn();
+            if ($status === 'completed' || $status === 'delivered') {
+                $updateItemStmt = $db->prepare("UPDATE order_items SET status = :status WHERE order_id = :order_id AND status != 'cancelled'");
+                $updateItemStmt->execute([':status' => $status, ':order_id' => $orderId]);
+            } elseif ($status === 'cancelled') {
+                $updateItemStmt = $db->prepare("UPDATE order_items SET status = 'cancelled' WHERE order_id = :order_id");
+                $updateItemStmt->execute([':order_id' => $orderId]);
+            } elseif ($status === 'pending') {
+                $updateItemStmt = $db->prepare("UPDATE order_items SET status = 'pending' WHERE order_id = :order_id AND status != 'cancelled'");
+                $updateItemStmt->execute([':order_id' => $orderId]);
+            } elseif ($status === 'in_progress') {
+                $updateItemStmt = $db->prepare("UPDATE order_items SET status = 'in_progress' WHERE order_id = :order_id AND status = 'pending'");
+                $updateItemStmt->execute([':order_id' => $orderId]);
+            }
         } catch (\Throwable $e) {}
     }
     if ($orderModel->updateOrderStatus($orderId, $status)) {

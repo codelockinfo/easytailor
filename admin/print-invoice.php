@@ -193,8 +193,8 @@ $company = $companyId ? $companyModel->find($companyId) : null;
         <div class="invoice-header">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <?php if ($company && !empty($company['logo']) && file_exists($company['logo'])): ?>
-                        <img src="<?php echo htmlspecialchars($company['logo']); ?>" alt="Company Logo" class="company-logo mb-2">
+                    <?php if ($company && Company::hasCustomLogo($company)): ?>
+                        <img src="<?php echo htmlspecialchars(Company::getLogoUrl($company, true)); ?>" alt="Company Logo" class="company-logo mb-2">
                     <?php endif; ?>
                     <h4 class="mb-1"><?php echo htmlspecialchars($company['company_name'] ?? 'Tailoring Management'); ?></h4>
                     <?php if ($company): ?>

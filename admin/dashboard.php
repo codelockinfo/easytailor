@@ -138,7 +138,11 @@ if (empty($scheduleItems)) {
     ];
     $fieldsDone = [];
     foreach ($profileFields as $key => $label) {
-        $fieldsDone[$key] = !empty(trim((string)($companyForProgress[$key] ?? '')));
+        if ($key === 'logo') {
+            $fieldsDone[$key] = Company::hasCustomLogo($companyForProgress);
+        } else {
+            $fieldsDone[$key] = !empty(trim((string)($companyForProgress[$key] ?? '')));
+        }
     }
     $prog = (int)$completionProgress;
     $r = 34; $circ = round(2 * M_PI * $r, 2);

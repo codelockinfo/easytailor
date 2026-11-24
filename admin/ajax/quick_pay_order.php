@@ -93,7 +93,8 @@ try {
         }
         $invSql .= " LIMIT 1";
 
-        $invStmt = $orderModel->conn->prepare($invSql);
+        $db = $orderModel->getConn();
+        $invStmt = $db->prepare($invSql);
         $invParams = [':order_id' => $orderId];
         if ($companyId) {
             $invParams[':company_id'] = $companyId;
@@ -102,7 +103,7 @@ try {
         $invoice = $invStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($invoice) {
-            $invUpdate = $orderModel->conn->prepare("UPDATE invoices 
+            $invUpdate = $db->prepare("UPDATE invoices 
                                                      SET paid_amount = total_amount, 
                                                          balance_amount = 0.00, 
                                                          payment_status = 'paid' 
@@ -121,7 +122,7 @@ try {
             if ($pendingAmount > 0) {
                 $paySql = "INSERT INTO payments (company_id, invoice_id, amount, payment_method, payment_date, notes, created_by, created_at) 
                            VALUES (:company_id, :invoice_id, :amount, :payment_method, :payment_date, :notes, :created_by, NOW())";
-                $payStmt = $orderModel->conn->prepare($paySql);
+                $payStmt = $db->prepare($paySql);
                 $payStmt->execute([
                     ':company_id' => $companyId ?: ($order['company_id'] ?? null),
                     ':invoice_id' => $invoice['id'],

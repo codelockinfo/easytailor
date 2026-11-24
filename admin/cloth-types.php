@@ -17,17 +17,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'description' => sanitize_input($_POST['description']),
                     'standard_rate' => !empty($_POST['standard_rate']) ? (float)$_POST['standard_rate'] : null,
                     'category' => trim($_POST['category']),
-                    'measurement_chart_image' => sanitize_input($_POST['measurement_chart_image'] ?? ''),
+                    'measurement_chart_image' => !empty($_POST['measurement_chart_image']) ? ltrim(sanitize_input($_POST['measurement_chart_image']), './') : '',
                     'status' => $_POST['status']
                 ];
                 
                 if (isset($_FILES['chart_file']) && $_FILES['chart_file']['error'] === UPLOAD_ERR_OK) {
                     $uploadDir = '../uploads/measurement-charts/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
                     $fileName = time() . '_' . basename($_FILES['chart_file']['name']);
                     $targetPath = $uploadDir . $fileName;
                     
                     if (move_uploaded_file($_FILES['chart_file']['tmp_name'], $targetPath)) {
-                        $data['measurement_chart_image'] = $targetPath;
+                        $data['measurement_chart_image'] = 'uploads/measurement-charts/' . $fileName;
                     }
                 }
                 if ($clothTypeModel->nameExists($data['name'])) {
@@ -57,14 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if (isset($_FILES['chart_file']) && $_FILES['chart_file']['error'] === UPLOAD_ERR_OK) {
                     $uploadDir = '../uploads/measurement-charts/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
                     $fileName = time() . '_' . basename($_FILES['chart_file']['name']);
                     $targetPath = $uploadDir . $fileName;
                     
                     if (move_uploaded_file($_FILES['chart_file']['tmp_name'], $targetPath)) {
-                        $data['measurement_chart_image'] = $targetPath;
+                        $data['measurement_chart_image'] = 'uploads/measurement-charts/' . $fileName;
                     }
-                } elseif (!empty($_POST['measurement_chart_image'])) {
-                    $data['measurement_chart_image'] = sanitize_input($_POST['measurement_chart_image']);
+                } elseif (isset($_POST['measurement_chart_image'])) {
+                    $data['measurement_chart_image'] = !empty($_POST['measurement_chart_image']) ? ltrim(sanitize_input($_POST['measurement_chart_image']), './') : '';
                 }
                 if ($clothTypeModel->nameExists($data['name'], $clothTypeId)) {
                     $message = 'Cloth type name already exists';
@@ -259,6 +265,15 @@ if (!function_exists('getCategoryDesign')) {
     background: #fee2e2;
     color: #dc2626;
 }
+.cat-action-view {
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+    color: #7c3aed;
+}
+.cat-action-view:hover {
+    background: #ede9fe;
+    color: #6d28d9;
+}
 .cat-table-head th {
     background-color: #f8fafc !important;
     color: #334155 !important;
@@ -298,6 +313,17 @@ if (!function_exists('getCategoryDesign')) {
         font-size: 0.74rem;
     }
 }
+   @media (max-width: 768px) {
+        .card-header {
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .card-header .btn-light {
+            width: 100% !important;
+        }
+    }
 </style>
 
 <?php if ($message): ?>
@@ -431,13 +457,17 @@ include 'includes/page-header.php';
                             $design = getCategoryDesign($clothType['name'], $idx);
                             $cleanName = display_val($clothType['name']);
                             $cleanDesc = display_val($clothType['description'] ?? '');
+                            $rawChart = $clothType['measurement_chart_image'] ?? '';
+                            $cleanChart = !empty($rawChart) ? ltrim($rawChart, './') : '';
+                            $chartUrl = !empty($cleanChart) ? ('../' . $cleanChart) : '';
                         ?>
                         <tr class="cloth-type-row" data-name="<?php echo strtolower($cleanName); ?>">
                             <td class="ps-3 py-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; border-radius: 10px; background: <?php echo $design['bg']; ?>; border: 1px solid <?php echo $design['border']; ?>; color: <?php echo $design['color']; ?>;">
-                                        <?php echo $design['svg']; ?>
-                                    </div>
+                                   
+                                        <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; border-radius: 10px; background: <?php echo $design['bg']; ?>; border: 1px solid <?php echo $design['border']; ?>; color: <?php echo $design['color']; ?>;">
+                                            <?php echo $design['svg']; ?>
+                                        </div>
                                     <div>
                                         <strong class="cloth-name text-dark" style="font-size: 0.9rem;"><?php echo ucwords($cleanName); ?></strong>
                                         <?php if (!empty($cleanDesc)): ?>
@@ -478,6 +508,14 @@ include 'includes/page-header.php';
                             </td>
                             <td class="text-end pe-3 py-3">
                                 <div class="d-inline-flex align-items-center gap-1">
+                                    <?php if (!empty($chartUrl)): ?>
+                                        <button type="button" 
+                                                class="cat-action-btn cat-action-view" 
+                                                onclick="viewChartModal('<?php echo htmlspecialchars($chartUrl, ENT_QUOTES); ?>', '<?php echo addslashes($cleanName); ?>')"
+                                                title="View Chart">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    <?php endif; ?>
                                     <button type="button" 
                                             class="cat-action-btn cat-action-edit" 
                                             onclick="editClothType(<?php echo htmlspecialchars(json_encode($clothType)); ?>)"
@@ -608,8 +646,15 @@ include 'includes/page-header.php';
                             Remove background at: <a href="https://www.remove.bg" target="_blank">remove.bg</a>
                         </div>
                         <div id="currentChartPreview" class="mt-2" style="display:none;">
-                            <p class="mb-1"><strong>Current Chart:</strong></p>
-                            <img id="chartPreviewImg" src="" alt="Measurement Chart" class="img-thumbnail" style="max-height: 200px; background: #f8f9fa;">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <strong class="small text-muted"><i class="fas fa-image me-1"></i>Current Chart:</strong>
+                                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="removeCurrentChart()">
+                                    <i class="fas fa-trash-alt me-1"></i>Remove Chart
+                                </button>
+                            </div>
+                            <div class="p-2 border rounded bg-light text-center">
+                                <img id="chartPreviewImg" src="" alt="Measurement Chart" class="img-fluid rounded shadow-sm bg-white p-1" style="max-height: 180px; object-fit: contain;">
+                            </div>
                         </div>
                         <div id="newChartPreview" class="mt-2" style="display:none;">
                             <p class="mb-1"><strong>New Chart Preview:</strong></p>
@@ -675,7 +720,47 @@ include 'includes/page-header.php';
     </div>
 </div>
 
+<!-- View Measurement Chart Modal -->
+<div class="modal fade" id="viewChartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold text-dark mb-0" id="viewChartModalTitle"><i class="fas fa-tshirt text-primary me-2"></i>Measurement Chart</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4" style="background: #f8fafc;">
+                <img id="viewChartModalImg" src="" alt="Chart" class="img-fluid rounded shadow-sm bg-white p-2" style="max-height: 420px; object-fit: contain;">
+            </div>
+            <div class="modal-footer border-top py-2 px-4 justify-content-between">
+                <a id="viewChartModalOpenLink" href="#" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="fas fa-external-link-alt me-1"></i>Open Full Size
+                </a>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function viewChartModal(url, title) {
+    if (!url) return;
+    const cleanUrl = url.replace(/^(\.\.\/|\.\/|\/)+/, '');
+    const finalUrl = '../' + cleanUrl;
+    const modalTitleEl = document.getElementById('viewChartModalTitle');
+    if (modalTitleEl) modalTitleEl.innerHTML = '<i class="fas fa-tshirt text-primary me-2"></i>' + (title || 'Measurement') + ' - Chart';
+    const modalImgEl = document.getElementById('viewChartModalImg');
+    if (modalImgEl) modalImgEl.src = finalUrl;
+    const openLinkEl = document.getElementById('viewChartModalOpenLink');
+    if (openLinkEl) openLinkEl.href = finalUrl;
+    new bootstrap.Modal(document.getElementById('viewChartModal')).show();
+}
+
+function removeCurrentChart() {
+    document.getElementById('existingChartImage').value = '';
+    document.getElementById('chartPreviewImg').src = '';
+    document.getElementById('currentChartPreview').style.display = 'none';
+}
+
 function editClothType(clothType) {
     document.getElementById('clothTypeModalTitle').textContent = 'Edit Cloth Type';
     document.getElementById('clothTypeAction').value = 'update';
@@ -686,10 +771,13 @@ function editClothType(clothType) {
     document.getElementById('standard_rate').value = clothType.standard_rate || '';
     document.getElementById('status').value = clothType.status || 'active';
     if (clothType.measurement_chart_image) {
-        document.getElementById('existingChartImage').value = clothType.measurement_chart_image;
-        document.getElementById('chartPreviewImg').src = '../' + clothType.measurement_chart_image.replace(/^\.\//, '');
+        const cleanPath = clothType.measurement_chart_image.replace(/^(\.\.\/|\.\/|\/)+/, '');
+        document.getElementById('existingChartImage').value = cleanPath;
+        document.getElementById('chartPreviewImg').src = '../' + cleanPath;
         document.getElementById('currentChartPreview').style.display = 'block';
     } else {
+        document.getElementById('existingChartImage').value = '';
+        document.getElementById('chartPreviewImg').src = '';
         document.getElementById('currentChartPreview').style.display = 'none';
     }
     new bootstrap.Modal(document.getElementById('clothTypeModal')).show();
@@ -896,14 +984,34 @@ function displayFilterResults(clothTypes) {
         const descShort = cleanDesc.length > 45 ? cleanDesc.substring(0, 45) + '...' : cleanDesc;
         const statusVal = clothType.status || 'active';
         const isStatusActive = statusVal === 'active';
+        const rawChart = clothType.measurement_chart_image || '';
+        const cleanChart = rawChart ? rawChart.replace(/^(\.\.\/|\.\/|\/)+/, '') : '';
+        const chartUrl = cleanChart ? ('../' + cleanChart) : '';
+        
+        const iconBox = chartUrl ? `
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden shadow-sm" 
+                 style="width: 36px; height: 36px; border-radius: 10px; background: #ffffff; border: 1px solid #e2e8f0; cursor: pointer;" 
+                 onclick="viewChartModal('${chartUrl}', '${cleanName.replace(/'/g, "\\'")}')"
+                 title="Click to view measurement chart">
+                <img src="${chartUrl}" 
+                     alt="${cleanName}" 
+                     style="width: 100%; height: 100%; object-fit: contain; padding: 2px;"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="align-items-center justify-content-center" style="display: none; width: 100%; height: 100%; background: ${iconInfo.bg}; color: ${iconInfo.color};">
+                    ${iconInfo.svg}
+                </div>
+            </div>
+        ` : `
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; border-radius: 10px; background: ${iconInfo.bg}; border: 1px solid ${iconInfo.border}; color: ${iconInfo.color};">
+                ${iconInfo.svg}
+            </div>
+        `;
         
         tableHTML += `
             <tr class="cloth-type-row" data-name="${cleanName.toLowerCase()}">
                 <td class="ps-3 py-3">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; border-radius: 10px; background: ${iconInfo.bg}; border: 1px solid ${iconInfo.border}; color: ${iconInfo.color};">
-                            ${iconInfo.svg}
-                        </div>
+                        ${iconBox}
                         <div>
                             <strong class="cloth-name text-dark" style="font-size: 0.9rem;">${cleanName}</strong>
                             ${cleanDesc ? `<div class="text-muted small cloth-desc" style="font-size: 0.74rem; line-height: 1.25;">${descShort}</div>` : ''}
@@ -932,6 +1040,14 @@ function displayFilterResults(clothTypes) {
                 </td>
                 <td class="text-end pe-3 py-3">
                     <div class="d-inline-flex align-items-center gap-1">
+                        ${chartUrl ? `
+                            <button type="button" 
+                                    class="cat-action-btn cat-action-view" 
+                                    onclick="viewChartModal('${chartUrl}', '${cleanName.replace(/'/g, "\\'")}')"
+                                    title="View Chart">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        ` : ''}
                         <button type="button" 
                                 class="cat-action-btn cat-action-edit" 
                                 onclick="editClothType(${JSON.stringify(clothType).replace(/"/g, '&quot;')})"
@@ -1006,16 +1122,3 @@ function updatePagination(pagination, search, category) {
 }
 </script>
 <?php require_once 'includes/footer.php'; ?>
-<style>
-    @media (max-width: 768px) {
-        .card-header {
-            display: flex !important;
-            align-items: flex-start !important;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .card-header .btn-light {
-            width: 100% !important;
-        }
-    }
-</style>

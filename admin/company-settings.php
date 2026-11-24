@@ -155,11 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'PIN Code must be a valid 6-digit Indian PIN Code (e.g., 395006).';
         }
 
-        // Company Logo validation (Required)
-        $hasExistingLogo = (!empty($existingCompany['logo']) && file_exists($existingCompany['logo']));
-        if (!$hasExistingLogo) {
-            $errors[] = 'Company Logo is required. Please upload your company logo.';
-        }
+        // Company Logo validation
+        $hasExistingLogo = Company::hasCustomLogo($existingCompany);
 
         // Website validation
         if (!empty($website)) {
@@ -286,7 +283,11 @@ $profileFields = [
 ];
 $fieldsDone = [];
 foreach ($profileFields as $key => $label) {
-    $fieldsDone[$key] = !empty(trim((string)($company[$key] ?? '')));
+    if ($key === 'logo') {
+        $fieldsDone[$key] = Company::hasCustomLogo($company);
+    } else {
+        $fieldsDone[$key] = !empty(trim((string)($company[$key] ?? '')));
+    }
 }
 $prog = (int)$completionProgress;
 $rDesk = 32;
@@ -501,19 +502,20 @@ select.form-select.settings-input,
                         <svg width="72" height="72" viewBox="0 0 72 72">
                             <circle cx="36" cy="36" r="34" fill="rgba(15, 23, 42, 0.45)" />
                             <circle cx="36" cy="36" r="<?php echo $rDesk; ?>" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="6.5" />
-                            <circle cx="36" cy="36" r="<?php echo $rDesk; ?>" fill="none"
+                            <circle id="profileProgressCircle" cx="36" cy="36" r="<?php echo $rDesk; ?>" fill="none"
                                     stroke="#00e676" stroke-width="6.5" stroke-linecap="round"
                                     stroke-dasharray="<?php echo $circDesk; ?>"
                                     stroke-dashoffset="<?php echo $offsetDesk; ?>"
+                                    style="transition: stroke-dashoffset 0.8s ease;"
                                     transform="rotate(-90 36 36)" />
                         </svg>
-                        <div class="position-absolute top-50 start-50 translate-middle fw-bold text-white" style="font-size: 1.05rem;">
+                        <div class="position-absolute top-50 start-50 translate-middle fw-bold text-white" id="profileProgressText" style="font-size: 1.05rem;">
                             <?php echo $prog; ?>%
                         </div>
                     </div>
                     <div>
                         <div class="fw-bold text-white mb-1" style="font-size: 1.05rem; line-height: 1.2;">Profile Completed</div>
-                        <div style="font-size: 0.74rem; color: rgba(255,255,255,0.82); line-height: 1.4; max-width: 250px;">
+                        <div id="profileProgressSubtext" style="font-size: 0.74rem; color: rgba(255,255,255,0.82); line-height: 1.4; max-width: 250px;">
                             <?php if ($prog >= 100): ?>
                                 Your shop profile is 100% complete and publicly active.
                             <?php else: ?>
@@ -531,33 +533,41 @@ select.form-select.settings-input,
             </div>
             <div class="d-flex align-items-center justify-content-between gap-4 mt-3 pt-2">
                 <div class="d-flex align-items-center flex-wrap" style="gap: 16px;">
-                    <?php foreach ($profileFields as $key => $label): ?>
-                        <?php if ($fieldsDone[$key]): ?>
-                            <span class="d-inline-flex align-items-center gap-2" style="font-size: 0.76rem; color: #ffffff; font-weight: 500;">
-                                <span style="width: 16px; height: 16px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 9px; flex-shrink: 0;">
+                    <?php 
+                    $pillTargets = [
+                        'business_address' => '#business_address',
+                        'city'             => '#city',
+                        'state'            => '#state',
+                        'postal_code'      => '#postal_code',
+                        'logo'             => '#companyLogoCard'
+                    ];
+                    foreach ($profileFields as $key => $label): 
+                    ?>
+                        <span class="d-inline-flex align-items-center gap-2 profile-pill-clickable" 
+                              id="pill_<?php echo $key; ?>" 
+                              onclick="scrollToProfileField('<?php echo $pillTargets[$key]; ?>')"
+                              style="font-size: 0.76rem; color: #ffffff; font-weight: 500; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s;"
+                              title="Click to edit <?php echo $label; ?>">
+                            <?php if ($fieldsDone[$key]): ?>
+                                <span class="pill-icon" style="width: 16px; height: 16px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 9px; flex-shrink: 0;">
                                     <i class="fas fa-check"></i>
                                 </span>
-                                <?php echo $label; ?>
-                            </span>
-                        <?php else: ?>
-                            <span class="d-inline-flex align-items-center gap-2" style="font-size: 0.76rem; color: rgba(255,255,255,0.85); font-weight: 500;">
-                                <span style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.55); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
-                                <?php echo $label; ?>
-                            </span>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <span class="pill-icon" style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.55); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
+                            <?php endif; ?>
+                            <span class="pill-text" style="<?php echo $fieldsDone[$key] ? '' : 'color: rgba(255,255,255,0.85);'; ?>"><?php echo $label; ?></span>
+                        </span>
                     <?php endforeach; ?>
                 </div>
 
-                <?php if ($prog < 100): ?>
-                <div class="d-flex align-items-center gap-3 pe-5 me-3" style="flex: 0 0 46%; max-width: 46%;">
+                <div class="d-flex align-items-center gap-3 pe-5 me-3" id="profileProgressBarWrapper" style="flex: 0 0 46%; max-width: 46%;">
                     <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.22); border-radius: 10px; overflow: hidden;">
-                        <div style="height: 100%; width: <?php echo $prog; ?>%; background: #00e676; border-radius: 10px; box-shadow: 0 0 10px rgba(0,230,118,0.7); transition: width 1.2s ease;"></div>
+                        <div id="profileProgressBarFill" style="height: 100%; width: <?php echo $prog; ?>%; background: #00e676; border-radius: 10px; box-shadow: 0 0 10px rgba(0,230,118,0.7); transition: width 0.6s ease;"></div>
                     </div>
-                    <span class="fw-bold text-white flex-shrink-0" style="font-size: 0.92rem; min-width: 34px;">
+                    <span id="profileProgressBarText" class="fw-bold text-white flex-shrink-0" style="font-size: 0.92rem; min-width: 38px;">
                         <?php echo $prog; ?>%
                     </span>
                 </div>
-                <?php endif; ?>
             </div>
         </div>
         <div class="d-flex d-lg-none flex-column gap-2">
@@ -573,19 +583,20 @@ select.form-select.settings-input,
                     <svg width="46" height="46" viewBox="0 0 46 46">
                         <circle cx="23" cy="23" r="21" fill="rgba(15, 23, 42, 0.45)" />
                         <circle cx="23" cy="23" r="<?php echo $rMob; ?>" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="4.5" />
-                        <circle cx="23" cy="23" r="<?php echo $rMob; ?>" fill="none"
+                        <circle id="profileProgressCircleMob" cx="23" cy="23" r="<?php echo $rMob; ?>" fill="none"
                                 stroke="#00e676" stroke-width="4.5" stroke-linecap="round"
                                 stroke-dasharray="<?php echo $circMob; ?>"
                                 stroke-dashoffset="<?php echo $offsetMob; ?>"
+                                style="transition: stroke-dashoffset 0.8s ease;"
                                 transform="rotate(-90 23 23)" />
                     </svg>
-                    <div class="position-absolute top-50 start-50 translate-middle fw-bold text-white" style="font-size: 0.76rem;">
+                    <div class="position-absolute top-50 start-50 translate-middle fw-bold text-white" id="profileProgressTextMob" style="font-size: 0.76rem;">
                         <?php echo $prog; ?>%
                     </div>
                 </div>
                 <div>
                     <div class="fw-bold text-white" style="font-size: 0.90rem; line-height: 1.2;">Profile Completed</div>
-                    <div style="font-size: 0.67rem; color: rgba(255,255,255,0.82); line-height: 1.3;">
+                    <div id="profileProgressSubtextMob" style="font-size: 0.67rem; color: rgba(255,255,255,0.82); line-height: 1.3;">
                         <?php if ($prog >= 100): ?>
                             100% complete and publicly active.
                         <?php else: ?>
@@ -593,6 +604,15 @@ select.form-select.settings-input,
                         <?php endif; ?>
                     </div>
                 </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mt-1">
+                <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.22); border-radius: 10px; overflow: hidden;">
+                    <div id="profileProgressBarFillMob" style="height: 100%; width: <?php echo $prog; ?>%; background: #00e676; border-radius: 10px; transition: width 0.6s ease;"></div>
+                </div>
+                <span id="profileProgressBarTextMob" class="fw-bold text-white" style="font-size: 0.75rem;">
+                    <?php echo $prog; ?>%
+                </span>
             </div>
 
             <div class="mt-1">
@@ -607,19 +627,19 @@ select.form-select.settings-input,
                     $row1Fields = ['business_address' => 'Address', 'city' => 'City', 'state' => 'State'];
                     foreach ($row1Fields as $key => $label): 
                     ?>
-                        <?php if ($fieldsDone[$key]): ?>
-                            <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: #ffffff; font-weight: 500;">
-                                <span style="width: 13px; height: 13px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 8px; flex-shrink: 0;">
+                        <span class="d-inline-flex align-items-center gap-1 profile-pill-clickable" 
+                              id="pill_mob_<?php echo $key; ?>" 
+                              onclick="scrollToProfileField('<?php echo $pillTargets[$key]; ?>')"
+                              style="font-size: 0.70rem; color: #ffffff; font-weight: 500; cursor: pointer;">
+                            <?php if ($fieldsDone[$key]): ?>
+                                <span class="pill-icon" style="width: 13px; height: 13px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 8px; flex-shrink: 0;">
                                     <i class="fas fa-check"></i>
                                 </span>
-                                <?php echo $label; ?>
-                            </span>
-                        <?php else: ?>
-                            <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: rgba(255,255,255,0.85); font-weight: 500;">
-                                <span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
-                                <?php echo $label; ?>
-                            </span>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <span class="pill-icon" style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
+                            <?php endif; ?>
+                            <span class="pill-text" style="<?php echo $fieldsDone[$key] ? '' : 'color: rgba(255,255,255,0.85);'; ?>"><?php echo $label; ?></span>
+                        </span>
                     <?php endforeach; ?>
                 </div>
 
@@ -628,19 +648,19 @@ select.form-select.settings-input,
                     $row2Fields = ['postal_code' => 'PIN Code', 'logo' => 'Business Logo'];
                     foreach ($row2Fields as $key => $label): 
                     ?>
-                        <?php if ($fieldsDone[$key]): ?>
-                            <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: #ffffff; font-weight: 500;">
-                                <span style="width: 13px; height: 13px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 8px; flex-shrink: 0;">
+                        <span class="d-inline-flex align-items-center gap-1 profile-pill-clickable" 
+                              id="pill_mob_<?php echo $key; ?>" 
+                              onclick="scrollToProfileField('<?php echo $pillTargets[$key]; ?>')"
+                              style="font-size: 0.70rem; color: #ffffff; font-weight: 500; cursor: pointer;">
+                            <?php if ($fieldsDone[$key]): ?>
+                                <span class="pill-icon" style="width: 13px; height: 13px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 8px; flex-shrink: 0;">
                                     <i class="fas fa-check"></i>
                                 </span>
-                                <?php echo $label; ?>
-                            </span>
-                        <?php else: ?>
-                            <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: rgba(255,255,255,0.85); font-weight: 500;">
-                                <span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
-                                <?php echo $label; ?>
-                            </span>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <span class="pill-icon" style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
+                            <?php endif; ?>
+                            <span class="pill-text" style="<?php echo $fieldsDone[$key] ? '' : 'color: rgba(255,255,255,0.85);'; ?>"><?php echo $label; ?></span>
+                        </span>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -707,14 +727,14 @@ select.form-select.settings-input,
                 <span class="fw-bold text-dark" style="font-size: 0.92rem;">
                     <i class="fas fa-image text-primary me-2"></i>Company Logo *
                 </span>
-                <span class="badge <?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'bg-light text-muted border' : 'bg-danger-subtle text-danger border border-danger-subtle'; ?>" style="font-size: 0.72rem;">
-                    <?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'Branding' : 'Required *'; ?>
+                <span class="badge <?php echo Company::hasCustomLogo($company) ? 'bg-light text-muted border' : 'bg-danger-subtle text-danger border border-danger-subtle'; ?>" style="font-size: 0.72rem;">
+                    <?php echo Company::hasCustomLogo($company) ? 'Branding' : 'Required *'; ?>
                 </span>
             </div>
             <div class="card-body p-4 text-center" id="companyLogoCardBody">
-                <?php if (!empty($company['logo']) && file_exists($company['logo'])): ?>
+                <?php if (Company::hasCustomLogo($company)): ?>
                     <div class="p-3 mb-3 bg-white rounded-3 shadow-sm border d-inline-block" style="max-width: 100%;">
-                        <img src="<?php echo htmlspecialchars($company['logo']); ?>" 
+                        <img src="<?php echo htmlspecialchars(Company::getLogoUrl($company, true)); ?>" 
                              alt="Company Logo" 
                              class="img-fluid" 
                              style="max-height: 150px; max-width: 100%; object-fit: contain;">
@@ -731,7 +751,7 @@ select.form-select.settings-input,
                     <div class="mb-2">
                         <label for="logoUploadInput" class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; cursor: pointer;">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <span id="logoBtnLabel"><?php echo (!empty($company['logo']) && file_exists($company['logo'])) ? 'Choose New Logo' : 'Upload Logo *'; ?></span>
+                            <span id="logoBtnLabel"><?php echo Company::hasCustomLogo($company) ? 'Choose New Logo' : 'Upload Logo *'; ?></span>
                         </label>
                         <input type="file" 
                                id="logoUploadInput"
@@ -1187,6 +1207,23 @@ select.form-select.settings-input,
     </div>
 </div>
 <script>
+window.scrollToProfileField = function(targetSelector) {
+    const el = document.querySelector(targetSelector);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (typeof el.focus === 'function') {
+        el.focus();
+    }
+    const highlightTarget = el.classList.contains('card') ? el : (el.closest('.mb-3') || el);
+    highlightTarget.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+    highlightTarget.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.4)';
+    highlightTarget.style.borderColor = '#6366f1';
+    setTimeout(() => {
+        highlightTarget.style.boxShadow = '';
+        highlightTarget.style.borderColor = '';
+    }, 2000);
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------
     // 1. Logo File Upload Validation
@@ -1231,6 +1268,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (logoBtnLabel) {
                 logoBtnLabel.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Uploading...';
+            }
+            if (typeof updateLiveProfileProgress === 'function') {
+                updateLiveProfileProgress();
             }
             logoForm.submit();
         });
@@ -1473,41 +1513,79 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Attach real-time input listeners
     if (companyNameInput) {
-        companyNameInput.addEventListener('input', validateCompanyName);
-        companyNameInput.addEventListener('blur', validateCompanyName);
+        companyNameInput.addEventListener('input', function() {
+            validateCompanyName();
+            updateLiveProfileProgress();
+        });
+        companyNameInput.addEventListener('blur', function() {
+            validateCompanyName();
+            updateLiveProfileProgress();
+        });
     }
     if (ownerNameInput) {
         ownerNameInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^a-zA-Z\s\.]/g, '');
             validateOwnerName();
+            updateLiveProfileProgress();
         });
-        ownerNameInput.addEventListener('blur', validateOwnerName);
+        ownerNameInput.addEventListener('blur', function() {
+            validateOwnerName();
+            updateLiveProfileProgress();
+        });
     }
     if (phoneInput) {
-        phoneInput.addEventListener('input', validatePhone);
-        phoneInput.addEventListener('blur', validatePhone);
+        phoneInput.addEventListener('input', function() {
+            validatePhone();
+            updateLiveProfileProgress();
+        });
+        phoneInput.addEventListener('blur', function() {
+            validatePhone();
+            updateLiveProfileProgress();
+        });
         phoneInput.addEventListener('paste', function(e) {
-            setTimeout(validatePhone, 10);
+            setTimeout(function() {
+                validatePhone();
+                updateLiveProfileProgress();
+            }, 10);
         });
     }
     if (addressInput) {
         validateAddress();
-        addressInput.addEventListener('input', validateAddress);
-        addressInput.addEventListener('blur', validateAddress);
+        addressInput.addEventListener('input', function() {
+            validateAddress();
+            updateLiveProfileProgress();
+        });
+        addressInput.addEventListener('blur', function() {
+            validateAddress();
+            updateLiveProfileProgress();
+        });
     }
     if (cityInput) {
         cityInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^a-zA-Z\s\-]/g, '');
             validateCity();
+            updateLiveProfileProgress();
         });
-        cityInput.addEventListener('blur', validateCity);
+        cityInput.addEventListener('blur', function() {
+            validateCity();
+            updateLiveProfileProgress();
+        });
     }
     if (stateInput) {
-        stateInput.addEventListener('change', validateState);
+        stateInput.addEventListener('change', function() {
+            validateState();
+            updateLiveProfileProgress();
+        });
     }
     if (postalCodeInput) {
-        postalCodeInput.addEventListener('input', validatePostalCode);
-        postalCodeInput.addEventListener('blur', validatePostalCode);
+        postalCodeInput.addEventListener('input', function() {
+            validatePostalCode();
+            updateLiveProfileProgress();
+        });
+        postalCodeInput.addEventListener('blur', function() {
+            validatePostalCode();
+            updateLiveProfileProgress();
+        });
     }
     if (websiteInput) {
         websiteInput.addEventListener('input', validateWebsite);
@@ -1530,6 +1608,151 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // -------------------------------------------------------------
+    // Live Profile Progress Calculation
+    // -------------------------------------------------------------
+    function updateLiveProfileProgress() {
+        let progress = 0;
+        
+        // 1. Company Name (15%)
+        const cName = companyNameInput ? companyNameInput.value.trim() : '';
+        const isCNameValid = cName.length >= 2 && cName.length <= 100;
+        if (isCNameValid) progress += 15;
+        
+        // 2. Owner Name (10%)
+        const oName = ownerNameInput ? ownerNameInput.value.trim() : '';
+        const isONameValid = oName.length >= 2 && oName.length <= 60 && /^[a-zA-Z\s\.]+$/.test(oName);
+        if (isONameValid) progress += 10;
+        
+        // 3. Business Email (10%)
+        const hasEmail = <?php echo !empty($company['business_email']) ? 'true' : 'false'; ?>;
+        if (hasEmail) progress += 10;
+        
+        // 4. Business Phone (10%)
+        const rawPhone = phoneInput ? phoneInput.value.replace(/[^0-9]/g, '') : '';
+        const cleanDigits = (rawPhone.length === 12 && rawPhone.startsWith('91')) ? rawPhone.substring(2) : rawPhone;
+        const isPhoneValid = /^[6-9][0-9]{9}$/.test(cleanDigits);
+        if (isPhoneValid) progress += 10;
+        
+        // 5. Business Address (15%)
+        const addr = addressInput ? addressInput.value.trim() : '';
+        const isAddrValid = addr.length >= 5 && addr.length <= 250;
+        if (isAddrValid) progress += 15;
+        
+        // 6. City (10%)
+        const city = cityInput ? cityInput.value.trim() : '';
+        const isCityValid = city.length >= 2 && city.length <= 50 && /^[a-zA-Z\s\-]+$/.test(city);
+        if (isCityValid) progress += 10;
+        
+        // 7. State (10%)
+        const state = stateInput ? stateInput.value.trim() : '';
+        const isStateValid = state !== '';
+        if (isStateValid) progress += 10;
+        
+        // 8. Postal Code (10%)
+        const pin = postalCodeInput ? postalCodeInput.value.trim() : '';
+        const isPinValid = /^[1-9][0-9]{5}$/.test(pin);
+        if (isPinValid) progress += 10;
+        
+        // 9. Logo (10%)
+        const hasExistingCustomLogo = <?php echo Company::hasCustomLogo($company) ? 'true' : 'false'; ?>;
+        const hasSelectedLogoFile = logoInput && logoInput.files && logoInput.files.length > 0;
+        const isLogoValid = hasExistingCustomLogo || hasSelectedLogoFile;
+        if (isLogoValid) progress += 10;
+        
+        progress = Math.min(100, Math.max(0, progress));
+        
+        // Update SVG circle (desktop)
+        const circDesk = <?php echo $circDesk; ?>;
+        const offsetDesk = Math.round((circDesk - (progress / 100) * circDesk) * 100) / 100;
+        const circleDesk = document.getElementById('profileProgressCircle');
+        if (circleDesk) circleDesk.style.strokeDashoffset = offsetDesk;
+        
+        // Update SVG circle (mobile)
+        const circMob = <?php echo $circMob; ?>;
+        const offsetMob = Math.round((circMob - (progress / 100) * circMob) * 100) / 100;
+        const circleMob = document.getElementById('profileProgressCircleMob');
+        if (circleMob) circleMob.style.strokeDashoffset = offsetMob;
+        
+        // Update text percentages
+        const textDesk = document.getElementById('profileProgressText');
+        if (textDesk) textDesk.textContent = progress + '%';
+        const textMob = document.getElementById('profileProgressTextMob');
+        if (textMob) textMob.textContent = progress + '%';
+        const textBar = document.getElementById('profileProgressBarText');
+        if (textBar) textBar.textContent = progress + '%';
+        const textBarMob = document.getElementById('profileProgressBarTextMob');
+        if (textBarMob) textBarMob.textContent = progress + '%';
+        
+        // Update linear progress bar (desktop)
+        const barFill = document.getElementById('profileProgressBarFill');
+        if (barFill) {
+            barFill.style.width = progress + '%';
+            if (progress === 100) {
+                barFill.style.background = '#00e676';
+                barFill.style.boxShadow = '0 0 12px rgba(0, 230, 118, 0.8)';
+            } else {
+                barFill.style.background = 'linear-gradient(90deg, #38ef7d, #11998e)';
+                barFill.style.boxShadow = '0 0 8px rgba(56, 239, 125, 0.5)';
+            }
+        }
+        
+        // Update linear progress bar (mobile)
+        const barFillMob = document.getElementById('profileProgressBarFillMob');
+        if (barFillMob) barFillMob.style.width = progress + '%';
+        
+        // Update subtext
+        const subtextDesk = document.getElementById('profileProgressSubtext');
+        if (subtextDesk) {
+            subtextDesk.textContent = progress >= 100 
+                ? 'Your shop profile is 100% complete and publicly active.' 
+                : 'Complete missing details below to activate your public shop listing.';
+        }
+        const subtextMob = document.getElementById('profileProgressSubtextMob');
+        if (subtextMob) {
+            subtextMob.textContent = progress >= 100 
+                ? '100% complete and publicly active.' 
+                : 'Complete missing details to activate public listing.';
+        }
+        
+        // Update pills
+        function updatePill(id, isDone) {
+            const pill = document.getElementById(id);
+            if (!pill) return;
+            const iconWrap = pill.querySelector('.pill-icon');
+            const textWrap = pill.querySelector('.pill-text');
+            if (iconWrap) {
+                if (isDone) {
+                    iconWrap.style.background = '#00e676';
+                    iconWrap.style.border = 'none';
+                    iconWrap.innerHTML = '<i class="fas fa-check"></i>';
+                } else {
+                    iconWrap.style.background = 'rgba(255,255,255,0.18)';
+                    iconWrap.style.border = '2px solid rgba(255,255,255,0.55)';
+                    iconWrap.innerHTML = '';
+                }
+            }
+            if (textWrap) {
+                textWrap.style.color = isDone ? '#ffffff' : 'rgba(255,255,255,0.85)';
+            }
+        }
+        
+        updatePill('pill_business_address', isAddrValid);
+        updatePill('pill_city', isCityValid);
+        updatePill('pill_state', isStateValid);
+        updatePill('pill_postal_code', isPinValid);
+        updatePill('pill_logo', isLogoValid);
+        
+        updatePill('pill_mob_business_address', isAddrValid);
+        updatePill('pill_mob_city', isCityValid);
+        updatePill('pill_mob_state', isStateValid);
+        updatePill('pill_mob_postal_code', isPinValid);
+        updatePill('pill_mob_logo', isLogoValid);
+    }
+    
+    // Call once on page load to sync initial visual state
+    updateLiveProfileProgress();
+
+    // -------------------------------------------------------------
     // 3. Form Submit Interception & Handling
     // -------------------------------------------------------------
     const businessForm = document.getElementById('businessInfoActualForm');
@@ -1545,17 +1768,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const isWebValid = validateWebsite();
             const isGstValid = validateTaxNumber();
             const isHoursValid = validateWorkingHours();
-            const isLogoValid = validateCompanyLogo();
+            validateCompanyLogo(); // show notice if logo is not uploaded, but don't hard block saving address/phone
 
-            if (!isCompanyValid || !isOwnerValid || !isPhoneValid || !isAddressValid || !isCityValid || !isStateValid || !isPostalValid || !isWebValid || !isGstValid || !isHoursValid || !isLogoValid) {
+            if (!isCompanyValid || !isOwnerValid || !isPhoneValid || !isAddressValid || !isCityValid || !isStateValid || !isPostalValid || !isWebValid || !isGstValid || !isHoursValid) {
                 e.preventDefault();
                 const firstInvalid = businessForm.querySelector('.is-invalid');
                 if (firstInvalid) {
                     firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     firstInvalid.focus();
-                } else if (!isLogoValid) {
-                    const logoCard = document.getElementById('companyLogoCard') || document.getElementById('logoUploadForm');
-                    if (logoCard) logoCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else if (!isHoursValid) {
                     const whSec = document.getElementById('workingHoursSection');
                     if (whSec) whSec.scrollIntoView({ behavior: 'smooth', block: 'center' });

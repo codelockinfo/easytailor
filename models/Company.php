@@ -68,6 +68,84 @@ class Company extends BaseModel {
     }
 
     /**
+     * Resolve absolute disk path of a company logo, checking both relative and root paths
+     */
+    public static function getLogoFilePath($logo) {
+        if (empty($logo) || !is_string($logo)) {
+            return false;
+        }
+        $logo = trim($logo);
+        if ($logo === '') {
+            return false;
+        }
+
+        // Try direct file path
+        if (file_exists($logo) && !is_dir($logo)) {
+            return realpath($logo);
+        }
+
+        // Clean relative prefixes like ../ or ./
+        $clean = ltrim(str_replace(['../', '..\\', './', '.\\'], '', $logo), '/\\');
+        
+        // Check relative to project root
+        $rootDir = dirname(__DIR__); // models/ -> root
+        $rootPath = $rootDir . DIRECTORY_SEPARATOR . $clean;
+        if (file_exists($rootPath) && !is_dir($rootPath)) {
+            return realpath($rootPath);
+        }
+
+        // Check relative to admin/
+        $adminPath = $rootDir . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $clean;
+        if (file_exists($adminPath) && !is_dir($adminPath)) {
+            return realpath($adminPath);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if company has an actual custom uploaded logo (not a default placeholder) that exists on disk
+     */
+    public static function hasCustomLogo($company) {
+        $logo = is_array($company) ? ($company['logo'] ?? '') : (string)$company;
+        if (empty($logo) || !is_string($logo)) {
+            return false;
+        }
+        $logo = trim($logo);
+        if ($logo === '') {
+            return false;
+        }
+
+        // Check if placeholder default
+        $lower = strtolower($logo);
+        if (strpos($lower, 'default-shop') !== false || 
+            strpos($lower, 'default-logo') !== false || 
+            strpos($lower, 'default-tailor') !== false) {
+            return false;
+        }
+
+        return self::getLogoFilePath($logo) !== false;
+    }
+
+    /**
+     * Get logo URL suitable for web display
+     * @param string|array $company Company array or logo path string
+     * @param bool $fromAdmin Whether the URL is for an admin/ page (needs ../ prefix)
+     * @return string Valid URL or path
+     */
+    public static function getLogoUrl($company, $fromAdmin = false) {
+        $logo = is_array($company) ? ($company['logo'] ?? '') : (string)$company;
+        $logo = trim((string)$logo);
+        
+        if (empty($logo) || !self::hasCustomLogo($logo)) {
+            return $fromAdmin ? '../uploads/logos/default-shop.jpg' : 'uploads/logos/default-shop.jpg';
+        }
+
+        $clean = ltrim(str_replace(['../', '..\\', './', '.\\'], '', $logo), '/\\');
+        return $fromAdmin ? '../' . $clean : $clean;
+    }
+
+    /**
      * Calculate profile completion percentage (0-100)
      */
     public static function calculateProfileCompletion($company) {
@@ -84,7 +162,7 @@ class Company extends BaseModel {
         if (!empty(trim((string)($company['city'] ?? '')))) $progress += 10;
         if (!empty(trim((string)($company['state'] ?? '')))) $progress += 10;
         if (!empty(trim((string)($company['postal_code'] ?? '')))) $progress += 10;
-        if (!empty(trim((string)($company['logo'] ?? '')))) $progress += 10;
+        if (self::hasCustomLogo($company)) $progress += 10;
 
         return min(100, $progress);
     }
@@ -123,7 +201,7 @@ class Company extends BaseModel {
         if (empty(trim((string)($company['city'] ?? '')))) $missing['city'] = 'City';
         if (empty(trim((string)($company['state'] ?? '')))) $missing['state'] = 'State';
         if (empty(trim((string)($company['postal_code'] ?? '')))) $missing['postal_code'] = 'PIN Code';
-        if (empty(trim((string)($company['logo'] ?? '')))) $missing['logo'] = 'Business Logo';
+        if (!self::hasCustomLogo($company)) $missing['logo'] = 'Business Logo';
 
         return $missing;
     }
@@ -141,7 +219,7 @@ class Company extends BaseModel {
                  AND ({$p}city IS NOT NULL AND TRIM({$p}city) != '')
                  AND ({$p}state IS NOT NULL AND TRIM({$p}state) != '')
                  AND ({$p}postal_code IS NOT NULL AND TRIM({$p}postal_code) != '')
-                 AND ({$p}logo IS NOT NULL AND TRIM({$p}logo) != '')";
+                 AND ({$p}logo IS NOT NULL AND TRIM({$p}logo) != '' AND {$p}logo NOT LIKE '%default-shop%' AND {$p}logo NOT LIKE '%default-logo%')";
     }
 
     /**

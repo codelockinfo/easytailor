@@ -647,5 +647,61 @@ class Order extends BaseModel {
         $stmt->bindParam(':id', $itemId, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    /**
+     * Automatically synchronize parent order status based on its items' statuses
+     */
+    public function syncOrderStatusFromItems($orderId) {
+        if (!$this->conn || !$orderId) return null;
+        try {
+            $stmt = $this->conn->prepare("SELECT status FROM order_items WHERE order_id = :order_id");
+            $stmt->execute([':order_id' => $orderId]);
+            $items = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            if (empty($items)) return null;
+
+            $totalItems = count($items);
+            $completedCount = 0;
+            $deliveredCount = 0;
+            $inProgressCount = 0;
+            $cancelledCount = 0;
+            $pendingCount = 0;
+
+            foreach ($items as $s) {
+                if ($s === 'completed') $completedCount++;
+                elseif ($s === 'delivered') $deliveredCount++;
+                elseif ($s === 'in_progress') $inProgressCount++;
+                elseif ($s === 'cancelled') $cancelledCount++;
+                else $pendingCount++;
+            }
+
+            $nonCancelledTotal = $totalItems - $cancelledCount;
+            $newStatus = null;
+
+            if ($nonCancelledTotal > 0 && ($completedCount + $deliveredCount) >= $nonCancelledTotal) {
+                if ($deliveredCount >= $nonCancelledTotal) {
+                    $newStatus = 'delivered';
+                } else {
+                    $newStatus = 'completed';
+                }
+            } elseif ($inProgressCount > 0 || $completedCount > 0) {
+                $newStatus = 'in_progress';
+            } elseif ($cancelledCount === $totalItems) {
+                $newStatus = 'cancelled';
+            } elseif ($pendingCount === $nonCancelledTotal) {
+                $newStatus = 'pending';
+            }
+
+            if ($newStatus) {
+                $currOrder = $this->find($orderId);
+                if ($currOrder && $currOrder['status'] !== $newStatus) {
+                    $this->updateOrderStatus($orderId, $newStatus);
+                }
+            }
+            return $newStatus;
+        } catch (\Throwable $e) {
+            error_log("syncOrderStatusFromItems error: " . $e->getMessage());
+            return null;
+        }
+    }
 }
 ?>

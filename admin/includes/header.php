@@ -1072,6 +1072,11 @@ $seoOptions = [
             transition: all 0.2s ease !important;
             box-sizing: border-box !important;
         }
+        @media (min-width: 992px) {
+            #mobileSearchToggle {
+                display: none !important;
+            }
+        }
         #mobileSearchToggle:hover {
             background: #e0e7ff !important;
             transform: translateY(-1px);

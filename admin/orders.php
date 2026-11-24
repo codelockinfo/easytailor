@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
-                $totalAmount = (isset($_POST['total_amount']) && (float)$_POST['total_amount'] > 0) ? (float)$_POST['total_amount'] : ($calculatedTotal > 0 ? $calculatedTotal : 0.0);
+                $totalAmount = ($calculatedTotal > 0) ? $calculatedTotal : ((isset($_POST['total_amount']) && (float)$_POST['total_amount'] > 0) ? (float)$_POST['total_amount'] : 0.0);
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
@@ -264,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $totalAmount = (isset($_POST['total_amount']) && (float)$_POST['total_amount'] > 0) ? (float)$_POST['total_amount'] : ($calculatedTotal > 0 ? $calculatedTotal : 0.0);
+                $totalAmount = ($calculatedTotal > 0) ? $calculatedTotal : ((isset($_POST['total_amount']) && (float)$_POST['total_amount'] > 0) ? (float)$_POST['total_amount'] : 0.0);
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
@@ -1071,7 +1071,9 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 </div>
                             </th>
                             <th class="py-3">CLOTH TYPE</th>
+                            <?php if (!has_role('tailor')): ?>
                             <th class="py-3">TAILOR</th>
+                            <?php endif; ?>
                             <th class="py-3">ORDER DATE</th>
                             <th class="py-3">DUE DATE</th>
                             <th class="py-3">STATUS</th>
@@ -1119,6 +1121,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                     <span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;"><?php echo $itemCount; ?> Items</span>
                                 <?php endif; ?>
                             </td>
+                            <?php if (!has_role('tailor')): ?>
                             <td class="py-3">
                                 <?php 
                                     $displayTailor = !empty($order['all_tailor_names']) ? $order['all_tailor_names'] : display_val($order['tailor_name']);
@@ -1132,6 +1135,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                     <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Unassigned</span>
                                 <?php endif; ?>
                             </td>
+                            <?php endif; ?>
                             <td class="py-3 text-secondary" style="font-size: 0.82rem;"><?php echo format_date($order['order_date']); ?></td>
                             <td class="py-3" style="font-size: 0.82rem;">
                                 <span class="<?php echo $isOverdue ? 'text-danger fw-bold' : 'text-dark'; ?>">
@@ -1415,11 +1419,12 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label for="total_amount" class="form-label">Total Amount *</label>
+                            <label for="total_amount" class="form-label fw-semibold text-dark">Total Amount *</label>
                             <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" id="total_amount" name="total_amount" step="0.01" min="0" placeholder="0.00" required>
+                                <span class="input-group-text bg-light fw-bold text-dark">₹</span>
+                                <input type="number" class="form-control bg-light fw-bold text-dark" id="total_amount" name="total_amount" step="0.01" min="0" placeholder="0.00" readonly tabindex="-1" style="cursor: not-allowed; background-color: #f8fafc !important;" required>
                             </div>
+                            <div class="form-text text-muted" style="font-size: 0.72rem;"><i class="fas fa-lock me-1"></i>Auto-calculated from items</div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="advance_amount" class="form-label">Advance Amount *</label>
@@ -1723,7 +1728,78 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
 </div>
 
 
+<!-- Custom Order Alert Modal -->
+<div class="modal fade" id="orderAlertModal" tabindex="-1" aria-labelledby="orderAlertTitle" aria-hidden="true" style="z-index: 1085;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg text-center p-3 p-sm-4" style="border-radius: 20px;">
+            <div class="modal-body p-0">
+                <div id="orderAlertIconContainer" class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 58px; height: 58px; background: #fef3c7; color: #d97706;">
+                    <i id="orderAlertIcon" class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <h5 id="orderAlertTitle" class="fw-bold mb-2 text-dark" style="font-size: 1.12rem;">Notice</h5>
+                <p id="orderAlertMessage" class="text-secondary small mb-4 px-2" style="line-height: 1.6; font-size: 0.88rem;"></p>
+                <div id="orderAlertActions" class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function showOrderAlert(message, title = 'Notice', type = 'warning', action = null) {
+    const modalEl = document.getElementById('orderAlertModal');
+    if (!modalEl) {
+        alert(message);
+        return;
+    }
+    const iconContainer = document.getElementById('orderAlertIconContainer');
+    const iconEl = document.getElementById('orderAlertIcon');
+    const titleEl = document.getElementById('orderAlertTitle');
+    const msgEl = document.getElementById('orderAlertMessage');
+    const actionsEl = document.getElementById('orderAlertActions');
+    
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+    
+    if (iconContainer && iconEl) {
+        if (type === 'danger' || type === 'error') {
+            iconContainer.style.background = '#fee2e2';
+            iconContainer.style.color = '#dc2626';
+            iconEl.className = 'fas fa-times-circle fa-2x';
+        } else if (type === 'success') {
+            iconContainer.style.background = '#dcfce7';
+            iconContainer.style.color = '#16a34a';
+            iconEl.className = 'fas fa-check-circle fa-2x';
+        } else if (type === 'info') {
+            iconContainer.style.background = '#e0e7ff';
+            iconContainer.style.color = '#4338ca';
+            iconEl.className = 'fas fa-info-circle fa-2x';
+        } else {
+            iconContainer.style.background = '#fef3c7';
+            iconContainer.style.color = '#d97706';
+            iconEl.className = 'fas fa-exclamation-triangle fa-2x';
+        }
+    }
+    
+    if (actionsEl) {
+        if (action && action.url && action.text) {
+            actionsEl.innerHTML = `
+                <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                <a href="${action.url}" class="btn btn-primary rounded-pill px-4">${escapeHtml(action.text)}</a>
+            `;
+        } else {
+            actionsEl.innerHTML = `<button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">OK</button>`;
+        }
+    }
+    
+    if (window.bootstrap && bootstrap.Modal) {
+        const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        bsModal.show();
+    } else {
+        alert(message);
+    }
+}
 function calculatePendingAmount() {
     const totalEl = document.getElementById('total_amount');
     const advanceEl = document.getElementById('advance_amount');
@@ -1840,7 +1916,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const cards = document.querySelectorAll('.order-item-card');
             if (cards.length === 0) {
                 e.preventDefault();
-                alert('Please add at least one garment to the order.');
+                showOrderAlert('Please add at least one garment to the order.', 'Garment Required', 'warning');
                 return false;
             }
             let missingField = false;
@@ -1854,7 +1930,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (missingField) {
                 e.preventDefault();
-                alert('Please select Cloth Type, Assigned Tailor, and Rate for all garments.');
+                showOrderAlert('Please select Cloth Type, Assigned Tailor, and Rate for all garments.', 'Required Fields', 'warning');
                 return false;
             }
 
@@ -1862,12 +1938,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const advance = parseFloat(document.getElementById('advance_amount')?.value || 0);
             if (advance < 0) {
                 e.preventDefault();
-                alert('Advance amount cannot be negative.');
+                showOrderAlert('Advance amount cannot be negative.', 'Invalid Advance Amount', 'warning');
                 return false;
             }
             if (advance > total && total > 0) {
                 e.preventDefault();
-                alert('Advance amount (₹' + advance.toFixed(2) + ') cannot be greater than Total amount (₹' + total.toFixed(2) + ').');
+                showOrderAlert('Advance amount (₹' + advance.toFixed(2) + ') cannot be greater than Total amount (₹' + total.toFixed(2) + ').', 'Invalid Advance Amount', 'warning');
                 return false;
             }
         });
@@ -2201,7 +2277,7 @@ function updateAddItemButtonState() {
             addBtn.disabled = true;
             addBtn.style.opacity = '0.5';
             addBtn.style.cursor = 'not-allowed';
-            addBtn.title = 'આ કસ્ટમરના કોઈ માપ નથી. પહેલા Measurement માં માપ ઉમેરો.';
+            addBtn.title = 'No measurements found for this customer. Please add measurements in the Measurement section first.';
         }
         if (topCloth) topCloth.disabled = true;
         return;
@@ -2213,7 +2289,7 @@ function updateAddItemButtonState() {
             addBtn.disabled = true;
             addBtn.style.opacity = '0.5';
             addBtn.style.cursor = 'not-allowed';
-            addBtn.title = `આ કસ્ટમરના તમામ (${measurements.length}) માપ ઉમેરાઈ ગયા છે. વધુ ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`;
+            addBtn.title = `All (${measurements.length}) measurements for this customer have already been added to the order. To add more garments, please record a new measurement first.`;
         }
         if (topCloth) topCloth.disabled = true;
     } else {
@@ -2281,7 +2357,7 @@ function addMeasurement(id) {
     const measurements = window.currentCustomerMeasurements || [];
     const cards = document.querySelectorAll('.order-item-card');
     if (cards.length >= measurements.length) {
-        alert(`આ કસ્ટમરના ફક્ત ${measurements.length} માપ સેવ કરેલા છે. વધુ કપડાં ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`);
+        showOrderAlert(`All (${measurements.length}) measurements for this customer have already been added to the order. To add more garments, please record a new measurement first.`, 'Measurement Limit Reached', 'info', { text: 'Add Measurement', url: 'measurements.php' });
         return;
     }
 
@@ -2408,19 +2484,19 @@ if (topClothTypeSelect) {
         const customerName = document.getElementById('customer_id')?.value;
 
         if (!customerName) {
-            alert('કૃપા કરીને પહેલા Customer પસંદ કરો.');
+            showOrderAlert('Please select a customer first.', 'Customer Required', 'warning');
             this.value = '';
             return;
         }
 
         if (measurements.length === 0) {
-            alert('આ કસ્ટમરના કોઈ માપ સેવ કરેલા નથી. કૃપા કરીને પહેલા Measurement સેક્શનમાં જઈને માપ ઉમેરો.');
+            showOrderAlert('No measurements found for this customer. Please add measurements in the Measurement section first.', 'No Measurements Found', 'warning', { text: 'Add Measurement', url: 'measurements.php' });
             this.value = '';
             return;
         }
 
         if (cards.length >= measurements.length) {
-            alert(`આ કસ્ટમરના તમામ (${measurements.length}) માપ ઓર્ડરમાં ઉમેરાઈ ગયા છે. વધુ કપડાં ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`);
+            showOrderAlert(`All (${measurements.length}) measurements for this customer have already been added to the order. To add more garments, please record a new measurement first.`, 'All Measurements Added', 'info', { text: 'Add Measurement', url: 'measurements.php' });
             this.value = '';
             return;
         }
@@ -2430,7 +2506,7 @@ if (topClothTypeSelect) {
         if (matchingMeas) {
             addMeasurement(matchingMeas.id);
         } else {
-            alert('આ કસ્ટમર માટે આ કપડાંનું કોઈ અન-યુઝ્ડ માપ નોંધાયેલું નથી. કૃપા કરીને પહેલા Measurement પેજમાં માપ ઉમેરો.');
+            showOrderAlert('No unused measurement found for this cloth type. Please add measurements for this garment in the Measurement section first.', 'Measurement Not Found', 'warning', { text: 'Add Measurement', url: 'measurements.php' });
         }
 
         this.value = '';
@@ -2446,17 +2522,17 @@ if (addOrderItemBtn) {
         const customerName = document.getElementById('customer_id')?.value;
 
         if (!customerName) {
-            alert('કૃપા કરીને પહેલા Customer પસંદ કરો.');
+            showOrderAlert('Please select a customer first.', 'Customer Required', 'warning');
             return;
         }
 
         if (measurements.length === 0) {
-            alert('આ કસ્ટમરના કોઈ માપ સેવ કરેલા નથી. કૃપા કરીને પહેલા Measurement સેક્શનમાં જઈને માપ ઉમેરો.');
+            showOrderAlert('No measurements found for this customer. Please add measurements in the Measurement section first.', 'No Measurements Found', 'warning', { text: 'Add Measurement', url: 'measurements.php' });
             return;
         }
 
         if (cards.length >= measurements.length) {
-            alert(`આ કસ્ટમરના ફક્ત ${measurements.length} માપ સેવ કરેલા છે, જે તમામ ઓર્ડરમાં ઉમેરાઈ ગયા છે. વધુ કપડાં ઉમેરવા માટે પહેલા Measurement પેજમાં નવું માપ ઉમેરો.`);
+            showOrderAlert(`All (${measurements.length}) measurements for this customer have already been added to the order. To add more garments, please record a new measurement first.`, 'All Measurements Added', 'info', { text: 'Add Measurement', url: 'measurements.php' });
             return;
         }
 
@@ -2528,7 +2604,7 @@ if (customerSelectEl) {
                                 <div class="alert alert-warning py-3 px-3 d-flex align-items-center justify-content-between rounded-3" style="border-radius: 10px;">
                                     <div>
                                         <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                                        <strong>આ કસ્ટમરના કોઈ માપ નોંધાયેલા નથી!</strong> ઓર્ડર બનાવવા માટે પહેલા Measurement સેક્શનમાં માપ ઉમેરો.
+                                        <strong>No measurements found for this customer!</strong> Please add measurements in the Measurement section first to create an order.
                                     </div>
                                     <a href="measurements.php" class="btn btn-sm btn-warning text-dark fw-semibold ms-3" target="_blank">
                                         <i class="fas fa-plus me-1"></i>Add Measurement
@@ -3180,10 +3256,12 @@ function displayFilterResults(orders) {
         return;
     }
     
+    const isTailor = <?php echo has_role('tailor') ? 'true' : 'false'; ?>;
+    
     if (orders.length === 0) {
         ordersTable.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center py-5">
+                <td colspan="${isTailor ? '8' : '9'}" class="text-center py-5">
                     <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
@@ -3195,7 +3273,6 @@ function displayFilterResults(orders) {
         return;
     }
     
-    const isTailor = <?php echo has_role('tailor') ? 'true' : 'false'; ?>;
     const palettes = [
         { bg: '#eff6ff', border: '#dbeafe', color: '#3b82f6' },
         { bg: '#f0fdf4', border: '#dcfce7', color: '#10b981' },
@@ -3266,6 +3343,7 @@ function displayFilterResults(orders) {
                     </span>
                     ${order.item_count && order.item_count > 1 ? `<span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;">${order.item_count} Items</span>` : ''}
                 </td>
+                ${!isTailor ? `
                 <td class="py-3">
                     ${(order.all_tailor_names || order.tailor_name) ? `
                         <div class="d-flex align-items-center gap-1 text-dark" style="font-size: 0.84rem;">
@@ -3274,6 +3352,7 @@ function displayFilterResults(orders) {
                         </div>
                     ` : '<span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Unassigned</span>'}
                 </td>
+                ` : ''}
                 <td class="py-3 text-secondary" style="font-size: 0.82rem;">${orderDate}</td>
                 <td class="py-3" style="font-size: 0.82rem;">
                     <span class="${isOverdue ? 'text-danger fw-bold' : 'text-dark'}">
@@ -3443,7 +3522,7 @@ function displayFilterResults(orders) {
                 editOrder(order);
             } catch (e) {
                 console.error('Error parsing order data:', e);
-                alert('Error loading order data');
+                showOrderAlert('Failed to load order details. Please try again.', 'Error', 'danger');
             }
         });
     });
@@ -3532,8 +3611,7 @@ const canGenerateInvoice = <?php echo $canGenerateInvoice ? 'true' : 'false'; ?>
 function printOrderInvoice(orderId) {
     if (!orderId) return;
     if (!canGenerateInvoice) {
-        alert('Print / Invoice generation feature is not available in the Free plan. Please upgrade your subscription to Basic or Premium plan.');
-        window.location.href = 'subscriptions.php';
+        showOrderAlert('Print / Invoice generation feature is not available in the Free plan. Please upgrade your subscription to Basic or Premium plan.', 'Subscription Upgrade Required', 'warning', { text: 'Upgrade Plan', url: 'subscriptions.php' });
         return;
     }
     window.open('print-invoice.php?order_id=' + orderId, '_blank');
@@ -3545,8 +3623,7 @@ window.currentSendInvoiceOrder = null;
 function openSendInvoiceModal(order) {
     if (!order) return;
     if (!canSendInvoice) {
-        alert('Send invoice feature is not available in the Free plan. Please upgrade your subscription to Basic or Premium plan.');
-        window.location.href = 'subscriptions.php';
+        showOrderAlert('Send invoice feature is not available in the Free plan. Please upgrade your subscription to Basic or Premium plan.', 'Subscription Upgrade Required', 'warning', { text: 'Upgrade Plan', url: 'subscriptions.php' });
         return;
     }
     window.currentSendInvoiceOrder = order;
@@ -3619,7 +3696,7 @@ function sendInvoiceViaWhatsApp() {
     phone = phone.replace(/\D/g, '');
     
     if (!phone) {
-        alert('Please enter a valid 10-digit WhatsApp phone number.');
+        showOrderAlert('Please enter a valid 10-digit WhatsApp phone number.', 'Invalid Phone Number', 'warning');
         phoneInput?.focus();
         return;
     }
@@ -3647,7 +3724,7 @@ function copyInvoiceMessage() {
     }).catch(err => {
         msgEl.select();
         document.execCommand('copy');
-        alert('Message copied to clipboard!');
+        showOrderAlert('Message copied to clipboard!', 'Copied', 'success');
     });
 }
 

@@ -7,7 +7,7 @@
 require_once __DIR__ . '/../config/database.php';
 
 class BaseModel {
-    protected $conn;
+    public $conn;
     protected $table;
     protected $primary_key = 'id';
 
@@ -23,7 +23,7 @@ class BaseModel {
     /**
      * Get database connection with auto-reconnect fallback
      */
-    protected function getConn() {
+    public function getConn() {
         if (!$this->conn) {
             $database = new Database();
             $this->conn = $database->getConnection();

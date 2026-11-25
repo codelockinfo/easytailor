@@ -14,9 +14,13 @@ $measurementModel = new Measurement();
 $clothTypeModel = new ClothType();
 $userModel = new User();
 $notifService = new NotificationService();
+require_once 'models/Company.php';
+$companyModel = new Company();
 $message = '';
 $messageType = '';
 $companyId = get_company_id();
+$companyInfo = $companyId ? $companyModel->find($companyId) : null;
+$companyName = !empty($companyInfo['company_name']) ? $companyInfo['company_name'] : '';
 $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
 $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -165,7 +169,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $cleanPhone = '91' . $cleanPhone;
                             }
                             $orderNum = $order['order_number'] ?? ('ORD' . $orderId);
-                            $waMsg = "*ORDER INVOICE / RECEIPT*\n";
+                            $waMsg = "";
+                            if (!empty($companyName)) {
+                                $cleanComp = strtoupper(trim($companyName));
+                                $padComp = max(0, (int)floor((55 - (strlen($cleanComp) + 2)) / 2));
+                                $waMsg .= str_repeat(" ", $padComp) . "*" . $cleanComp . "*\n";
+                            }
+                            $waMsg .= "*Order Receipt*\n";
                             $waMsg .= "--------------------------------\n";
                             $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
                             $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
@@ -308,7 +318,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         $order = $orderModel->find($orderId);
                         $orderNum = $order['order_number'] ?? ('ORD' . $orderId);
-                        $waMsg = "*ORDER INVOICE / RECEIPT*\n";
+                        $waMsg = "";
+                        if (!empty($companyName)) {
+                            $cleanComp = strtoupper(trim($companyName));
+                            $padComp = max(0, (int)floor((55 - (strlen($cleanComp) + 2)) / 2));
+                            $waMsg .= str_repeat(" ", $padComp) . "*" . $cleanComp . "*\n";
+                        }
+                        $waMsg .= "*Order Receipt*\n";
                         $waMsg .= "--------------------------------\n";
                         $waMsg .= "📋 *Order #:* " . $orderNum . "\n";
                         $waMsg .= "👤 *Customer:* " . ($data['customer_name'] ?? 'Customer') . "\n";
@@ -2026,6 +2042,14 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     </div>
                 </div>
                 <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+                    <div class="text-center mb-2 pb-2 border-bottom">
+                        <?php if (!empty($companyName)): ?>
+                        <div class="fw-bold text-dark" style="font-size: 1.15rem;"><?php echo htmlspecialchars($companyName); ?></div>
+                        <div class="text-muted text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.8px; font-weight: 600;">Order Receipt</div>
+                        <?php else: ?>
+                        <div class="fw-bold text-dark" style="font-size: 1.05rem;">Order Receipt</div>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-muted">Cloth Type:</span>
                         <strong id="sendInvoiceClothType" class="text-dark"></strong>
@@ -2157,6 +2181,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
 </div>
 
 <script>
+const currentCompanyName = <?php echo json_encode($companyName); ?>;
 function showOrderAlert(message, title = 'Notice', type = 'warning', action = null) {
     const modalEl = document.getElementById('orderAlertModal');
     if (!modalEl) {
@@ -4542,7 +4567,14 @@ function generateInvoiceMessagePreview() {
     const dueDate = order.due_date || '';
     const paymentMethod = (order.payment_method || 'Cash').toUpperCase();
     
-    let msg = `*ORDER INVOICE / RECEIPT*\n`;
+    let msg = '';
+    const centerWidth = 55;
+    if (typeof currentCompanyName !== 'undefined' && currentCompanyName && currentCompanyName.trim()) {
+        const cleanName = currentCompanyName.trim().toUpperCase();
+        const padComp = Math.max(0, Math.floor((centerWidth - (cleanName.length + 2)) / 2));
+        msg += ' '.repeat(padComp) + `*${cleanName}*\n`;
+    }
+    msg += `*Order Receipt*\n`;
     msg += `--------------------------------\n`;
     msg += `📋 *Order #:* ${orderNum}\n`;
     msg += `👤 *Customer:* ${custName}\n`;

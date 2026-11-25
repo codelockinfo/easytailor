@@ -135,6 +135,11 @@ $invoiceModel = new Invoice();
 $measurementModel = new Measurement();
 $clothTypeModel = new ClothType();
 $userModel = new User();
+require_once 'models/Company.php';
+$companyModel = new Company();
+$companyId = get_company_id();
+$companyInfo = $companyId ? $companyModel->find($companyId) : null;
+$companyName = !empty($companyInfo['company_name']) ? $companyInfo['company_name'] : '';
 $orders = $orderModel->getOrdersWithDetails(['o.id' => $orderId], 1);
 if (empty($orders)) {
     $order = $orderModel->find($orderId);
@@ -354,7 +359,14 @@ require_once 'includes/header.php';
                 if ($canSendInvoice):
                     $cleanPhone = preg_replace('/\D/', '', $displayPhone);
                     if (strlen($cleanPhone) === 10) $cleanPhone = '91' . $cleanPhone;
-                    $waMsg = "*ORDER INVOICE / RECEIPT*\n--------------------------------\n📋 Order #: " . ($order['order_number'] ?? '') . "\n👤 Customer: " . $displayName . "\n👗 Item: " . ($clothType['name'] ?? '') . "\n📅 Due Date: " . ($order['due_date'] ?? '') . "\n--------------------------------\n💰 Total: ₹" . number_format($order['total_amount'] ?? 0, 2) . "\n✅ Advance: ₹" . number_format($order['advance_amount'] ?? 0, 2) . "\n⏳ Balance: ₹" . number_format($order['balance_amount'] ?? 0, 2) . "\n--------------------------------\nThank you for choosing us! 🙏";
+                    $waMsg = "";
+                    if (!empty($companyName)) {
+                        $cleanComp = strtoupper(trim($companyName));
+                        $padComp = max(0, (int)floor((55 - (strlen($cleanComp) + 2)) / 2));
+                        $waMsg .= str_repeat(" ", $padComp) . "*" . $cleanComp . "*\n";
+                    }
+                    $waMsg .= "*Order Receipt*\n";
+                    $waMsg .= "--------------------------------\n📋 Order #: " . ($order['order_number'] ?? '') . "\n👤 Customer: " . $displayName . "\n👗 Item: " . ($clothType['name'] ?? '') . "\n📅 Due Date: " . ($order['due_date'] ?? '') . "\n--------------------------------\n💰 Total: ₹" . number_format($order['total_amount'] ?? 0, 2) . "\n✅ Advance: ₹" . number_format($order['advance_amount'] ?? 0, 2) . "\n⏳ Balance: ₹" . number_format($order['balance_amount'] ?? 0, 2) . "\n--------------------------------\nThank you for choosing us! 🙏";
             ?>
             <a href="https://wa.me/<?php echo $cleanPhone; ?>?text=<?php echo urlencode($waMsg); ?>" target="_blank" class="btn btn-success rounded-pill px-3 py-1 text-white shadow-xs" style="background-color: #16a34a; border-color: #16a34a; font-size: 0.88rem; font-weight: 500;">
                 <i class="fab fa-whatsapp me-2"></i>Send Invoice

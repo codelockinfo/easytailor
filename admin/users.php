@@ -1057,13 +1057,13 @@ include 'includes/page-header.php';
                             <table class="table table-hover mb-0 align-middle">
                                 <thead>
                                     <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                        <th class="ps-3 py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">#</th>
-                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">ORDER #</th>
-                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">CUSTOMER</th>
-                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">GARMENT / CLOTH TYPE</th>
-                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">DUE DATE</th>
-                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">STATUS</th>
-                                        <th class="pe-3 py-2 text-end text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">ACTION</th>
+                                        <th class="ps-3 py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color:white !important;">#</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color:white !important">ORDER #</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color:white !important">CUSTOMER</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color:white !important">GARMENT / CLOTH TYPE</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color:white !important">DUE DATE</th>
+                                        <th class="py-2 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color:white !important">STATUS</th>
+                                        <th class="pe-3 py-2 text-end text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700;color:white !important">ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tailorModalTableBody">

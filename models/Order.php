@@ -382,6 +382,32 @@ class Order extends BaseModel {
         $stmt->execute();
         $result = $stmt->fetch();
         $stats['pending_revenue'] = $result['total'] ?? 0;
+
+        // Financial totals for dashboard (Advance, Pending, and Total amount)
+        $finQuery = "SELECT 
+                        COALESCE(SUM(CASE WHEN status != 'cancelled' THEN advance_amount ELSE 0 END), 0) as total_advance,
+                        COALESCE(SUM(CASE WHEN status != 'cancelled' THEN (CASE WHEN balance_amount IS NOT NULL THEN balance_amount ELSE GREATEST(0, total_amount - advance_amount) END) ELSE 0 END), 0) as total_pending
+                     FROM " . $this->table . " WHERE 1=1";
+        if ($companyId) {
+            $finQuery .= " AND company_id = :company_id";
+        }
+        if ($isTailor) {
+            $finQuery .= " AND (assigned_tailor_id = :tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = " . $this->table . ".id AND oi.assigned_tailor_id = :tailor_id_item))";
+        }
+        $finStmt = $this->conn->prepare($finQuery);
+        if ($companyId) {
+            $finStmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        if ($isTailor) {
+            $finStmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+            $finStmt->bindParam(':tailor_id_item', $tailorId, PDO::PARAM_INT);
+        }
+        $finStmt->execute();
+        $finResult = $finStmt->fetch();
+
+        $stats['total_advance'] = (float)($finResult['total_advance'] ?? 0);
+        $stats['total_pending'] = (float)($finResult['total_pending'] ?? 0);
+        $stats['total_amount'] = $stats['total_advance'] + $stats['total_pending'];
         
         return $stats;
     }

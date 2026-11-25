@@ -7,6 +7,16 @@
 
 class SubscriptionHelper {
     private static $planCache = [];
+
+    private static function ensureBaseModel() {
+        if (!class_exists('BaseModel')) {
+            if (file_exists(__DIR__ . '/../admin/models/BaseModel.php')) {
+                require_once __DIR__ . '/../admin/models/BaseModel.php';
+            } elseif (file_exists(__DIR__ . '/../models/BaseModel.php')) {
+                require_once __DIR__ . '/../models/BaseModel.php';
+            }
+        }
+    }
     
     /**
      * Get plan limits
@@ -66,6 +76,7 @@ class SubscriptionHelper {
         }
 
         try {
+            self::ensureBaseModel();
             require_once __DIR__ . '/../admin/models/Company.php';
             $companyModel = new Company();
             $company = $companyModel->find($companyId);
@@ -107,6 +118,7 @@ class SubscriptionHelper {
         }
         
         // Get current count
+        self::ensureBaseModel();
         require_once __DIR__ . '/../models/Customer.php';
         $customerModel = new Customer();
         $currentCount = $customerModel->count(['company_id' => $companyId]);
@@ -141,6 +153,7 @@ class SubscriptionHelper {
         }
         
         // Get current count
+        self::ensureBaseModel();
         require_once __DIR__ . '/../admin/models/Order.php';
         $orderModel = new Order();
         $currentCount = $orderModel->count(['company_id' => $companyId]);
@@ -175,6 +188,7 @@ class SubscriptionHelper {
         }
         
         // Get current count excluding admins
+        self::ensureBaseModel();
         require_once __DIR__ . '/../admin/models/User.php';
         $userModel = new User();
         $stmt = $userModel->query("SELECT COUNT(*) as count FROM users WHERE company_id = :company_id AND role != 'admin'", [':company_id' => $companyId]);

@@ -870,6 +870,78 @@ select:disabled {
     background: #eef2ff;
     color: #4338ca;
 }
+.customer-select-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.customer-select-box:hover {
+    border-color: #9ca3af;
+}
+.customer-select-box:focus,
+.customer-select-box.is-focused {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.customer-select-box.is-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+.customer-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1060;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    margin-top: 4px;
+    display: none;
+    overflow: hidden;
+}
+.customer-dropdown-item {
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.12s;
+}
+.customer-dropdown-item:last-child {
+    border-bottom: none;
+}
+.customer-dropdown-item:hover {
+    background: #f1f5f9;
+}
+.customer-dropdown-item.is-selected {
+    background: #eef2ff;
+    color: #4338ca;
+    font-weight: 600;
+}
+.customer-clear-btn {
+    font-size: 0.82rem;
+    color: #9ca3af;
+    line-height: 1;
+    margin-right: 4px;
+    transition: color 0.15s;
+}
+.customer-clear-btn:hover {
+    color: #ef4444;
+}
 .order-item-card {
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -938,7 +1010,7 @@ select:disabled {
 <?php endif; ?>
 
 <?php if (!has_role('tailor')): ?>
-<?php if (isset($orderLimitCheck['remaining']) && $orderLimitCheck['remaining'] <= 10 && $orderLimitCheck['remaining'] > 0): ?>
+<?php if (isset($orderLimitCheck['remaining']) && $orderLimitCheck['remaining'] <= 5 && $orderLimitCheck['remaining'] > 0): ?>
     <div class="alert alert-warning alert-dismissible fade show mb-3" style="border-radius: 12px;">
         <i class="fas fa-exclamation-triangle me-2"></i>
         <strong>Order Limit Warning:</strong> You have <?php echo $orderLimitCheck['remaining']; ?> order slot(s) remaining in your <?php echo ucfirst($currentPlan); ?> plan. 
@@ -1043,10 +1115,17 @@ include 'includes/page-header.php';
         <input type="text" id="searchInput" class="form-control" placeholder="Search orders..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 0.8rem; height: 42px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
     </div>
     <?php if (!has_role('tailor')): ?>
+    <?php if (!$orderLimitCheck['allowed']): ?>
+    <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-sm flex-shrink-0" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; opacity: 0.65;" data-bs-toggle="modal" data-bs-target="#orderLimitUpgradeModal" title="Order limit reached. Click to upgrade your plan.">
+        <i class="fas fa-plus"></i>
+        <span>New Order</span>
+    </button>
+    <?php else: ?>
     <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-sm flex-shrink-0" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#orderModal">
         <i class="fas fa-plus"></i>
         <span>New Order</span>
     </button>
+    <?php endif; ?>
     <?php endif; ?>
 </div>
 <div class="row g-2 align-items-center mb-3">
@@ -1614,15 +1693,42 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     <?php endif; ?>
                 </p>
                 <?php if (!has_role('tailor') && empty($search) && empty($status_filter) && empty($cloth_type_id_filter) && empty($customer_id_filter)): ?>
+                    <?php if (!$orderLimitCheck['allowed']): ?>
+                    <button type="button" class="btn text-white fw-semibold px-4 py-2" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem; opacity: 0.65;" data-bs-toggle="modal" data-bs-target="#orderLimitUpgradeModal">
+                        <i class="fas fa-plus me-1"></i>Create Order
+                    </button>
+                    <?php else: ?>
                     <button type="button" class="btn text-white fw-semibold px-4 py-2" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#orderModal">
                         <i class="fas fa-plus me-1"></i>Create Order
                     </button>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
 </div>
 <?php if (!has_role('tailor')): ?>
+<div class="modal fade" id="orderLimitUpgradeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-crown fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Order Limit Reached</h5>
+                <p class="text-muted small mb-4">
+                    <?php echo htmlspecialchars($orderLimitCheck['message'] ?? 'You have reached the maximum limit of orders for your plan. Please upgrade your subscription to add more orders.'); ?>
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 12px; font-size: 0.85rem;">Cancel</button>
+                    <a href="subscriptions.php" class="btn text-white px-4 fw-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;">
+                        <i class="fas fa-arrow-up me-1"></i> Upgrade Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="orderModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1638,15 +1744,33 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="customer_id" class="form-label fw-semibold">Customer *</label>
-                            <select class="form-select" id="customer_id" name="customer_id" required>
-                                <option value="">Select Customer</option>
-                                <?php foreach ($measurementCustomers as $mc): ?>
-                                    <option value="<?php echo htmlspecialchars($mc['customer_name']); ?>" data-phone="<?php echo htmlspecialchars($mc['phone_number'] ?? ''); ?>">
-                                        <?php echo htmlspecialchars($mc['customer_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label for="customer_id" class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
+                            <input type="hidden" id="customer_id" name="customer_id" value="">
+                            <div class="customer-picker-container position-relative">
+                                <div class="customer-select-box" id="customerSelectBox" tabindex="0">
+                                    <span class="customer-select-text text-muted" id="selectedCustomerDisplay">Select Customer</span>
+                                    <div class="d-flex align-items-center">
+                                        <button type="button" class="btn btn-link p-0 text-muted customer-clear-btn me-2" id="customerClearBtn" style="display: none;" title="Clear selection">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <i class="fas fa-chevron-down text-muted customer-chevron" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="customer-dropdown-menu shadow-lg" id="customerDropdownMenu">
+                                    <div class="p-2 border-bottom bg-light">
+                                        <div class="position-relative">
+                                            <input type="text" class="form-control form-control-sm pe-4" id="customerSearchInput" placeholder="Search customer by name..." autocomplete="off">
+                                            <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-2 text-muted" style="font-size: 0.78rem; pointer-events: none;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="customer-dropdown-header px-3 py-1 bg-light border-bottom" style="font-size: 0.75rem; color: #64748b;">
+                                        <span id="customerListHeaderTitle" class="fw-semibold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">Customer</span>
+                                    </div>
+                                    <div class="customer-dropdown-list" id="customerDropdownList" style="max-height: 220px; overflow-y: auto;">
+                                        <!-- Populated via JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="customer_phone" class="form-label fw-semibold">Phone Number</label>
@@ -2199,6 +2323,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (orderFormEl) {
         orderFormEl.addEventListener('submit', function(e) {
             calculateTotalFromItems();
+            const customerVal = document.getElementById('customer_id')?.value?.trim();
+            if (!customerVal) {
+                e.preventDefault();
+                showOrderAlert('Please select a customer for this order.', 'Customer Required', 'warning');
+                const box = document.getElementById('customerSelectBox');
+                if (box) {
+                    box.classList.add('is-invalid');
+                    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
+            }
             const cards = document.querySelectorAll('.order-item-card');
             if (cards.length === 0) {
                 e.preventDefault();
@@ -2830,6 +2965,169 @@ if (addOrderItemBtn) {
     });
 }
 
+// Customer Dropdown Management
+const allMeasurementCustomers = <?php echo json_encode(array_values($measurementCustomers)); ?>;
+const customerIdInput = document.getElementById('customer_id');
+const customerSelectBox = document.getElementById('customerSelectBox');
+const customerDropdownMenu = document.getElementById('customerDropdownMenu');
+const customerSearchInput = document.getElementById('customerSearchInput');
+const customerDropdownList = document.getElementById('customerDropdownList');
+const selectedCustomerDisplay = document.getElementById('selectedCustomerDisplay');
+const customerClearBtn = document.getElementById('customerClearBtn');
+const customerListHeaderTitle = document.getElementById('customerListHeaderTitle');
+
+function renderCustomerOptions(filterText = '') {
+    if (!customerDropdownList) return;
+    const query = filterText.trim().toLowerCase();
+    let displayList = [];
+    if (!query) {
+        // Show all customers (scrollable, no limit)
+        displayList = allMeasurementCustomers;
+    } else {
+        // Filter strictly by customer name only
+        displayList = allMeasurementCustomers.filter(c => {
+            return c.customer_name && c.customer_name.toLowerCase().includes(query);
+        });
+    }
+
+    if (customerListHeaderTitle) {
+        customerListHeaderTitle.textContent = 'Customer';
+    }
+
+    if (displayList.length === 0) {
+        customerDropdownList.innerHTML = `
+            <div class="p-3 text-center text-muted" style="font-size: 0.82rem;">
+                <i class="fas fa-user-slash d-block mb-1 text-secondary" style="font-size: 1.1rem;"></i>
+                No customer found matching "<strong>${escapeHtml(filterText)}</strong>"
+            </div>
+        `;
+        return;
+    }
+
+    const currentVal = customerIdInput ? customerIdInput.value : '';
+    let html = '';
+    displayList.forEach(cust => {
+        const isSelected = (currentVal && cust.customer_name === currentVal);
+        html += `
+            <div class="customer-dropdown-item ${isSelected ? 'is-selected' : ''}" 
+                 data-name="${escapeHtml(cust.customer_name)}" 
+                 data-phone="${escapeHtml(cust.phone_number || '')}">
+                <div class="fw-semibold ${isSelected ? 'text-primary' : 'text-dark'}">${escapeHtml(cust.customer_name)}</div>
+                ${isSelected ? '<i class="fas fa-check text-primary" style="font-size: 0.85rem;"></i>' : ''}
+            </div>
+        `;
+    });
+    customerDropdownList.innerHTML = html;
+
+    customerDropdownList.querySelectorAll('.customer-dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const name = this.getAttribute('data-name');
+            const phone = this.getAttribute('data-phone');
+            setCustomerValue(name, phone, true);
+            closeCustomerDropdown();
+        });
+    });
+}
+
+function setCustomerValue(name, phone = '', triggerChange = true) {
+    if (!customerIdInput) return;
+    customerIdInput.value = name || '';
+    if (phone) {
+        customerIdInput.setAttribute('data-phone', phone);
+    } else {
+        customerIdInput.removeAttribute('data-phone');
+    }
+    if (selectedCustomerDisplay) {
+        if (name) {
+            selectedCustomerDisplay.innerHTML = `<span class="fw-semibold text-dark">${escapeHtml(name)}</span>`;
+            selectedCustomerDisplay.classList.remove('text-muted');
+        } else {
+            selectedCustomerDisplay.textContent = 'Select Customer';
+            selectedCustomerDisplay.classList.add('text-muted');
+        }
+    }
+    if (customerClearBtn) {
+        customerClearBtn.style.display = name ? 'inline-block' : 'none';
+    }
+    if (customerSelectBox) {
+        customerSelectBox.classList.remove('is-invalid');
+    }
+    const phoneInput = document.getElementById('customer_phone');
+    if (phoneInput && phone) {
+        phoneInput.value = phone;
+    }
+    if (triggerChange) {
+        customerIdInput.dispatchEvent(new Event('change'));
+    }
+}
+
+function openCustomerDropdown() {
+    if (!customerDropdownMenu) return;
+    customerDropdownMenu.style.display = 'block';
+    if (customerSelectBox) customerSelectBox.classList.add('is-focused');
+    renderCustomerOptions(customerSearchInput ? customerSearchInput.value : '');
+    setTimeout(() => {
+        if (customerSearchInput) customerSearchInput.focus();
+    }, 50);
+}
+
+function closeCustomerDropdown() {
+    if (!customerDropdownMenu) return;
+    customerDropdownMenu.style.display = 'none';
+    if (customerSelectBox) customerSelectBox.classList.remove('is-focused');
+}
+
+if (customerSelectBox) {
+    customerSelectBox.addEventListener('click', function(e) {
+        if (e.target.closest('#customerClearBtn')) return;
+        if (customerDropdownMenu.style.display === 'block') {
+            closeCustomerDropdown();
+        } else {
+            openCustomerDropdown();
+        }
+    });
+    customerSelectBox.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            openCustomerDropdown();
+        }
+    });
+}
+
+if (customerClearBtn) {
+    customerClearBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        setCustomerValue('', '', true);
+    });
+}
+
+if (customerSearchInput) {
+    customerSearchInput.addEventListener('input', function() {
+        renderCustomerOptions(this.value);
+    });
+    customerSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCustomerDropdown();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const firstItem = customerDropdownList.querySelector('.customer-dropdown-item');
+            if (firstItem) firstItem.click();
+        }
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if (customerDropdownMenu && customerDropdownMenu.style.display === 'block') {
+        if (!e.target.closest('.customer-picker-container')) {
+            closeCustomerDropdown();
+        }
+    }
+});
+
+// Initial render of top 10 customers
+renderCustomerOptions('');
+
 // Customer change handler
 const customerSelectEl = document.getElementById('customer_id');
 if (customerSelectEl) {
@@ -2837,8 +3135,8 @@ if (customerSelectEl) {
         const customerName = this.value;
         
         // Auto-fill customer phone number
-        const selectedOpt = this.options[this.selectedIndex];
-        const optPhone = selectedOpt ? selectedOpt.getAttribute('data-phone') : '';
+        const selectedOpt = (this.tagName === 'SELECT' && this.options) ? this.options[this.selectedIndex] : null;
+        const optPhone = selectedOpt ? selectedOpt.getAttribute('data-phone') : (this.getAttribute('data-phone') || '');
         const phoneInput = document.getElementById('customer_phone');
         if (phoneInput) {
             phoneInput.value = optPhone || '';
@@ -2929,6 +3227,9 @@ function editOrder(order) {
     document.getElementById('orderId').value = order.id || '';
     const customerName = order.customer_name || '';
     document.getElementById('customer_id').value = customerName;
+    if (typeof setCustomerValue === 'function') {
+        setCustomerValue(customerName, order.customer_phone || '', false);
+    }
     document.getElementById('order_date').value = order.order_date || '';
     document.getElementById('due_date').value = order.due_date || '';
     if (document.getElementById('customer_phone')) {
@@ -3308,6 +3609,17 @@ if (orderModalEl) {
         if (measSearchInp) measSearchInp.value = '';
         const dropdown = document.getElementById('measurementDropdownMenu');
         if (dropdown) dropdown.style.display = 'none';
+        if (typeof setCustomerValue === 'function') {
+            setCustomerValue('', '', false);
+        }
+        if (typeof closeCustomerDropdown === 'function') {
+            closeCustomerDropdown();
+        }
+        const custSearchInp = document.getElementById('customerSearchInput');
+        if (custSearchInp) custSearchInp.value = '';
+        if (typeof renderCustomerOptions === 'function') {
+            renderCustomerOptions('');
+        }
 
         const container = document.getElementById('orderItemsContainer');
         if (container) {

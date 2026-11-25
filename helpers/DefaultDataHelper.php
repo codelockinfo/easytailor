@@ -114,8 +114,15 @@ class DefaultDataHelper {
             ]
         ];
 
+        $ownsTransaction = false;
+        if (!$conn->inTransaction()) {
+            $ownsTransaction = true;
+        }
+
         try {
-            $conn->beginTransaction();
+            if ($ownsTransaction) {
+                $conn->beginTransaction();
+            }
 
             // Check existing cloth types for this company
             $stmt = $conn->prepare("SELECT name FROM cloth_types WHERE company_id = :company_id");
@@ -141,10 +148,14 @@ class DefaultDataHelper {
                 }
             }
 
-            $conn->commit();
+            if ($ownsTransaction && $conn->inTransaction()) {
+                $conn->commit();
+            }
             return true;
         } catch (Exception $e) {
-            $conn->rollBack();
+            if ($ownsTransaction && $conn->inTransaction()) {
+                $conn->rollBack();
+            }
             error_log("Error creating default cloth types for company $companyId: " . $e->getMessage());
             return false;
         }

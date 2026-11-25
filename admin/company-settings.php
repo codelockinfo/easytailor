@@ -780,12 +780,20 @@ select.form-select.settings-input,
                     </div>
                 </div>
 
-                <?php if ($company['subscription_expiry']): ?>
+                <?php if ($company['subscription_expiry'] && ($company['subscription_plan'] ?? '') !== 'free'): ?>
                 <div class="mb-3 pb-3 border-bottom">
                     <small class="text-muted d-block" style="font-size: 0.74rem;">PLAN EXPIRES ON</small>
                     <div class="fw-semibold text-dark mt-1" style="font-size: 0.88rem;">
                         <i class="fas fa-calendar-alt text-muted me-1"></i>
                         <?php echo format_date($company['subscription_expiry'], 'M j, Y'); ?>
+                    </div>
+                </div>
+                <?php elseif (($company['subscription_plan'] ?? '') === 'free'): ?>
+                <div class="mb-3 pb-3 border-bottom">
+                    <small class="text-muted d-block" style="font-size: 0.74rem;">PLAN DURATION</small>
+                    <div class="fw-semibold text-dark mt-1" style="font-size: 0.88rem;">
+                        <i class="fas fa-infinity text-muted me-1"></i>
+                        Lifetime Access
                     </div>
                 </div>
                 <?php endif; ?>

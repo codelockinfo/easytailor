@@ -21,7 +21,7 @@ $companies = $companyModel->findAll([], 'created_at DESC');
 
 $planStyles = [
     'free' => [
-        'label' => 'Free Trial',
+        'label' => 'Free Plan',
         'badge' => 'secondary',
         'gradient' => '#6c757d, #8e9aaf'
     ],
@@ -52,7 +52,7 @@ foreach ($companies as $company) {
     
     // Calculate days remaining
     $daysRemaining = null;
-    if (!empty($company['subscription_expiry'])) {
+    if (!empty($company['subscription_expiry']) && $planKey !== 'free') {
         $expiry = strtotime($company['subscription_expiry']);
         $today = strtotime(date('Y-m-d'));
         $daysRemaining = max(0, floor(($expiry - $today) / (60 * 60 * 24)));
@@ -70,7 +70,7 @@ foreach ($companies as $company) {
         'tax_number' => $company['tax_number'] ?? '',
         'business_address' => $company['business_address'] ?? '',
         'subscription_plan' => $planKey,
-        'subscription_expiry' => $company['subscription_expiry'] ? date('M d, Y', strtotime($company['subscription_expiry'])) : null,
+        'subscription_expiry' => ($planKey !== 'free' && $company['subscription_expiry']) ? date('M d, Y', strtotime($company['subscription_expiry'])) : 'Lifetime',
         'created_at' => date('M d, Y', strtotime($company['created_at'])),
         'plan_label' => $planMeta['label'],
         'plan_badge' => $planMeta['badge'],

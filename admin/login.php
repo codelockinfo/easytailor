@@ -432,7 +432,7 @@ $seoOptions = [
                             
                             <small class="text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Free 30-day trial • No credit card required
+                                Free Plan • No credit card required
                             </small>
                         </div>
                     </div>

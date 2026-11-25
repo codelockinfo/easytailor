@@ -1022,6 +1022,66 @@ $seoOptions = [
             border-radius: 50%;
         }
 
+        .notif-dropdown-menu {
+            border-radius: 14px !important;
+            width: 360px !important;
+            max-width: calc(100vw - 24px) !important;
+            min-width: 340px !important;
+            z-index: 1060;
+            padding: 8px 10px !important;
+            box-shadow: 0 12px 30px -4px rgba(16, 24, 40, 0.12), 0 4px 10px -2px rgba(16, 24, 40, 0.05) !important;
+        }
+        .notif-header-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 4px 6px 8px 6px !important;
+            margin-bottom: 6px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            gap: 10px !important;
+            flex-wrap: nowrap !important;
+        }
+        .notif-header-left {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+        }
+        .notif-header-right {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            margin-left: auto !important;
+        }
+        .notif-header-right a {
+            white-space: nowrap !important;
+            text-decoration: none !important;
+            font-size: 0.72rem !important;
+            font-weight: 500 !important;
+        }
+        #notifHeaderCountBadge {
+            font-size: 0.68rem !important;
+            font-weight: 600 !important;
+            padding: 2px 7px !important;
+            white-space: nowrap !important;
+            line-height: 1.3 !important;
+        }
+        @media (max-width: 420px) {
+            .notif-dropdown-menu {
+                width: calc(100vw - 20px) !important;
+                min-width: 290px !important;
+            }
+            .notif-header-left h6 {
+                font-size: 0.82rem !important;
+            }
+            .notif-header-right {
+                gap: 5px !important;
+            }
+        }
+
         #enablePushBtn {
             width: 38px !important;
             height: 38px !important;
@@ -1425,16 +1485,16 @@ $seoOptions = [
                         <i class="fas fa-bell"></i>
                         <span class="notif-badge" style="<?php echo ($unreadNotifCount > 0) ? '' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?></span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" style="border-radius: 14px; min-width: 300px; max-width: 360px; z-index: 1060;">
-                        <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 border-bottom pb-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e293b;">Notifications</h6>
-                                <span id="notifHeaderCountBadge" class="badge bg-danger rounded-pill" style="font-size: 0.68rem; <?php echo ($unreadNotifCount > 0) ? '' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?> new</span>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 notif-dropdown-menu">
+                        <li class="notif-header-row">
+                            <div class="notif-header-left">
+                                <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e293b; white-space: nowrap;">Notifications</h6>
+                                <span id="notifHeaderCountBadge" class="badge bg-danger rounded-pill" style="<?php echo ($unreadNotifCount > 0) ? 'display: inline-block;' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?> new</span>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <a href="#" onclick="window.sendTestNotification(event)" class="text-decoration-none text-secondary fw-medium me-2" style="font-size: 0.72rem;" title="Send Test Notification"><i class="fas fa-vial me-1"></i>Test</a>
-                                <span class="text-muted me-2" style="font-size: 0.7rem;">•</span>
-                                <a href="#" onclick="window.markAllNotificationsRead(event)" class="text-decoration-none text-primary fw-medium" style="font-size: 0.72rem;">Mark all read</a>
+                            <div class="notif-header-right">
+
+
+                                <a href="#" onclick="window.markAllNotificationsRead(event)" class="text-primary" style="white-space: nowrap;">Mark all read</a>
                             </div>
                         </li>
                         <div id="notifDropdownItems" style="max-height: 360px; overflow-y: auto;">

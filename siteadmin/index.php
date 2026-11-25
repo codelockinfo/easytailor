@@ -125,7 +125,7 @@ $daysRemaining = null;
 
 if ($highlightCompany) {
     $highlightStats = $companyModel->getCompanyStats($highlightCompany['id']);
-    if (!empty($highlightCompany['subscription_expiry'])) {
+    if (!empty($highlightCompany['subscription_expiry']) && ($highlightCompany['subscription_plan'] ?? '') !== 'free') {
         $expiry = strtotime($highlightCompany['subscription_expiry']);
         $today = strtotime(date('Y-m-d'));
         $daysRemaining = max(0, floor(($expiry - $today) / (60 * 60 * 24)));
@@ -133,7 +133,7 @@ if ($highlightCompany) {
 }
 
 $planStyles = [
-    'free' => ['label' => 'Free Trial', 'color' => '#6c757d', 'badge' => 'secondary'],
+    'free' => ['label' => 'Free Plan', 'color' => '#6c757d', 'badge' => 'secondary'],
     'basic' => ['label' => 'Basic Plan', 'color' => '#3b82f6', 'badge' => 'primary'],
     'premium' => ['label' => 'Premium Plan', 'color' => '#c026d3', 'badge' => 'pink'],
     'enterprise' => ['label' => 'Enterprise Plan', 'color' => '#fbbf24', 'badge' => 'warning']
@@ -2305,7 +2305,7 @@ if (isset($_SESSION['message'])) {
                             ${createInfoItem('fas fa-globe', company.website || 'Not provided')}
                             ${createInfoItem('fas fa-file-invoice', `GST: ${company.tax_number || 'Not provided'}`)}
                             ${createInfoItem('fas fa-calendar', `Joined: ${company.created_at || '—'}`)}
-                            ${company.subscription_expiry ? createInfoItem('fas fa-flag-checkered', `Expiry: ${company.subscription_expiry}`) : ''}
+                            ${company.subscription_plan === 'free' ? createInfoItem('fas fa-infinity', 'Duration: Lifetime') : (company.subscription_expiry ? createInfoItem('fas fa-flag-checkered', `Expiry: ${company.subscription_expiry}`) : '')}
                             ${createInfoItem('fas fa-map-pin', company.business_address || 'No address provided')}
                         </ul>
                     </div>

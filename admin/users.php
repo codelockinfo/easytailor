@@ -428,8 +428,8 @@ include 'includes/page-header.php';
     <div class="col-6 col-md-3">
         <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
             <div>
-                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">ADMINS & STAFF</span>
-                <div class="fs-4 fw-bold text-dark mt-1" id="statAdminsStaff"><?php echo number_format($stats['admins'] + $stats['staff'] + $stats['cashiers']); ?></div>
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">ADMINS</span>
+                <div class="fs-4 fw-bold text-dark mt-1" id="statAdminsStaff"><?php echo number_format($stats['admins']); ?></div>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #fef3c7; color: #d97706; font-size: 0.95rem;">
                 <i class="fas fa-user-shield"></i>
@@ -463,8 +463,6 @@ include 'includes/page-header.php';
             <option value="">All Roles</option>
             <option value="admin" <?php echo $role_filter === 'admin' ? 'selected' : ''; ?>>Admin</option>
             <option value="tailor" <?php echo $role_filter === 'tailor' ? 'selected' : ''; ?>>Tailor</option>
-            <option value="staff" <?php echo $role_filter === 'staff' ? 'selected' : ''; ?>>Staff</option>
-            <option value="cashier" <?php echo $role_filter === 'cashier' ? 'selected' : ''; ?>>Cashier</option>
         </select>
     </div>
     
@@ -842,8 +840,6 @@ include 'includes/page-header.php';
                                 <option value="">Select Role</option>
                                 <option value="admin">Admin - Full access</option>
                                 <option value="tailor">Tailor - Can be assigned to orders</option>
-                                <option value="staff">Staff - General operations</option>
-                                <option value="cashier">Cashier - Payments & invoices</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">

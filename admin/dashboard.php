@@ -1128,7 +1128,8 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                 </div>
                 <div class="card-body p-0">
                     <?php if (!empty($recentOrders)): ?>
-                        <div class="table-responsive">
+                        <!-- 1. Desktop & Tablet View: Full Table (d-none d-md-block) -->
+                        <div class="table-responsive d-none d-md-block">
                             <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
                                 <thead class="table-light text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                     <tr>
@@ -1188,6 +1189,71 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- 2. Mobile Card View: Beautiful Stacked Cards (d-block d-md-none) -->
+                        <div class="d-md-none p-3 d-flex flex-column gap-2" style="background: #f8fafc;">
+                            <?php foreach ($recentOrders as $order): 
+                                $cName = $order['customer_name'] ?? (($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+                                if (empty($cName) && !empty($order['measurement_customer_name'])) {
+                                    $cName = $order['measurement_customer_name'];
+                                }
+                                $cName = $cName ?: 'Customer';
+                                $statusPillStyle = match($order['status']) {
+                                    'completed' => 'background-color: #10b981; color: white;',
+                                    'pending' => 'background-color: #f59e0b; color: white;',
+                                    'in_progress' => 'background-color: #06b6d4; color: white;',
+                                    'delivered' => 'background-color: #3b82f6; color: white;',
+                                    default => 'background-color: #ef4444; color: white;'
+                                };
+                            ?>
+                            <div class="card border rounded-3 p-3 shadow-xs bg-white" style="border-color: #e2e8f0 !important;">
+                                <!-- Top Row: Order # and Status -->
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="rounded-2 d-inline-flex align-items-center justify-content-center" style="width: 26px; height: 26px; background: #eff6ff; color: #3b82f6;">
+                                            <i class="fas fa-tshirt" style="font-size: 0.72rem;"></i>
+                                        </span>
+                                        <a href="order-details.php?id=<?php echo $order['id']; ?>" class="fw-bold text-primary text-decoration-none" style="font-size: 0.88rem;">
+                                            #<?php echo htmlspecialchars($order['order_number']); ?>
+                                        </a>
+                                    </div>
+                                    <span class="badge rounded-pill" style="<?php echo $statusPillStyle; ?> font-size: 0.70rem; padding: 4px 9px; font-weight: 500;">
+                                        <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                                    </span>
+                                </div>
+
+                                <!-- Middle Row: Customer, Garment, Amount, Due Date -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.90rem;">
+                                            <?php echo htmlspecialchars($cName); ?>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.76rem;">
+                                            <i class="fas fa-cut me-1 opacity-75"></i><?php echo htmlspecialchars($order['cloth_type_name'] ?? 'Custom'); ?>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                            <?php echo format_currency($order['total_amount']); ?>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.72rem;">
+                                            Due: <?php echo format_date($order['due_date'], 'd M Y'); ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Row: Quick Action Links -->
+                                <div class="pt-2 border-top d-flex justify-content-end align-items-center gap-2">
+                                    <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-primary fw-medium" style="font-size: 0.74rem;">
+                                        <i class="fas fa-eye me-1"></i> Details
+                                    </a>
+                                    <a href="orders.php?edit=<?php echo $order['id']; ?>" class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-secondary fw-medium" style="font-size: 0.74rem;">
+                                        <i class="fas fa-pencil-alt me-1"></i> Edit
+                                    </a>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4">

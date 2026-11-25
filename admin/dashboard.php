@@ -99,32 +99,69 @@ $statusCounts = [
     'delivered' => (int)($orderStats['delivered'] ?? 0),
     'cancelled' => (int)($orderStats['cancelled'] ?? 0),
 ];
-$scheduleItems = [];
-$todayOrders = !empty($ordersDueToday) ? $ordersDueToday : (!empty($recentOrders) ? array_slice($recentOrders, 0, 2) : []);
-$times = ['10:00 AM', '02:00 PM', '04:30 PM'];
-$timeColors = ['#8b5cf6', '#f43f5e', '#10b981'];
-$i = 0;
-foreach ($todayOrders as $ord) {
-    $cName = $ord['customer_name'] ?? (($ord['first_name'] ?? '') . ' ' . ($ord['last_name'] ?? ''));
-    if (empty($cName) && !empty($ord['measurement_customer_name'])) {
-        $cName = $ord['measurement_customer_name'];
-    }
-    $cName = $cName ?: 'Customer';
-    $cCloth = $ord['cloth_type_name'] ?? 'Garment';
-    $scheduleItems[] = [
-        'time' => $times[$i % count($times)],
-        'color' => $timeColors[$i % count($timeColors)],
-        'name' => $cName,
-        'action' => ($i === 0 ? 'Fitting' : 'Trial') . ' - ' . $cCloth
-    ];
-    $i++;
+$today = date('Y-m-d');
+$tomorrow = date('Y-m-d', strtotime('+1 day'));
+
+// Morning priority deliveries:
+// Orders requiring delivery attention, ordered by urgency: Overdue first, then Due Today, then Tomorrow, then Soonest
+$priorityQuery = "SELECT o.*, 
+                         c.first_name, c.last_name, c.phone as customer_phone,
+                         ct.name as cloth_type_name
+                  FROM orders o
+                  LEFT JOIN customers c ON o.customer_id = c.id
+                  LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
+                  WHERE o.company_id = :company_id 
+                  AND o.status IN ('pending', 'in_progress', 'completed')";
+if (has_role('tailor')) {
+    $priorityQuery .= " AND o.assigned_tailor_id = " . (int)get_user_id();
 }
-if (empty($scheduleItems)) {
-    $scheduleItems = [
-        ['time' => '10:00 AM', 'color' => '#8b5cf6', 'name' => 'Rana had', 'action' => 'Fitting - pent shirt'],
-        ['time' => '02:00 PM', 'color' => '#f43f5e', 'name' => 'chetna', 'action' => 'Trial - rond kurti']
-    ];
+$priorityQuery .= " ORDER BY 
+                      CASE 
+                          WHEN o.due_date < :today1 THEN 1
+                          WHEN o.due_date = :today2 THEN 2
+                          WHEN o.due_date = :tomorrow THEN 3
+                          ELSE 4
+                      END ASC,
+                      o.due_date ASC
+                    LIMIT 8";
+
+$stmtP = $db->prepare($priorityQuery);
+$stmtP->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+$stmtP->bindParam(':today1', $today);
+$stmtP->bindParam(':today2', $today);
+$stmtP->bindParam(':tomorrow', $tomorrow);
+$stmtP->execute();
+$priorityDeliveries = $stmtP->fetchAll(PDO::FETCH_ASSOC);
+
+// Morning delivery pulse counts
+$morningCounts = [
+    'overdue' => 0,
+    'today' => 0,
+    'tomorrow' => 0,
+    'ready' => 0
+];
+$countQuery = "SELECT 
+    SUM(CASE WHEN due_date < :today1 AND status IN ('pending', 'in_progress', 'completed') THEN 1 ELSE 0 END) as overdue_count,
+    SUM(CASE WHEN due_date = :today2 AND status IN ('pending', 'in_progress', 'completed') THEN 1 ELSE 0 END) as today_count,
+    SUM(CASE WHEN due_date = :tomorrow AND status IN ('pending', 'in_progress', 'completed') THEN 1 ELSE 0 END) as tomorrow_count,
+    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as ready_count
+FROM orders 
+WHERE company_id = :company_id";
+if (has_role('tailor')) {
+    $countQuery .= " AND assigned_tailor_id = " . (int)get_user_id();
 }
+$stmtC = $db->prepare($countQuery);
+$stmtC->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+$stmtC->bindParam(':today1', $today);
+$stmtC->bindParam(':today2', $today);
+$stmtC->bindParam(':tomorrow', $tomorrow);
+$stmtC->execute();
+$countsRow = $stmtC->fetch(PDO::FETCH_ASSOC);
+
+$morningCounts['overdue'] = (int)($countsRow['overdue_count'] ?? 0);
+$morningCounts['today'] = (int)($countsRow['today_count'] ?? 0);
+$morningCounts['tomorrow'] = (int)($countsRow['tomorrow_count'] ?? 0);
+$morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
 ?>
 
 <div class="container-fluid px-0">
@@ -149,6 +186,24 @@ if (empty($scheduleItems)) {
     $offset = round($circ - ($prog / 100) * $circ, 2);
     ?>
     <style>
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f8fafc;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
     .welcome-banner {
         position: relative;
         min-height: 168px;
@@ -663,93 +718,329 @@ if (empty($scheduleItems)) {
         </div>
     </div>
 
+    <!-- 1. MAIN MORNING OPERATIONS ROW: Today's Delivery Schedule & Priorities (col-lg-7) + Order Status (col-lg-5) -->
     <div class="row g-3 mb-3">
-        <div class="col-lg-8">
+        <!-- Today's Schedule & Delivery Priorities (col-lg-7) -->
+        <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.92rem;">
-                        <i class="fas fa-chart-line text-purple me-2" style="color: #8b5cf6;"></i>Monthly Revenue
-                    </h6>
-                    <div class="dropdown">
-                        <button class="btn btn-sm rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border: 1px solid #e2e8f0; font-size: 0.75rem;" data-bs-toggle="dropdown">
-                            <i class="fas fa-calendar-alt text-muted me-1" style="font-size: 0.70rem;"></i> This Year <i class="fas fa-chevron-down ms-1" style="font-size: 0.62rem;"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px; font-size: 0.8rem;">
-                            <li><a class="dropdown-item active" href="#">This Year</a></li>
-                            <li><a class="dropdown-item" href="#">Last Year</a></li>
-                        </ul>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
+                            <i class="fas fa-shipping-fast me-2 text-primary" style="color: #6366f1;"></i>Today's Delivery Schedule & Priorities
+                        </h6>
+                        <small class="text-muted" style="font-size: 0.72rem;">Orders requiring immediate attention, delivery or trial</small>
                     </div>
-                </div>
-                <div style="position: relative; height: 190px; width: 100%;">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.92rem;">
-                        <i class="fas fa-layer-group text-primary me-2" style="color: #6366f1;"></i>Order Status
-                    </h6>
-                    <span class="badge rounded-pill" style="background: #a78bfa; color: #ffffff; font-weight: 600; font-size: 0.72rem; padding: 4px 10px;">
-                        <?php echo $totalOrderCount; ?> Total
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <?php if ($morningCounts['overdue'] > 0): ?>
+                            <span class="badge rounded-pill text-white px-2 py-1 shadow-xs" style="background: #ef4444; font-size: 0.70rem;">
+                                <i class="fas fa-exclamation-triangle me-1"></i><?php echo $morningCounts['overdue']; ?> Overdue
+                            </span>
+                        <?php elseif ($morningCounts['today'] > 0): ?>
+                            <span class="badge rounded-pill text-dark px-2 py-1 shadow-xs" style="background: #fde047; font-size: 0.70rem;">
+                                <i class="fas fa-bolt me-1 text-warning-emphasis"></i><?php echo $morningCounts['today']; ?> Due Today
+                            </span>
+                        <?php elseif ($morningCounts['tomorrow'] > 0): ?>
+                            <span class="badge rounded-pill text-white px-2 py-1 shadow-xs" style="background: #f59e0b; font-size: 0.70rem;">
+                                <i class="fas fa-clock me-1"></i><?php echo $morningCounts['tomorrow']; ?> Due Tomorrow
+                            </span>
+                        <?php else: ?>
+                            <span class="badge rounded-pill text-success border border-success-subtle bg-success-subtle px-2 py-1" style="font-size: 0.70rem;">
+                                <i class="fas fa-check-circle me-1"></i>On Track
+                            </span>
+                        <?php endif; ?>
+                        <a href="orders.php" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="font-size: 0.75rem; border-color: #e2e8f0;">
+                            View All
+                        </a>
+                    </div>
                 </div>
 
-                <?php
-                $orderRings = [
-                    ['label' => 'Pending', 'count' => $statusCounts['pending'], 'color' => '#f59e0b'],
-                    ['label' => 'In Progress', 'count' => $statusCounts['in_progress'], 'color' => '#06b6d4'],
-                    ['label' => 'Completed', 'count' => $statusCounts['completed'], 'color' => '#10b981'],
-                    ['label' => 'Delivered', 'count' => $statusCounts['delivered'], 'color' => '#8b5cf6'],
-                    ['label' => 'Cancelled', 'count' => $statusCounts['cancelled'], 'color' => '#ef4444'],
-                ];
-                $rRing = 16;
-                $circRing = round(2 * M_PI * $rRing, 2);
-                ?>
-                <div class="d-flex align-items-start justify-content-between text-center pt-2" style="gap: 2px;">
-                    <?php foreach ($orderRings as $ring): 
-                        $pct = ($totalOrderCount > 0) ? round(($ring['count'] / $totalOrderCount) * 100) : 0;
-                        $ringOffset = round($circRing - ($pct / 100) * $circRing, 2);
-                    ?>
-                    <div class="order-status-ring-col text-center" style="flex: 1; min-width: 0;">
-                        <div class="position-relative d-inline-block" style="width: 44px; height: 44px;">
-                            <svg width="44" height="44" viewBox="0 0 44 44">
-                                <circle cx="22" cy="22" r="<?php echo $rRing; ?>" fill="none" stroke="#f1f5f9" stroke-width="4.5" />
-                                <?php if ($pct > 0): ?>
-                                <circle cx="22" cy="22" r="<?php echo $rRing; ?>" fill="none"
-                                        stroke="<?php echo $ring['color']; ?>" stroke-width="4.5"
-                                        stroke-linecap="round"
-                                        stroke-dasharray="<?php echo $circRing; ?>"
-                                        stroke-dashoffset="<?php echo $ringOffset; ?>"
-                                        transform="rotate(-90 22 22)" />
+                <!-- Morning Quick Stats Strip -->
+                <div class="row g-2 mb-3">
+                    <div class="col-3">
+                        <div class="p-2 rounded-3 text-center" style="background: #fef2f2; border: 1px solid #fee2e2;">
+                            <div class="fw-bold text-danger" style="font-size: 1.15rem; line-height: 1.1;"><?php echo $morningCounts['overdue']; ?></div>
+                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Overdue</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded-3 text-center" style="background: #fefce8; border: 1px solid #fef08a;">
+                            <div class="fw-bold" style="font-size: 1.15rem; line-height: 1.1; color: #ca8a04;"><?php echo $morningCounts['today']; ?></div>
+                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Due Today</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded-3 text-center" style="background: #fff7ed; border: 1px solid #ffedd5;">
+                            <div class="fw-bold" style="font-size: 1.15rem; line-height: 1.1; color: #ea580c;"><?php echo $morningCounts['tomorrow']; ?></div>
+                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Tomorrow</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded-3 text-center" style="background: #ecfdf5; border: 1px solid #d1fae5;">
+                            <div class="fw-bold text-success" style="font-size: 1.15rem; line-height: 1.1;"><?php echo $morningCounts['ready']; ?></div>
+                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Ready Pickup</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Deliveries List -->
+                <?php if (!empty($priorityDeliveries)): ?>
+                    <div class="d-flex flex-column gap-2 custom-scrollbar" style="max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                        <?php foreach ($priorityDeliveries as $pd): 
+                            $cName = $pd['customer_name'] ?? trim(($pd['first_name'] ?? '') . ' ' . ($pd['last_name'] ?? ''));
+                            if (empty($cName) && !empty($pd['measurement_customer_name'])) {
+                                $cName = $pd['measurement_customer_name'];
+                            }
+                            $cName = $cName ?: 'Customer';
+                            $dueDate = $pd['due_date'];
+                            $isOverdue = ($dueDate < $today);
+                            $isDueToday = ($dueDate === $today);
+                            $isDueTomorrow = ($dueDate === $tomorrow);
+                            
+                            $rowBg = '#ffffff';
+                            $rowBorder = '#e2e8f0';
+                            if ($isOverdue) {
+                                $rowBg = '#fff5f5';
+                                $rowBorder = '#fecaca';
+                            } elseif ($isDueToday) {
+                                $rowBg = '#fefce8';
+                                $rowBorder = '#fef08a';
+                            } elseif ($pd['status'] === 'completed') {
+                                $rowBg = '#f0fdf4';
+                                $rowBorder = '#bbf7d0';
+                            }
+                        ?>
+                        <div class="p-2 p-sm-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2 transition-hover" style="background: <?php echo $rowBg; ?>; border: 1px solid <?php echo $rowBorder; ?>;">
+                            <div class="d-flex align-items-center gap-2 min-w-0" style="flex: 1 1 230px;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: <?php echo $isOverdue ? '#fee2e2' : ($isDueToday ? '#fef08a' : ($pd['status'] === 'completed' ? '#dcfce7' : '#eff6ff')); ?>; color: <?php echo $isOverdue ? '#ef4444' : ($isDueToday ? '#ca8a04' : ($pd['status'] === 'completed' ? '#16a34a' : '#3b82f6')); ?>;">
+                                    <i class="fas fa-<?php echo $isOverdue ? 'exclamation' : ($pd['status'] === 'completed' ? 'check' : 'tshirt'); ?>"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <a href="order-details.php?id=<?php echo $pd['id']; ?>" class="fw-bold text-dark text-decoration-none" style="font-size: 0.92rem;">
+                                            <?php echo htmlspecialchars($cName); ?>
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small text-truncate" style="font-size: 0.74rem;">
+                                        <span><?php echo htmlspecialchars($pd['cloth_type_name'] ?? 'Garment'); ?></span>
+                                        <?php if (!empty($pd['customer_phone'])): ?>
+                                            <span class="ms-1 text-secondary"><i class="fas fa-phone-alt me-1 opacity-75" style="font-size: 0.65rem;"></i><?php echo htmlspecialchars($pd['customer_phone']); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <?php if ($isOverdue): 
+                                    $daysLate = (int)round((strtotime($today) - strtotime($dueDate)) / 86400);
+                                ?>
+                                    <span class="badge rounded-pill text-white px-2 py-1" style="background: #ef4444; font-size: 0.70rem; font-weight: 600;">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Overdue (<?php echo $daysLate; ?>d)
+                                    </span>
+                                <?php elseif ($isDueToday): ?>
+                                    <span class="badge rounded-pill text-dark px-2 py-1" style="background: #fde047; font-size: 0.70rem; font-weight: 600;">
+                                        <i class="fas fa-bolt me-1 text-warning-emphasis"></i>Due Today
+                                    </span>
+                                <?php elseif ($isDueTomorrow): ?>
+                                    <span class="badge rounded-pill text-white px-2 py-1" style="background: #f59e0b; font-size: 0.70rem; font-weight: 600;">
+                                        <i class="fas fa-clock me-1"></i>Due Tomorrow
+                                    </span>
+                                <?php else: 
+                                    $daysUntil = (int)round((strtotime($dueDate) - strtotime($today)) / 86400);
+                                ?>
+                                    <span class="badge rounded-pill text-secondary px-2 py-1" style="background: #f1f5f9; font-size: 0.70rem; font-weight: 500;">
+                                        Due in <?php echo $daysUntil; ?>d (<?php echo date('d M', strtotime($dueDate)); ?>)
+                                    </span>
                                 <?php endif; ?>
-                            </svg>
-                            <div class="position-absolute top-50 start-50 translate-middle fw-bold" style="font-size: 0.62rem; color: #1e293b;">
-                                <?php echo $pct; ?>%
+
+                                <?php if ($pd['status'] === 'completed'): ?>
+                                    <span class="badge rounded-pill text-white px-2 py-1" style="background: #10b981; font-size: 0.70rem; font-weight: 500;">
+                                        Ready Pickup
+                                    </span>
+                                <?php elseif ($pd['status'] === 'in_progress'): ?>
+                                    <span class="badge rounded-pill text-white px-2 py-1" style="background: #06b6d4; font-size: 0.70rem; font-weight: 500;">
+                                        In Progress
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge rounded-pill text-dark px-2 py-1" style="background: #fde68a; font-size: 0.70rem; font-weight: 500;">
+                                        Pending
+                                    </span>
+                                <?php endif; ?>
+
+                                <div class="d-flex align-items-center gap-1 ms-1">
+                                    <?php if (!empty($pd['customer_phone'])): 
+                                        $cleanP = preg_replace('/\D/', '', $pd['customer_phone']);
+                                        if (strlen($cleanP) === 10) $cleanP = '91' . $cleanP;
+                                    ?>
+                                        <a href="https://wa.me/<?php echo $cleanP; ?>" target="_blank" class="btn btn-sm btn-light rounded-circle text-success p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="WhatsApp Customer">
+                                            <i class="fab fa-whatsapp" style="font-size: 0.75rem;"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="order-details.php?id=<?php echo $pd['id']; ?>" class="btn btn-sm btn-light rounded-circle text-primary p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="View Order">
+                                        <i class="fas fa-eye" style="font-size: 0.72rem;"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                        <div class="fw-bold text-dark mt-1" style="font-size: 0.82rem; line-height: 1.1;"><?php echo $ring['count']; ?></div>
-                        <div class="text-muted text-truncate px-1" style="font-size: 0.65rem; line-height: 1.2;"><?php echo $ring['label']; ?></div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
-                </div>
-                <div class="d-none d-xl-flex flex-column gap-2 mt-3 pt-2 border-top">
-                    <?php foreach ($orderRings as $st): 
-                        $pct = $totalOrderCount > 0 ? round(($st['count'] / $totalOrderCount) * 100) : 0;
-                    ?>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="small text-muted text-truncate" style="width: 75px; font-size: 0.72rem;"><?php echo $st['label']; ?></span>
-                        <div class="flex-grow-1" style="height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden;">
-                            <div style="height: 100%; width: <?php echo $pct; ?>%; background: <?php echo $st['color']; ?>; border-radius: 10px;"></div>
+                <?php else: ?>
+                    <div class="text-center py-4 my-2">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 52px; height: 52px; background: #ecfdf5; color: #10b981;">
+                            <i class="fas fa-check-double fa-lg"></i>
                         </div>
-                        <span class="text-dark fw-bold" style="width: 25px; font-size: 0.72rem; text-align: right;"><?php echo $st['count']; ?></span>
+                        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">All Caught Up!</h6>
+                        <p class="text-muted small mb-3" style="max-width: 320px; margin: 0 auto; font-size: 0.78rem;">
+                            No pending deliveries or overdue orders right now. Your tailoring workshop is completely on schedule!
+                        </p>
+                        <a href="orders.php?action=create" class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-xs" style="background: #4f46e5; border-color: #4f46e5; font-size: 0.8rem;">
+                            <i class="fas fa-plus me-1"></i>Create New Order
+                        </a>
                     </div>
-                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Order Status Overview (col-lg-5) -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
+                                <i class="fas fa-chart-pie me-2 text-primary" style="color: #6366f1;"></i>Order Status Breakdown
+                            </h6>
+                            <small class="text-muted" style="font-size: 0.72rem;">Distribution of all workshop orders</small>
+                        </div>
+                        <span class="badge rounded-pill" style="background: #a78bfa; color: #ffffff; font-weight: 600; font-size: 0.72rem; padding: 4px 10px;">
+                            <?php echo $totalOrderCount; ?> Total
+                        </span>
+                    </div>
+
+                    <?php if ($totalOrderCount > 0): ?>
+                        <div class="row align-items-center g-3 my-1 py-1">
+                            <!-- Doughnut with Center Metric -->
+                            <div class="col-sm-5 d-flex justify-content-center">
+                                <div style="position: relative; width: 145px; height: 145px;">
+                                    <canvas id="orderStatusPieChart"></canvas>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                                        <div class="fw-bold text-dark lh-1" style="font-size: 1.45rem;"><?php echo $totalOrderCount; ?></div>
+                                        <div class="text-muted fw-semibold" style="font-size: 0.62rem; letter-spacing: 0.5px; text-transform: uppercase;">Orders</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status Breakdown Progress Rows -->
+                            <div class="col-sm-7">
+                                <div class="d-flex flex-column gap-2">
+                                    <a href="orders.php?status=in_progress" class="text-decoration-none p-1 px-2 rounded-2 transition-hover text-dark d-block" style="background: #f8fafc; border: 1px solid #f1f5f9;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.74rem;">
+                                            <span class="d-flex align-items-center fw-semibold">
+                                                <span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #06b6d4;"></span>
+                                                In Progress
+                                            </span>
+                                            <span class="fw-bold text-dark">
+                                                <?php echo $statusCounts['in_progress']; ?> 
+                                                <small class="text-muted fw-normal" style="font-size: 0.68rem;">(<?php echo $totalOrderCount > 0 ? round(($statusCounts['in_progress'] / $totalOrderCount) * 100) : 0; ?>%)</small>
+                                            </span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 4px; background: #e2e8f0;">
+                                            <div class="progress-bar rounded-pill" style="width: <?php echo $totalOrderCount > 0 ? round(($statusCounts['in_progress'] / $totalOrderCount) * 100) : 0; ?>%; background: #06b6d4;"></div>
+                                        </div>
+                                    </a>
+
+                                    <a href="orders.php?status=pending" class="text-decoration-none p-1 px-2 rounded-2 transition-hover text-dark d-block" style="background: #f8fafc; border: 1px solid #f1f5f9;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.74rem;">
+                                            <span class="d-flex align-items-center fw-semibold">
+                                                <span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #f59e0b;"></span>
+                                                Pending
+                                            </span>
+                                            <span class="fw-bold text-dark">
+                                                <?php echo $statusCounts['pending']; ?> 
+                                                <small class="text-muted fw-normal" style="font-size: 0.68rem;">(<?php echo $totalOrderCount > 0 ? round(($statusCounts['pending'] / $totalOrderCount) * 100) : 0; ?>%)</small>
+                                            </span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 4px; background: #e2e8f0;">
+                                            <div class="progress-bar rounded-pill" style="width: <?php echo $totalOrderCount > 0 ? round(($statusCounts['pending'] / $totalOrderCount) * 100) : 0; ?>%; background: #f59e0b;"></div>
+                                        </div>
+                                    </a>
+
+                                    <a href="orders.php?status=completed" class="text-decoration-none p-1 px-2 rounded-2 transition-hover text-dark d-block" style="background: #f8fafc; border: 1px solid #f1f5f9;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.74rem;">
+                                            <span class="d-flex align-items-center fw-semibold">
+                                                <span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #10b981;"></span>
+                                                Ready / Completed
+                                            </span>
+                                            <span class="fw-bold text-dark">
+                                                <?php echo $statusCounts['completed']; ?> 
+                                                <small class="text-muted fw-normal" style="font-size: 0.68rem;">(<?php echo $totalOrderCount > 0 ? round(($statusCounts['completed'] / $totalOrderCount) * 100) : 0; ?>%)</small>
+                                            </span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 4px; background: #e2e8f0;">
+                                            <div class="progress-bar rounded-pill" style="width: <?php echo $totalOrderCount > 0 ? round(($statusCounts['completed'] / $totalOrderCount) * 100) : 0; ?>%; background: #10b981;"></div>
+                                        </div>
+                                    </a>
+
+                                    <a href="orders.php?status=delivered" class="text-decoration-none p-1 px-2 rounded-2 transition-hover text-dark d-block" style="background: #f8fafc; border: 1px solid #f1f5f9;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.74rem;">
+                                            <span class="d-flex align-items-center fw-semibold">
+                                                <span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #8b5cf6;"></span>
+                                                Delivered
+                                            </span>
+                                            <span class="fw-bold text-dark">
+                                                <?php echo $statusCounts['delivered']; ?> 
+                                                <small class="text-muted fw-normal" style="font-size: 0.68rem;">(<?php echo $totalOrderCount > 0 ? round(($statusCounts['delivered'] / $totalOrderCount) * 100) : 0; ?>%)</small>
+                                            </span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 4px; background: #e2e8f0;">
+                                            <div class="progress-bar rounded-pill" style="width: <?php echo $totalOrderCount > 0 ? round(($statusCounts['delivered'] / $totalOrderCount) * 100) : 0; ?>%; background: #8b5cf6;"></div>
+                                        </div>
+                                    </a>
+
+                                    <?php if ($statusCounts['cancelled'] > 0): ?>
+                                    <a href="orders.php?status=cancelled" class="text-decoration-none p-1 px-2 rounded-2 transition-hover text-dark d-block" style="background: #f8fafc; border: 1px solid #f1f5f9;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.74rem;">
+                                            <span class="d-flex align-items-center fw-semibold text-danger">
+                                                <span class="d-inline-block rounded-circle me-1" style="width: 8px; height: 8px; background: #ef4444;"></span>
+                                                Cancelled
+                                            </span>
+                                            <span class="fw-bold text-dark">
+                                                <?php echo $statusCounts['cancelled']; ?> 
+                                                <small class="text-muted fw-normal" style="font-size: 0.68rem;">(<?php echo round(($statusCounts['cancelled'] / $totalOrderCount) * 100); ?>%)</small>
+                                            </span>
+                                        </div>
+                                        <div class="progress rounded-pill" style="height: 4px; background: #e2e8f0;">
+                                            <div class="progress-bar rounded-pill" style="width: <?php echo round(($statusCounts['cancelled'] / $totalOrderCount) * 100); ?>%; background: #ef4444;"></div>
+                                        </div>
+                                    </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center py-5">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 52px; height: 52px; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                                <i class="fas fa-chart-pie fa-2x"></i>
+                            </div>
+                            <div class="fw-bold text-dark small mb-1">No Orders Yet</div>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Create orders to see status distribution.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Footer Summary Strip -->
+                <div class="pt-2 border-top d-flex justify-content-between align-items-center mt-2">
+                    <span class="text-muted small" style="font-size: 0.74rem;">
+                        <i class="fas fa-tshirt me-1 text-primary"></i><strong><?php echo ($statusCounts['pending'] + $statusCounts['in_progress'] + $statusCounts['completed']); ?></strong> in production
+                    </span>
+                    <a href="orders.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 shadow-xs" style="font-size: 0.74rem;">
+                        All Orders &rarr;
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- 2. QUICK ACTIONS BAR -->
     <div class="mb-3">
         <div class="d-flex align-items-center mb-2">
             <i class="fas fa-bolt me-2" style="color: #6366f1; font-size: 0.88rem;"></i>
@@ -822,15 +1113,17 @@ if (empty($scheduleItems)) {
             </div>
         </div>
     </div>
-    <div class="row g-4 mb-4">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
-                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+
+    <!-- 3. RECENT ORDERS (Spacious Full-Width Table) -->
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom flex-wrap gap-2">
                     <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
                         <i class="fas fa-clock text-purple me-2" style="color: #8b5cf6;"></i><?php echo !empty($search) ? 'Orders Matching "' . htmlspecialchars($search) . '"' : 'Recent Orders'; ?>
                     </h6>
                     <a href="<?php echo !empty($search) ? 'orders?search=' . urlencode($search) : 'orders.php'; ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border-color: #e2e8f0; font-size: 0.78rem;">
-                        View All
+                        View All Orders
                     </a>
                 </div>
                 <div class="card-body p-0">
@@ -877,17 +1170,17 @@ if (empty($scheduleItems)) {
                                         <td class="fw-semibold text-dark"><?php echo htmlspecialchars($cName); ?></td>
                                         <td class="text-muted"><?php echo htmlspecialchars($order['cloth_type_name'] ?? 'Custom'); ?></td>
                                         <td class="fw-bold text-dark"><?php echo format_currency($order['total_amount']); ?></td>
-                                        <td class="text-muted"><?php echo format_date($order['due_date'], 'Y-m-d'); ?></td>
+                                        <td class="text-muted"><?php echo format_date($order['due_date'], 'd M Y'); ?></td>
                                         <td>
                                             <span class="badge rounded-pill" style="<?php echo $statusPillStyle; ?> font-size: 0.72rem; padding: 4px 10px; font-weight: 500;">
                                                 <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
                                             </span>
                                         </td>
                                         <td class="text-center pe-4">
-                                            <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-primary me-1 p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="View">
+                                            <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-primary me-1 p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="View Details">
                                                 <i class="fas fa-eye" style="font-size: 0.72rem;"></i>
                                             </a>
-                                            <a href="orders.php?edit=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-secondary p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="Edit">
+                                            <a href="orders.php?edit=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-secondary p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="Edit Order">
                                                 <i class="fas fa-pencil-alt" style="font-size: 0.72rem;"></i>
                                             </a>
                                         </td>
@@ -897,64 +1190,86 @@ if (empty($scheduleItems)) {
                             </table>
                         </div>
                     <?php else: ?>
-                        <div class="text-center py-5">
-                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3 opacity-50"></i>
-                            <div class="fw-bold text-dark fs-6 mb-1"><?php echo !empty($search) ? 'No Matching Orders' : 'No Orders Yet'; ?></div>
-                            <p class="text-muted small mb-3"><?php echo !empty($search) ? 'No orders matched "' . htmlspecialchars($search) . '".' : 'Create your first order to start tracking.'; ?></p>
-                            <?php if (empty($search)): ?>
-                            <a href="orders.php?action=create" class="btn btn-primary rounded-pill px-4 py-2">
-                                <i class="fas fa-plus me-1"></i> New Order
-                            </a>
-                            <?php else: ?>
-                            <a href="dashboard" class="btn btn-outline-secondary rounded-pill px-4 py-1 small">
-                                Clear Search
-                            </a>
-                            <?php endif; ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-clipboard-list fa-2x text-muted mb-2 opacity-50"></i>
+                            <div class="fw-bold text-dark small mb-1"><?php echo !empty($search) ? 'No Matching Orders' : 'No Orders Yet'; ?></div>
+                            <p class="text-muted small mb-2" style="font-size: 0.72rem;"><?php echo !empty($search) ? 'No orders matched.' : 'Create your first order to start tracking.'; ?></p>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4 d-flex flex-column gap-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                    <span class="fw-bold text-dark" style="font-size: 0.92rem;">
-                        <i class="fas fa-calendar-alt text-purple me-2" style="color: #8b5cf6;"></i>Today's Schedule
-                    </span>
-                    <a href="orders.php" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-0 bg-white" style="font-size: 0.72rem; border-color: #e2e8f0;">
-                        View All
-                    </a>
-                </div>
-                <div class="d-flex flex-column gap-3">
-                    <?php foreach ($scheduleItems as $sc): ?>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="badge rounded-pill text-white px-3 py-2 flex-shrink-0" style="background: <?php echo $sc['color']; ?>; font-size: 0.72rem; font-weight: 500;">
-                            <?php echo $sc['time']; ?>
-                        </span>
-                        <div class="text-truncate">
-                            <div class="fw-bold text-dark" style="font-size: 0.85rem;"><?php echo htmlspecialchars($sc['name']); ?></div>
-                            <div class="text-muted small text-truncate" style="font-size: 0.72rem;"><?php echo htmlspecialchars($sc['action']); ?></div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <div class="card border-0 shadow-sm rounded-4 p-3 overflow-hidden" style="background: #fff1f2; border: 1px solid #ffe4e6 !important;">
-                <div class="d-flex align-items-center justify-content-between">
+    </div>
+
+    <!-- 4. AT LAST: MONTHLY REVENUE GRAPH (col-lg-8) + GROW BUSINESS BANNER (col-lg-4) -->
+    <div class="row g-3 mb-4">
+        <!-- Monthly Revenue (col-lg-8) -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
-                        <h6 class="fw-bold text-dark mb-2" style="font-size: 0.95rem; line-height: 1.3;">
-                            Grow Your<br>Tailoring Business
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
+                            <i class="fas fa-chart-line text-purple me-2" style="color: #8b5cf6;"></i>Monthly Revenue
                         </h6>
-                        <ul class="list-unstyled mb-0 d-flex flex-column gap-1" style="font-size: 0.72rem; color: #334155;">
-                            <li><i class="fas fa-check-circle text-success me-1"></i> Manage Orders Easily</li>
-                            <li><i class="fas fa-check-circle text-success me-1"></i> Track Measurements</li>
-                            <li><i class="fas fa-check-circle text-success me-1"></i> Generate Invoices</li>
-                            <li><i class="fas fa-check-circle text-success me-1"></i> Keep Customers Happy</li>
+                        <small class="text-muted" style="font-size: 0.72rem;">Annual earnings and revenue growth trends</small>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border: 1px solid #e2e8f0; font-size: 0.75rem;" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt text-muted me-1" style="font-size: 0.70rem;"></i> This Year <i class="fas fa-chevron-down ms-1" style="font-size: 0.62rem;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px; font-size: 0.8rem;">
+                            <li><a class="dropdown-item active" href="#">This Year</a></li>
+                            <li><a class="dropdown-item" href="#">Last Year</a></li>
                         </ul>
                     </div>
-                    <div class="flex-shrink-0 ms-2">
-                        <img src="../assets/images/dashboard/grow_business_bg.png" alt="Tailoring Business" style="width: 140px; height: 110px; object-fit: cover; object-position: right center; border-radius: 12px;">
+                </div>
+                <div style="position: relative; height: 215px; width: 100%;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grow Your Tailoring Business Card (col-lg-4) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 overflow-hidden h-100 d-flex flex-column justify-content-between" style="background: #fff1f2; border: 1px solid #ffe4e6 !important;">
+                <!-- Header -->
+                <div class="mb-2">
+                    <h5 class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.3;">
+                        Grow Your Tailoring Business
+                    </h5>
+                </div>
+
+                <!-- Main Content: Features & Large Image -->
+                <div class="d-flex align-items-center justify-content-between gap-3 my-auto py-2">
+                    <ul class="list-unstyled mb-0 d-flex flex-column justify-content-between gap-3" style="font-size: 0.90rem; color: #334155;">
+                        <li class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2" style="font-size: 1rem;"></i>
+                            <span class="fw-semibold">Manage Orders Easily</span>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2" style="font-size: 1rem;"></i>
+                            <span class="fw-semibold">Track Measurements</span>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2" style="font-size: 1rem;"></i>
+                            <span class="fw-semibold">Generate Invoices</span>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2" style="font-size: 1rem;"></i>
+                            <span class="fw-semibold">Keep Customers Happy</span>
+                        </li>
+                    </ul>
+                    <div class="flex-shrink-0">
+                        <img src="../assets/images/dashboard/grow_business_bg.png" alt="Tailoring Business" style="width: 175px; height: 165px; object-fit: cover; object-position: center; border-radius: 16px; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.12); border: 2px solid #ffffff;">
                     </div>
+                </div>
+
+                <!-- Bottom Footer -->
+                <div class="pt-2 border-top d-flex justify-content-between align-items-center" style="border-color: rgba(255,228,230,0.9) !important;">
+                    <span class="text-muted fw-semibold" style="font-size: 0.76rem;">TailorPro Workshop</span>
+                    <a href="company-settings.php" class="btn btn-sm btn-danger rounded-pill px-3 py-1 shadow-xs fw-semibold" style="background: #e11d48; border-color: #e11d48; font-size: 0.78rem;">
+                        Shop Settings &rarr;
+                    </a>
                 </div>
             </div>
         </div>
@@ -995,7 +1310,119 @@ document.addEventListener('DOMContentLoaded', function() {
         gradient.addColorStop(0, 'rgba(139, 92, 246, 0.28)');
         gradient.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
 
-        new Chart(revenueCtx, {
+    const orderStatusCanvas = document.getElementById('orderStatusPieChart');
+    const orderStatusCtx = orderStatusCanvas?.getContext('2d');
+    if (orderStatusCtx) {
+        // Custom External HTML Tooltip so text NEVER gets clipped by canvas bounds
+        const getOrCreateTooltip = () => {
+            let tooltipEl = document.getElementById('chartjs-order-status-tooltip');
+            if (!tooltipEl) {
+                tooltipEl = document.createElement('div');
+                tooltipEl.id = 'chartjs-order-status-tooltip';
+                tooltipEl.style.background = 'rgba(15, 23, 42, 0.94)';
+                tooltipEl.style.borderRadius = '8px';
+                tooltipEl.style.color = '#ffffff';
+                tooltipEl.style.opacity = '0';
+                tooltipEl.style.pointerEvents = 'none';
+                tooltipEl.style.position = 'absolute';
+                tooltipEl.style.transform = 'translate(-50%, -125%)';
+                tooltipEl.style.transition = 'opacity .12s ease';
+                tooltipEl.style.padding = '6px 12px';
+                tooltipEl.style.fontSize = '12px';
+                tooltipEl.style.fontWeight = '500';
+                tooltipEl.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                tooltipEl.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.35)';
+                tooltipEl.style.zIndex = '99999';
+                tooltipEl.style.whiteSpace = 'nowrap';
+                document.body.appendChild(tooltipEl);
+            }
+            return tooltipEl;
+        };
+
+        const externalTooltipHandler = (context) => {
+            const {chart, tooltip} = context;
+            const tooltipEl = getOrCreateTooltip();
+
+            if (tooltip.opacity === 0) {
+                tooltipEl.style.opacity = '0';
+                return;
+            }
+
+            if (tooltip.dataPoints && tooltip.dataPoints.length > 0) {
+                const dp = tooltip.dataPoints[0];
+                const label = dp.label || '';
+                const val = dp.raw || 0;
+                const colors = ['#06b6d4', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'];
+                const color = colors[dp.dataIndex] || '#6366f1';
+                const total = dp.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+
+                tooltipEl.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; flex-shrink: 0;"></span>
+                        <span style="font-weight: 600;">${label}:</span>
+                        <span style="color: #f1f5f9;">${val} ${val === 1 ? 'order' : 'orders'} (${pct}%)</span>
+                    </div>
+                `;
+            }
+
+            const canvasRect = chart.canvas.getBoundingClientRect();
+            tooltipEl.style.opacity = '1';
+            tooltipEl.style.left = canvasRect.left + window.scrollX + tooltip.caretX + 'px';
+            tooltipEl.style.top = canvasRect.top + window.scrollY + tooltip.caretY + 'px';
+        };
+
+        orderStatusCanvas.addEventListener('mouseleave', () => {
+            const tooltipEl = document.getElementById('chartjs-order-status-tooltip');
+            if (tooltipEl) tooltipEl.style.opacity = '0';
+        });
+
+        new Chart(orderStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'In Progress',
+                    'Pending',
+                    'Completed',
+                    'Delivered'<?php echo $statusCounts['cancelled'] > 0 ? ", 'Cancelled'" : ""; ?>
+                ],
+                datasets: [{
+                    data: [
+                        <?php echo $statusCounts['in_progress']; ?>,
+                        <?php echo $statusCounts['pending']; ?>,
+                        <?php echo $statusCounts['completed']; ?>,
+                        <?php echo $statusCounts['delivered']; ?>
+                        <?php echo $statusCounts['cancelled'] > 0 ? ", " . $statusCounts['cancelled'] : ""; ?>
+                    ],
+                    backgroundColor: [
+                        '#06b6d4',
+                        '#f59e0b',
+                        '#10b981',
+                        '#8b5cf6'<?php echo $statusCounts['cancelled'] > 0 ? ", '#ef4444'" : ""; ?>
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4,
+                    cutout: '72%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false,
+                        external: externalTooltipHandler
+                    }
+                }
+            }
+        });
+    }
+
+    new Chart(revenueCtx, {
             type: 'line',
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],

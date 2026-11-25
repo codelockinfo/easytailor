@@ -377,35 +377,34 @@ include 'includes/page-header.php';
     </div>
 </div>
 <div class="row g-2 align-items-center mb-3">
-    <div class="col-12 col-md-4">
+    <div class="col-12 col-md-6 col-lg-6">
         <div class="position-relative">
             <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.9rem;"></i>
-            <input type="text" id="searchInput" class="form-control" placeholder="Search customer, code, phone..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 0.8rem; height: 42px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search customer, code, phone..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 0.8rem; height: 42px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
         </div>
     </div>
-    <div class="col-6 col-sm-3 col-md-2">
-        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    <div class="col-6 col-sm-3 col-md-2 col-lg-2">
+        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
     </div>
-    <div class="col-6 col-sm-3 col-md-2">
-        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+    <div class="col-6 col-sm-3 col-md-2 col-lg-2">
+        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
     </div>
-    <div class="col-6  col-sm-3 col-md-2">
-        <button type="button" id="clearSearch" class="btn btn-outline-danger align-items-center justify-content-center" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo empty($search) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
+    <div class="col-12 col-sm-6 col-md-2 col-lg-2 d-flex gap-2 justify-content-end">
+        <button type="button" id="clearSearch" class="btn btn-outline-danger align-items-center justify-content-center text-nowrap flex-grow-1" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo empty($search) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
             <i class="fas fa-times me-1"></i> Clear
         </button>
         <?php 
         $exportCheck = SubscriptionHelper::canExportData($companyId);
         if ($exportCheck['allowed']): 
         ?>
-            <button type="button" class="btn btn-outline-secondary align-items-center justify-content-center text-nowrap" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" onclick="exportCustomers()" title="Export Customers">
+            <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center text-nowrap w-100" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" onclick="exportCustomers()" title="Export Customers">
                 <i class="fas fa-download me-1"></i> Export
             </button>
         <?php else: ?>
-            <a href="subscriptions.php" class="btn btn-outline-secondary align-items-center justify-content-center text-muted text-nowrap" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" title="Upgrade to Premium to Export">
+            <a href="subscriptions.php" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center text-muted text-nowrap w-100" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 14px; border-color: #cbd5e1;" title="Upgrade to Premium to Export">
                 <i class="fas fa-lock me-1 text-warning"></i> Export
             </a>
         <?php endif; ?>
-       
     </div>
 </div>
 

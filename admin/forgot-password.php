@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <small>Enter your email address and we'll send you a 6-digit verification code to reset your password.</small>
                         </div>
                         
-                        <form method="POST" action="">
+                        <form method="POST" action="" id="forgotPasswordForm">
                             <div class="mb-4">
                                 <label for="email" class="form-label">Email Address</label>
                                 <div class="input-group">
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-reset">
+                                <button type="submit" class="btn btn-primary btn-reset" id="btnSendCode">
                                     <i class="fas fa-paper-plane me-2"></i>
                                     Send Verification Code
                                 </button>
@@ -210,6 +210,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 bsAlert.close();
             });
         }, 5000);
+
+        // Show loader on form submission
+        const forgotForm = document.getElementById('forgotPasswordForm');
+        const btnSend = document.getElementById('btnSendCode');
+        const emailInput = document.getElementById('email');
+
+        if (forgotForm && btnSend) {
+            forgotForm.addEventListener('submit', function(e) {
+                if (!emailInput.value.trim() || !emailInput.checkValidity()) {
+                    return;
+                }
+                btnSend.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Sending Verification Code...';
+                btnSend.style.pointerEvents = 'none';
+                btnSend.style.opacity = '0.85';
+            });
+        }
     </script>
 </body>
 </html>

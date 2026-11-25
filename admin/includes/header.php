@@ -21,12 +21,29 @@ if (has_role('tailor')) {
 require_once __DIR__ . '/../../config/database.php';
 $database = new Database();
 $db = $database->getConnection();
-$stmt = $db->prepare("SELECT profile_image FROM users WHERE id = :id");
+$stmt = $db->prepare("SELECT profile_image, role, full_name, username, company_id FROM users WHERE id = :id");
 $userId = $current_user['id'];
 $stmt->bindParam(':id', $userId);
 $stmt->execute();
 $headerUserData = $stmt->fetch(PDO::FETCH_ASSOC);
 $current_user['profile_image'] = $headerUserData['profile_image'] ?? null;
+if (!empty($headerUserData)) {
+    if (empty($current_user['role']) && !empty($headerUserData['role'])) {
+        $current_user['role'] = $headerUserData['role'];
+        $_SESSION['user_role'] = $headerUserData['role'];
+    }
+    if ((empty($current_user['name']) || $current_user['name'] === 'User') && !empty($headerUserData['full_name'])) {
+        $current_user['name'] = $headerUserData['full_name'];
+        $_SESSION['user_name'] = $headerUserData['full_name'];
+    }
+    if (empty($current_user['username']) && !empty($headerUserData['username'])) {
+        $current_user['username'] = $headerUserData['username'];
+        $_SESSION['username'] = $headerUserData['username'];
+    }
+    if (empty($_SESSION['company_id']) && !empty($headerUserData['company_id'])) {
+        $_SESSION['company_id'] = $headerUserData['company_id'];
+    }
+}
 require_once __DIR__ . '/../../helpers/NotificationService.php';
 $notifService = new NotificationService($db);
 $unreadNotifCount = 0;
@@ -1429,15 +1446,15 @@ $seoOptions = [
                                     $link = !empty($nItem['link']) ? $nItem['link'] : 'orders.php';
                                 ?>
                                 <li class="notif-item-row" data-id="<?php echo (int)$nItem['id']; ?>">
-                                    <a class="dropdown-item d-flex align-items-start gap-2 p-2 rounded <?php echo $bgClass; ?>" href="<?php echo htmlspecialchars($link); ?>" style="white-space: normal;" onclick="window.markNotifRead(<?php echo (int)$nItem['id']; ?>, event, '<?php echo htmlspecialchars($link); ?>')">
-                                        <i class="<?php echo htmlspecialchars($nItem['icon']); ?> mt-1" style="font-size: 1rem;"></i>
+                                    <a class="dropdown-item d-flex align-items-start gap-2 p-2 rounded <?php echo $bgClass; ?>" href="<?php echo htmlspecialchars((string)$link); ?>" style="white-space: normal;" onclick="window.markNotifRead(<?php echo (int)$nItem['id']; ?>, event, '<?php echo htmlspecialchars((string)$link); ?>')">
+                                        <i class="<?php echo htmlspecialchars((string)($nItem['icon'] ?? 'fas fa-bell')); ?> mt-1" style="font-size: 1rem;"></i>
                                         <div class="flex-grow-1" style="min-width: 0;">
                                             <div class="d-flex align-items-center justify-content-between">
-                                                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;"><?php echo htmlspecialchars($nItem['title']); ?></div>
+                                                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;"><?php echo htmlspecialchars((string)($nItem['title'] ?? 'Notification')); ?></div>
                                                 <?php echo $unreadDot; ?>
                                             </div>
-                                            <div class="text-muted text-break" style="font-size: 0.74rem; line-height: 1.35;"><?php echo htmlspecialchars($nItem['message']); ?></div>
-                                            <div class="text-secondary mt-1" style="font-size: 0.68rem;"><i class="far fa-clock me-1"></i><?php echo htmlspecialchars($nItem['time_ago'] ?? 'Recent'); ?></div>
+                                            <div class="text-muted text-break" style="font-size: 0.74rem; line-height: 1.35;"><?php echo htmlspecialchars((string)($nItem['message'] ?? '')); ?></div>
+                                            <div class="text-secondary mt-1" style="font-size: 0.68rem;"><i class="far fa-clock me-1"></i><?php echo htmlspecialchars((string)($nItem['time_ago'] ?? 'Recent')); ?></div>
                                         </div>
                                     </a>
                                 </li>
@@ -1453,7 +1470,7 @@ $seoOptions = [
                 </div>
                 <div class="dropdown">
                     <?php
-                    $name = $current_user['name'];
+                    $name = (string)($current_user['name'] ?? $current_user['username'] ?? 'User');
                     $nameParts = explode(' ', trim($name));
                     $initials = '';
                     if (count($nameParts) >= 2) {
@@ -1467,18 +1484,18 @@ $seoOptions = [
                     <button class="user-pill-btn dropdown-toggle p-0 p-sm-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="user-avatar-circle">
                             <?php if ($hasHeaderImage): ?>
-                                <img src="../<?php echo htmlspecialchars($current_user['profile_image']); ?>" alt="<?php echo htmlspecialchars($initials); ?>">
+                                <img src="../<?php echo htmlspecialchars((string)$current_user['profile_image']); ?>" alt="<?php echo htmlspecialchars((string)$initials); ?>">
                             <?php else: ?>
-                                <span><?php echo htmlspecialchars($initials); ?></span>
+                                <span><?php echo htmlspecialchars((string)$initials); ?></span>
                             <?php endif; ?>
                         </div>
-                        <span class="user-pill-name d-none d-sm-inline"><?php echo htmlspecialchars($firstName); ?></span>
+                        <span class="user-pill-name d-none d-sm-inline"><?php echo htmlspecialchars((string)$firstName); ?></span>
                         <i class="fas fa-chevron-down user-pill-chevron ms-1 d-none d-sm-inline"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px; min-width: 200px; z-index: 1060;">
                         <li class="px-3 py-2">
-                            <div class="fw-bold text-dark" style="font-size: 0.9rem;"><?php echo htmlspecialchars($current_user['name']); ?></div>
-                            <small class="text-muted text-capitalize" style="font-size: 0.75rem;"><?php echo htmlspecialchars($current_user['role']); ?></small>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;"><?php echo htmlspecialchars((string)($current_user['name'] ?? 'User')); ?></div>
+                            <small class="text-muted text-capitalize" style="font-size: 0.75rem;"><?php echo htmlspecialchars((string)($current_user['role'] ?? '')); ?></small>
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-primary"></i> Profile</a></li>

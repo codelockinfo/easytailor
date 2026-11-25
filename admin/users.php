@@ -1041,7 +1041,7 @@ include 'includes/page-header.php';
                             <span class="badge rounded-pill bg-light text-dark border px-2 py-1" id="tailorItemsCountBadge" style="font-size: 0.72rem;">0 Items</span>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 justify-content-end">
-                            <select id="tailorModalStatusFilter" class="form-select form-select-sm" style="width: auto; min-width: 130px; border-radius: 10px; font-size: 0.8rem; height: 36px;">
+                            <select id="tailorModalStatusFilter" class="form-select form-select-sm" style="width: auto; min-width: 130px; border-radius: 10px; font-size: 0.8rem; ">
                                 <option value="">All Statuses</option>
                                 <option value="pending">Pending</option>
                                 <option value="in_progress">In Progress</option>

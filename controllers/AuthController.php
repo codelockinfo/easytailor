@@ -29,7 +29,7 @@ class AuthController {
         }
         $companyModel = new Company();
         $company = $companyModel->find($user['company_id']);
-        if ($company && $company['subscription_expiry']) {
+        if ($company && !empty($company['subscription_expiry']) && ($company['subscription_plan'] ?? '') !== 'free') {
             $expiry = strtotime($company['subscription_expiry']);
             $today = strtotime(date('Y-m-d'));
             if ($expiry < $today) {
@@ -129,7 +129,7 @@ class AuthController {
 
             $companyName = $fullName . "'s Tailor Shop";
             $subscriptionPlan = 'free';
-            $subscriptionExpiry = date('Y-m-d', strtotime('+30 days'));
+            $subscriptionExpiry = null;
 
             if (isset($_COOKIE['promo_offer_source']) && $_COOKIE['promo_offer_source'] === 'promo_popup') {
                 $subscriptionPlan = 'premium';

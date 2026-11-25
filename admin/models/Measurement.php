@@ -262,6 +262,28 @@ class Measurement extends BaseModel {
     /**
      * Override count to include company_id filter
      */
+    /**
+     * Get distinct customer names from measurements
+     */
+    public function getDistinctCustomerNames() {
+        $companyId = $this->getCompanyId();
+        $query = "SELECT m.name as customer_name, MAX(m.phone_number) as phone_number, MAX(m.id) as max_id
+                  FROM " . $this->table . " m
+                  WHERE m.name IS NOT NULL AND m.name != ''";
+        if ($companyId) {
+            $query .= " AND m.company_id = :company_id";
+        }
+        $query .= " GROUP BY m.name ORDER BY max_id DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
+
     public function count($conditions = []) {
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {

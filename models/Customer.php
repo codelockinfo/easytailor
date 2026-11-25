@@ -176,11 +176,15 @@ class Customer extends BaseModel {
         }
         $stats['inactive'] = max(0, $stats['total'] - $stats['active']);
         
-        $this_month = date('Y-m-01');
-        $query = "SELECT COUNT(*) as count FROM " . $this->table . " WHERE created_at >= :this_month";
+        $this_month = date('Y-m-01 00:00:00');
+        $query = "SELECT COUNT(*) as count FROM (
+                    SELECT 1 FROM " . $this->table . " 
+                    WHERE created_at >= :this_month";
         if ($companyId) {
             $query .= " AND company_id = :company_id";
         }
+        $query .= " GROUP BY phone_number, name
+                  ) as distinct_customers";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':this_month', $this_month);
         if ($companyId) {
@@ -188,7 +192,7 @@ class Customer extends BaseModel {
         }
         $stmt->execute();
         $result = $stmt->fetch();
-        $stats['this_month'] = $result['count'];
+        $stats['this_month'] = (int)($result['count'] ?? 0);
         
         return $stats;
     }
@@ -325,6 +329,10 @@ class Customer extends BaseModel {
     }
 
     public function count($conditions = []) {
+        $conn = $this->conn;
+        if (!$conn) {
+            return 0;
+        }
         $companyId = $this->getCompanyId();
         if ($companyId && !isset($conditions['company_id'])) {
             $conditions['company_id'] = $companyId;
@@ -343,7 +351,28 @@ class Customer extends BaseModel {
         if (isset($conditions['status']) && !$this->hasStatusColumn()) {
             unset($conditions['status']);
         }
-        return parent::count($conditions);
+
+        $query = "SELECT COUNT(*) as count FROM (
+                    SELECT 1 FROM " . $this->table;
+        $params = [];
+        if (!empty($conditions)) {
+            $where_clauses = [];
+            foreach ($conditions as $column => $value) {
+                $where_clauses[] = $column . " = :" . $column;
+                $params[$column] = $value;
+            }
+            $query .= " WHERE " . implode(" AND ", $where_clauses);
+        }
+        $query .= " GROUP BY phone_number, name
+                  ) as distinct_customers";
+
+        $stmt = $conn->prepare($query);
+        foreach ($params as $param => $value) {
+            $stmt->bindValue(':' . $param, $value);
+        }
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($result['count'] ?? 0);
     }
 
     public function update($id, $data) {

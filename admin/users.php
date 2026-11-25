@@ -477,10 +477,17 @@ include 'includes/page-header.php';
     
     <!-- 4. Add User button -->
     <div class="col-12 col-md-3 col-lg-2 d-flex justify-content-md-end">
-        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap w-100 w-md-auto px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#userModal" <?php echo !$userLimitCheck['allowed'] ? 'disabled title="User limit reached"' : ''; ?>>
-            <i class="fas fa-plus"></i>
-            <span>Add User</span>
-        </button>
+        <?php if (!$userLimitCheck['allowed']): ?>
+<button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap w-100 w-md-auto px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; opacity: 0.65;" data-bs-toggle="modal" data-bs-target="#userLimitUpgradeModal" title="User limit reached. Click to upgrade your plan.">
+    <i class="fas fa-plus"></i>
+    <span>Add User</span>
+</button>
+<?php else: ?>
+<button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap w-100 w-md-auto px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#userModal">
+    <i class="fas fa-plus"></i>
+    <span>Add User</span>
+</button>
+<?php endif; ?>
     </div>
 </div>
 
@@ -760,6 +767,27 @@ include 'includes/page-header.php';
 </div>
 
 <!-- Add/Edit User Modal -->
+<div class="modal fade" id="userLimitUpgradeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-crown fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">User Limit Reached</h5>
+                <p class="text-muted small mb-4">
+                    <?php echo htmlspecialchars($userLimitCheck['message'] ?? 'You have reached the maximum limit of users for your plan. Please upgrade your subscription to add more users.'); ?>
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 12px; font-size: 0.85rem;">Cancel</button>
+                    <a href="subscriptions.php" class="btn text-white px-4 fw-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;">
+                        <i class="fas fa-arrow-up me-1"></i> Upgrade Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="userModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">

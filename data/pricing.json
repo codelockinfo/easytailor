@@ -1,11 +1,11 @@
 {
   "plans": {
     "free": {
-      "name": "Free Trial",
+      "name": "Free Plan",
       "display_name": "Starter",
       "price": 0,
       "price_annual": 0,
-      "duration": "30 days",
+      "duration": "Lifetime",
       "description": "Perfect for small tailoring shops",
       "features": [
         "Up to 30 customers",

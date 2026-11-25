@@ -6,6 +6,7 @@ require_login();
 require_once 'models/Measurement.php';
 require_once '../models/Customer.php';
 require_once 'models/ClothType.php';
+require_once '../helpers/SubscriptionHelper.php';
 
 $measurementModel = new Measurement();
 $customerModel = new Customer();
@@ -97,6 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'add':
+                $checkCompanyId = get_company_id();
+                $customerLimitCheck = SubscriptionHelper::canAddCustomer($checkCompanyId);
+                if (!$customerLimitCheck['allowed']) {
+                    $_SESSION['error_message'] = $customerLimitCheck['message'] . ' ' . SubscriptionHelper::getUpgradeMessage('customers', SubscriptionHelper::getCurrentPlan($checkCompanyId));
+                    header('Location: measurements.php');
+                    exit;
+                }
                 error_log('POST data: ' . print_r($_POST, true));
                 
                 $name = sanitize_input($_POST['name'] ?? '');
@@ -425,6 +433,9 @@ if (isset($_GET['edit'])) {
 }
 
 $stats = $measurementModel->getMeasurementStats();
+$companyId = get_company_id();
+$currentPlan = SubscriptionHelper::getCurrentPlan($companyId);
+$customerLimitCheck = SubscriptionHelper::canAddCustomer($companyId);
 
 $page_title = 'Measurements';
 require_once 'includes/header.php';
@@ -596,6 +607,21 @@ if (!function_exists('getCustomerAvatarDesign')) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
+<?php if (isset($customerLimitCheck['remaining']) && $customerLimitCheck['remaining'] <= 5 && $customerLimitCheck['remaining'] > 0): ?>
+<div class="alert alert-warning alert-dismissible fade show mb-3" style="border-radius: 12px;">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Customer Limit Warning:</strong> You have <?php echo $customerLimitCheck['remaining']; ?> customer slot(s) remaining in your <?php echo ucfirst($currentPlan); ?> plan.
+    <a href="subscriptions.php" class="alert-link fw-semibold">Upgrade your plan</a> to add more customers.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php elseif (!$customerLimitCheck['allowed']): ?>
+<div class="alert alert-danger alert-dismissible fade show mb-3" style="border-radius: 12px;">
+    <i class="fas fa-ban me-2"></i>
+    <strong>Customer Limit Reached:</strong> <?php echo $customerLimitCheck['message']; ?>
+    <a href="subscriptions.php" class="alert-link fw-semibold">Upgrade your plan</a> to add more customers.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
 <?php
 $pageHeaderTitle = 'Measurements';
 $pageHeaderSubtitle = 'Track and manage your customer garment measurements easily.';
@@ -706,10 +732,17 @@ include 'includes/page-header.php';
         <button type="button" id="clearFilters" class="btn btn-outline-danger align-items-center justify-content-center" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo (empty($search) && empty($cloth_type_id) && empty($start_date) && empty($end_date)) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
             <i class="fas fa-times me-1"></i> Clear
         </button>
+        <?php if (!$customerLimitCheck['allowed']): ?>
+        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 flex-grow-1 text-nowrap px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; opacity: 0.65;" data-bs-toggle="modal" data-bs-target="#limitUpgradeModal" title="Customer limit reached. Click to upgrade your plan.">
+            <i class="fas fa-plus"></i>
+            <span>Add Measurement</span>
+        </button>
+        <?php else: ?>
         <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 flex-grow-1 text-nowrap px-3 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#addMeasurementModal">
             <i class="fas fa-plus"></i>
             <span>Add Measurement</span>
         </button>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -917,11 +950,38 @@ include 'includes/page-header.php';
                 <i class="fas fa-ruler-combined fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted">No measurements found</h5>
                 <p class="text-muted small">Start by adding your first measurement.</p>
+                <?php if (!$customerLimitCheck['allowed']): ?>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#limitUpgradeModal" style="border-radius: 12px; opacity: 0.65;">
+                    <i class="fas fa-plus me-1"></i>Add Measurement
+                </button>
+                <?php else: ?>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMeasurementModal" style="border-radius: 12px;">
                     <i class="fas fa-plus me-1"></i>Add Measurement
                 </button>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
+    </div>
+</div>
+<div class="modal fade" id="limitUpgradeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-crown fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Customer Limit Reached</h5>
+                <p class="text-muted small mb-4">
+                    <?php echo htmlspecialchars($customerLimitCheck['message'] ?? 'You have reached the maximum limit of 30 customers for your free plan. Please upgrade your subscription to add more customers.'); ?>
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 12px; font-size: 0.85rem;">Cancel</button>
+                    <a href="subscriptions.php" class="btn text-white px-4 fw-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;">
+                        <i class="fas fa-arrow-up me-1"></i> Upgrade Plan
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <div class="modal fade" id="addMeasurementModal" tabindex="-1">

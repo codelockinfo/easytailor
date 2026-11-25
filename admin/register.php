@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->beginTransaction();
             $cameFromOffer = false;
             $subscriptionPlan = 'free';
-            $subscriptionExpiry = date('Y-m-d', strtotime('+30 days'));
+            $subscriptionExpiry = null;
             
             if (isset($_COOKIE['promo_offer_source']) && $_COOKIE['promo_offer_source'] === 'promo_popup') {
                 $cameFromOffer = true;
@@ -137,7 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // Commit transaction
-            $db->commit();
+            if (isset($db) && $db->inTransaction()) {
+                $db->commit();
+            }
 
             // Attempt to send welcome email (non-blocking)
             $mailService = new MailService();
@@ -251,7 +253,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
         } catch (Exception $e) {
             // Rollback on error
-            $db->rollBack();
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
             
             // Convert technical errors to user-friendly messages
             $errorMsg = $e->getMessage();

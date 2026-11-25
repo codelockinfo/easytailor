@@ -22,7 +22,7 @@ if (!$company) {
     exit;
 }
 $planStyles = [
-    'free' => ['label' => 'Free Trial', 'color' => '#6c757d', 'badge' => 'secondary'],
+    'free' => ['label' => 'Free Plan', 'color' => '#6c757d', 'badge' => 'secondary'],
     'basic' => ['label' => 'Basic Plan', 'color' => '#3b82f6', 'badge' => 'primary'],
     'premium' => ['label' => 'Premium Plan', 'color' => '#c026d3', 'badge' => 'pink'],
     'enterprise' => ['label' => 'Enterprise Plan', 'color' => '#fbbf24', 'badge' => 'warning']
@@ -516,10 +516,15 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                         <i class="fas fa-calendar company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
                                         <span class="company-info-text">Joined: <?php echo !empty($company['created_at']) ? date('M d, Y', strtotime($company['created_at'])) : '—'; ?></span>
                                     </div>
-                                    <?php if (!empty($company['subscription_expiry'])): ?>
+                                    <?php if (!empty($company['subscription_expiry']) && $planKey !== 'free'): ?>
                                     <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
                                         <i class="fas fa-flag-checkered company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
                                         <span class="company-info-text">Expiry: <?php echo date('M d, Y', strtotime($company['subscription_expiry'])); ?></span>
+                                    </div>
+                                    <?php elseif ($planKey === 'free'): ?>
+                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
+                                        <i class="fas fa-infinity company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
+                                        <span class="company-info-text">Duration: Lifetime</span>
                                     </div>
                                     <?php endif; ?>
                                     <?php if ($cameFromOffer): ?>
@@ -1967,7 +1972,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                 <div class="card subscription-option subscription-free" data-plan="free" style="cursor: pointer; transition: all 0.3s;">
                                     <div class="card-body text-center">
                                         <h6 class="card-title mb-2">
-                                            <i class="fas fa-gift text-secondary"></i> Free Trial
+                                            <i class="fas fa-gift text-secondary"></i> Free Plan
                                         </h6>
                                         <p class="text-muted small mb-0">Basic features for small businesses</p>
                                     </div>
@@ -2270,7 +2275,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                 return;
             }
             const planLabels = {
-                'free': 'Free Trial',
+                'free': 'Free Plan',
                 'basic': 'Basic Plan',
                 'premium': 'Premium Plan',
                 'enterprise': 'Enterprise Plan'

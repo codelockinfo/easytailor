@@ -3,7 +3,7 @@ $page_title = 'Dashboard';
 require_once 'includes/header.php';
 require_once '../models/Customer.php';
 require_once 'models/Order.php';
-require_once 'models/Invoice.php';
+
 require_once 'models/User.php';
 require_once '../models/EmailChangeRequest.php';
 require_once 'models/Company.php';
@@ -11,13 +11,13 @@ require_once 'models/ClothType.php';
 require_once 'models/Category.php';
 $customerModel = new Customer();
 $orderModel = new Order();
-$invoiceModel = new Invoice();
+
 $userModel = new User();
 $emailChangeRequestModel = new EmailChangeRequest();
 $companyModelForProgress = new Company();
 $customerStats = $customerModel->getCustomerStats();
 $orderStats = $orderModel->getOrderStats();
-$invoiceStats = $invoiceModel->getInvoiceStats();
+
 $userStats = $userModel->getUserStats();
 $companyId = get_company_id();
 
@@ -581,11 +581,12 @@ if (empty($scheduleItems)) {
     <?php endif; ?>
 
     <div class="row g-2 g-md-3 mb-2 mb-md-3">
+        <!-- 1. Advance Amount -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #faf5ff; border: 1px solid #f3e8ff !important;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #ede9fe; color: #7c3aed;">
-                        <i class="fas fa-wallet" style="font-size: 0.85rem;"></i>
+                        <i class="fas fa-hand-holding-usd" style="font-size: 0.85rem;"></i>
                     </div>
                     <div class="d-flex align-items-end gap-1 opacity-75">
                         <span style="width: 3px; height: 7px; background: #c084fc; border-radius: 2px;"></span>
@@ -595,60 +596,17 @@ if (empty($scheduleItems)) {
                     </div>
                 </div>
                 <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;">₹<?php echo number_format($currentMonthRevenue); ?></div>
-                    <div class="text-success fw-semibold" style="font-size: 0.63rem; line-height: 1.2;">
-                        <i class="fas fa-arrow-up me-1" style="font-size: 0.55rem;"></i>+3% this month
-                    </div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2;">Monthly Revenue</div>
+                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_advance'] ?? 0); ?></div>
+                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Advance Amount</div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #dcfce7; color: #10b981;">
-                        <i class="fas fa-layer-group" style="font-size: 0.85rem;"></i>
-                    </div>
-                    <div class="d-flex align-items-end gap-1 opacity-75">
-                        <span style="width: 3px; height: 7px; background: #86efac; border-radius: 2px;"></span>
-                        <span style="width: 3px; height: 13px; background: #4ade80; border-radius: 2px;"></span>
-                        <span style="width: 3px; height: 10px; background: #22c55e; border-radius: 2px;"></span>
-                        <span style="width: 3px; height: 18px; background: #16a34a; border-radius: 2px;"></span>
-                    </div>
-                </div>
-                <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo number_format($orderStats['total'] ?? 0); ?></div>
-                    <div class="text-success fw-semibold" style="font-size: 0.63rem; line-height: 1.2;">
-                        <i class="fas fa-arrow-up me-1" style="font-size: 0.55rem;"></i>+3% this month
-                    </div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2;">Total Orders</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fffbeb; border: 1px solid #fef3c7 !important;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #fef3c7; color: #f59e0b;">
-                        <i class="fas fa-file-invoice" style="font-size: 0.85rem;"></i>
-                    </div>
-                    <div class="d-flex align-items-end gap-1 opacity-75">
-                        <span style="width: 3px; height: 6px; background: #fde68a; border-radius: 2px;"></span>
-                        <span style="width: 3px; height: 11px; background: #fcd34d; border-radius: 2px;"></span>
-                        <span style="width: 3px; height: 15px; background: #fbbf24; border-radius: 2px;"></span>
-                        <span style="width: 3px; height: 18px; background: #f59e0b; border-radius: 2px;"></span>
-                    </div>
-                </div>
-                <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo number_format($invoiceStats['total'] ?? 0); ?></div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Invoices</div>
-                </div>
-            </div>
-        </div>
+        <!-- 2. Pending Amount -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fff1f2; border: 1px solid #fee2e2 !important;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #fee2e2; color: #ef4444;">
-                        <i class="fas fa-bell" style="font-size: 0.85rem;"></i>
+                        <i class="fas fa-clock" style="font-size: 0.85rem;"></i>
                     </div>
                     <div class="d-flex align-items-end gap-1 opacity-75">
                         <span style="width: 3px; height: 7px; background: #fca5a5; border-radius: 2px;"></span>
@@ -658,12 +616,53 @@ if (empty($scheduleItems)) {
                     </div>
                 </div>
                 <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo (int)($orderStats['pending'] ?? 0); ?></div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Pending Orders</div>
+                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_pending'] ?? 0); ?></div>
+                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Pending Amount</div>
+                </div>
+            </div>
+        </div>
+        <!-- 3. Total Amount -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #dcfce7; color: #10b981;">
+                        <i class="fas fa-money-bill-wave" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div class="d-flex align-items-end gap-1 opacity-75">
+                        <span style="width: 3px; height: 7px; background: #86efac; border-radius: 2px;"></span>
+                        <span style="width: 3px; height: 13px; background: #4ade80; border-radius: 2px;"></span>
+                        <span style="width: 3px; height: 10px; background: #22c55e; border-radius: 2px;"></span>
+                        <span style="width: 3px; height: 18px; background: #16a34a; border-radius: 2px;"></span>
+                    </div>
+                </div>
+                <div class="mt-1 pt-1">
+                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_amount'] ?? 0); ?></div>
+                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Amount</div>
+                </div>
+            </div>
+        </div>
+        <!-- 4. Total Orders -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fffbeb; border: 1px solid #fef3c7 !important;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #fef3c7; color: #f59e0b;">
+                        <i class="fas fa-layer-group" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div class="d-flex align-items-end gap-1 opacity-75">
+                        <span style="width: 3px; height: 6px; background: #fde68a; border-radius: 2px;"></span>
+                        <span style="width: 3px; height: 11px; background: #fcd34d; border-radius: 2px;"></span>
+                        <span style="width: 3px; height: 15px; background: #fbbf24; border-radius: 2px;"></span>
+                        <span style="width: 3px; height: 18px; background: #f59e0b; border-radius: 2px;"></span>
+                    </div>
+                </div>
+                <div class="mt-1 pt-1">
+                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo number_format($orderStats['total'] ?? 0); ?></div>
+                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Orders</div>
                 </div>
             </div>
         </div>
     </div>
+
     <div class="row g-3 mb-3">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">

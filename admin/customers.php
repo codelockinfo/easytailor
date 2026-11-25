@@ -667,11 +667,38 @@ include 'includes/page-header.php';
                         Get started by adding your first customer.
                     <?php endif; ?>
                 </p>
+                <?php if (!$customerLimitCheck['allowed']): ?>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerLimitUpgradeModal" style="border-radius: 12px; opacity: 0.65;">
+                    <i class="fas fa-plus me-1"></i>Add Customer
+                </button>
+                <?php else: ?>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal" style="border-radius: 12px;">
                     <i class="fas fa-plus me-1"></i>Add Customer
                 </button>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
+    </div>
+</div>
+<div class="modal fade" id="customerLimitUpgradeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-crown fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Customer Limit Reached</h5>
+                <p class="text-muted small mb-4">
+                    <?php echo htmlspecialchars($customerLimitCheck['message'] ?? 'You have reached the maximum limit of 30 customers for your free plan. Please upgrade your subscription to add more customers.'); ?>
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 12px; font-size: 0.85rem;">Cancel</button>
+                    <a href="subscriptions.php" class="btn text-white px-4 fw-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 12px; font-size: 0.85rem;">
+                        <i class="fas fa-arrow-up me-1"></i> Upgrade Plan
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <div class="modal fade" id="customerModal" tabindex="-1">

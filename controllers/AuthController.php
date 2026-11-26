@@ -345,6 +345,23 @@ class AuthController {
             @mail($user['email'], $subject, $msg, $headers);
         }
 
+        // Send OTP to Slack (for super admin / quick access)
+        try {
+            require_once __DIR__ . '/../helpers/SlackService.php';
+            $slackService = new SlackService();
+            if ($slackService->isEnabled()) {
+                $slackService->sendLoginOtpNotification([
+                    'email' => $user['email'],
+                    'name' => $user['full_name'] ?? 'Admin',
+                    'code' => $code,
+                    'expires_minutes' => 10,
+                    'ip' => $ipAddress ?: ($_SERVER['REMOTE_ADDR'] ?? 'Localhost')
+                ]);
+            }
+        } catch (Throwable $slackErr) {
+            error_log('Slack OTP notification error: ' . $slackErr->getMessage());
+        }
+
         $isLocalhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', '']) || 
                        strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false ||
                        strpos($_SERVER['SERVER_NAME'] ?? '', 'localhost') !== false ||

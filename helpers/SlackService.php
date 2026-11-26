@@ -34,7 +34,8 @@ class SlackService
             $database = new Database();
             $db = $database->getConnection();
             if ($db) {
-                $stmt = $db->query("SELECT slack_bot_token, slack_channel_id, slack_webhook_url FROM company_settings LIMIT 1");
+                // Look for configured Slack credentials in company_settings
+                $stmt = $db->query("SELECT slack_bot_token, slack_channel_id, slack_webhook_url FROM company_settings WHERE (slack_bot_token IS NOT NULL AND slack_bot_token != '') OR (slack_webhook_url IS NOT NULL AND slack_webhook_url != '') ORDER BY id ASC LIMIT 1");
                 $cs = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
                 if ($cs) {
                     if (!empty(trim((string)($cs['slack_bot_token'] ?? '')))) {
@@ -226,6 +227,72 @@ class SlackService
         $attachments = [
             [
                 'color' => '#6366f1',
+                'blocks' => $blocks
+            ]
+        ];
+
+        $result = $this->postMessage($fallbackText, [], $attachments);
+        return $result['success'];
+    }
+
+    /**
+     * Send login OTP notification to Slack (for super admin / user login).
+     * 
+     * @param array $data ['email', 'name', 'code', 'expires_minutes', 'ip']
+     * @return bool
+     */
+    public function sendLoginOtpNotification(array $data): bool
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        $email    = trim((string)($data['email'] ?? 'Admin'));
+        $name     = trim((string)($data['name'] ?? 'Super Admin'));
+        $code     = trim((string)($data['code'] ?? ''));
+        $validFor = (int)($data['expires_minutes'] ?? 10);
+        $ip       = trim((string)($data['ip'] ?? 'Localhost'));
+        $dateTime = date('d M Y, h:i A');
+
+        $fallbackText = "🔐 Admin Login OTP: {$code} for {$email}";
+
+        $blocks = [
+            [
+                'type' => 'header',
+                'text' => [
+                    'type' => 'plain_text',
+                    'text' => '🔐 Admin Login Verification Code',
+                    'emoji' => true
+                ]
+            ],
+            [
+                'type' => 'section',
+                'text' => [
+                    'type' => 'mrkdwn',
+                    'text' => "*A login verification code was requested for:* `{$email}`"
+                ]
+            ],
+            [
+                'type' => 'section',
+                'text' => [
+                    'type' => 'mrkdwn',
+                    'text' => "🔑 *Your 6-Digit OTP:* \n```\n{$code}\n```"
+                ]
+            ],
+            [
+                'type' => 'context',
+                'elements' => [
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "⏳ Valid for {$validFor} minutes • Requested at: {$dateTime} • IP: `{$ip}`"
+                    ]
+                ]
+            ]
+        ];
+
+        $attachments = [
+            [
+                'color' => '#f59e0b', // Amber alert color
                 'blocks' => $blocks
             ]
         ];

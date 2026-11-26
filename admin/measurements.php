@@ -1154,7 +1154,76 @@ include 'includes/page-header.php';
     </div>
 </div>
 
+<!-- Custom Measurement Alert Modal -->
+<div class="modal fade" id="measurementAlertModal" tabindex="-1" aria-labelledby="measurementAlertTitle" aria-hidden="true" style="z-index: 1090;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg text-center p-3 p-sm-4" style="border-radius: 20px;">
+            <div class="modal-body p-0">
+                <div id="measurementAlertIconContainer" class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 58px; height: 58px; background: #fef3c7; color: #d97706;">
+                    <i id="measurementAlertIcon" class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <h5 id="measurementAlertTitle" class="fw-bold mb-2 text-dark" style="font-size: 1.12rem;">Notice</h5>
+                <p id="measurementAlertMessage" class="text-secondary small mb-4 px-2" style="line-height: 1.6; font-size: 0.88rem;"></p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function showMeasurementAlert(message, title = 'Notice', type = 'warning', focusEl = null) {
+    const modalEl = document.getElementById('measurementAlertModal');
+    if (!modalEl || !window.bootstrap || !bootstrap.Modal) {
+        alert(message);
+        return;
+    }
+    const iconContainer = document.getElementById('measurementAlertIconContainer');
+    const iconEl = document.getElementById('measurementAlertIcon');
+    const titleEl = document.getElementById('measurementAlertTitle');
+    const msgEl = document.getElementById('measurementAlertMessage');
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+
+    if (iconContainer && iconEl) {
+        if (type === 'danger' || type === 'error') {
+            iconContainer.style.background = '#fee2e2';
+            iconContainer.style.color = '#dc2626';
+            iconEl.className = 'fas fa-times-circle fa-2x';
+        } else if (type === 'success') {
+            iconContainer.style.background = '#dcfce7';
+            iconContainer.style.color = '#16a34a';
+            iconEl.className = 'fas fa-check-circle fa-2x';
+        } else if (type === 'info') {
+            iconContainer.style.background = '#e0e7ff';
+            iconContainer.style.color = '#4338ca';
+            iconEl.className = 'fas fa-info-circle fa-2x';
+        } else {
+            iconContainer.style.background = '#fef3c7';
+            iconContainer.style.color = '#d97706';
+            iconEl.className = 'fas fa-exclamation-triangle fa-2x';
+        }
+    }
+
+    modalEl.addEventListener('shown.bs.modal', function() {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops[backdrops.length - 1].style.zIndex = '1085';
+        }
+    }, { once: true });
+
+    if (focusEl && typeof focusEl.focus === 'function') {
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            focusEl.focus();
+        }, { once: true });
+    }
+
+    const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    bsModal.show();
+}
+
 // Global HTML escaping helper
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
@@ -1542,7 +1611,7 @@ function updateGarmentNumbering() {
 function removeGarmentBlock(id) {
     const blocks = document.querySelectorAll('#garmentsContainer .garment-block');
     if (blocks.length <= 1) {
-        alert('At least one garment is required.');
+        showMeasurementAlert('At least one garment is required.', 'Garment Required', 'warning');
         return;
     }
     const card = document.getElementById(`garment-card-${id}`);
@@ -1726,15 +1795,14 @@ function debugFormSubmission(event) {
 
     const name = document.getElementById('name').value.trim();
     if (!name) {
-        alert('Please enter customer name.');
-        document.getElementById('name').focus();
+        showMeasurementAlert('Please enter customer name.', 'Customer Name Required', 'warning', document.getElementById('name'));
         if (event) event.preventDefault();
         return false;
     }
 
     const garmentBlocks = document.querySelectorAll('#garmentsContainer .garment-block');
     if (garmentBlocks.length === 0) {
-        alert('Please add at least one cloth type.');
+        showMeasurementAlert('Please add at least one cloth type.', 'Cloth Type Required', 'warning');
         if (event) event.preventDefault();
         return false;
     }
@@ -1753,8 +1821,7 @@ function debugFormSubmission(event) {
                 btnEl.classList.remove('collapsed');
                 btnEl.setAttribute('aria-expanded', 'true');
             }
-            alert(`Please select a Cloth Type for Garment #${i + 1}.`);
-            if (select) select.focus();
+            showMeasurementAlert(`Please select a Cloth Type for Garment #${i + 1}.`, 'Cloth Type Required', 'warning', select || null);
             if (event) event.preventDefault();
             return false;
         }
@@ -1780,7 +1847,7 @@ function debugFormSubmission(event) {
                 btnEl.setAttribute('aria-expanded', 'true');
             }
             const garmentName = select?.options[select.selectedIndex]?.text?.split(' (')[0] || `Garment #${i + 1}`;
-            alert(`Please enter at least one measurement value for ${garmentName}.`);
+            showMeasurementAlert(`Please enter at least one measurement value for ${garmentName}.`, 'Measurement Required', 'warning', vals[0] || null);
             if (event) event.preventDefault();
             return false;
         }
@@ -1909,12 +1976,12 @@ function editMeasurementFromFilter(id) {
             if (data.success && data.measurement) {
                 editCustomerMeasurements(data.measurement);
             } else {
-                alert('Failed to load measurement data');
+                showMeasurementAlert('Failed to load measurement data', 'Load Error', 'danger');
             }
         })
         .catch(error => {
             console.error('Error loading measurement:', error);
-            alert('Error loading measurement data');
+            showMeasurementAlert('Error loading measurement data', 'Load Error', 'danger');
         });
 }
 

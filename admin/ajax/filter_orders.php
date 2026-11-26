@@ -125,6 +125,7 @@ try {
             'measurement_id' => $order['measurement_id'] ?? null,
             'assigned_tailor_id' => $order['assigned_tailor_id'] ?? null,
             'item_count' => (int)($order['item_count'] ?? 0),
+            'total_quantity' => max(1, (int)(($order['total_quantity'] ?? 0) > 0 ? $order['total_quantity'] : ($order['item_count'] ?? 1))),
             'all_cloth_type_names' => $order['all_cloth_type_names'] ?? '',
             'all_tailor_names' => $order['all_tailor_names'] ?? '',
             'first_name' => $order['first_name'] ?? '',

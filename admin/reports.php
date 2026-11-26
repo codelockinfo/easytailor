@@ -293,15 +293,26 @@ include 'includes/page-header.php';
             <div class="card-body p-3">
                 <div style="height: 300px; position: relative;">
                     <canvas id="orderStatusChart"></canvas>
-                    <div id="orderStatusEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center text-center px-3" style="display: none;">
-                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #fffbeb; color: #d97706; border: 1.5px dashed #fcd34d;">
-                            <i class="fas fa-chart-pie fa-lg"></i>
+                    <div id="orderStatusEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-between text-center p-3 p-sm-4" style="display: none; background: linear-gradient(180deg, #fffdf7 0%, #fffbeb 100%); border: 1.5px dashed #fde68a; border-radius: 14px;">
+                        <div class="my-auto d-flex flex-column align-items-center w-100">
+                            <div class="position-relative d-inline-flex align-items-center justify-content-center mb-3" style="width: 104px; height: 104px; border-radius: 50%; background: conic-gradient(#fef3c7 0deg 110deg, #e0f2fe 110deg 200deg, #dcfce7 200deg 290deg, #ede9fe 290deg 360deg); padding: 14px;">
+                                <div class="w-100 h-100 rounded-circle bg-white d-flex flex-column align-items-center justify-content-center shadow-xs" style="border: 1px solid #fef3c7;">
+                                    <i class="fas fa-chart-pie mb-1" style="font-size: 1.25rem; color: #d97706;"></i>
+                                    <span class="fw-bold text-dark lh-1" style="font-size: 0.85rem;">0 Orders</span>
+                                </div>
+                            </div>
+                            <div class="fw-bold text-dark mb-1" style="font-size: 1.02rem;">No Orders Yet</div>
+                            <p class="text-muted mb-3" style="font-size: 0.82rem; max-width: 270px; line-height: 1.4;">Order status breakdown will appear here once tailoring orders are created.</p>
+                            <a href="orders.php?action=create" class="btn btn-sm btn-primary rounded-pill px-4 py-2 fw-semibold shadow-xs" style="font-size: 0.82rem; background: #4f46e5; border-color: #4f46e5;">
+                                <i class="fas fa-plus me-1"></i>Create First Order
+                            </a>
                         </div>
-                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">No Orders Yet</div>
-                        <p class="text-muted mb-3" style="font-size: 0.78rem; max-width: 220px;">Order status breakdown will appear here once orders are created.</p>
-                        <a href="orders.php?action=create" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.76rem;">
-                            <i class="fas fa-plus me-1"></i>Create Order
-                        </a>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 pt-2 w-100 opacity-75" style="font-size: 0.7rem;">
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#ffc107;"></span>Pending</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#17a2b8;"></span>In Progress</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#28a745;"></span>Completed</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#007bff;"></span>Delivered</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -341,12 +352,26 @@ include 'includes/page-header.php';
             <div class="card-body p-3">
                 <div style="height: 300px; position: relative;">
                     <canvas id="paymentMethodChart"></canvas>
-                    <div id="paymentMethodEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center text-center px-3" style="display: none;">
-                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #f0fdfa; color: #0d9488; border: 1.5px dashed #5eead4;">
-                            <i class="fas fa-credit-card fa-lg"></i>
+                    <div id="paymentMethodEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-between text-center p-3 p-sm-4" style="display: none; background: linear-gradient(180deg, #f8fffd 0%, #f0fdfa 100%); border: 1.5px dashed #99f6e4; border-radius: 14px;">
+                        <div class="my-auto d-flex flex-column align-items-center w-100">
+                            <div class="position-relative d-inline-flex align-items-center justify-content-center mb-3" style="width: 104px; height: 104px; border-radius: 50%; background: conic-gradient(#ccfbf1 0deg 130deg, #dbeafe 130deg 240deg, #ede9fe 240deg 360deg); padding: 14px;">
+                                <div class="w-100 h-100 rounded-circle bg-white d-flex flex-column align-items-center justify-content-center shadow-xs" style="border: 1px solid #ccfbf1;">
+                                    <i class="fas fa-credit-card mb-1" style="font-size: 1.25rem; color: #0d9488;"></i>
+                                    <span class="fw-bold text-dark lh-1" style="font-size: 0.85rem;">₹0.00</span>
+                                </div>
+                            </div>
+                            <div class="fw-bold text-dark mb-1" style="font-size: 1.02rem;">No Payment Data</div>
+                            <p class="text-muted mb-3" style="font-size: 0.82rem; max-width: 270px; line-height: 1.4;">Payment method breakdown will appear here once payments or expenses are recorded.</p>
+                            <a href="expenses.php?action=create" class="btn btn-sm btn-outline-secondary rounded-pill px-4 py-2 fw-semibold bg-white shadow-xs" style="font-size: 0.82rem; border-color: #99f6e4; color: #0f766e;">
+                                <i class="fas fa-plus me-1"></i>Record Expense
+                            </a>
                         </div>
-                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">No Payment Data</div>
-                        <p class="text-muted mb-0" style="font-size: 0.78rem; max-width: 220px;">Payment method breakdown will appear here once transactions are recorded.</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 pt-2 w-100 opacity-75" style="font-size: 0.7rem;">
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#10b981;"></span>Cash</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#3b82f6;"></span>UPI</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#8b5cf6;"></span>Card</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#f59e0b;"></span>Bank</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -500,12 +525,12 @@ include 'includes/page-header.php';
             </div>
         </div>
         <?php else: ?>
-        <div class="alert alert-warning mb-0 d-flex align-items-center justify-content-between" style="border-radius: 12px;">
+        <div class="alert alert-warning mb-0 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 gap-sm-3" style="border-radius: 12px;">
             <div>
                 <i class="fas fa-lock me-2"></i>
                 <strong>Data Export Locked:</strong> <?php echo $exportCheck['message']; ?>
             </div>
-            <a href="subscriptions.php" class="btn btn-warning btn-sm" style="border-radius: 8px;">Upgrade Plan</a>
+            <a href="subscriptions.php" class="btn btn-warning btn-sm flex-shrink-0 align-self-center px-3" style="border-radius: 8px; white-space: nowrap;">Upgrade Plan</a>
         </div>
         <?php endif; ?>
     </div>

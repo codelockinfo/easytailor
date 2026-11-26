@@ -74,84 +74,105 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-<div class="card mb-4">
-    <div class="card-header bg-<?php echo $currentPlanData['color']; ?> text-white">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-0">
-                    <i class="fas fa-crown me-2"></i>Your Current Plan: <?php echo $currentPlanData['name']; ?>
-                </h5>
+<div class="card border-0 mb-3 mb-md-4 sub-current-plan-card">
+    <div class="card-header border-0 text-white p-3 p-md-4" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c3aed 100%);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+                <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.25);">
+                    <i class="fas fa-crown" style="font-size: 1.05rem;"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.6px; color: rgba(255, 255, 255, 0.78);">Your Current Plan</div>
+                    <h5 class="mb-0 fw-bold text-white" style="font-size: 1.08rem; line-height: 1.2;"><?php echo $currentPlanData['name']; ?></h5>
+                </div>
             </div>
             <?php if ($currentPlan !== 'free'): ?>
                 <?php if ($daysRemaining > 0): ?>
-                    <span class="badge bg-light text-dark">
-                        <i class="fas fa-clock me-1"></i><?php echo $daysRemaining; ?> days remaining
+                    <span class="badge rounded-pill fw-semibold d-inline-flex align-items-center gap-1 px-3 py-2" style="background: rgba(255, 255, 255, 0.95); color: #312e81; font-size: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);">
+                        <i class="fas fa-clock text-primary"></i><?php echo $daysRemaining; ?> Days Remaining
                     </span>
                 <?php elseif ($daysRemaining == 0): ?>
-                    <span class="badge bg-danger">
-                        <i class="fas fa-exclamation-triangle me-1"></i>Expires today!
+                    <span class="badge rounded-pill bg-danger fw-semibold d-inline-flex align-items-center gap-1 px-3 py-2" style="font-size: 0.75rem;">
+                        <i class="fas fa-exclamation-triangle"></i>Expires today!
                     </span>
                 <?php else: ?>
-                    <span class="badge bg-danger">
-                        <i class="fas fa-times-circle me-1"></i>Expired
+                    <span class="badge rounded-pill bg-danger fw-semibold d-inline-flex align-items-center gap-1 px-3 py-2" style="font-size: 0.75rem;">
+                        <i class="fas fa-times-circle"></i>Expired
                     </span>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
-                <div class="text-center p-3 border-end">
-                    <h3 class="text-<?php echo $currentPlanData['color']; ?> mb-1">
-                        <?php echo $companyStats['total_customers']; ?>
-                    </h3>
-                    <small class="text-muted">
-                        Customers
+    <div class="card-body p-2 p-sm-3 bg-white">
+        <div class="row g-2 g-md-3">
+            <div class="col-6 col-md-3">
+                <div class="sub-stat-tile h-100 d-flex flex-column justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="sub-stat-label">Customers</span>
+                        <span class="sub-stat-icon" style="background: #dbeafe; color: #2563eb;">
+                            <i class="fas fa-users"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="sub-stat-val text-dark"><?php echo $companyStats['total_customers']; ?></div>
                         <?php if ($currentPlanData['limits']['customers'] > 0): ?>
-                            <br>of <?php echo number_format($currentPlanData['limits']['customers']); ?> limit
+                            <div class="sub-stat-sub">of <?php echo number_format($currentPlanData['limits']['customers']); ?> limit</div>
                         <?php endif; ?>
-                    </small>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="text-center p-3 border-end">
-                    <h3 class="text-<?php echo $currentPlanData['color']; ?> mb-1">
-                        <?php echo $companyStats['total_orders']; ?>
-                    </h3>
-                    <small class="text-muted">
-                        Orders
+            <div class="col-6 col-md-3">
+                <div class="sub-stat-tile h-100 d-flex flex-column justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="sub-stat-label">Orders</span>
+                        <span class="sub-stat-icon" style="background: #fef3c7; color: #d97706;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="sub-stat-val text-dark"><?php echo $companyStats['total_orders']; ?></div>
                         <?php if ($currentPlanData['limits']['orders'] > 0): ?>
-                            <br>of <?php echo number_format($currentPlanData['limits']['orders']); ?> limit
+                            <div class="sub-stat-sub">of <?php echo number_format($currentPlanData['limits']['orders']); ?> limit</div>
                         <?php endif; ?>
-                    </small>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="text-center p-3 border-end">
-                    <h3 class="text-<?php echo $currentPlanData['color']; ?> mb-1">
-                        <?php echo $companyStats['total_users']; ?>
-                    </h3>
-                    <small class="text-muted">
-                        Team Members
+            <div class="col-6 col-md-3">
+                <div class="sub-stat-tile h-100 d-flex flex-column justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="sub-stat-label">Team Members</span>
+                        <span class="sub-stat-icon" style="background: #ede9fe; color: #7c3aed;">
+                            <i class="fas fa-user-friends"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="sub-stat-val text-dark"><?php echo $companyStats['total_users']; ?></div>
                         <?php if ($currentPlanData['limits']['users'] > 0): ?>
-                            <br>of <?php echo $currentPlanData['limits']['users']; ?> limit
+                            <div class="sub-stat-sub">of <?php echo number_format($currentPlanData['limits']['users']); ?> limit</div>
                         <?php endif; ?>
-                    </small>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="text-center p-3">
-                    <?php if ($currentPlan === 'free'): ?>
-                        <h5 class="mb-1 text-success">Lifetime</h5>
-                        <small class="text-muted">No Expiration</small>
-                    <?php elseif ($company['subscription_expiry']): ?>
-                        <h5 class="mb-1"><?php echo format_date($company['subscription_expiry'], 'M j, Y'); ?></h5>
-                        <small class="text-muted">Expiry Date</small>
-                    <?php else: ?>
-                        <h5 class="mb-1">N/A</h5>
-                        <small class="text-muted">No Expiry</small>
-                    <?php endif; ?>
+            <div class="col-6 col-md-3">
+                <div class="sub-stat-tile h-100 d-flex flex-column justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="sub-stat-label">Expiry Date</span>
+                        <span class="sub-stat-icon" style="background: #dcfce7; color: #16a34a;">
+                            <i class="fas fa-calendar-check"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <?php if ($currentPlan === 'free'): ?>
+                            <div class="sub-stat-val text-success" style="font-size: 1.05rem;">Lifetime</div>
+                            <div class="sub-stat-sub">No Expiration</div>
+                        <?php elseif ($company['subscription_expiry']): ?>
+                            <div class="sub-stat-val text-dark" style="font-size: 1.02rem;"><?php echo format_date($company['subscription_expiry'], 'M j, Y'); ?></div>
+                            <div class="sub-stat-sub">Active until date</div>
+                        <?php else: ?>
+                            <div class="sub-stat-val text-dark" style="font-size: 1.05rem;">N/A</div>
+                            <div class="sub-stat-sub">No Expiry</div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,11 +181,11 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
 <div class="row mb-4">
     <?php foreach ($plans as $planKey => $plan): ?>
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card h-100 <?php echo $planKey === $currentPlan ? 'border-' . $plan['color'] : ''; ?>"
+            <div class="card h-100 <?php echo (isset($plan['popular']) && $plan['popular']) ? 'popular-plan-card ' : ''; ?><?php echo $planKey === $currentPlan ? 'border-' . $plan['color'] : ''; ?>"
                 style="<?php echo $planKey === $currentPlan ? 'border-width: 3px;' : ''; ?>">
                 <?php if (isset($plan['popular']) && $plan['popular']): ?>
                     <div class="position-absolute top-0 start-50 translate-middle">
-                        <span class="badge bg-success">
+                        <span class="badge bg-success popular-plan-badge">
                             <i class="fas fa-star me-1"></i>Most Popular
                         </span>
                     </div>
@@ -250,15 +271,15 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
     <?php endforeach; ?>
 </div>
 
-<div class="card">
+<div class="card sub-comparison-card mb-2 mb-md-4">
     <div class="card-header">
         <h5 class="card-title mb-0">
             <i class="fas fa-table me-2"></i>Detailed Plan Comparison
         </h5>
     </div>
-    <div class="card-body">
+    <div class="card-body p-2 p-md-3">
         <div class="table-responsive">
-            <table class="table table-bordered">
+            <table class="table table-bordered mb-0 sub-comp-table">
                 <thead class="table-light">
                     <tr>
                         <th>Feature</th>
@@ -792,9 +813,130 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
 <?php require_once 'includes/footer.php'; ?>
 
 <style>
+    .sub-current-plan-card {
+        border-radius: 16px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+        overflow: hidden;
+    }
+    .sub-current-plan-card:hover {
+        transform: none !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+    }
+    .sub-stat-tile {
+        border-radius: 12px;
+        padding: 12px 14px;
+    }
+    .sub-stat-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .sub-stat-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        flex-shrink: 0;
+    }
+    .sub-stat-val {
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.15;
+    }
+    .sub-stat-sub {
+        font-size: 0.70rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
     @media (max-width: 768px) {
         .border-end {
             border-right: none !important;
+        }
+        .sub-stat-tile {
+            padding: 10px 11px;
+        }
+        .sub-stat-label {
+            font-size: 0.64rem;
+        }
+        .sub-stat-icon {
+            width: 24px;
+            height: 24px;
+            font-size: 0.70rem;
+        }
+        .sub-stat-val {
+            font-size: 1.15rem;
+        }
+        .popular-plan-badge {
+            font-size: 0.64rem !important;
+            padding: 3px 9px !important;
+            line-height: 1.2 !important;
+        }
+        .popular-plan-card {
+            margin-top: 8px;
+        }
+        .popular-plan-card > .card-header {
+            padding-top: 16px !important;
+        }
+    }
+    .sub-comparison-card:hover {
+        transform: none !important;
+    }
+    @media (max-width: 767.98px) {
+        .sub-comparison-card > .card-body {
+            padding: 8px 6px !important;
+        }
+        .sub-comp-table {
+            width: 100% !important;
+            table-layout: fixed !important;
+            margin-bottom: 0 !important;
+        }
+        .sub-comp-table th:first-child,
+        .sub-comp-table td:first-child {
+            width: 24% !important;
+            text-align: left !important;
+        }
+        .sub-comp-table th:not(:first-child),
+        .sub-comp-table td:not(:first-child) {
+            width: 19% !important;
+        }
+        .sub-comp-table th,
+        .sub-comp-table td {
+            padding: 6px 3px !important;
+            font-size: 0.64rem !important;
+            line-height: 1.25 !important;
+            white-space: normal !important;
+            vertical-align: middle !important;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        .sub-comp-table th {
+            font-size: 0.60rem !important;
+            padding: 7px 2px !important;
+        }
+        .sub-comp-table td small {
+            display: block;
+            font-size: 0.54rem !important;
+            line-height: 1.15;
+            margin-top: 2px;
+        }
+    }
+    @media (max-width: 360px) {
+        .sub-comp-table th,
+        .sub-comp-table td {
+            font-size: 0.56rem !important;
+            padding: 5px 2px !important;
+        }
+        .sub-comp-table th {
+            font-size: 0.52rem !important;
+        }
+        .sub-comp-table td small {
+            font-size: 0.48rem !important;
         }
     }
 </style>

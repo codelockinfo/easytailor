@@ -164,7 +164,7 @@ $morningCounts['tomorrow'] = (int)($countsRow['tomorrow_count'] ?? 0);
 $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
 ?>
 
-<div class="container-fluid px-0">
+<div class="container-fluid px-0 dash-dashboard-wrap">
     <?php
     $profileFields = [
         'business_address' => 'Address',
@@ -344,6 +344,9 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
         .quick-action-chevron {
             font-size: 0.65rem !important;
             margin-left: 4px !important;
+        }
+        .dash-dashboard-wrap .card {
+            margin-bottom: 0 !important;
         }
         .grow-business-card {
             margin-bottom: 0 !important;
@@ -736,7 +739,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
     </div>
     <?php endif; ?>
 
-    <div class="row g-2 g-md-3 mb-2 mb-md-3">
+    <div class="row g-2 g-md-3 mb-3">
         <!-- 1. Advance Amount -->
         <div class="col-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100 dash-stat-card" style="background: #faf5ff; border: 1px solid #f3e8ff !important;">
@@ -902,21 +905,21 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                             if ($isOverdue) {
                                 $rowBg = '#fef2f2';
                                 $rowBorder = '#fecaca';
+                            } elseif ($pd['status'] === 'completed') {
+                                $rowBg = '#ecfdf5';
+                                $rowBorder = '#a7f3d0';
                             } elseif ($isDueToday) {
                                 $rowBg = '#fefce8';
                                 $rowBorder = '#fde047';
                             } elseif ($isDueTomorrow) {
                                 $rowBg = '#fff7ed';
                                 $rowBorder = '#fed7aa';
-                            } elseif ($pd['status'] === 'completed') {
-                                $rowBg = '#ecfdf5';
-                                $rowBorder = '#a7f3d0';
                             }
                         ?>
                         <div class="p-2 p-sm-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2 transition-hover" style="background: <?php echo $rowBg; ?>; border: 1px solid <?php echo $rowBorder; ?>;">
                             <div class="d-flex align-items-center gap-2 min-w-0" style="flex: 1 1 230px;">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: <?php echo $isOverdue ? '#fee2e2' : ($isDueToday ? '#fef08a' : ($isDueTomorrow ? '#ffedd5' : ($pd['status'] === 'completed' ? '#dcfce7' : '#eff6ff'))); ?>; color: <?php echo $isOverdue ? '#ef4444' : ($isDueToday ? '#ca8a04' : ($isDueTomorrow ? '#ea580c' : ($pd['status'] === 'completed' ? '#16a34a' : '#3b82f6'))); ?>;">
-                                    <i class="fas fa-<?php echo $isOverdue ? 'exclamation' : ($isDueToday ? 'bolt' : ($isDueTomorrow ? 'clock' : ($pd['status'] === 'completed' ? 'check' : 'tshirt'))); ?>"></i>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: <?php echo $isOverdue ? '#fee2e2' : ($pd['status'] === 'completed' ? '#dcfce7' : ($isDueToday ? '#fef08a' : ($isDueTomorrow ? '#ffedd5' : '#eff6ff'))); ?>; color: <?php echo $isOverdue ? '#ef4444' : ($pd['status'] === 'completed' ? '#16a34a' : ($isDueToday ? '#ca8a04' : ($isDueTomorrow ? '#ea580c' : '#3b82f6'))); ?>;">
+                                    <i class="fas fa-<?php echo $isOverdue ? 'exclamation' : ($pd['status'] === 'completed' ? 'check' : ($isDueToday ? 'bolt' : ($isDueTomorrow ? 'clock' : 'tshirt'))); ?>"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -1281,13 +1284,15 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                                 <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
                                             </span>
                                         </td>
-                                        <td class="text-center pe-4">
-                                            <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-primary me-1 p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="View Details">
-                                                <i class="fas fa-eye" style="font-size: 0.72rem;"></i>
-                                            </a>
-                                            <a href="orders.php?edit=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-secondary p-0 shadow-xs" style="width: 28px; height: 28px; line-height: 28px;" title="Edit Order">
-                                                <i class="fas fa-pencil-alt" style="font-size: 0.72rem;"></i>
-                                            </a>
+                                        <td class="text-center pe-4 text-nowrap">
+                                            <div class="d-inline-flex align-items-center justify-content-center gap-1 flex-nowrap">
+                                                <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-primary p-0 shadow-xs d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" title="View Details">
+                                                    <i class="fas fa-eye" style="font-size: 0.72rem;"></i>
+                                                </a>
+                                                <a href="orders.php?edit=<?php echo $order['id']; ?>" class="btn btn-sm btn-light rounded-circle text-secondary p-0 shadow-xs d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" title="Edit Order">
+                                                    <i class="fas fa-pencil-alt" style="font-size: 0.72rem;"></i>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -1360,10 +1365,10 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
-                        <div class="text-center py-4">
+                        <div class="text-center py-1 py-md-3">
                             <i class="fas fa-clipboard-list fa-2x text-muted mb-2 opacity-50"></i>
                             <div class="fw-bold text-dark small mb-1"><?php echo !empty($search) ? 'No Matching Orders' : 'No Orders Yet'; ?></div>
-                            <p class="text-muted small mb-2" style="font-size: 0.72rem;"><?php echo !empty($search) ? 'No orders matched.' : 'Create your first order to start tracking.'; ?></p>
+                            <p class="text-muted small mb-0" style="font-size: 0.72rem;"><?php echo !empty($search) ? 'No orders matched.' : 'Create your first order to start tracking.'; ?></p>
                         </div>
                     <?php endif; ?>
                 </div>

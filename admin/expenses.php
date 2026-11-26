@@ -338,7 +338,7 @@ include 'includes/page-header.php';
 <!-- 3. Clean 2-Row Search, Filter & Action Bar -->
 <div class="row g-2 align-items-center mb-2">
     <!-- Row 1: Search on left -->
-    <div class="col-12 col-md-5">
+    <div class="col-12 col-md">
         <div class="position-relative">
             <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.85rem;"></i>
             <input type="text" 
@@ -350,25 +350,27 @@ include 'includes/page-header.php';
         </div>
     </div>
     <!-- Row 1: Actions on right -->
-    <div class="col-12 col-md-7 d-flex justify-content-md-end align-items-center gap-2">
-        <?php 
-        $exportCheck = SubscriptionHelper::canExportData($companyId ?? get_company_id());
-        if ($exportCheck['allowed']): 
-        ?>
-            <button type="button" class="btn text-secondary fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-3 shadow-none" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.84rem; height: 42px;" onclick="exportExpenses()">
-                <i class="fas fa-file-excel text-success me-1"></i>
-                <span>Export</span>
+    <div class="col-12 col-md-auto">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+            <?php 
+            $exportCheck = SubscriptionHelper::canExportData($companyId ?? get_company_id());
+            if ($exportCheck['allowed']): 
+            ?>
+                <button type="button" class="btn text-secondary fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-none w-100" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.84rem; height: 42px;" onclick="exportExpenses()">
+                    <i class="fas fa-file-excel text-success me-1"></i>
+                    <span>Export</span>
+                </button>
+            <?php else: ?>
+                <a href="subscriptions.php" class="btn text-secondary fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-none w-100" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.84rem; height: 42px;" title="Upgrade to Premium to Export">
+                    <i class="fas fa-lock text-warning me-1"></i>
+                    <span>Export</span>
+                </a>
+            <?php endif; ?>
+            <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-sm w-100" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                <i class="fas fa-plus"></i>
+                <span>Record Expense</span>
             </button>
-        <?php else: ?>
-            <a href="subscriptions.php" class="btn text-secondary fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-3 shadow-none" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.84rem; height: 42px;" title="Upgrade to Premium to Export">
-                <i class="fas fa-lock text-warning me-1"></i>
-                <span>Export</span>
-            </a>
-        <?php endif; ?>
-        <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center justify-content-center gap-1 text-nowrap px-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#expenseModal">
-            <i class="fas fa-plus"></i>
-            <span>Record Expense</span>
-        </button>
+        </div>
     </div>
 </div>
 

@@ -11,7 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $ownerName = sanitize_input($_POST['owner_name'] ?? '');
         $businessEmail = sanitize_input($_POST['business_email'] ?? '');
-        $businessPhone = sanitize_input($_POST['business_phone'] ?? '');
+        $rawBusinessPhone = sanitize_input($_POST['business_phone'] ?? '');
+        $phoneDigits = preg_replace('/\D/', '', $rawBusinessPhone);
+        if (strlen($phoneDigits) > 10 && strpos($phoneDigits, '91') === 0) {
+            $phoneDigits = substr($phoneDigits, 2);
+        }
+        $businessPhone = strlen($phoneDigits) === 10 ? ('+91' . $phoneDigits) : $rawBusinessPhone;
         $companyName = $ownerName . "'s Tailor Shop";
         $username = $businessEmail;
         $password = $_POST['password'] ?? '';
@@ -39,7 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $companyModel = new Company();
         $userModel = new User();
-        if (!filter_var($businessEmail, FILTER_VALIDATE_EMAIL)) {
+        $trimmedOwnerName = trim($ownerName);
+        if ($trimmedOwnerName === '' || !preg_match('/^[\p{L} ]+$/u', $trimmedOwnerName)) {
+            $_SESSION['reg_error'] = 'Owner name must contain only alphabets and spaces';
+            $_SESSION['reg_form_data'] = $_POST;
+            header('Location: register.php');
+            exit;
+        }
+        $strictEmailPattern = '/^[A-Za-z0-9](?:[A-Za-z0-9._+-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/';
+        if (!filter_var($businessEmail, FILTER_VALIDATE_EMAIL) || strpos($businessEmail, '..') !== false || !preg_match($strictEmailPattern, $businessEmail)) {
             $_SESSION['reg_error'] = 'Please enter a valid email address';
             $_SESSION['reg_form_data'] = $_POST;
             header('Location: register.php');
@@ -526,6 +539,7 @@ $seoOptions = [
                                            placeholder="e.g., John Smith"
                                            value="<?php echo htmlspecialchars($formData['owner_name'] ?? ''); ?>"
                                            required>
+                                    <div class="invalid-feedback">Owner name must contain only alphabets and spaces.</div>
                                 </div>
                                 
                                 <div class="col-md-6 mb-2">
@@ -539,6 +553,7 @@ $seoOptions = [
                                            placeholder="contact@yourtailor.com"
                                            value="<?php echo htmlspecialchars($formData['business_email'] ?? ''); ?>"
                                            required>
+                                    <div class="invalid-feedback">Please enter a valid email address.</div>
                                 </div>
                             </div>
                             
@@ -630,7 +645,7 @@ $seoOptions = [
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="agree_terms" required>
                                 <label class="form-check-label" for="agree_terms" style="font-size: 0.85rem;">
-                                    I agree to the <a href="../terms-of-service" target="_blank">Terms of Service</a> and <a href="../privacy-policy" target="_blank">Privacy Policy</a>
+                                    I agree to the <a href="../terms-of-service">Terms of Service</a> and <a href="../privacy-policy">Privacy Policy</a>
                                 </label>
                             </div>
                             
@@ -657,6 +672,24 @@ $seoOptions = [
                     <p class="text-white opacity-75">
                         &copy; <?php echo date('Y'); ?> <?php echo APP_NAME; ?>. All rights reserved.
                     </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Alert Modal -->
+    <div class="modal fade" id="registerAlertModal" tabindex="-1" aria-labelledby="registerAlertTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content border-0 shadow-lg text-center p-3 p-sm-4" style="border-radius: 20px;">
+                <div class="modal-body p-0">
+                    <div id="registerAlertIconContainer" class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 58px; height: 58px; background: #fee2e2; color: #dc2626;">
+                        <i id="registerAlertIcon" class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <h5 id="registerAlertTitle" class="fw-bold mb-2 text-dark" style="font-size: 1.12rem;">Notice</h5>
+                    <p id="registerAlertMessage" class="text-secondary small mb-4 px-2" style="line-height: 1.6; font-size: 0.9rem;"></p>
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-primary btn-register rounded-pill px-5 text-white" data-bs-dismiss="modal">OK</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -700,63 +733,73 @@ $seoOptions = [
             }
         }
         
+        // Normalize phone input to 10 local digits without duplicating the +91 prefix
+        function normalizePhoneDigitsInline(raw, countryPrefix = '+91') {
+            let val = (raw || '').toString().trim();
+            const prefixDigits = countryPrefix.replace(/[^0-9]/g, '');
+            while (val.startsWith(countryPrefix)) {
+                val = val.slice(countryPrefix.length).trim();
+            }
+            let digits = val.replace(/[^0-9]/g, '');
+            if (prefixDigits && digits.length > 10 && digits.startsWith(prefixDigits)) {
+                digits = digits.slice(prefixDigits.length);
+            }
+            return digits.slice(0, 10);
+        }
+
         // Phone Number Validation (Inline version for register page)
         function setupPhoneValidationInline(phoneInputId, countryPrefix = '+91') {
             const phoneInput = document.getElementById(phoneInputId);
             if (!phoneInput) return;
-            
-            let initialValue = phoneInput.value || '';
-            if (initialValue.startsWith(countryPrefix)) {
-                initialValue = initialValue.replace(countryPrefix, '').trim();
-            }
-            initialValue = initialValue.replace(/[^0-9]/g, '').slice(0, 10);
-            phoneInput.value = initialValue;
+
+            const syncDigits = (raw) => {
+                const cleaned = normalizePhoneDigitsInline(raw, countryPrefix);
+                if (phoneInput.value !== cleaned) {
+                    phoneInput.value = cleaned;
+                }
+                return cleaned;
+            };
+
+            syncDigits(phoneInput.value);
             phoneInput.maxLength = 10;
             phoneInput.setAttribute('pattern', '[0-9]{10}');
-            
-            phoneInput.addEventListener('input', function(e) {
-                let value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
-                this.value = value;
+
+            phoneInput.addEventListener('input', function() {
+                syncDigits(this.value);
             });
-            
+
+            phoneInput.addEventListener('change', function() {
+                syncDigits(this.value);
+            });
+
             phoneInput.addEventListener('keypress', function(e) {
                 const char = String.fromCharCode(e.which);
                 if (!/[0-9]/.test(char)) {
                     e.preventDefault();
                 }
             });
-            
+
             phoneInput.addEventListener('paste', function(e) {
                 e.preventDefault();
                 const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                let value = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
-                this.value = value;
+                syncDigits(pastedText);
             });
-            
+
             phoneInput.addEventListener('blur', function() {
-                let value = this.value.replace(/[^0-9]/g, '');
+                const value = syncDigits(this.value);
                 if (value.length === 10) {
                     this.setAttribute('data-phone-full', countryPrefix + value);
                 }
             });
-            
+
             return phoneInput;
         }
-        
-        function getPhoneWithPrefixInline(phoneInputId, countryPrefix = '+91') {
-            const phoneInput = document.getElementById(phoneInputId);
-            if (!phoneInput) return '';
-            let value = phoneInput.value.replace(/[^0-9]/g, '');
-            if (value.length === 10) {
-                return countryPrefix + value;
-            }
-            return phoneInput.getAttribute('data-phone-full') || value || '';
-        }
-        
+
         function validatePhoneNumberInline(phoneInputId) {
             const phoneInput = document.getElementById(phoneInputId);
             if (!phoneInput) return false;
-            let value = phoneInput.value.replace(/[^0-9]/g, '');
+            const value = normalizePhoneDigitsInline(phoneInput.value, '+91');
+            phoneInput.value = value;
             if (value.length !== 10) {
                 phoneInput.classList.add('is-invalid');
                 return false;
@@ -764,33 +807,183 @@ $seoOptions = [
             phoneInput.classList.remove('is-invalid');
             return true;
         }
-        
-        // Initialize phone validation on page load
+
+        const STRICT_EMAIL_REGEX = /^[A-Za-z0-9](?:[A-Za-z0-9._+-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/;
+
+        function isValidEmailInline(value) {
+            const email = (value || '').trim();
+            return email.length > 0 && !email.includes('..') && STRICT_EMAIL_REGEX.test(email);
+        }
+
+        function validateEmailInline(emailInputId) {
+            const emailInput = document.getElementById(emailInputId);
+            if (!emailInput) return true;
+            const trimmed = emailInput.value.trim();
+            emailInput.value = trimmed;
+            if (!isValidEmailInline(trimmed)) {
+                emailInput.classList.add('is-invalid');
+                return false;
+            }
+            emailInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        function setupEmailValidationInline(emailInputId) {
+            const emailInput = document.getElementById(emailInputId);
+            if (!emailInput) return;
+
+            emailInput.addEventListener('blur', function() {
+                if (this.value.trim() !== '') {
+                    validateEmailInline(emailInputId);
+                }
+            });
+
+            emailInput.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid') && isValidEmailInline(this.value)) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        function sanitizeOwnerNameInline(value) {
+            return (value || '').replace(/[^\p{L} ]/gu, '');
+        }
+
+        function isValidOwnerNameInline(value) {
+            const name = (value || '').trim();
+            return name.length > 0 && /^[\p{L} ]+$/u.test(name);
+        }
+
+        function validateOwnerNameInline(nameInputId) {
+            const nameInput = document.getElementById(nameInputId);
+            if (!nameInput) return true;
+            const cleaned = sanitizeOwnerNameInline(nameInput.value).trim();
+            nameInput.value = cleaned;
+            if (!isValidOwnerNameInline(cleaned)) {
+                nameInput.classList.add('is-invalid');
+                return false;
+            }
+            nameInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        function setupOwnerNameValidationInline(nameInputId) {
+            const nameInput = document.getElementById(nameInputId);
+            if (!nameInput) return;
+
+            const syncAlphaOnly = () => {
+                const cleaned = sanitizeOwnerNameInline(nameInput.value);
+                if (nameInput.value !== cleaned) {
+                    nameInput.value = cleaned;
+                }
+            };
+
+            syncAlphaOnly();
+
+            nameInput.addEventListener('keypress', function(e) {
+                if (e.key && e.key.length === 1 && !/^[\p{L} ]$/u.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            nameInput.addEventListener('input', function() {
+                syncAlphaOnly();
+                if (this.classList.contains('is-invalid') && isValidOwnerNameInline(this.value)) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            nameInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const cleaned = sanitizeOwnerNameInline(pastedText);
+                const start = this.selectionStart ?? this.value.length;
+                const end = this.selectionEnd ?? this.value.length;
+                this.value = sanitizeOwnerNameInline(this.value.slice(0, start) + cleaned + this.value.slice(end));
+            });
+
+            nameInput.addEventListener('blur', function() {
+                if (this.value.trim() !== '') {
+                    validateOwnerNameInline(nameInputId);
+                }
+            });
+        }
+
+        // Initialize owner name, email & phone validation on page load
         document.addEventListener('DOMContentLoaded', function() {
+            setupOwnerNameValidationInline('owner_name');
+            setupEmailValidationInline('business_email');
             setupPhoneValidationInline('business_phone', '+91');
         });
-        
-        // Password match validation
+
+        const REGISTER_ALERT_STYLES = {
+            danger:  { bg: '#fee2e2', color: '#dc2626', icon: 'fas fa-times-circle fa-2x' },
+            warning: { bg: '#fef3c7', color: '#d97706', icon: 'fas fa-exclamation-triangle fa-2x' },
+            success: { bg: '#dcfce7', color: '#16a34a', icon: 'fas fa-check-circle fa-2x' },
+            info:    { bg: '#e0e7ff', color: '#4338ca', icon: 'fas fa-info-circle fa-2x' }
+        };
+
+        function showRegisterAlert(message, title = 'Notice', type = 'warning', focusEl = null) {
+            const modalEl = document.getElementById('registerAlertModal');
+            if (!modalEl || !window.bootstrap || !bootstrap.Modal) {
+                alert(message);
+                return;
+            }
+            const iconContainer = document.getElementById('registerAlertIconContainer');
+            const iconEl = document.getElementById('registerAlertIcon');
+            const titleEl = document.getElementById('registerAlertTitle');
+            const msgEl = document.getElementById('registerAlertMessage');
+
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+
+            const style = REGISTER_ALERT_STYLES[type] || REGISTER_ALERT_STYLES.warning;
+            if (iconContainer && iconEl) {
+                iconContainer.style.background = style.bg;
+                iconContainer.style.color = style.color;
+                iconEl.className = style.icon;
+            }
+
+            if (focusEl && typeof focusEl.focus === 'function') {
+                modalEl.addEventListener('hidden.bs.modal', function() {
+                    focusEl.focus();
+                }, { once: true });
+            }
+
+            const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            bsModal.show();
+        }
+
+        // Owner name, email, phone, and password match validation (keep visible phone input free of +91 prefix)
         document.getElementById('registerForm').addEventListener('submit', function(e) {
-            // Validate phone number
+            const ownerName = document.getElementById('owner_name');
+            if (ownerName && !validateOwnerNameInline('owner_name')) {
+                e.preventDefault();
+                showRegisterAlert('Owner name must contain only alphabets and spaces. Numbers and special characters are not allowed.', 'Invalid Owner Name', 'warning', ownerName);
+                return false;
+            }
+
+            const businessEmail = document.getElementById('business_email');
+            if (businessEmail && !validateEmailInline('business_email')) {
+                e.preventDefault();
+                showRegisterAlert('Please enter a valid email address (e.g., name@example.com). Special characters like # or $ are not allowed.', 'Invalid Email Address', 'warning', businessEmail);
+                return false;
+            }
+
             const businessPhone = document.getElementById('business_phone');
             if (businessPhone && businessPhone.value.trim()) {
                 if (!validatePhoneNumberInline('business_phone')) {
                     e.preventDefault();
-                    businessPhone.focus();
-                    alert('Please enter a valid 10-digit phone number.');
+                    showRegisterAlert('Please enter a valid 10-digit phone number.', 'Invalid Phone Number', 'warning', businessPhone);
                     return false;
                 }
-                // Set phone value with prefix before submission
-                businessPhone.value = getPhoneWithPrefixInline('business_phone', '+91');
             }
-            
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-            
-            if (password !== confirmPassword) {
+
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm_password');
+            if (passwordInput.value !== confirmPasswordInput.value) {
                 e.preventDefault();
-                alert('Passwords do not match!');
+                showRegisterAlert('Passwords do not match!', 'Password Mismatch', 'danger', confirmPasswordInput);
                 return false;
             }
         });

@@ -316,13 +316,35 @@ $daysOfWeek = [
 <style>
 .cat-stat-box {
     border-radius: 14px;
-    padding: 16px 18px;
+    padding: 12px 14px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid transparent;
 }
 .cat-stat-box:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+@media (max-width: 767.98px) {
+    .cat-stat-box {
+        border-radius: 12px !important;
+        padding: 9px 10px !important;
+    }
+    .cat-stat-box .cs-stat-label {
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px !important;
+        line-height: 1.2 !important;
+    }
+    .cat-stat-box .cs-stat-value {
+        font-size: 1.05rem !important;
+        margin-top: 2px !important;
+        line-height: 1.2 !important;
+    }
+    .cat-stat-box .cs-stat-icon {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 8px !important;
+        font-size: 0.80rem !important;
+    }
 }
 .welcome-banner {
     position: relative;
@@ -459,13 +481,61 @@ select.form-select.settings-input,
     border-color: #6366f1;
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
 }
-@media (max-width: 575.98px) {
+.wh-day-col {
+    min-width: 125px;
+}
+@media (max-width: 767.98px) {
+    .wh-day-row {
+        flex-wrap: nowrap !important;
+        padding: 8px 10px !important;
+        gap: 6px !important;
+    }
+    .wh-day-col {
+        min-width: auto !important;
+        flex-shrink: 0;
+    }
+    .wh-day-badge {
+        width: 34px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 0.68rem;
+    }
     .wh-time-controls {
-        width: 100%;
-        justify-content: space-between;
+        flex: 1 1 0%;
+        min-width: 0;
+        width: auto !important;
+        gap: 4px !important;
+        justify-content: center !important;
+    }
+    .wh-time-pair {
+        flex: 1 1 0%;
+        min-width: 0;
     }
     .wh-time-input {
-        width: 110px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 32px !important;
+        padding: 2px 4px !important;
+        font-size: 0.74rem !important;
+    }
+    .wh-closed-msg {
+        font-size: 0.74rem !important;
+    }
+    .wh-switch-wrap {
+        margin-left: 0 !important;
+        flex-shrink: 0;
+        padding-left: 2.15em !important;
+    }
+    .wh-switch-wrap .form-check-label {
+        font-size: 0.70rem !important;
+    }
+    .wh-preset-btns {
+        width: 100%;
+    }
+    .wh-preset-btns .btn {
+        font-size: 0.69rem !important;
+        padding: 5px 8px !important;
+        white-space: nowrap;
     }
 }
 </style>
@@ -670,47 +740,47 @@ select.form-select.settings-input,
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
-<div class="row g-2 mb-4">
+<div class="row g-2 mb-3 mb-md-4">
     <div class="col-6 col-md-3">
-        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #eff6ff; border: 1px solid #dbeafe;">
-            <div>
-                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL CUSTOMERS</span>
-                <div class="fs-4 fw-bold text-dark mt-1"><?php echo number_format($companyStats['total_customers'] ?? 0); ?></div>
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between gap-2" style="background: #eff6ff; border: 1px solid #dbeafe;">
+            <div class="min-w-0">
+                <span class="text-secondary text-uppercase fw-semibold cs-stat-label d-block" style="font-size: 0.70rem; letter-spacing: 0.4px;">TOTAL CUSTOMERS</span>
+                <div class="fs-5 fw-bold text-dark mt-1 cs-stat-value"><?php echo number_format($companyStats['total_customers'] ?? 0); ?></div>
             </div>
-            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #dbeafe; color: #2563eb; font-size: 0.95rem;">
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0 cs-stat-icon" style="width: 34px; height: 34px; border-radius: 9px; background: #dbeafe; color: #2563eb; font-size: 0.9rem;">
                 <i class="fas fa-users"></i>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #f0fdf4; border: 1px solid #dcfce7;">
-            <div>
-                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL ORDERS</span>
-                <div class="fs-4 fw-bold text-dark mt-1"><?php echo number_format($companyStats['total_orders'] ?? 0); ?></div>
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between gap-2" style="background: #f0fdf4; border: 1px solid #dcfce7;">
+            <div class="min-w-0">
+                <span class="text-secondary text-uppercase fw-semibold cs-stat-label d-block" style="font-size: 0.70rem; letter-spacing: 0.4px;">TOTAL ORDERS</span>
+                <div class="fs-5 fw-bold text-dark mt-1 cs-stat-value"><?php echo number_format($companyStats['total_orders'] ?? 0); ?></div>
             </div>
-            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #dcfce7; color: #16a34a; font-size: 0.95rem;">
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0 cs-stat-icon" style="width: 34px; height: 34px; border-radius: 9px; background: #dcfce7; color: #16a34a; font-size: 0.9rem;">
                 <i class="fas fa-shopping-bag"></i>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #faf5ff; border: 1px solid #ede9fe;">
-            <div>
-                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TEAM MEMBERS</span>
-                <div class="fs-4 fw-bold text-dark mt-1"><?php echo number_format($companyStats['total_users'] ?? 0); ?></div>
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between gap-2" style="background: #faf5ff; border: 1px solid #ede9fe;">
+            <div class="min-w-0">
+                <span class="text-secondary text-uppercase fw-semibold cs-stat-label d-block" style="font-size: 0.70rem; letter-spacing: 0.4px;">TEAM MEMBERS</span>
+                <div class="fs-5 fw-bold text-dark mt-1 cs-stat-value"><?php echo number_format($companyStats['total_users'] ?? 0); ?></div>
             </div>
-            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #ede9fe; color: #9333ea; font-size: 0.95rem;">
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0 cs-stat-icon" style="width: 34px; height: 34px; border-radius: 9px; background: #ede9fe; color: #9333ea; font-size: 0.9rem;">
                 <i class="fas fa-user-tie"></i>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between" style="background: #fffbeb; border: 1px solid #fef3c7;">
-            <div>
-                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">SUBSCRIPTION PLAN</span>
-                <div class="fs-4 fw-bold text-dark mt-1" style="font-size: 1.15rem;"><?php echo ucfirst($company['subscription_plan'] ?? 'Free'); ?></div>
+        <div class="cat-stat-box h-100 d-flex align-items-center justify-content-between gap-2" style="background: #fffbeb; border: 1px solid #fef3c7;">
+            <div class="min-w-0">
+                <span class="text-secondary text-uppercase fw-semibold cs-stat-label d-block" style="font-size: 0.70rem; letter-spacing: 0.4px;">SUBSCRIPTION PLAN</span>
+                <div class="fs-5 fw-bold text-dark mt-1 cs-stat-value"><?php echo ucfirst($company['subscription_plan'] ?? 'Free'); ?></div>
             </div>
-            <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #fef3c7; color: #d97706; font-size: 0.95rem;">
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0 cs-stat-icon" style="width: 34px; height: 34px; border-radius: 9px; background: #fef3c7; color: #d97706; font-size: 0.9rem;">
                 <i class="fas fa-crown"></i>
             </div>
         </div>
@@ -829,7 +899,7 @@ select.form-select.settings-input,
                 </span>
                 <span class="text-muted small">Fields with * are required</span>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-3 p-md-4">
                 <form method="POST" enctype="multipart/form-data" id="businessInfoActualForm" novalidate>
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action_type" value="update_business_info">
@@ -1039,7 +1109,7 @@ select.form-select.settings-input,
                                 </h6>
                                 <small class="text-muted" style="font-size: 0.76rem;">Set shop opening & closing hours for each day of the week.</small>
                             </div>
-                            <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center flex-wrap gap-2 wh-preset-btns">
                                 <button type="button" class="btn btn-sm btn-outline-primary fw-medium" id="btnQuickMonSat" style="border-radius: 8px; font-size: 0.75rem; padding: 5px 12px;">
                                     <i class="fas fa-bolt me-1"></i> Mon-Sat 10AM-8PM (Sun Closed)
                                 </button>
@@ -1070,13 +1140,14 @@ select.form-select.settings-input,
                                     }
                                 }
                             ?>
-                                <div class="wh-day-row d-flex align-items-center justify-content-between flex-wrap gap-2 <?php echo $dayClosed ? 'is-closed' : ''; ?>" id="row_wh_<?php echo $dayKey; ?>">
+                                <div class="wh-day-row d-flex align-items-center justify-content-between flex-md-wrap gap-2 <?php echo $dayClosed ? 'is-closed' : ''; ?>" id="row_wh_<?php echo $dayKey; ?>">
                                     <!-- Day Name & Badge -->
-                                    <div class="d-flex align-items-center gap-2" style="min-width: 125px;">
+                                    <div class="d-flex align-items-center gap-2 wh-day-col">
                                         <div class="wh-day-badge" style="background: <?php echo $dayKey === 'sunday' ? '#fee2e2; color: #dc2626;' : '#ede9fe; color: #6366f1;'; ?>">
-                                            <?php echo strtoupper(substr($dayName, 0, 2)); ?>
+                                            <span class="d-md-none"><?php echo strtoupper(substr($dayName, 0, 3)); ?></span>
+                                            <span class="d-none d-md-inline"><?php echo strtoupper(substr($dayName, 0, 2)); ?></span>
                                         </div>
-                                        <div>
+                                        <div class="d-none d-md-block">
                                             <span class="fw-semibold text-dark" style="font-size: 0.86rem;"><?php echo $dayName; ?></span>
                                             <?php if ($dayKey === 'sunday'): ?>
                                                 <small class="text-muted d-block" style="font-size: 0.68rem;">Weekend</small>
@@ -1086,8 +1157,8 @@ select.form-select.settings-input,
 
                                     <!-- Time Inputs (Open & Close) -->
                                     <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-md-center wh-time-controls" id="time_controls_<?php echo $dayKey; ?>" style="<?php echo $dayClosed ? 'display: none !important;' : ''; ?>">
-                                        <div class="d-flex align-items-center gap-1">
-                                            <span class="text-muted small" style="font-size: 0.72rem;">From:</span>
+                                        <div class="d-flex align-items-center gap-1 wh-time-pair">
+                                            <span class="text-muted small d-none d-md-inline" style="font-size: 0.72rem;">From:</span>
                                             <input type="time" 
                                                    name="wh_open[<?php echo $dayKey; ?>]" 
                                                    class="form-control form-control-sm wh-time-input" 
@@ -1095,9 +1166,9 @@ select.form-select.settings-input,
                                                    style="width: 125px;"
                                                    <?php echo $dayClosed ? 'disabled' : ''; ?>>
                                         </div>
-                                        <span class="text-muted small px-1">-</span>
-                                        <div class="d-flex align-items-center gap-1">
-                                            <span class="text-muted small" style="font-size: 0.72rem;">To:</span>
+                                        <span class="text-muted small px-0 px-md-1">-</span>
+                                        <div class="d-flex align-items-center gap-1 wh-time-pair">
+                                            <span class="text-muted small d-none d-md-inline" style="font-size: 0.72rem;">To:</span>
                                             <input type="time" 
                                                    name="wh_close[<?php echo $dayKey; ?>]" 
                                                    class="form-control form-control-sm wh-time-input" 
@@ -1113,7 +1184,7 @@ select.form-select.settings-input,
                                     </div>
 
                                     <!-- Closed Switch Toggle -->
-                                    <div class="form-check form-switch m-0 ms-auto">
+                                    <div class="form-check form-switch m-0 ms-auto wh-switch-wrap">
                                         <input class="form-check-input wh-closed-switch" 
                                                type="checkbox" 
                                                role="switch" 

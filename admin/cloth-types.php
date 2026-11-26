@@ -12,10 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $_POST['action'] ?? ''; 
         switch ($action) {
             case 'create':
+                $rawRate = trim((string)($_POST['standard_rate'] ?? ''));
+                $nameVal = trim(sanitize_input($_POST['name'] ?? ''));
+                if ($nameVal === '' || $rawRate === '' || !is_numeric($rawRate) || (float)$rawRate < 0) {
+                    $message = 'Cloth name and valid standard rate are required';
+                    $messageType = 'error';
+                    break;
+                }
                 $data = [
-                    'name' => sanitize_input($_POST['name']),
+                    'name' => $nameVal,
                     'description' => sanitize_input($_POST['description']),
-                    'standard_rate' => !empty($_POST['standard_rate']) ? (float)$_POST['standard_rate'] : null,
+                    'standard_rate' => (float)$rawRate,
                     'category' => trim($_POST['category']),
                     'measurement_chart_image' => !empty($_POST['measurement_chart_image']) ? ltrim(sanitize_input($_POST['measurement_chart_image']), './') : '',
                     'status' => $_POST['status']
@@ -50,10 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'update':
                 $clothTypeId = (int)$_POST['cloth_type_id'];
+                $rawRate = trim((string)($_POST['standard_rate'] ?? ''));
+                $nameVal = trim(sanitize_input($_POST['name'] ?? ''));
+                if ($nameVal === '' || $rawRate === '' || !is_numeric($rawRate) || (float)$rawRate < 0) {
+                    $message = 'Cloth name and valid standard rate are required';
+                    $messageType = 'error';
+                    break;
+                }
                 $data = [
-                    'name' => sanitize_input($_POST['name']),
+                    'name' => $nameVal,
                     'description' => sanitize_input($_POST['description']),
-                    'standard_rate' => !empty($_POST['standard_rate']) ? (float)$_POST['standard_rate'] : null,
+                    'standard_rate' => (float)$rawRate,
                     'category' => trim($_POST['category']),
                     'status' => $_POST['status']
                 ];
@@ -710,7 +724,7 @@ include 'includes/page-header.php';
 <div class="modal fade" id="clothTypeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" id="clothTypeForm" enctype="multipart/form-data">
+            <form method="POST" id="clothTypeForm" enctype="multipart/form-data" novalidate>
                 <div class="modal-header">
                     <h5 class="modal-title" id="clothTypeModalTitle">Add Cloth Type</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -725,6 +739,7 @@ include 'includes/page-header.php';
                         <div class="col-md-8 mb-3">
                             <label for="name" class="form-label"> Cloth Name *</label>
                             <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="invalid-feedback">Please enter a cloth name.</div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="status" class="form-label">Status *</label>
@@ -732,6 +747,7 @@ include 'includes/page-header.php';
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
+                            <div class="invalid-feedback">Please select a status.</div>
                         </div>
                     </div>
                     
@@ -748,10 +764,11 @@ include 'includes/page-header.php';
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="standard_rate" class="form-label">Standard Rate</label>
-                            <div class="input-group">
+                            <label for="standard_rate" class="form-label">Standard Rate *</label>
+                            <div class="input-group has-validation">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" id="standard_rate" name="standard_rate" step="0.01" min="0">
+                                <input type="number" class="form-control" id="standard_rate" name="standard_rate" step="0.01" min="0" required>
+                                <div class="invalid-feedback" id="standardRateFeedback">Please enter a standard rate.</div>
                             </div>
                         </div>
                     </div>
@@ -890,11 +907,17 @@ function editClothType(clothType) {
     document.getElementById('clothTypeModalTitle').textContent = 'Edit Cloth Type';
     document.getElementById('clothTypeAction').value = 'update';
     document.getElementById('clothTypeId').value = clothType.id;
-    document.getElementById('name').value = clothType.name || '';
+    const nameInput = document.getElementById('name');
+    const rateInput = document.getElementById('standard_rate');
+    const statusInput = document.getElementById('status');
+    nameInput.value = clothType.name || '';
+    nameInput.classList.remove('is-invalid');
     document.getElementById('description').value = clothType.description || '';
     document.getElementById('category').value = clothType.category || '';
-    document.getElementById('standard_rate').value = clothType.standard_rate || '';
-    document.getElementById('status').value = clothType.status || 'active';
+    rateInput.value = clothType.standard_rate !== null && clothType.standard_rate !== undefined ? clothType.standard_rate : '';
+    rateInput.classList.remove('is-invalid');
+    statusInput.value = clothType.status || 'active';
+    statusInput.classList.remove('is-invalid');
     if (clothType.measurement_chart_image) {
         const cleanPath = clothType.measurement_chart_image.replace(/^(\.\.\/|\.\/|\/)+/, '');
         document.getElementById('existingChartImage').value = cleanPath;
@@ -932,6 +955,71 @@ function previewChartFile(input) {
     }
 }
 
+function validateClothTypeForm() {
+    const nameInput = document.getElementById('name');
+    const statusInput = document.getElementById('status');
+    const rateInput = document.getElementById('standard_rate');
+    const rateFeedback = document.getElementById('standardRateFeedback');
+    let firstInvalid = null;
+
+    if (nameInput && nameInput.value.trim() === '') {
+        nameInput.classList.add('is-invalid');
+        firstInvalid = firstInvalid || nameInput;
+    } else if (nameInput) {
+        nameInput.classList.remove('is-invalid');
+    }
+
+    if (statusInput && !statusInput.value) {
+        statusInput.classList.add('is-invalid');
+        firstInvalid = firstInvalid || statusInput;
+    } else if (statusInput) {
+        statusInput.classList.remove('is-invalid');
+    }
+
+    if (rateInput) {
+        const rawRate = rateInput.value.trim();
+        const numRate = Number(rawRate);
+        if (rawRate === '' || Number.isNaN(numRate) || numRate < 0) {
+            if (rateFeedback) {
+                rateFeedback.textContent = rawRate === '' ? 'Please enter a standard rate.' : 'Standard rate must be 0 or greater.';
+            }
+            rateInput.classList.add('is-invalid');
+            firstInvalid = firstInvalid || rateInput;
+        } else {
+            rateInput.classList.remove('is-invalid');
+        }
+    }
+
+    if (firstInvalid) {
+        firstInvalid.focus();
+        return false;
+    }
+    return true;
+}
+
+document.getElementById('clothTypeForm')?.addEventListener('submit', function(e) {
+    if (!validateClothTypeForm()) {
+        e.preventDefault();
+    }
+});
+
+['name', 'status', 'standard_rate'].forEach(function(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    el.addEventListener(fieldId === 'status' ? 'change' : 'input', function() {
+        if (this.classList.contains('is-invalid')) {
+            if (fieldId === 'standard_rate') {
+                const raw = this.value.trim();
+                if (raw !== '' && !Number.isNaN(Number(raw)) && Number(raw) >= 0) {
+                    this.classList.remove('is-invalid');
+                }
+            } else if (this.value.trim() !== '') {
+                this.classList.remove('is-invalid');
+            }
+        }
+    });
+});
+
 document.getElementById('clothTypeModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('clothTypeModalTitle').textContent = 'Add Cloth Type';
     document.getElementById('clothTypeAction').value = 'create';
@@ -940,6 +1028,9 @@ document.getElementById('clothTypeModal').addEventListener('hidden.bs.modal', fu
     document.getElementById('currentChartPreview').style.display = 'none';
     document.getElementById('newChartPreview').style.display = 'none';
     document.getElementById('clothTypeForm').reset();
+    ['name', 'status', 'standard_rate'].forEach(function(fieldId) {
+        document.getElementById(fieldId)?.classList.remove('is-invalid');
+    });
 });
 let sortAscending = true;
 document.getElementById('sortClothTypesBtn')?.addEventListener('click', function(e) {

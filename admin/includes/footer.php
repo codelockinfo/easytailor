@@ -200,22 +200,38 @@
                 }
             });
         }
+        function normalizeLocalPhoneDigits(raw, countryPrefix = '+91') {
+            let val = (raw || '').toString().trim();
+            const prefixDigits = countryPrefix.replace(/[^0-9]/g, '');
+            while (val.startsWith(countryPrefix)) {
+                val = val.slice(countryPrefix.length).trim();
+            }
+            let digits = val.replace(/[^0-9]/g, '');
+            if (prefixDigits && digits.length > 10 && digits.startsWith(prefixDigits)) {
+                digits = digits.slice(prefixDigits.length);
+            }
+            return digits.slice(0, 10);
+        }
         function setupPhoneValidation(phoneInputId, countryPrefix = '+91') {
             const phoneInput = document.getElementById(phoneInputId);
             if (!phoneInput) return;
-            let initialValue = phoneInput.value || '';
-            if (initialValue.startsWith(countryPrefix)) {
-                initialValue = initialValue.replace(countryPrefix, '').trim();
-            }
-            initialValue = initialValue.replace(/[^0-9]/g, '').slice(0, 10);
-            phoneInput.value = initialValue;
+            const syncDigits = (raw) => {
+                const cleaned = normalizeLocalPhoneDigits(raw, countryPrefix);
+                if (phoneInput.value !== cleaned) {
+                    phoneInput.value = cleaned;
+                }
+                return cleaned;
+            };
+            syncDigits(phoneInput.value);
             phoneInput.placeholder = phoneInput.placeholder || `${countryPrefix} 10-digit mobile number`;
             phoneInput.maxLength = 10;
             phoneInput.setAttribute('pattern', '[0-9]{10}');
             
-            phoneInput.addEventListener('input', function(e) {
-                let value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
-                this.value = value;
+            phoneInput.addEventListener('input', function() {
+                syncDigits(this.value);
+            });
+            phoneInput.addEventListener('change', function() {
+                syncDigits(this.value);
             });
             phoneInput.addEventListener('keypress', function(e) {
                 const char = String.fromCharCode(e.which);
@@ -226,11 +242,10 @@
             phoneInput.addEventListener('paste', function(e) {
                 e.preventDefault();
                 const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                let value = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
-                this.value = value;
+                syncDigits(pastedText);
             });
             phoneInput.addEventListener('blur', function() {
-                let value = this.value.replace(/[^0-9]/g, '');
+                const value = syncDigits(this.value);
                 if (value.length === 10) {
                     this.setAttribute('data-phone-full', countryPrefix + value);
                 } else {
@@ -238,10 +253,7 @@
                 }
             });
             phoneInput.addEventListener('focus', function() {
-                let value = this.value;
-                if (value.startsWith(countryPrefix)) {
-                    this.value = value.replace(countryPrefix, '').trim();
-                }
+                syncDigits(this.value);
             });
             return phoneInput;
         }
@@ -321,6 +333,189 @@
         unset($_SESSION['ga4_event']);
         endif; 
         ?>
+        (function() {
+            function isControlVisible(el) {
+                if (!el || el.disabled) return false;
+                if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button' || el.type === 'reset') return false;
+                return el.getClientRects().length > 0;
+            }
+
+            function getFieldLabelText(form, el) {
+                let labelEl = null;
+                if (el.id) {
+                    try {
+                        labelEl = form.querySelector('label[for="' + CSS.escape(el.id) + '"]');
+                    } catch (e) {}
+                }
+                if (!labelEl) {
+                    const group = el.closest('.mb-3, .mb-2, .mb-1, .form-group, [class*="col-"]');
+                    if (group) {
+                        labelEl = group.querySelector('label');
+                    }
+                }
+                if (!labelEl) return '';
+                return labelEl.textContent.replace(/[*:\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+            }
+
+            function getInlineValidationMessage(form, el) {
+                const label = getFieldLabelText(form, el);
+                const rawEmpty = el.type !== 'checkbox' && el.type !== 'radio' && el.type !== 'file' && el.required && el.value.trim() === '';
+                if (el.validity.valueMissing || rawEmpty) {
+                    if (el.tagName === 'SELECT') {
+                        return label ? 'Please select ' + label + '.' : 'Please select an option.';
+                    }
+                    if (el.type === 'checkbox' || el.type === 'radio') {
+                        return 'This field is required.';
+                    }
+                    if (el.type === 'file') {
+                        return label ? 'Please choose ' + label + '.' : 'Please choose a file.';
+                    }
+                    return label ? 'Please enter ' + label + '.' : 'Please fill out this field.';
+                }
+                if (el.validity.patternMismatch) {
+                    if (el.title) return el.title;
+                    if (el.pattern === '[0-9]{10}') return 'Please enter a valid 10-digit phone number.';
+                }
+                return el.validationMessage || 'Please enter a valid value.';
+            }
+
+            function ensureFeedbackElement(el) {
+                const inputGroup = el.closest('.input-group');
+                if (inputGroup) {
+                    const igParent = inputGroup.parentElement;
+                    const igParentStyle = igParent ? window.getComputedStyle(igParent) : null;
+                    const isCompactSideLabelRow = igParentStyle && igParentStyle.display.includes('flex') && igParentStyle.flexDirection.startsWith('row') && igParent.querySelector('label');
+                    if (isCompactSideLabelRow && igParent.parentElement) {
+                        let wrap = igParent.parentElement.querySelector(':scope > .inline-group-feedback');
+                        if (!wrap) {
+                            wrap = document.createElement('div');
+                            wrap.className = 'invalid-feedback inline-group-feedback';
+                            wrap.dataset.autoFeedback = '1';
+                            igParent.insertAdjacentElement('afterend', wrap);
+                        }
+                        return wrap;
+                    }
+                    inputGroup.classList.add('has-validation');
+                    let fb = inputGroup.querySelector(':scope > .invalid-feedback');
+                    if (!fb) {
+                        fb = document.createElement('div');
+                        fb.className = 'invalid-feedback';
+                        fb.dataset.autoFeedback = '1';
+                        inputGroup.appendChild(fb);
+                    }
+                    return fb;
+                }
+                const formCheck = el.closest('.form-check');
+                if (formCheck) {
+                    let fb = formCheck.querySelector(':scope > .invalid-feedback');
+                    if (!fb) {
+                        fb = document.createElement('div');
+                        fb.className = 'invalid-feedback';
+                        fb.dataset.autoFeedback = '1';
+                        formCheck.appendChild(fb);
+                    }
+                    return fb;
+                }
+                const next = el.nextElementSibling;
+                if (next && next.classList.contains('invalid-feedback')) {
+                    return next;
+                }
+                const parent = el.parentElement;
+                if (parent && !parent.classList.contains('inline-field-wrap')) {
+                    const pStyle = window.getComputedStyle(parent);
+                    const isHorizontalLayout = pStyle.display.includes('grid') || (pStyle.display.includes('flex') && pStyle.flexDirection.startsWith('row'));
+                    if (isHorizontalLayout) {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'inline-field-wrap';
+                        wrap.style.display = 'flex';
+                        wrap.style.flexDirection = 'column';
+                        wrap.style.flex = '1 1 auto';
+                        wrap.style.minWidth = '0';
+                        wrap.style.width = '100%';
+                        parent.insertBefore(wrap, el);
+                        wrap.appendChild(el);
+                    }
+                }
+                const fb = document.createElement('div');
+                fb.className = 'invalid-feedback';
+                fb.dataset.autoFeedback = '1';
+                el.insertAdjacentElement('afterend', fb);
+                return fb;
+            }
+
+            function isControlValid(el) {
+                const emptyText = el.type !== 'checkbox' && el.type !== 'radio' && el.type !== 'file' && el.required && el.value.trim() === '';
+                return !emptyText && el.checkValidity();
+            }
+
+            function enableInlineFormValidation() {
+                document.querySelectorAll('form').forEach(function(form) {
+                    if (form.hasAttribute('novalidate') || form.id === 'measurementForm') return;
+                    form.noValidate = true;
+                    form.dataset.inlineValidated = '1';
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', enableInlineFormValidation);
+
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (!form || form.tagName !== 'FORM') return;
+                if (form.dataset.inlineValidated !== '1') return;
+
+                const controls = form.querySelectorAll('input, select, textarea');
+                let firstInvalid = null;
+
+                controls.forEach(function(el) {
+                    if (!isControlVisible(el)) return;
+                    if (!isControlValid(el)) {
+                        const fb = ensureFeedbackElement(el);
+                        if (fb && (fb.dataset.autoFeedback === '1' || !fb.textContent.trim())) {
+                            fb.textContent = getInlineValidationMessage(form, el);
+                        }
+                        el.classList.add('is-invalid');
+                        if (fb && fb.classList.contains('inline-group-feedback')) {
+                            fb.classList.add('d-block');
+                        }
+                        if (!firstInvalid) firstInvalid = el;
+                    } else {
+                        el.classList.remove('is-invalid');
+                        const groupWrap = el.closest('.input-group')?.parentElement?.parentElement?.querySelector(':scope > .inline-group-feedback');
+                        if (groupWrap) groupWrap.classList.remove('d-block');
+                    }
+                });
+
+                if (firstInvalid) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    firstInvalid.focus();
+                    return false;
+                }
+            }, true);
+
+            ['input', 'change'].forEach(function(evtName) {
+                document.addEventListener(evtName, function(e) {
+                    const el = e.target;
+                    if (!el || !el.form || el.form.dataset.inlineValidated !== '1') return;
+                    if (el.classList.contains('is-invalid') && isControlValid(el)) {
+                        el.classList.remove('is-invalid');
+                        const groupWrap = el.closest('.input-group')?.parentElement?.parentElement?.querySelector(':scope > .inline-group-feedback');
+                        if (groupWrap) groupWrap.classList.remove('d-block');
+                    }
+                }, true);
+            });
+
+            document.addEventListener('hidden.bs.modal', function(e) {
+                const modal = e.target;
+                if (!modal) return;
+                modal.querySelectorAll('.is-invalid').forEach(function(el) {
+                    el.classList.remove('is-invalid');
+                });
+                modal.querySelectorAll('.inline-group-feedback.d-block').forEach(function(el) {
+                    el.classList.remove('d-block');
+                });
+            });
+        })();
     </script>
     <div class="modal fade" id="pushNotificationBlockedModal" tabindex="-1" aria-labelledby="notifBlockedModalLabel" aria-hidden="true" style="z-index: 1070;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">

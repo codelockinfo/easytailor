@@ -444,7 +444,7 @@ $seoOptions = [
         input::placeholder,
         textarea::placeholder,
         select::placeholder {
-            color: #000000 !important;
+            color: #9ca3af !important;
             opacity: 1;
         }
         .form-control,
@@ -590,7 +590,7 @@ $seoOptions = [
         }
         
         .form-select::placeholder {
-            color: #000000 !important;
+            color: #9ca3af !important;
             font-weight: 400;
             opacity: 1;
         }

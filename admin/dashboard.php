@@ -1124,12 +1124,23 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                             </div>
                         </div>
                     <?php else: ?>
-                        <div class="text-center py-5">
-                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 52px; height: 52px; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
-                                <i class="fas fa-chart-pie fa-2x"></i>
+                        <div class="d-flex flex-column align-items-center justify-content-between text-center rounded-4 p-3 p-md-4 my-2" style="background: linear-gradient(180deg, #fafaff 0%, #f5f3ff 100%); border: 1.5px dashed #ddd6fe; min-height: 215px;">
+                            <div class="my-auto d-flex flex-column align-items-center">
+                                <div class="position-relative d-inline-flex align-items-center justify-content-center mb-3" style="width: 92px; height: 92px; border-radius: 50%; background: conic-gradient(#cffafe 0deg 95deg, #fef3c7 95deg 185deg, #d1fae5 185deg 275deg, #ede9fe 275deg 360deg); padding: 12px;">
+                                    <div class="w-100 h-100 rounded-circle bg-white d-flex flex-column align-items-center justify-content-center shadow-xs" style="border: 1px solid #ede9fe;">
+                                        <i class="fas fa-chart-pie mb-1" style="font-size: 1.1rem; color: #7c3aed;"></i>
+                                        <span class="fw-bold text-dark lh-1" style="font-size: 0.76rem;">0 Orders</span>
+                                    </div>
+                                </div>
+                                <div class="fw-bold text-dark mb-1" style="font-size: 0.96rem;">No Orders Yet</div>
+                                <p class="text-muted mb-0" style="font-size: 0.76rem; max-width: 240px; line-height: 1.4;">Create orders to see status distribution and workshop progress.</p>
                             </div>
-                            <div class="fw-bold text-dark small mb-1">No Orders Yet</div>
-                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Create orders to see status distribution.</p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2 pt-3 w-100 opacity-75" style="font-size: 0.68rem;">
+                                <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#06b6d4;"></span>In Progress</span>
+                                <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#f59e0b;"></span>Pending</span>
+                                <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#10b981;"></span>Completed</span>
+                                <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#8b5cf6;"></span>Delivered</span>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>

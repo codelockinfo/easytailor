@@ -236,6 +236,113 @@ class SlackService
     }
 
     /**
+     * Send notification when a company/user purchases or upgrades a subscription plan.
+     * 
+     * @param array $data ['company_name', 'owner_name', 'email', 'phone', 'plan', 'duration', 'amount', 'payment_id', 'expiry_date']
+     * @return bool
+     */
+    public function sendPlanPurchaseNotification(array $data): bool
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        $companyName = trim((string)($data['company_name'] ?? 'Shop'));
+        $ownerName   = trim((string)($data['owner_name'] ?? 'Admin'));
+        $email       = trim((string)($data['email'] ?? 'Not provided'));
+        $phone       = trim((string)($data['phone'] ?? 'Not provided'));
+        $plan        = strtoupper(trim((string)($data['plan'] ?? 'BASIC')));
+        $duration    = ucfirst(trim((string)($data['duration'] ?? 'Monthly')));
+        $amount      = isset($data['amount']) ? number_format((float)$data['amount'], 2) : '0.00';
+        $paymentId   = trim((string)($data['payment_id'] ?? 'N/A'));
+        $expiryDate  = trim((string)($data['expiry_date'] ?? 'N/A'));
+        $dateTime    = date('d M Y, h:i A');
+
+        $fallbackText = "💰 Plan Purchase: {$companyName} bought {$plan} ({$duration}) - ₹{$amount}";
+
+        $blocks = [
+            [
+                'type' => 'header',
+                'text' => [
+                    'type' => 'plain_text',
+                    'text' => '💰 New Plan Purchase / Upgrade!',
+                    'emoji' => true
+                ]
+            ],
+            [
+                'type' => 'section',
+                'text' => [
+                    'type' => 'mrkdwn',
+                    'text' => "*A customer just bought/upgraded a subscription plan on TailorPro!*\nHere are the transaction details:"
+                ]
+            ],
+            [
+                'type' => 'divider'
+            ],
+            [
+                'type' => 'section',
+                'fields' => [
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*🏢 Shop Name:*\n{$companyName}"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*👤 Admin / Owner:*\n{$ownerName}"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*💎 Plan:*\n*`{$plan}`* ({$duration})"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*💵 Amount Paid:*\n*₹{$amount}*"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*📧 Email:*\n{$email}"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*📱 Phone:*\n{$phone}"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*🆔 Payment ID:*\n`{$paymentId}`"
+                    ],
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "*📅 Valid Until:*\n{$expiryDate}"
+                    ]
+                ]
+            ],
+            [
+                'type' => 'divider'
+            ],
+            [
+                'type' => 'context',
+                'elements' => [
+                    [
+                        'type' => 'mrkdwn',
+                        'text' => "TailorPro Billing Notification • Paid at: {$dateTime}"
+                    ]
+                ]
+            ]
+        ];
+
+        // Green theme for successful payment
+        $attachments = [
+            [
+                'color' => '#10b981',
+                'blocks' => $blocks
+            ]
+        ];
+
+        $result = $this->postMessage($fallbackText, [], $attachments);
+        return $result['success'];
+    }
+
+    /**
      * Send a raw message to Slack.
      * 
      * @param string $fallbackText Main message text or fallback

@@ -293,6 +293,16 @@ include 'includes/page-header.php';
             <div class="card-body p-3">
                 <div style="height: 300px; position: relative;">
                     <canvas id="orderStatusChart"></canvas>
+                    <div id="orderStatusEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center text-center px-3" style="display: none;">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #fffbeb; color: #d97706; border: 1.5px dashed #fcd34d;">
+                            <i class="fas fa-chart-pie fa-lg"></i>
+                        </div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">No Orders Yet</div>
+                        <p class="text-muted mb-3" style="font-size: 0.78rem; max-width: 220px;">Order status breakdown will appear here once orders are created.</p>
+                        <a href="orders.php?action=create" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.76rem;">
+                            <i class="fas fa-plus me-1"></i>Create Order
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -331,6 +341,13 @@ include 'includes/page-header.php';
             <div class="card-body p-3">
                 <div style="height: 300px; position: relative;">
                     <canvas id="paymentMethodChart"></canvas>
+                    <div id="paymentMethodEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center text-center px-3" style="display: none;">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: #f0fdfa; color: #0d9488; border: 1.5px dashed #5eead4;">
+                            <i class="fas fa-credit-card fa-lg"></i>
+                        </div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">No Payment Data</div>
+                        <p class="text-muted mb-0" style="font-size: 0.78rem; max-width: 220px;">Payment method breakdown will appear here once transactions are recorded.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -498,6 +515,13 @@ include 'includes/page-header.php';
 // Global chart variables
 let revenueExpenseChart, orderStatusChart, expenseCategoryChart, paymentMethodChart;
 
+function toggleChartEmptyState(canvasId, emptyId, hasData) {
+    const canvas = document.getElementById(canvasId);
+    const emptyEl = document.getElementById(emptyId);
+    if (canvas) canvas.style.display = hasData ? 'block' : 'none';
+    if (emptyEl) emptyEl.style.display = hasData ? 'none' : 'flex';
+}
+
 // Initialize charts with initial data
 function initializeCharts() {
     // Revenue vs Expenses Chart
@@ -546,19 +570,22 @@ function initializeCharts() {
     });
 
     // Order Status Chart
+    const initOrderStatusData = [
+        <?php echo (int)$orderStats['pending']; ?>,
+        <?php echo (int)$orderStats['in_progress']; ?>,
+        <?php echo (int)$orderStats['completed']; ?>,
+        <?php echo (int)$orderStats['delivered']; ?>,
+        <?php echo (int)$orderStats['cancelled']; ?>
+    ];
+    const hasInitOrders = initOrderStatusData.reduce((sum, val) => sum + val, 0) > 0;
+    toggleChartEmptyState('orderStatusChart', 'orderStatusEmptyState', hasInitOrders);
     const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
     orderStatusChart = new Chart(orderStatusCtx, {
         type: 'doughnut',
         data: {
             labels: ['Pending', 'In Progress', 'Completed', 'Delivered', 'Cancelled'],
             datasets: [{
-                data: [
-                    <?php echo $orderStats['pending']; ?>,
-                    <?php echo $orderStats['in_progress']; ?>,
-                    <?php echo $orderStats['completed']; ?>,
-                    <?php echo $orderStats['delivered']; ?>,
-                    <?php echo $orderStats['cancelled']; ?>
-                ],
+                data: initOrderStatusData,
                 backgroundColor: [
                     '#ffc107',
                     '#17a2b8',
@@ -624,6 +651,8 @@ function initializeCharts() {
         return ucwords(str_replace('_', ' ', $pm['payment_method']));
     }, $expenseStats['by_payment_method'])); ?>;
     const initPmData = <?php echo json_encode(array_column($expenseStats['by_payment_method'], 'total')); ?>;
+    const hasInitPm = initPmLabels.length > 0 && initPmData.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) > 0;
+    toggleChartEmptyState('paymentMethodChart', 'paymentMethodEmptyState', hasInitPm);
     paymentMethodChart = new Chart(paymentMethodCtx, {
         type: 'pie',
         data: {
@@ -684,13 +713,8 @@ function updateCharts(data) {
     // Update the data
     orderStatusChart.data.datasets[0].data = orderStatusData;
     
-    // If all values are 0, Chart.js might not render properly, so we need to handle it
     const totalOrders = orderStatusData.reduce((sum, val) => sum + val, 0);
-    if (totalOrders === 0) {
-        console.log('No orders found in the selected date range - chart will show empty');
-        // Ensure the chart still renders even with all zeros
-        orderStatusChart.options.plugins.legend.display = true;
-    }
+    toggleChartEmptyState('orderStatusChart', 'orderStatusEmptyState', totalOrders > 0);
     
     // Update the chart
     try {
@@ -747,8 +771,13 @@ function updateCharts(data) {
     // Update Payment Method Chart
     const updPmLabels = (data.charts.payment_methods.labels || []).map(l => l.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
     const updPmData = data.charts.payment_methods.data || [];
+    const hasUpdPm = updPmLabels.length > 0 && updPmData.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) > 0;
+    toggleChartEmptyState('paymentMethodChart', 'paymentMethodEmptyState', hasUpdPm);
     paymentMethodChart.data.labels = updPmLabels.length ? updPmLabels : ['None'];
     paymentMethodChart.data.datasets[0].data = updPmData.length ? updPmData : [0];
+    if (hasUpdPm) {
+        paymentMethodChart.resize();
+    }
     paymentMethodChart.update();
 }
 

@@ -322,10 +322,6 @@
                 <a href="tailors.php?city=Surat" class="mob-location-chip" style="text-decoration:none;">
                     <i class="fas fa-map-marker-alt"></i> Surat, Gujarat <i class="fas fa-chevron-down"></i>
                 </a>
-               
-                <a href="admin/login.php" class="mob-avatar" aria-label="Profile">
-                    <i class="fas fa-user"></i>
-                </a>
             </div>
         </header>
         <div class="mob-hero">

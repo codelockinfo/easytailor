@@ -177,6 +177,28 @@ try {
         $input['duration'] ?? null,
         $paymentId
     );
+
+    // Send Slack notification (non-blocking)
+    try {
+        require_once '../../helpers/SlackService.php';
+        $slackService = new SlackService($companyId);
+        if ($slackService->isEnabled()) {
+            $companyInfo = $companyModel->find($companyId);
+            $slackService->sendPlanPurchaseNotification([
+                'company_name' => $companyInfo['company_name'] ?? $companyInfo['name'] ?? ('Shop #' . $companyId),
+                'owner_name'   => $companyInfo['owner_name'] ?? ($_SESSION['user_name'] ?? 'Admin'),
+                'email'        => $companyInfo['business_email'] ?? $companyInfo['email'] ?? ($_SESSION['user_email'] ?? ''),
+                'phone'        => $companyInfo['business_phone'] ?? $companyInfo['phone'] ?? '',
+                'plan'         => $input['plan_name'] ?? $planKey,
+                'duration'     => $duration,
+                'amount'       => $amount,
+                'payment_id'   => $paymentId,
+                'expiry_date'  => $expiryDate
+            ]);
+        }
+    } catch (Throwable $slackErr) {
+        error_log('Slack purchase notification failed: ' . $slackErr->getMessage());
+    }
     
     // Set success message in session
     $_SESSION['message'] = 'Payment successful! Your subscription has been upgraded to ' . ($input['plan_name'] ?? $planKey) . '.';

@@ -343,6 +343,9 @@ require_once 'includes/header.php';
             <h2 class="h4 mb-0 fw-bold text-dark">Order Details</h2>
         </div>
         <div class="d-none d-md-flex gap-2">
+            <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1 bg-white shadow-xs" data-bs-toggle="modal" data-bs-target="#statusModal" style="border-color: #3b82f6; color: #2563eb; font-size: 0.88rem; font-weight: 500;">
+                <i class="fas fa-edit me-1"></i>Update Status
+            </button>
             <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1 bg-white" onclick="printOrder()" style="border-color: #667eea; color: #4338ca; font-size: 0.88rem; font-weight: 500;">
                 <i class="fas fa-print me-2"></i>Print Order
             </button>
@@ -383,7 +386,7 @@ require_once 'includes/header.php';
                     <div class="fw-bold fs-5 text-dark"><?php echo htmlspecialchars($order['order_number']); ?></div>
                 </div>
                 <div>
-                    <span class="badge rounded-pill text-white px-3 py-2" style="<?php echo $statusBadgeBg; ?> font-size: 0.8rem; font-weight: 500;">
+                    <span class="badge rounded-pill text-white px-3 py-2" id="orderDetailStatusBadgeMob" style="<?php echo $statusBadgeBg; ?> font-size: 0.8rem; font-weight: 500; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#statusModal" title="Click to update status">
                         <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
                     </span>
                 </div>
@@ -495,6 +498,21 @@ require_once 'includes/header.php';
                             <div class="text-muted small fw-medium" style="font-size: 0.78rem;">Due Date</div>
                             <div class="fw-bold fs-6 text-dark"><?php echo format_date($order['due_date'], 'M j, Y'); ?></div>
                             <div class="text-muted" style="font-size: 0.72rem;"><?php echo $dueText; ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #f0fdf4; color: #16a34a;">
+                            <i class="fas fa-tasks fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small fw-medium" style="font-size: 0.78rem;">Order Status</div>
+                            <div class="mt-1">
+                                <span class="badge rounded-pill text-white px-3 py-1" id="orderDetailStatusBadgeDesk" style="<?php echo $statusBadgeBg; ?> font-size: 0.8rem; font-weight: 500; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#statusModal" title="Click to update status">
+                                    <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1204,7 +1222,24 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.reload();
+                    updateBtn.disabled = false;
+                    updateBtn.innerHTML = originalText;
+
+                    // Close status modal
+                    const statusModalEl = document.getElementById('statusModal');
+                    if (statusModalEl && window.bootstrap && bootstrap.Modal) {
+                        const modalInstance = bootstrap.Modal.getInstance(statusModalEl);
+                        if (modalInstance) modalInstance.hide();
+                    }
+
+                    // Apply updated status badges locally
+                    applyOrderDetailStatusLocally(status, data.status_display);
+                    showToast('Success', data.message || 'Order status updated successfully', 'success');
+
+                    // If cancelled or status change affects garment items, sync single order immediately
+                    if (typeof pollSingleOrderSync === 'function') {
+                        setTimeout(pollSingleOrderSync, 400);
+                    }
                 } else {
                     alert(data.error || 'Failed to update order status');
                     updateBtn.disabled = false;
@@ -1346,6 +1381,123 @@ function updateOrderItemStatus(itemId, status, orderId) {
         showToast('Error', 'Network error occurred while updating status', 'error');
     });
 }
+
+// --- Real-time Order Details Synchronization ---
+const statusColorsMap = {
+    'pending': 'background-color: #f59e0b;',
+    'in_progress': 'background-color: #3b82f6;',
+    'completed': 'background-color: #10b981;',
+    'delivered': 'background-color: #8b5cf6;',
+    'cancelled': 'background-color: #ef4444;'
+};
+
+function applyOrderDetailStatusLocally(newStatus, statusDisplay) {
+    const display = statusDisplay || (newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('_', ' '));
+    const bgStyle = statusColorsMap[newStatus] || 'background-color: #6b7280;';
+
+    const deskBadge = document.getElementById('orderDetailStatusBadgeDesk');
+    if (deskBadge) {
+        deskBadge.textContent = display;
+        deskBadge.setAttribute('style', bgStyle + ' font-size: 0.8rem; font-weight: 500; cursor: pointer;');
+    }
+
+    const mobBadge = document.getElementById('orderDetailStatusBadgeMob');
+    if (mobBadge) {
+        mobBadge.textContent = display;
+        mobBadge.setAttribute('style', bgStyle + ' font-size: 0.8rem; font-weight: 500; cursor: pointer;');
+    }
+
+    const overallBadge = document.getElementById('overallOrderStatusBadge');
+    if (overallBadge) {
+        overallBadge.textContent = display;
+        overallBadge.setAttribute('style', bgStyle + ' padding: 4px 12px; font-weight: 500;');
+    }
+
+    const topBadge = document.getElementById('topOrderStatusBadge');
+    if (topBadge) {
+        topBadge.textContent = display;
+        topBadge.setAttribute('style', bgStyle + ' padding: 5px 14px; font-weight: 500; font-size: 0.78rem;');
+    }
+}
+
+let lastSingleOrderSyncTime = '<?php echo date("Y-m-d H:i:s"); ?>';
+let currentLocalOrderStatus = '<?php echo $order['status']; ?>';
+let isSingleOrderSyncActive = false;
+let singleOrderSyncInterval = null;
+
+function pollSingleOrderSync() {
+    if (isSingleOrderSyncActive) return;
+    isSingleOrderSyncActive = true;
+
+    const formData = new FormData();
+    formData.append('last_sync', lastSingleOrderSyncTime);
+    formData.append('single_order_id', '<?php echo $order['id']; ?>');
+
+    fetch('ajax/sync_orders.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        isSingleOrderSyncActive = false;
+        if (!data || !data.success) return;
+
+        if (data.server_time) {
+            lastSingleOrderSyncTime = data.server_time;
+        }
+
+        const so = data.single_order;
+        if (so) {
+            // Check if overall status changed
+            if (so.status && so.status !== currentLocalOrderStatus) {
+                currentLocalOrderStatus = so.status;
+                applyOrderDetailStatusLocally(so.status, so.status_display);
+                showToast('Status Updated', `Order status is now ${so.status_display}`, 'info');
+            }
+
+            // Sync item statuses if present
+            if (so.items && Array.isArray(so.items)) {
+                so.items.forEach(it => {
+                    const btns = document.querySelectorAll('#itemStatusBtn_' + it.id + ', #itemStatusBtn_mob_' + it.id + ', .item-status-btn-' + it.id);
+                    btns.forEach(btn => {
+                        if (it.style) {
+                            btn.style.background = it.style.bg;
+                            btn.style.color = it.style.color;
+                            btn.style.borderColor = it.style.border;
+                            const isMob = btn.id.includes('mob');
+                            const iconId = isMob ? `itemStatusIcon_mob_${it.id}` : `itemStatusIcon_${it.id}`;
+                            const textId = isMob ? `itemStatusText_mob_${it.id}` : `itemStatusText_${it.id}`;
+                            btn.innerHTML = `
+                                <i class="fas ${it.style.icon}" id="${iconId}"></i>
+                                <span id="${textId}">${it.status_display}</span>
+                                <i class="fas fa-chevron-down ms-1" style="font-size: ${isMob ? '0.58rem' : '0.6rem'}; opacity: 0.7;"></i>
+                            `;
+                        }
+                    });
+                });
+            }
+        }
+    })
+    .catch(err => {
+        isSingleOrderSyncActive = false;
+        console.warn('Order details sync notice:', err);
+    });
+}
+
+function startSingleOrderSyncTimer() {
+    if (singleOrderSyncInterval) clearInterval(singleOrderSyncInterval);
+    const intervalMs = document.hidden ? 10000 : 4000;
+    singleOrderSyncInterval = setInterval(pollSingleOrderSync, intervalMs);
+}
+
+document.addEventListener('visibilitychange', function() {
+    startSingleOrderSyncTimer();
+    if (!document.hidden) {
+        pollSingleOrderSync();
+    }
+});
+
+startSingleOrderSyncTimer();
 </script>
 <style>
 @media (max-width: 767.98px) {

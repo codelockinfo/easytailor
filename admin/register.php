@@ -255,6 +255,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
 
+            // Send Slack notification (non-blocking)
+            try {
+                require_once '../helpers/SlackService.php';
+                $slackService = new SlackService();
+                if ($slackService->isEnabled()) {
+                    $slackService->sendNewRegistrationNotification([
+                        'company_name' => $companyName,
+                        'owner_name'   => $ownerName,
+                        'email'        => $businessEmail,
+                        'phone'        => $businessPhone,
+                        'username'     => $username,
+                        'city'         => sanitize_input($_POST['city'] ?? ''),
+                        'state'        => sanitize_input($_POST['state'] ?? ''),
+                        'plan'         => $subscriptionPlan,
+                        'method'       => $cameFromOffer ? 'Special Offer Registration' : 'Web Registration'
+                    ]);
+                }
+            } catch (Throwable $e) {
+                error_log('Slack notification error on registration: ' . $e->getMessage());
+            }
+
             // Track signup event for GA4
             require_once '../helpers/GA4Helper.php';
             $_SESSION['ga4_event'] = GA4Helper::trackSignup($userId, $companyId, $companyName, $ownerName);

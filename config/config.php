@@ -49,6 +49,11 @@ $googleConfigFile = __DIR__ . '/google.php';
 if (file_exists($googleConfigFile)) {
     @include_once $googleConfigFile;
 }
+
+$slackConfigFile = __DIR__ . '/slack.php';
+if (file_exists($slackConfigFile)) {
+    @include_once $slackConfigFile;
+}
 spl_autoload_register(function ($class_name) {
     $directories = [
         APP_PATH . 'models/',

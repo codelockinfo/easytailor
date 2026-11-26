@@ -201,6 +201,27 @@ class AuthController {
 
             $db->commit();
 
+            // Send Slack notification (non-blocking)
+            try {
+                require_once __DIR__ . '/../helpers/SlackService.php';
+                $slackService = new SlackService();
+                if ($slackService->isEnabled()) {
+                    $slackService->sendNewRegistrationNotification([
+                        'company_name' => $companyName,
+                        'owner_name'   => $fullName,
+                        'email'        => $email,
+                        'phone'        => 'Via Google',
+                        'username'     => $email,
+                        'city'         => '',
+                        'state'        => '',
+                        'plan'         => $subscriptionPlan,
+                        'method'       => 'Google Sign-In Registration'
+                    ]);
+                }
+            } catch (Throwable $e) {
+                error_log('Slack notification error on Google registration: ' . $e->getMessage());
+            }
+
             $newUser = $this->userModel->find($userId);
             return $this->completeUserLogin($newUser);
 

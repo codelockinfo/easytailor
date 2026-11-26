@@ -185,10 +185,10 @@ try {
         if ($slackService->isEnabled()) {
             $companyInfo = $companyModel->find($companyId);
             $slackService->sendPlanPurchaseNotification([
-                'company_name' => $companyInfo['company_name'] ?? $companyInfo['name'] ?? 'Shop #' . $companyId,
+                'company_name' => $companyInfo['company_name'] ?? $companyInfo['name'] ?? ('Shop #' . $companyId),
                 'owner_name'   => $companyInfo['owner_name'] ?? ($_SESSION['user_name'] ?? 'Admin'),
-                'email'        => $companyInfo['email'] ?? ($_SESSION['user_email'] ?? ''),
-                'phone'        => $companyInfo['phone'] ?? '',
+                'email'        => $companyInfo['business_email'] ?? $companyInfo['email'] ?? ($_SESSION['user_email'] ?? ''),
+                'phone'        => $companyInfo['business_phone'] ?? $companyInfo['phone'] ?? '',
                 'plan'         => $input['plan_name'] ?? $planKey,
                 'duration'     => $duration,
                 'amount'       => $amount,

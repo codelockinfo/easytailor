@@ -571,6 +571,22 @@ if (!function_exists('getCustomerAvatarDesign')) {
 }
 ?>
 <style>
+@keyframes orderRowPulse {
+    0% { background-color: rgba(59, 130, 246, 0.25); }
+    50% { background-color: rgba(59, 130, 246, 0.10); }
+    100% { background-color: transparent; }
+}
+@keyframes orderRowNewPulse {
+    0% { background-color: rgba(34, 197, 94, 0.35); }
+    50% { background-color: rgba(34, 197, 94, 0.12); }
+    100% { background-color: transparent; }
+}
+.order-row-highlight {
+    animation: orderRowPulse 2.5s ease-out;
+}
+.order-row-new-highlight {
+    animation: orderRowNewPulse 3.5s ease-out;
+}
 .cat-stat-box {
     border-radius: 16px;
     padding: 10px 12px;
@@ -3378,10 +3394,27 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('Success', 'Order status updated successfully', 'success');
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
+            clickedElement.innerHTML = originalText;
+            clickedElement.style.pointerEvents = 'auto';
+
+            // Close bootstrap dropdown
+            const dropdownMenu = clickedElement.closest('.dropdown-menu');
+            if (dropdownMenu) {
+                const dropdownToggle = dropdownMenu.parentElement.querySelector('[data-bs-toggle="dropdown"]');
+                if (dropdownToggle && window.bootstrap && bootstrap.Dropdown) {
+                    const bsDropdown = bootstrap.Dropdown.getInstance(dropdownToggle);
+                    if (bsDropdown) bsDropdown.hide();
+                }
+            }
+
+            // Update UI in-place without page reload
+            applyOrderStatusUpdateLocally(orderId, status, data.status_display);
+            showToast('Success', 'Order status updated to ' + (data.status_display || status), 'success');
+
+            // Quick poll to refresh stat counters
+            if (typeof pollOrderSync === 'function') {
+                setTimeout(pollOrderSync, 500);
+            }
         } else {
             showToast('Error', data.message || 'Failed to update order status', 'error');
             clickedElement.innerHTML = originalText;
@@ -4735,6 +4768,175 @@ function printOrderInvoiceFromModal() {
         printOrderInvoice(window.currentSendInvoiceOrder.id);
     }
 }
+
+// --- Real-time In-Place Updates & Live Polling Synchronization ---
+function applyOrderStatusUpdateLocally(orderId, newStatus, statusDisplay) {
+    const display = statusDisplay || (newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('_', ' '));
+    const badgeClass = 'cat-badge-' + newStatus;
+    const allBadgeClasses = ['cat-badge-pending', 'cat-badge-in_progress', 'cat-badge-completed', 'cat-badge-delivered', 'cat-badge-cancelled'];
+
+    // Desktop row
+    const row = document.getElementById('orderRow_' + orderId);
+    if (row) {
+        row.setAttribute('data-status', newStatus);
+        const badge = row.querySelector('.cat-badge-pending, .cat-badge-in_progress, .cat-badge-completed, .cat-badge-delivered, .cat-badge-cancelled');
+        if (badge) {
+            allBadgeClasses.forEach(cls => badge.classList.remove(cls));
+            badge.classList.add(badgeClass);
+            badge.textContent = display;
+        }
+        row.classList.remove('order-row-highlight');
+        void row.offsetWidth; // trigger reflow
+        row.classList.add('order-row-highlight');
+    }
+
+    // Mobile card
+    const card = document.getElementById('orderCard_' + orderId);
+    if (card) {
+        card.setAttribute('data-status', newStatus);
+        const cardBadge = card.querySelector('.cat-badge-pending, .cat-badge-in_progress, .cat-badge-completed, .cat-badge-delivered, .cat-badge-cancelled');
+        if (cardBadge) {
+            allBadgeClasses.forEach(cls => cardBadge.classList.remove(cls));
+            cardBadge.classList.add(badgeClass);
+            cardBadge.textContent = display;
+        }
+        card.classList.remove('order-row-highlight');
+        void card.offsetWidth;
+        card.classList.add('order-row-highlight');
+    }
+}
+
+function playSyncNotificationSound() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, now); // D5
+        osc.frequency.setValueAtTime(880, now + 0.1); // A5
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    } catch (e) {
+        // Audio might be muted until user gesture
+    }
+}
+
+let lastOrderSyncTime = '<?php echo date("Y-m-d H:i:s"); ?>';
+let isOrderSyncActive = false;
+let orderSyncInterval = null;
+
+function getVisibleOrderIds() {
+    const ids = [];
+    document.querySelectorAll('.order-row[id^="orderRow_"]').forEach(el => {
+        const id = parseInt(el.id.replace('orderRow_', ''), 10);
+        if (id > 0 && !ids.includes(id)) ids.push(id);
+    });
+    document.querySelectorAll('.order-mobile-card[id^="orderCard_"]').forEach(el => {
+        const id = parseInt(el.id.replace('orderCard_', ''), 10);
+        if (id > 0 && !ids.includes(id)) ids.push(id);
+    });
+    return ids;
+}
+
+function pollOrderSync() {
+    if (isOrderSyncActive) return;
+    isOrderSyncActive = true;
+
+    const visibleIds = getVisibleOrderIds();
+    const formData = new FormData();
+    formData.append('last_sync', lastOrderSyncTime);
+    formData.append('visible_ids', visibleIds.join(','));
+
+    fetch('ajax/sync_orders.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        isOrderSyncActive = false;
+        if (!data || !data.success) return;
+
+        if (data.server_time) {
+            lastOrderSyncTime = data.server_time;
+        }
+
+        // 1. Update status statistics cards
+        if (data.stats) {
+            ['pending', 'in_progress', 'completed', 'delivered'].forEach(st => {
+                const el = document.getElementById('stat-' + st);
+                if (el && typeof data.stats[st] !== 'undefined') {
+                    el.textContent = Number(data.stats[st]).toLocaleString();
+                }
+            });
+        }
+
+        // 2. Handle removed orders (tailor unassigned from order)
+        if (data.removed_order_ids && data.removed_order_ids.length > 0) {
+            data.removed_order_ids.forEach(remId => {
+                const row = document.getElementById('orderRow_' + remId);
+                const card = document.getElementById('orderCard_' + remId);
+                if (row) {
+                    row.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => row.remove(), 400);
+                }
+                if (card) {
+                    card.style.transition = 'opacity 0.4s ease';
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 400);
+                }
+            });
+        }
+
+        // 3. Update existing visible orders with new status
+        if (data.status_updates && data.status_updates.length > 0) {
+            data.status_updates.forEach(u => {
+                applyOrderStatusUpdateLocally(u.id, u.status, u.status_display);
+                showToast('Status Updated', `Order #${u.order_number} is now ${u.status_display}`, 'info');
+            });
+        }
+
+        // 4. Handle new orders assigned or created
+        if (data.new_orders && data.new_orders.length > 0) {
+            playSyncNotificationSound();
+            const orderNums = data.new_orders.map(o => '#' + o.order_number).join(', ');
+            showToast('New Order Assigned', `You have new order(s): ${orderNums}`, 'success');
+
+            // Refresh orders table dynamically via existing executeFilter() without page refresh!
+            if (typeof executeFilter === 'function') {
+                executeFilter();
+            }
+        }
+    })
+    .catch(err => {
+        isOrderSyncActive = false;
+        console.warn('Real-time sync notice:', err);
+    });
+}
+
+function startOrderSyncTimer() {
+    if (orderSyncInterval) clearInterval(orderSyncInterval);
+    const intervalMs = document.hidden ? 10000 : 4000;
+    orderSyncInterval = setInterval(pollOrderSync, intervalMs);
+}
+
+document.addEventListener('visibilitychange', function() {
+    startOrderSyncTimer();
+    if (!document.hidden) {
+        pollOrderSync();
+    }
+});
+
+// Start real-time sync polling
+startOrderSyncTimer();
 
 </script>
 <?php require_once 'includes/footer.php'; ?>

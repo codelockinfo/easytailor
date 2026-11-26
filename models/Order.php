@@ -605,6 +605,9 @@ class Order extends BaseModel {
                 return false; 
             }
         }
+        if (!isset($data['updated_at'])) {
+            $data['updated_at'] = date('Y-m-d H:i:s');
+        }
         return parent::update($id, $data);
     }
     public function delete($id) {
@@ -682,6 +685,10 @@ class Order extends BaseModel {
                 $insertStmt->bindValue(':notes', $notes);
                 $insertStmt->execute();
             }
+            try {
+                $touchStmt = $this->conn->prepare("UPDATE " . $this->table . " SET updated_at = NOW() WHERE id = :order_id");
+                $touchStmt->execute([':order_id' => $orderId]);
+            } catch (\Throwable $t) {}
             return true;
         } catch (\Throwable $e) {
             error_log("saveOrderItems error: " . $e->getMessage());
@@ -694,12 +701,15 @@ class Order extends BaseModel {
         $stmt = $this->conn->prepare("UPDATE order_items SET status = :status WHERE id = :id");
         $stmt->bindParam(':status', $status);
         $stmt->bindParam(':id', $itemId, PDO::PARAM_INT);
-        return $stmt->execute();
+        $res = $stmt->execute();
+        if ($res) {
+            try {
+                $touchStmt = $this->conn->prepare("UPDATE " . $this->table . " SET updated_at = NOW() WHERE id = (SELECT order_id FROM order_items WHERE id = :id LIMIT 1)");
+                $touchStmt->execute([':id' => $itemId]);
+            } catch (\Throwable $t) {}
+        }
+        return $res;
     }
-
-    /**
-     * Automatically synchronize parent order status based on its items' statuses
-     */
     public function syncOrderStatusFromItems($orderId) {
         if (!$this->conn || !$orderId) return null;
         try {

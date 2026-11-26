@@ -30,6 +30,12 @@ $planStyles = [
 $planKey = strtolower($company['subscription_plan'] ?? 'free');
 $planMeta = $planStyles[$planKey] ?? $planStyles['free'];
 $stats = $companyModel->getCompanyStats($companyId);
+$daysRemaining = null;
+if (!empty($company['subscription_expiry']) && $planKey !== 'free') {
+    $expiryTs = strtotime($company['subscription_expiry']);
+    $todayTs = strtotime(date('Y-m-d'));
+    $daysRemaining = max(0, (int) floor(($expiryTs - $todayTs) / (60 * 60 * 24)));
+}
 $cameFromOffer = false;
 if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
     $expiryDate = strtotime($company['subscription_expiry']);
@@ -57,7 +63,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f6f8fc;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
         }
@@ -66,11 +72,15 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             height: 100vh;
             overflow: hidden;
         }
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #4338ca;
+        }
         .sidebar {
             width: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%);
             color: white;
-            padding: 2rem 1.5rem;
+            padding: 1rem 1.5rem 2rem;
             display: flex;
             flex-direction: column;
             box-shadow: 10px 0 25px rgba(79, 70, 229, 0.2);
@@ -80,15 +90,39 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             overflow-y: auto;
         }
         .brand {
-            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .brand-logo {
-            height: 100px;
+            height: 52px;
             width: auto;
+            max-width: 185px;
             object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+            transition: transform 0.2s ease;
+        }
+        .brand-logo:hover {
+            transform: scale(1.03);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+        }
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary.show {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #ffffff;
         }
         .nav-link {
             display: flex;
@@ -121,118 +155,289 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             padding-right: 0.5rem;
         }
         .top-header {
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0 0 1.25rem 0;
+            border-radius: 0;
+            margin-bottom: 0;
         }
-        .company-header {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .top-header h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        .top-header p {
+            color: #475569 !important;
+            font-size: 0.92rem;
+        }
+        .admin-profile-btn {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.5rem 0.95rem;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s ease;
+        }
+        .admin-profile-btn:hover, .admin-profile-btn:focus, .admin-profile-btn.show {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+        }
+        .admin-profile-btn i.fa-user-circle {
+            color: #4f46e5;
+            font-size: 1rem;
+        }
+        /* Unified Clean White Company Details Card */
+        .cs-company-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.25rem;
+            display: grid;
+            grid-template-columns: minmax(250px, 1.25fr) auto minmax(285px, 1.15fr);
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .cs-company-primary {
+            min-width: 0;
+        }
+        .cs-plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.36rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 0.7rem;
+        }
+        .cs-plan-badge.plan-free {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 6px rgba(108, 117, 125, 0.25);
+        }
+        .cs-plan-badge.plan-basic {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.28);
+        }
+        .cs-plan-badge.plan-premium {
+            background: linear-gradient(135deg, #c026d3 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 6px rgba(192, 38, 211, 0.28);
+        }
+        .cs-plan-badge.plan-enterprise {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            color: #ffffff;
+            border: none;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+        }
+        .cs-company-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 0.35rem 0;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+        .cs-company-owner {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.9rem;
+            color: #475569;
+            font-weight: 500;
+            margin: 0 0 0.8rem 0;
+        }
+        .cs-company-owner i {
+            color: #4f46e5;
+            font-size: 0.84rem;
+        }
+        .cs-company-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.2rem;
+            font-size: 0.86rem;
+            color: #334155;
+        }
+        .cs-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-weight: 500;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            text-decoration: none;
+            color: #334155;
+        }
+        a.cs-meta-item:hover {
+            color: #4f46e5;
+        }
+        .cs-meta-item i {
+            color: #4f46e5;
+            font-size: 0.84rem;
+            flex-shrink: 0;
+        }
+        .cs-meta-item.is-expiry {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .cs-company-kpis {
+            border-left: 1px solid #eef2f7;
+            border-right: 1px solid #eef2f7;
+            padding: 0.25rem 1.35rem;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(78px, 1fr));
+            gap: 0.5rem;
+            align-items: center;
+            text-align: center;
+        }
+        .cs-kpi-item {
+            padding: 0.25rem 0.5rem;
             position: relative;
-            overflow: hidden;
         }
-        @keyframes shine {
-            0% {
-                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        .cs-kpi-item + .cs-kpi-item::before {
+            content: '';
+            position: absolute;
+            left: -0.25rem;
+            top: 15%;
+            height: 70%;
+            width: 1px;
+            background: #f1f5f9;
+        }
+        .cs-kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+        .cs-kpi-icon.is-customers { background: #eef2ff; color: #4f46e5; }
+        .cs-kpi-icon.is-orders { background: #e0f2fe; color: #0284c7; }
+        .cs-kpi-icon.is-users { background: #dcfce7; color: #16a34a; }
+        .cs-kpi-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.15;
+        }
+        .cs-kpi-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-top: 0.15rem;
+        }
+        .cs-company-info {
+            min-width: 0;
+        }
+        .cs-info-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 0.75rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .cs-info-title i {
+            color: #4f46e5;
+            font-size: 0.95rem;
+        }
+        .cs-info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem 1rem;
+        }
+        .cs-info-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            color: #475569;
+            font-size: 0.84rem;
+            line-height: 1.35;
+            min-width: 0;
+        }
+        .cs-info-list li.is-full {
+            grid-column: 1 / -1;
+        }
+        .cs-info-list li i {
+            color: #4f46e5;
+            width: 14px;
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+        .cs-info-list li span,
+        .cs-info-list li a {
+            overflow-wrap: anywhere;
+        }
+        .cs-info-list li a {
+            color: #4f46e5;
+            text-decoration: none;
+        }
+        .cs-info-list li a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 1180px) {
+            .cs-company-card {
+                grid-template-columns: 1.2fr auto;
+                gap: 1.25rem;
             }
-            100% {
-                transform: translateX(100%) translateY(100%) rotate(45deg);
+            .cs-company-kpis {
+                border-right: none;
+                padding-right: 0;
+            }
+            .cs-company-info {
+                grid-column: 1 / -1;
+                border-top: 1px solid #eef2f7;
+                padding-top: 1rem;
             }
         }
-        .company-header.plan-free {
-            background: #6c757d !important;
-            border: 2px solid #dee2e6 !important;
-            color: white !important;
+        @media (max-width: 768px) {
+            .cs-company-card {
+                grid-template-columns: 1fr;
+                padding: 1.2rem;
+                gap: 1rem;
+            }
+            .cs-company-kpis {
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid #eef2f7;
+                border-bottom: 1px solid #eef2f7;
+                padding: 0.85rem 0;
+            }
+            .cs-company-info {
+                border-top: none;
+                padding-top: 0;
+            }
         }
-        .company-header.plan-basic {
-            background: #3b82f6 !important;
-        }
-        .company-header.plan-premium {
-            background: linear-gradient(135deg, #c026d3 0%, #3b82f6 100%) !important;
-            position: relative;
-            overflow: hidden;
-        }
-        .company-header.plan-enterprise {
-            background: #ffc107 !important;
-            position: relative;
-            overflow: hidden;
-        }
-        .company-header.plan-free h3,
-        .company-header.plan-free .company-header-title,
-        .company-header.plan-free .company-header-text,
-        .company-header.plan-free .company-header-contact,
-        .company-header.plan-free .company-header-stat,
-        .company-header.plan-free .company-header-stat-label {
-            color: #ffffff !important;
-        }
-        .company-header.plan-basic h3,
-        .company-header.plan-basic .company-header-title,
-        .company-header.plan-basic .company-header-text,
-        .company-header.plan-basic .company-header-contact,
-        .company-header.plan-basic .company-header-stat,
-        .company-header.plan-basic .company-header-stat-label {
-            color: white;
-        }
-        .company-header.plan-premium h3,
-        .company-header.plan-premium .company-header-title,
-        .company-header.plan-premium .company-header-text,
-        .company-header.plan-premium .company-header-contact,
-        .company-header.plan-premium .company-header-stat,
-        .company-header.plan-premium .company-header-stat-label {
-            color: white;
-        }
-        .company-header.plan-enterprise h3,
-        .company-header.plan-enterprise .company-header-title,
-        .company-header.plan-enterprise .company-header-text,
-        .company-header.plan-enterprise .company-header-contact,
-        .company-header.plan-enterprise .company-header-stat,
-        .company-header.plan-enterprise .company-header-stat-label {
-            color: white;
-        }
-        .company-header-link {
-            color: inherit;
-        }
-        .company-header.plan-free .company-header-link,
-        .company-header.plan-free .company-header-contact-text,
-        .company-header.plan-free .company-info-text,
-        .company-header.plan-free .company-info-title,
-        .company-header.plan-free .company-info-icon {
-            color: #ffffff !important;
-        }
-        .company-header.plan-basic .company-header-link,
-        .company-header.plan-basic .company-header-contact-text,
-        .company-header.plan-basic .company-info-text,
-        .company-header.plan-basic .company-info-title,
-        .company-header.plan-basic .company-info-icon,
-        .company-header.plan-premium .company-header-link,
-        .company-header.plan-premium .company-header-contact-text,
-        .company-header.plan-premium .company-info-text,
-        .company-header.plan-premium .company-info-title,
-        .company-header.plan-premium .company-info-icon,
-        .company-header.plan-enterprise .company-header-link,
-        .company-header.plan-enterprise .company-header-contact-text,
-        .company-header.plan-enterprise .company-info-text,
-        .company-header.plan-enterprise .company-info-title,
-        .company-header.plan-enterprise .company-info-icon {
-            color: white !important;
-        }
-        .company-header .badge {
-            background: rgba(30, 41, 59, 0.1) !important;
-            color: #ffffff !important;
-        }
-        .company-header.plan-free .badge {
-            background: rgba(30, 41, 59, 0.1) !important;
-            color: #ffffff !important;
-        }
-        .company-header.plan-basic .badge,
-        .company-header.plan-premium .badge,
-        .company-header.plan-enterprise .badge {
-            background: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
+        @media (max-width: 576px) {
+            .cs-info-list {
+                grid-template-columns: 1fr;
+            }
         }
         .company-info-card {
             background: white;
@@ -289,87 +494,147 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             }
         }
         .tab-nav {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #eef2f7;
+            padding: 0 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tab-nav::-webkit-scrollbar {
+            display: none;
         }
         .tab-button {
-            padding: 0.75rem 1.5rem;
+            padding: 0.95rem 0.25rem;
             border: none;
+            border-bottom: 3px solid transparent;
             background: transparent;
-            color: #6c757d;
-            font-weight: 600;
-            border-radius: 8px;
+            color: #475569;
+            font-weight: 500;
+            font-size: 0.92rem;
+            border-radius: 0;
             cursor: pointer;
-            transition: all 0.2s;
-            margin-right: 0.5rem;
+            transition: color 0.2s ease, border-color 0.2s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
         }
         .tab-button:hover {
-            background: #f8f9fa;
             color: #4f46e5;
         }
         .tab-button.active {
-            background: #4f46e5;
-            color: white;
+            background: transparent;
+            color: #4f46e5;
+            font-weight: 600;
+            border-bottom-color: #4f46e5;
         }
         .data-table-container {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
         }
         .table {
             margin-bottom: 0;
+            font-size: 0.94rem;
         }
         .table thead th {
-            background: #4f46e5;
-            border-bottom: 2px solid #dee2e6;
+            background: #f8fafc;
+            border-bottom: 1px solid #eef2f7;
+            border-top: none;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: white;
-            padding: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            padding: 0.95rem 1.25rem;
+            white-space: nowrap;
         }
         .table tbody td {
-            padding: 1rem;
+            padding: 0.95rem 1.25rem;
             vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            background: #ffffff !important;
         }
-        .table tbody tr:hover {
-            background: #f8f9fa;
+        .table tbody tr:hover td {
+            background: #f8fafc !important;
         }
-        .badge-custom {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 0.85rem;
+        .cd-view-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #eef2ff;
+            color: #4f46e5;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
         }
-        .back-btn {
-            margin-bottom: 10px;
+        .cd-view-btn:hover {
+            background: #4f46e5;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .cd-empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+        .cd-empty-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: #eef2ff;
+            color: #4f46e5;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.85rem;
         }
         .back-btn a {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: white;
-            color: #4f46e5;
+            padding: 0.55rem 1.05rem;
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #e2e8f0;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.2s;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+            transition: all 0.2s ease;
         }
         .back-btn a:hover {
-            background: #4f46e5;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            background: #f8faff;
+            border-color: #c7d2fe;
+            color: #4f46e5;
+        }
+        .cd-update-sub-btn {
+            border-radius: 10px;
+            padding: 0.58rem 1.15rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(79, 70, 229, 0.22);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .badge {
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
             font-weight: 500;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
         .btn-sm {
             padding: 0.4rem 0.6rem;
@@ -386,9 +651,9 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
         <aside class="sidebar">
             <div class="brand">
                 <?php 
-                $logoPath = '../uploads/logos/footer-logo.png';
+                $logoPath = '../assets/images/tailor_logo.png';
                 if (file_exists($logoPath)): ?>
-                    <img src="<?php echo $logoPath; ?>" alt="Tailor Logo" class="brand-logo">
+                    <img src="<?php echo $logoPath; ?>" alt="Tailor Pro" class="brand-logo">
                 <?php else: ?>
                     <i class="fas fa-crown"></i>
                 <?php endif; ?>
@@ -422,10 +687,10 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         <p class="text-muted mb-0">View detailed information and data</p>
                     </div>
                     <div class="d-flex gap-2">
-                       
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle me-1"></i>Admin
+                            <button class="btn admin-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Admin</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><span class="dropdown-item-text text-muted small">Site Administrator</span></li>
@@ -438,111 +703,123 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
             </div>
 
             <div class="content-scroll">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="margin-bottom: 10px;">
-                    <div class="back-btn">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="back-btn mb-0">
                         <a href="index.php?section=company">
                             <i class="fas fa-arrow-left"></i>
                             Back to Companies
                         </a>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-primary" onclick="openSubscriptionModal()" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <button type="button" class="btn btn-primary cd-update-sub-btn" onclick="openSubscriptionModal()">
                             <i class="fas fa-crown"></i>
                             Update Subscription
                         </button>
                     </div>
                 </div>
-                <div class="company-header plan-<?php echo $planKey; ?>">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3" style="position: relative; z-index: 1;">
-                        <div class="flex-grow-1">
-                            <span class="badge badge-custom bg-<?php echo $planMeta['badge']; ?> mb-2">
-                                <i class="fas fa-crown me-1"></i><?php echo $planMeta['label']; ?>
-                            </span>
-                            <h3 class="mb-2 company-header-title"><?php echo escape($company['company_name']); ?></h3>
-                            <p class="mb-2 company-header-text"><strong>Owner:</strong> <?php echo escape($company['owner_name'] ?? 'N/A'); ?></p>
-                            <div class="d-flex gap-3 flex-wrap company-header-contact">
-                                <?php if (!empty($company['business_email'])): ?>
-                                    <span><i class="fas fa-envelope me-2"></i><a href="mailto:<?php echo htmlspecialchars($company['business_email']); ?>" class="company-header-link" style="text-decoration: none;"><?php echo htmlspecialchars($company['business_email']); ?></a></span>
-                                <?php endif; ?>
-                                <?php if (!empty($company['business_phone'])): ?>
-                                    <span><i class="fas fa-phone me-2"></i><a href="tel:<?php echo htmlspecialchars($company['business_phone']); ?>" class="company-header-link" style="text-decoration: none;"><?php echo htmlspecialchars($company['business_phone']); ?></a></span>
-                                <?php endif; ?>
-                                <?php if ($company['city']): ?>
-                                    <span class="company-header-contact-text"><i class="fas fa-map-marker-alt me-2"></i><?php echo htmlspecialchars($company['city']); ?>, <?php echo htmlspecialchars($company['state'] ?? ''); ?></span>
-                                <?php endif; ?>
-                            </div>
+                <?php
+                $locationParts = array_filter([trim($company['city'] ?? ''), trim($company['state'] ?? '')], fn($v) => $v !== '' && $v !== '-');
+                $locationDisplay = !empty($locationParts) ? implode(', ', $locationParts) : 'Not provided';
+                ?>
+                <div class="cs-company-card">
+                    <div class="cs-company-primary">
+                        <span class="cs-plan-badge plan-<?php echo htmlspecialchars($planKey); ?>">
+                            <i class="fas fa-crown"></i>
+                            <span><?php echo htmlspecialchars($planMeta['label']); ?></span>
+                        </span>
+                        <h3 class="cs-company-title"><?php echo escape($company['company_name']); ?></h3>
+                        <p class="cs-company-owner">
+                            <i class="fas fa-user"></i>
+                            <span>Owner: <?php echo escape($company['owner_name'] ?? 'N/A'); ?></span>
+                        </p>
+                        <div class="cs-company-meta">
+                            <?php if (!empty($company['business_email'])): ?>
+                                <a href="mailto:<?php echo htmlspecialchars($company['business_email']); ?>" class="cs-meta-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span><?php echo htmlspecialchars($company['business_email']); ?></span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (!empty($company['business_phone'])): ?>
+                                <a href="tel:<?php echo htmlspecialchars($company['business_phone']); ?>" class="cs-meta-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span><?php echo htmlspecialchars($company['business_phone']); ?></span>
+                                </a>
+                            <?php endif; ?>
+                            <?php if ($daysRemaining !== null): ?>
+                                <span class="cs-meta-item is-expiry">
+                                    <i class="far fa-clock"></i>
+                                    <span><?php echo $daysRemaining; ?> days left</span>
+                                </span>
+                            <?php endif; ?>
                         </div>
-                        <div style="position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1.5rem; align-items: flex-end;">
-                            <div class="text-end">
-                                <div class="d-flex gap-4" style="justify-content: center;">
-                                    <div style="text-align: center;">
-                                        <div class="h4 mb-0 company-header-stat"><?php echo $stats['total_customers'] ?? 0; ?></div>
-                                        <small class="company-header-stat-label">Customers</small>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div class="h4 mb-0 company-header-stat"><?php echo $stats['total_orders'] ?? 0; ?></div>
-                                        <small class="company-header-stat-label">Orders</small>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div class="h4 mb-0 company-header-stat"><?php echo $stats['total_users'] ?? 0; ?></div>
-                                        <small class="company-header-stat-label">Users</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="company-info-inline" style="text-align: left; position: relative; z-index: 1;">
-                                <h5 class="mb-2 company-info-title" style="font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                                    <i class="fas fa-info-circle company-info-icon"></i>Company Info
-                                </h5>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.5rem; max-width: 500px;">
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-                                        <i class="fas fa-map-marker-alt company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text"><?php echo htmlspecialchars($company['city'] ?? '-'); ?>, <?php echo htmlspecialchars($company['state'] ?? '-'); ?></span>
-                                    </div>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-                                        <i class="fas fa-globe company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text" style="word-break: break-word;">
-                                            <?php if (!empty($company['website']) && $company['website'] !== 'Not provided'): ?>
-                                                <a href="<?php echo htmlspecialchars($company['website']); ?>" target="_blank" rel="noopener noreferrer" class="company-header-link" style="text-decoration: underline;"><?php echo htmlspecialchars($company['website']); ?></a>
-                                            <?php else: ?>
-                                                Not provided
-                                            <?php endif; ?>
-                                        </span>
-                                    </div>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-                                        <i class="fas fa-file-invoice company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text">GST: <?php echo !empty($company['tax_number']) ? htmlspecialchars($company['tax_number']) : 'Not provided'; ?></span>
-                                    </div>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-                                        <i class="fas fa-calendar company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text">Joined: <?php echo !empty($company['created_at']) ? date('M d, Y', strtotime($company['created_at'])) : '—'; ?></span>
-                                    </div>
-                                    <?php if (!empty($company['subscription_expiry']) && $planKey !== 'free'): ?>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-                                        <i class="fas fa-flag-checkered company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text">Expiry: <?php echo date('M d, Y', strtotime($company['subscription_expiry'])); ?></span>
-                                    </div>
-                                    <?php elseif ($planKey === 'free'): ?>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4;">
-                                        <i class="fas fa-infinity company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text">Duration: Lifetime</span>
-                                    </div>
-                                    <?php endif; ?>
-                                    <?php if ($cameFromOffer): ?>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4; grid-column: span 2;">
-                                        <span class="company-info-text">
-                                            <span class="badge bg-success" style="background: linear-gradient(135deg, #c026d3 0%, #3b82f6 100%) !important; color: white; padding: 0.5rem 1rem;">
-                                                <i class="fas fa-gift me-1"></i>Registered via Promotional Offer (1 Year Free Professional Plan)
-                                            </span>
-                                        </span>
-                                    </div>
-                                    <?php endif; ?>
-                                    <div class="company-info-item" style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; grid-column: span 2; line-height: 1.4;">
-                                        <i class="fas fa-map-pin company-info-icon" style="margin-top: 0.2rem; flex-shrink: 0; font-size: 0.8rem;"></i>
-                                        <span class="company-info-text" style="word-break: break-word;"><?php echo !empty($company['business_address']) ? htmlspecialchars($company['business_address']) : 'No address provided'; ?></span>
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+
+                    <div class="cs-company-kpis">
+                        <div class="cs-kpi-item">
+                            <div class="cs-kpi-icon is-customers"><i class="fas fa-users"></i></div>
+                            <div class="cs-kpi-value"><?php echo $stats['total_customers'] ?? 0; ?></div>
+                            <div class="cs-kpi-label">Customers</div>
                         </div>
+                        <div class="cs-kpi-item">
+                            <div class="cs-kpi-icon is-orders"><i class="fas fa-shopping-cart"></i></div>
+                            <div class="cs-kpi-value"><?php echo $stats['total_orders'] ?? 0; ?></div>
+                            <div class="cs-kpi-label">Orders</div>
+                        </div>
+                        <div class="cs-kpi-item">
+                            <div class="cs-kpi-icon is-users"><i class="fas fa-user"></i></div>
+                            <div class="cs-kpi-value"><?php echo $stats['total_users'] ?? 0; ?></div>
+                            <div class="cs-kpi-label">Users</div>
+                        </div>
+                    </div>
+
+                    <div class="cs-company-info">
+                        <h6 class="cs-info-title"><i class="fas fa-info-circle"></i>Company Info</h6>
+                        <ul class="cs-info-list">
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span><?php echo htmlspecialchars($locationDisplay); ?></span>
+                            </li>
+                            <li>
+                                <i class="fas fa-globe"></i>
+                                <span>
+                                    <?php if (!empty($company['website']) && $company['website'] !== 'Not provided'): ?>
+                                        <a href="<?php echo htmlspecialchars($company['website']); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($company['website']); ?></a>
+                                    <?php else: ?>
+                                        Not provided
+                                    <?php endif; ?>
+                                </span>
+                            </li>
+                            <li>
+                                <i class="fas fa-file-invoice"></i>
+                                <span>GST: <?php echo !empty($company['tax_number']) ? htmlspecialchars($company['tax_number']) : 'Not provided'; ?></span>
+                            </li>
+                            <li>
+                                <i class="far fa-calendar-alt"></i>
+                                <span>Joined: <?php echo !empty($company['created_at']) ? date('M d, Y', strtotime($company['created_at'])) : '—'; ?></span>
+                            </li>
+                            <?php if (!empty($company['subscription_expiry']) && $planKey !== 'free'): ?>
+                                <li>
+                                    <i class="far fa-calendar-check"></i>
+                                    <span>Expiry: <?php echo date('M d, Y', strtotime($company['subscription_expiry'])); ?></span>
+                                </li>
+                            <?php elseif ($planKey === 'free'): ?>
+                                <li>
+                                    <i class="far fa-calendar-check"></i>
+                                    <span>Duration: Lifetime</span>
+                                </li>
+                            <?php endif; ?>
+                            <li>
+                                <i class="fas fa-map-pin"></i>
+                                <span><?php echo !empty($company['business_address']) ? htmlspecialchars($company['business_address']) : 'No address provided'; ?></span>
+                            </li>
+                            <?php if ($cameFromOffer): ?>
+                                <li class="is-full">
+                                    <span class="badge" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; padding: 0.42rem 0.85rem;">
+                                        <i class="fas fa-gift me-1"></i>Registered via Promotional Offer (1 Year Free Professional Plan)
+                                    </span>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
                     </div>
                 </div>
                 <div class="tab-nav">
@@ -554,9 +831,6 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     </button>
                     <button class="tab-button" data-tab="users">
                         <i class="fas fa-user-friends me-2"></i>Users
-                    </button>
-                    <button class="tab-button" data-tab="invoices">
-                        <i class="fas fa-file-invoice me-2"></i>Invoices
                     </button>
                     <button class="tab-button" data-tab="expenses">
                         <i class="fas fa-money-bill-wave me-2"></i>Expenses
@@ -610,10 +884,10 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         if (data.data && data.data.length > 0) {
                             contentDiv.innerHTML = renderTable(tab, data.data);
                         } else {
-                            contentDiv.innerHTML = '<div class="text-center py-5 text-muted">No data available</div>';
+                            contentDiv.innerHTML = '<div class="cd-empty-state"><div class="cd-empty-icon"><i class="fas fa-inbox"></i></div><h5 class="fw-bold mb-1" style="color: #0f172a;">No data available</h5><p class="text-muted mb-0 small">There are no records for this tab yet.</p></div>';
                         }
                     } else {
-                        contentDiv.innerHTML = `<div class="text-center py-5 text-muted">${data.message || 'No data available'}</div>`;
+                        contentDiv.innerHTML = `<div class="cd-empty-state"><div class="cd-empty-icon"><i class="fas fa-inbox"></i></div><h5 class="fw-bold mb-1" style="color: #0f172a;">No data available</h5><p class="text-muted mb-0 small">${data.message || 'No records found.'}</p></div>`;
                     }
                 })
                 .catch(error => {
@@ -623,7 +897,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
         }
         function renderTable(type, data) {
             if (!data || data.length === 0) {
-                return '<div class="text-center py-5 text-muted">No data available</div>';
+                return '<div class="cd-empty-state"><div class="cd-empty-icon"><i class="fas fa-inbox"></i></div><h5 class="fw-bold mb-1" style="color: #0f172a;">No data available</h5><p class="text-muted mb-0 small">There are no records for this tab yet.</p></div>';
             }
             const headers = {
                 customers: ['ID', 'Name', 'Code', 'Email', 'Actions'],
@@ -654,7 +928,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                 value = date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
                             }
                         } else if (field === 'actions') {
-                            value = `<button class="btn btn-sm btn-primary" onclick="viewCompanyReports(${companyId})" title="View Reports">
+                            value = `<button class="cd-view-btn" onclick="viewCompanyReports(${companyId})" title="View Reports">
                                         <i class="fas fa-eye"></i>
                                      </button>`;
                         }
@@ -677,14 +951,14 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                 value = date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
                             }
                         } else if (field === 'actions') {
-                            value = `<button class="btn btn-sm btn-info" onclick="viewOrderDetails(${row.id})" title="View Details">
+                            value = `<button class="cd-view-btn" onclick="viewOrderDetails(${row.id})" title="View Details">
                                         <i class="fas fa-eye"></i>
                                      </button>`;
                         }
                     }
                     else if (type === 'reports') {
                         if (field === 'actions') {
-                            value = `<button class="btn btn-sm btn-primary" onclick="viewCompanyReports(${companyId})" title="View Reports">
+                            value = `<button class="cd-view-btn" onclick="viewCompanyReports(${companyId})" title="View Reports">
                                         <i class="fas fa-eye"></i>
                                      </button>`;
                         } else if (field === 'generated_at') {
@@ -697,7 +971,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                     else if (type === 'customers') {
                         if (field === 'actions') {
                             const customerId = row.id || row.customer_id || 0;
-                            value = `<button class="btn btn-sm btn-info" onclick="viewCustomerDetails(${customerId})" title="View Details">
+                            value = `<button class="cd-view-btn" onclick="viewCustomerDetails(${customerId})" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </button>`;
                         } else if (field === 'name') {
@@ -705,7 +979,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         } else if (field === 'customer_code') {
                             value = row.customer_code ? `<span class="badge bg-secondary">${row.customer_code}</span>` : '-';
                         } else if (field === 'email') {
-                            value = row.email ? `<a href="mailto:${row.email}">${row.email}</a>` : '-';
+                            value = row.email ? `<span style="color: #475569;">${row.email}</span>` : '-';
                         }
                     }
                     else if (type === 'invoices') {
@@ -760,7 +1034,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             value = `<span class="badge bg-${statusClass}">${(row.status || 'active').charAt(0).toUpperCase() + (row.status || 'active').slice(1)}</span>`;
                         } else if (field === 'actions') {
                             value = `
-                                <button class="btn btn-sm btn-info" onclick="viewExpenseDetails(${row.id})" title="View Details">
+                                <button class="cd-view-btn" onclick="viewExpenseDetails(${row.id})" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             `;
@@ -782,7 +1056,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             value = `<span class="badge bg-${statusClass}">${row.status || 'active'}</span>`;
                         } else if (field === 'actions') {
                             value = `
-                                <button class="btn btn-sm btn-info" onclick="viewContactDetails(${row.id})" title="View Details">
+                                <button class="cd-view-btn" onclick="viewContactDetails(${row.id})" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             `;
@@ -792,7 +1066,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                         if (field === 'name') {
                             value = `<strong>${row.name || '-'}</strong>`;
                         } else if (field === 'email') {
-                            value = row.email ? `<a href="mailto:${row.email}">${row.email}</a>` : '-';
+                            value = row.email ? `<span style="color: #475569;">${row.email}</span>` : '-';
                         } else if (field === 'role') {
                             const roleClass = row.role === 'admin' ? 'danger' : 
                                             row.role === 'cashier' ? 'info' : 
@@ -808,7 +1082,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                             }
                         } else if (field === 'actions') {
                             value = `
-                                <button class="btn btn-sm btn-info" onclick="viewUserDetails(${row.id})" title="View Details">
+                                <button class="cd-view-btn" onclick="viewUserDetails(${row.id})" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             `;
@@ -1624,7 +1898,7 @@ if ($planKey === 'premium' && !empty($company['subscription_expiry'])) {
                                
                                 <div class="row mb-4">
                                     <div class="col-md-3 mb-3">
-                                        <div class="card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                        <div class="card text-center" style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white;">
                                             <div class="card-body">
                                                 <div class="h3 mb-1">${reports.customers.total}</div>
                                                 <div class="small">Total Customers</div>

@@ -49,13 +49,24 @@ if ($query === '') {
     exit;
 }
 
+/**
+ * Execute a prepared statement with positional parameters cleanly when
+ * PDO::ATTR_EMULATE_PREPARES is disabled.
+ */
+function runSearchQuery(PDO $conn, string $sql, array $params): array
+{
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 $searchTerm = '%' . $query . '%';
 
 // 1. Search Orders
 $orders = [];
 try {
     $orderSql = "SELECT o.id, o.order_number, o.status, o.total_amount, o.order_date, o.due_date,
-                        COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, ''), CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, ''))) as customer_name,
+                        COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, ''), NULLIF(TRIM(CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, ''))), '')) as customer_name,
                         COALESCE(NULLIF(o.customer_phone, ''), NULLIF(c.phone, ''), NULLIF(ms.phone_number, '')) as customer_phone,
                         ct.name as cloth_type_name
                  FROM orders o
@@ -63,32 +74,29 @@ try {
                  LEFT JOIN cloth_types ct ON o.cloth_type_id = ct.id
                  LEFT JOIN measurements ms ON o.measurement_id = ms.id
                  WHERE 1=1 ";
+    $orderParams = [];
     if ($companyId) {
-        $orderSql .= " AND o.company_id = :company_id ";
+        $orderSql .= " AND o.company_id = ? ";
+        $orderParams[] = (int)$companyId;
     }
     $orderSql .= " AND (
-        o.order_number LIKE :q
-        OR o.customer_name LIKE :q
-        OR o.customer_phone LIKE :q
-        OR ms.name LIKE :q
-        OR ms.phone_number LIKE :q
-        OR c.first_name LIKE :q
-        OR c.last_name LIKE :q
-        OR CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) LIKE :q
-        OR ct.name LIKE :q
+        o.order_number LIKE ?
+        OR o.customer_name LIKE ?
+        OR o.customer_phone LIKE ?
+        OR ms.name LIKE ?
+        OR ms.phone_number LIKE ?
+        OR c.first_name LIKE ?
+        OR c.last_name LIKE ?
+        OR CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) LIKE ?
+        OR ct.name LIKE ?
     )
     ORDER BY o.id DESC
     LIMIT 5";
+    array_push($orderParams, ...array_fill(0, 9, $searchTerm));
 
-    $stmt = $conn->prepare($orderSql);
-    $stmt->bindValue(':q', $searchTerm);
-    if ($companyId) {
-        $stmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    foreach (runSearchQuery($conn, $orderSql, $orderParams) as $row) {
         $cName = trim($row['customer_name'] ?? '');
-        if (empty($cName)) {
+        if ($cName === '') {
             $cName = 'Customer';
         }
         $orders[] = [
@@ -109,97 +117,104 @@ try {
     error_log("Global search orders error: " . $e->getMessage());
 }
 
-// 2. Search Customers
+// 2. Search Customers (customers table first so customer-details.php?id= matches customers.id)
 $customers = [];
-$seenPhones = [];
+$seenKeys = [];
 try {
-    $custSql = "SELECT m.id, m.name, m.phone_number, m.email,
-                       (SELECT COUNT(*) FROM orders o WHERE o.measurement_id = m.id) as order_count
-                FROM measurements m
-                WHERE m.name IS NOT NULL AND TRIM(m.name) != '' ";
+    $cSql = "SELECT c.id, TRIM(CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,''))) as name,
+                    c.phone, c.email, c.customer_code,
+                    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id OR o.measurement_id = c.id) as order_count
+             FROM customers c
+             WHERE 1=1 ";
+    $cParams = [];
     if ($companyId) {
-        $custSql .= " AND m.company_id = :company_id ";
+        $cSql .= " AND c.company_id = ? ";
+        $cParams[] = (int)$companyId;
     }
-    $custSql .= " AND (
-        m.name LIKE :q
-        OR m.phone_number LIKE :q
-        OR m.email LIKE :q
-        OR CONCAT('CUST', LPAD(m.id, 6, '0')) LIKE :q
+    $cSql .= " AND (
+        c.first_name LIKE ?
+        OR c.last_name LIKE ?
+        OR CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) LIKE ?
+        OR c.phone LIKE ?
+        OR c.email LIKE ?
+        OR c.customer_code LIKE ?
     )
-    GROUP BY m.phone_number, m.name
-    ORDER BY m.id DESC
+    ORDER BY c.id DESC
     LIMIT 5";
+    array_push($cParams, ...array_fill(0, 6, $searchTerm));
 
-    $stmt = $conn->prepare($custSql);
-    $stmt->bindValue(':q', $searchTerm);
-    if ($companyId) {
-        $stmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $cleanPhone = preg_replace('/[^0-9]/', '', $row['phone_number'] ?? '');
-        if ($cleanPhone) {
-            $seenPhones[$cleanPhone] = true;
+    foreach (runSearchQuery($conn, $cSql, $cParams) as $row) {
+        $cleanPhone = preg_replace('/[^0-9]/', '', $row['phone'] ?? '');
+        $nameKey = strtolower(trim($row['name'] ?? ''));
+        if ($cleanPhone !== '') {
+            $seenKeys['p:' . $cleanPhone] = true;
+        }
+        if ($nameKey !== '') {
+            $seenKeys['n:' . $nameKey] = true;
         }
         $customers[] = [
             'id' => (int)$row['id'],
             'name' => trim($row['name']),
-            'phone' => $row['phone_number'] ?? '',
+            'phone' => $row['phone'] ?? '',
             'email' => $row['email'] ?? '',
-            'customer_code' => 'CUST' . str_pad($row['id'], 6, '0', STR_PAD_LEFT),
+            'customer_code' => !empty($row['customer_code']) ? $row['customer_code'] : ('CUST' . str_pad($row['id'], 6, '0', STR_PAD_LEFT)),
             'order_count' => (int)($row['order_count'] ?? 0),
             'url' => 'customer-details.php?id=' . (int)$row['id']
         ];
     }
 } catch (Exception $e) {
-    error_log("Global search measurements error: " . $e->getMessage());
+    error_log("Global search customers error: " . $e->getMessage());
 }
 
-// Also check customers table if fewer than 5 customers found
+// Fallback to measurements table if fewer than 5 customers found (avoiding ONLY_FULL_GROUP_BY)
 if (count($customers) < 5) {
     try {
-        $cSql = "SELECT c.id, CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) as name,
-                        c.phone, c.email, c.customer_code,
-                        (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) as order_count
-                 FROM customers c
-                 WHERE 1=1 ";
+        $custSql = "SELECT m.id, m.name, m.phone_number, m.email,
+                           (SELECT COUNT(*) FROM orders o WHERE o.measurement_id = m.id) as order_count
+                    FROM measurements m
+                    WHERE m.name IS NOT NULL AND TRIM(m.name) != '' ";
+        $mParams = [];
         if ($companyId) {
-            $cSql .= " AND c.company_id = :company_id ";
+            $custSql .= " AND m.company_id = ? ";
+            $mParams[] = (int)$companyId;
         }
-        $cSql .= " AND (
-            c.first_name LIKE :q
-            OR c.last_name LIKE :q
-            OR CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) LIKE :q
-            OR c.phone LIKE :q
-            OR c.email LIKE :q
-            OR c.customer_code LIKE :q
+        $custSql .= " AND (
+            m.name LIKE ?
+            OR m.phone_number LIKE ?
+            OR m.email LIKE ?
+            OR CONCAT('CUST', LPAD(m.id, 6, '0')) LIKE ?
         )
-        ORDER BY c.id DESC
-        LIMIT " . (5 - count($customers));
+        ORDER BY m.id DESC
+        LIMIT 25";
+        array_push($mParams, ...array_fill(0, 4, $searchTerm));
 
-        $stmt = $conn->prepare($cSql);
-        $stmt->bindValue(':q', $searchTerm);
-        if ($companyId) {
-            $stmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
-        }
-        $stmt->execute();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $cleanPhone = preg_replace('/[^0-9]/', '', $row['phone'] ?? '');
-            if ($cleanPhone && isset($seenPhones[$cleanPhone])) {
+        foreach (runSearchQuery($conn, $custSql, $mParams) as $row) {
+            if (count($customers) >= 5) {
+                break;
+            }
+            $cleanPhone = preg_replace('/[^0-9]/', '', $row['phone_number'] ?? '');
+            $nameKey = strtolower(trim($row['name'] ?? ''));
+            if (($cleanPhone !== '' && isset($seenKeys['p:' . $cleanPhone])) || ($nameKey !== '' && isset($seenKeys['n:' . $nameKey]))) {
                 continue;
+            }
+            if ($cleanPhone !== '') {
+                $seenKeys['p:' . $cleanPhone] = true;
+            }
+            if ($nameKey !== '') {
+                $seenKeys['n:' . $nameKey] = true;
             }
             $customers[] = [
                 'id' => (int)$row['id'],
                 'name' => trim($row['name']),
-                'phone' => $row['phone'] ?? '',
+                'phone' => $row['phone_number'] ?? '',
                 'email' => $row['email'] ?? '',
-                'customer_code' => !empty($row['customer_code']) ? $row['customer_code'] : ('CUST' . str_pad($row['id'], 6, '0', STR_PAD_LEFT)),
+                'customer_code' => 'CUST' . str_pad($row['id'], 6, '0', STR_PAD_LEFT),
                 'order_count' => (int)($row['order_count'] ?? 0),
                 'url' => 'customer-details.php?id=' . (int)$row['id']
             ];
         }
     } catch (Exception $e) {
-        // customers table may not be used or accessible, safe to ignore
+        error_log("Global search measurements error: " . $e->getMessage());
     }
 }
 
@@ -210,20 +225,17 @@ try {
                       (SELECT COUNT(*) FROM cloth_types ct WHERE ct.category = c.name AND (ct.company_id = c.company_id OR ct.company_id IS NULL)) as cloth_count
                FROM categories c
                WHERE 1=1 ";
+    $catParams = [];
     if ($companyId) {
-        $catSql .= " AND c.company_id = :company_id ";
+        $catSql .= " AND c.company_id = ? ";
+        $catParams[] = (int)$companyId;
     }
-    $catSql .= " AND (c.name LIKE :q OR c.description LIKE :q)
+    $catSql .= " AND (c.name LIKE ? OR c.description LIKE ?)
                ORDER BY c.name ASC
                LIMIT 5";
+    array_push($catParams, $searchTerm, $searchTerm);
 
-    $stmt = $conn->prepare($catSql);
-    $stmt->bindValue(':q', $searchTerm);
-    if ($companyId) {
-        $stmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    foreach (runSearchQuery($conn, $catSql, $catParams) as $row) {
         $categories[] = [
             'id' => (int)$row['id'],
             'name' => $row['name'],
@@ -242,21 +254,18 @@ try {
     $clothSql = "SELECT ct.id, ct.name, ct.category, ct.description, ct.standard_rate
                  FROM cloth_types ct
                  WHERE 1=1 ";
+    $clothParams = [];
     if ($companyId) {
-        $clothSql .= " AND ct.company_id = :company_id ";
+        $clothSql .= " AND ct.company_id = ? ";
+        $clothParams[] = (int)$companyId;
     }
-    $clothSql .= " AND (ct.name LIKE :q OR ct.category LIKE :q OR ct.description LIKE :q)
+    $clothSql .= " AND (ct.name LIKE ? OR ct.category LIKE ? OR ct.description LIKE ?)
                  ORDER BY ct.name ASC
                  LIMIT 5";
+    array_push($clothParams, $searchTerm, $searchTerm, $searchTerm);
 
-    $stmt = $conn->prepare($clothSql);
-    $stmt->bindValue(':q', $searchTerm);
-    if ($companyId) {
-        $stmt->bindValue(':company_id', $companyId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $rateFormatted = !empty($row['standard_rate']) 
+    foreach (runSearchQuery($conn, $clothSql, $clothParams) as $row) {
+        $rateFormatted = !empty($row['standard_rate'])
             ? (function_exists('format_currency') ? format_currency((float)$row['standard_rate']) : ('₹' . number_format((float)$row['standard_rate'], 2)))
             : '';
         $clothTypes[] = [

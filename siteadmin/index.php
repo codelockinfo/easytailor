@@ -166,7 +166,7 @@ if (isset($_SESSION['message'])) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f6f8fc;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
@@ -176,12 +176,15 @@ if (isset($_SESSION['message'])) {
             height: 100vh;
             overflow: hidden;
         }
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #4338ca;
+        }
         .sidebar {
             width: 250px;
-            /* background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%); */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%);
             color: white;
-            padding: 2rem 1.5rem;
+            padding: 1rem 1.5rem 2rem;
             display: flex;
             flex-direction: column;
             box-shadow: 10px 0 25px rgba(79, 70, 229, 0.2);
@@ -191,15 +194,39 @@ if (isset($_SESSION['message'])) {
             overflow-y: auto;
         }
         .brand {
-            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .brand-logo {
-            height: 100px;
+            height: 52px;
             width: auto;
+            max-width: 185px;
             object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+            transition: transform 0.2s ease;
+        }
+        .brand-logo:hover {
+            transform: scale(1.03);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+        }
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary.show {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #ffffff;
         }
         .header-logo {
             height: 100px;
@@ -208,14 +235,272 @@ if (isset($_SESSION['message'])) {
             margin-right: 1rem;
         }
         .top-header {
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0 0 1.25rem 0;
+            border-radius: 0;
+            margin-bottom: 0 !important;
         }
         .top-header .header-left {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0;
+        }
+        #pageTitle {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        #pageSubtitle {
+            color: #475569 !important;
+            font-size: 0.92rem;
+        }
+        .admin-profile-btn {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.5rem 0.95rem;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s ease;
+        }
+        .admin-profile-btn:hover, .admin-profile-btn:focus, .admin-profile-btn.show {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+        }
+        .admin-profile-btn i.fa-user-circle {
+            color: #4f46e5;
+            font-size: 1rem;
+        }
+        /* Email Requests Redesign */
+        .er-stat-card {
+            border-radius: 14px;
+            padding: 1.15rem 1.35rem;
+            display: flex;
+            align-items: center;
+            gap: 1.05rem;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+        .er-stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+        .er-stat-total {
+            background: linear-gradient(135deg, #f3f1ff 0%, #ede9fe 100%);
+            border-bottom: 3px solid #4f46e5;
+        }
+        .er-stat-pending {
+            background: linear-gradient(135deg, #fff8ec 0%, #ffedd5 100%);
+            border-bottom: 3px solid #f59e0b;
+        }
+        .er-stat-approved {
+            background: linear-gradient(135deg, #edfdf4 0%, #dcfce7 100%);
+            border-bottom: 3px solid #22c55e;
+        }
+        .er-stat-rejected {
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+            border-bottom: 3px solid #fb5664;
+        }
+        .er-stat-guests {
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2f6 100%);
+            border-bottom: 3px solid #64748b;
+        }
+        .er-stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+        }
+        .er-stat-total .er-stat-icon { background: #4f46e5; }
+        .er-stat-pending .er-stat-icon { background: #f59e0b; }
+        .er-stat-approved .er-stat-icon { background: #22c55e; }
+        .er-stat-rejected .er-stat-icon { background: #fb5664; }
+        .er-stat-guests .er-stat-icon { background: #64748b; }
+        .er-stat-info {
+            min-width: 0;
+        }
+        .er-stat-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.15rem;
+            line-height: 1.25;
+        }
+        .er-stat-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+        .er-filter-bar {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+            padding: 0 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .er-filter-tabs {
+            display: flex;
+            align-items: center;
+            gap: 1.75rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .er-filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .er-filter-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.95rem 0.25rem;
+            text-decoration: none;
+            color: #475569;
+            font-weight: 500;
+            font-size: 0.92rem;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .er-filter-tab:hover {
+            color: #4f46e5;
+        }
+        .er-filter-tab.active {
+            color: #4f46e5;
+            font-weight: 600;
+            border-bottom-color: #4f46e5;
+        }
+        .er-tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 20px;
+            padding: 0 0.45rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .er-filter-tab.active .er-tab-count {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .er-tabs-divider {
+            width: 1px;
+            height: 22px;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .er-all-dropdown-btn {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.42rem 0.9rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .er-all-dropdown-btn:hover, .er-all-dropdown-btn:focus, .er-all-dropdown-btn.is-all {
+            border-color: #c7d2fe;
+            color: #4f46e5;
+            background: #f8faff;
+        }
+        .er-filter-bar .dropdown-item.active,
+        .er-filter-bar .dropdown-item:active {
+            background-color: #4f46e5;
+            color: #ffffff;
+        }
+        .er-filter-bar .dropdown-item.active .badge {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+        }
+        .er-requests-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .er-requests-card-header {
+            padding: 1.35rem 1.5rem 0.5rem;
+            background: #ffffff;
+        }
+        .er-requests-card-title {
+            font-size: 1.08rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+        .er-empty-state {
+            padding: 2.5rem 1.5rem 3.25rem;
+            text-align: center;
+        }
+        .er-empty-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 0.65rem;
+            margin-bottom: 0.35rem;
+        }
+        .er-empty-subtitle {
+            color: #64748b;
+            font-size: 0.92rem;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+        @media (max-width: 576px) {
+            .er-stat-card {
+                padding: 0.9rem 1rem;
+                gap: 0.75rem;
+            }
+            .er-stat-icon {
+                width: 42px;
+                height: 42px;
+                font-size: 1rem;
+            }
+            .er-stat-value {
+                font-size: 1.45rem;
+            }
+            .er-filter-bar {
+                padding: 0 0.85rem;
+                gap: 0.5rem;
+            }
+            .er-filter-tabs {
+                gap: 1rem;
+            }
         }
         .mb-4 {
     margin-bottom: 1rem !important;
@@ -225,21 +510,426 @@ if (isset($_SESSION['message'])) {
             top: 0;
             z-index: 5;
         }
-        .sticky-controls.card {
-            border: none !important;
-            border-top-left-radius: 0 !important;
-            border-top-right-radius: 0 !important;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
+        /* Company Snapshot Redesign */
+        .cs-toolbar {
+            background: #f6f8fc;
+            padding: 0.1rem 0 1rem 0;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-wrap: wrap;
         }
-        .sticky-controls #companySearch,
-        .sticky-controls #planFilter {
-            height: 45px !important;
-            font-size: 1rem;
-        }
-        .sticky-controls .input-group-text {
-            height: 45px !important;
+        .cs-search-wrap {
+            flex: 1 1 280px;
+            height: 46px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cs-search-wrap:focus-within {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .cs-search-icon {
+            color: #64748b;
+            font-size: 0.92rem;
+            flex-shrink: 0;
+        }
+        .cs-search-input {
+            border: 0;
+            outline: none;
+            box-shadow: none;
+            width: 100%;
+            background: transparent;
+            font-size: 0.92rem;
+            color: #0f172a;
+        }
+        .cs-search-input::placeholder {
+            color: #94a3b8;
+        }
+        .cs-plan-wrap {
+            flex: 0 0 auto;
+            min-width: 185px;
+            height: 46px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cs-plan-wrap:focus-within {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .cs-plan-select {
+            border: 0 !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            padding: 0 1.75rem 0 0.15rem !important;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            height: 100%;
+        }
+        .cs-company-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+            padding: 1.4rem 1.6rem;
+            display: grid;
+            grid-template-columns: minmax(250px, 1.25fr) auto minmax(285px, 1.15fr);
+            gap: 1.5rem;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .cs-company-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(79, 70, 229, 0.08);
+            border-color: #c7d2fe;
+        }
+        .cs-company-primary {
+            min-width: 0;
+        }
+        .cs-plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.34rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 0.65rem;
+        }
+        .cs-plan-badge.plan-free {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 6px rgba(108, 117, 125, 0.25);
+        }
+        .cs-plan-badge.plan-basic {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.28);
+        }
+        .cs-plan-badge.plan-premium {
+            background: linear-gradient(135deg, #c026d3 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 6px rgba(192, 38, 211, 0.28);
+        }
+        .cs-plan-badge.plan-enterprise {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            color: #ffffff;
+            border: none;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+        }
+        .cs-company-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 0.35rem 0;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+        .cs-company-owner {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.88rem;
+            color: #475569;
+            font-weight: 500;
+            margin: 0 0 0.75rem 0;
+        }
+        .cs-company-owner i {
+            color: #4f46e5;
+            font-size: 0.82rem;
+        }
+        .cs-company-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem 1.15rem;
+            font-size: 0.85rem;
+            color: #334155;
+        }
+        .cs-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-weight: 500;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+        .cs-meta-item i {
+            color: #4f46e5;
+            font-size: 0.84rem;
+            flex-shrink: 0;
+        }
+        .cs-meta-item.is-expiry {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .cs-company-kpis {
+            border-left: 1px solid #eef2f7;
+            border-right: 1px solid #eef2f7;
+            padding: 0.25rem 1.35rem;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(76px, 1fr));
+            gap: 0.5rem;
+            align-items: center;
+            text-align: center;
+        }
+        .cs-kpi-item {
+            padding: 0.25rem 0.5rem;
+            position: relative;
+        }
+        .cs-kpi-item + .cs-kpi-item::before {
+            content: '';
+            position: absolute;
+            left: -0.25rem;
+            top: 15%;
+            height: 70%;
+            width: 1px;
+            background: #f1f5f9;
+        }
+        .cs-kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+        .cs-kpi-icon.is-customers { background: #eef2ff; color: #4f46e5; }
+        .cs-kpi-icon.is-orders { background: #e0f2fe; color: #0284c7; }
+        .cs-kpi-icon.is-users { background: #dcfce7; color: #16a34a; }
+        .cs-kpi-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.15;
+        }
+        .cs-kpi-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-top: 0.15rem;
+        }
+        .cs-company-info {
+            min-width: 0;
+        }
+        .cs-info-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .cs-info-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .cs-info-title i {
+            color: #4f46e5;
+            font-size: 0.95rem;
+        }
+        .cs-info-menu-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .cs-info-menu-btn:hover, .cs-info-menu-btn:focus {
+            background: #f1f5f9;
+            color: #4f46e5;
+        }
+        .cs-info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem 1rem;
+        }
+        .cs-info-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            color: #475569;
+            font-size: 0.83rem;
+            line-height: 1.35;
+            min-width: 0;
+        }
+        .cs-info-list li i {
+            color: #4f46e5;
+            width: 14px;
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+        .cs-info-list li span {
+            overflow-wrap: anywhere;
+        }
+        @media (max-width: 1180px) {
+            .cs-company-card {
+                grid-template-columns: 1.2fr auto;
+                gap: 1.25rem;
+            }
+            .cs-company-kpis {
+                border-right: none;
+                padding-right: 0;
+            }
+            .cs-company-info {
+                grid-column: 1 / -1;
+                border-top: 1px solid #eef2f7;
+                padding-top: 1rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .cs-company-card {
+                grid-template-columns: 1fr;
+                padding: 1.15rem;
+                gap: 1rem;
+            }
+            .cs-company-kpis {
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid #eef2f7;
+                border-bottom: 1px solid #eef2f7;
+                padding: 0.85rem 0;
+            }
+            .cs-company-info {
+                border-top: none;
+                padding-top: 0;
+            }
+        }
+        /* Contact Messages Redesign */
+        .cm-filter-bar {
+            flex-wrap: wrap;
+            padding-top: 0.2rem;
+            padding-bottom: 0.2rem;
+        }
+        .cm-search-wrap {
+            flex: 0 1 260px;
+            height: 38px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+        .cm-search-wrap:focus-within {
+            background: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .cm-search-input {
+            border: 0;
+            outline: none;
+            width: 100%;
+            background: transparent;
+            font-size: 0.86rem;
+            color: #0f172a;
+        }
+        .cm-search-input::placeholder {
+            color: #94a3b8;
+        }
+        .cm-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 3px 8px rgba(79, 70, 229, 0.2);
+        }
+        .cm-email-link {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .cm-email-link:hover {
+            color: #4338ca;
+            text-decoration: underline;
+        }
+        .cm-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.34rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        .cm-type-badge.is-logged {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .cm-type-badge.is-guest {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .cm-view-btn {
+            border-radius: 10px !important;
+            padding: 0.44rem 0.95rem !important;
+            font-size: 0.82rem !important;
+            font-weight: 600 !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.22);
+        }
+        @media (max-width: 768px) {
+            .cm-search-wrap {
+                flex: 1 1 100%;
+                margin-bottom: 0.65rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .cs-plan-wrap {
+                width: 100%;
+            }
+            .cs-info-list {
+                grid-template-columns: 1fr;
+            }
         }
         .nav-link {
             display: flex;
@@ -353,7 +1043,7 @@ if (isset($_SESSION['message'])) {
                 display: none;
             }
             .top-header {
-                padding: 1rem;
+                padding: 0 0 1rem 0;
             }
         }
         .stat-card {
@@ -370,7 +1060,7 @@ if (isset($_SESSION['message'])) {
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
-            color: #667eea;
+            color: #4f46e5;
         }
         .stat-label {
             color: #6c757d;
@@ -382,7 +1072,7 @@ if (isset($_SESSION['message'])) {
             padding: 1.5rem;
             margin-bottom: 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #4f46e5;
         }
         .request-card.pending {
             border-left-color: #ffc107;
@@ -663,9 +1353,9 @@ if (isset($_SESSION['message'])) {
         <aside class="sidebar">
             <div class="brand">
                 <?php 
-                $logoPath = '../uploads/logos/footer-logo.png';
+                $logoPath = '../assets/images/tailor_logo.png';
                 if (file_exists($logoPath)): ?>
-                    <img src="<?php echo $logoPath; ?>" alt="Tailor Logo" class="brand-logo">
+                    <img src="<?php echo $logoPath; ?>" alt="Tailor Pro" class="brand-logo">
                 <?php else: ?>
                     <i class="fas fa-crown"></i>
                 <?php endif; ?>
@@ -719,8 +1409,9 @@ if (isset($_SESSION['message'])) {
                 <div class="d-flex gap-2">
                     
                     <div class="dropdown">
-                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>Admin
+                        <button class="btn admin-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Admin</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text text-muted small">Site Administrator</span></li>
@@ -741,114 +1432,124 @@ if (isset($_SESSION['message'])) {
         <?php endif; ?>
 
         <section id="section-requests" class="content-section" style="display: <?php echo $current_section === 'requests' ? 'block' : 'none'; ?>;">
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Total Requests</div>
-                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['total']; ?></div>
-                        </div>
-                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
-                            <i class="fas fa-inbox"></i>
-                        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-total">
+                    <div class="er-stat-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Total Requests</div>
+                        <div class="er-stat-value"><?php echo $stats['total']; ?></div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; border: none;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Pending</div>
-                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['pending']; ?></div>
-                        </div>
-                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
-                            <i class="fas fa-clock"></i>
-                        </div>
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-pending">
+                    <div class="er-stat-icon">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Pending</div>
+                        <div class="er-stat-value"><?php echo $stats['pending']; ?></div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: white; border: none;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Approved</div>
-                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['approved']; ?></div>
-                        </div>
-                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-approved">
+                    <div class="er-stat-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Approved</div>
+                        <div class="er-stat-value"><?php echo $stats['approved']; ?></div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); color: white; border: none;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-label text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Rejected</div>
-                            <div class="stat-number text-white" style="font-size: 2.5rem; line-height: 1;"><?php echo $stats['rejected']; ?></div>
-                        </div>
-                        <div class="stat-icon" style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-rejected">
+                    <div class="er-stat-icon">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Rejected</div>
+                        <div class="er-stat-value"><?php echo $stats['rejected']; ?></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card mb-4 border-0 shadow-sm rounded-4" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
-            <div class="card-body p-2">
-                <ul class="nav nav-pills flex-nowrap nav-fill gap-2 p-1 bg-light rounded-4 mobile-scrollable-tabs" role="tablist" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
-                    <style>
-                        .mobile-scrollable-tabs::-webkit-scrollbar { display: none; }
-                        .mobile-scrollable-tabs .nav-link { white-space: nowrap; }
-                    </style>
-                    <li class="nav-item" role="presentation">
-                        <a href="?status=pending" class="nav-link rounded-pill <?php echo $status_filter === 'pending' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'pending' ? 'background: linear-gradient(135deg, #f59e0b, #ea580c); color: white;' : 'color: #495057;'; ?>">
-                            <i class="fas fa-clock me-2"></i>Pending <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['pending']; ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="?status=approved" class="nav-link rounded-pill <?php echo $status_filter === 'approved' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'approved' ? 'background: linear-gradient(135deg, #84fab0, #8fd3f4);' : 'color: #495057;'; ?>">
-                            <i class="fas fa-check me-2"></i>Approved <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['approved']; ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="?status=rejected" class="nav-link rounded-pill <?php echo $status_filter === 'rejected' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'rejected' ? 'background: linear-gradient(135deg, #ff0844, #ffb199);' : 'color: #495057;'; ?>">
-                            <i class="fas fa-times me-2"></i>Rejected <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['rejected']; ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="?status=all" class="nav-link rounded-pill <?php echo $status_filter === 'all' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $status_filter === 'all' ? 'background: linear-gradient(135deg, #667eea, #764ba2);' : 'color: #495057;'; ?>">
-                            <i class="fas fa-list me-2"></i>All <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $stats['total']; ?></span>
-                        </a>
-                    </li>
+        <div class="er-filter-bar">
+            <div class="er-filter-tabs" role="tablist">
+                <a href="?status=pending" class="er-filter-tab <?php echo $status_filter === 'pending' ? 'active' : ''; ?>">
+                    <i class="fas fa-clock" style="color: <?php echo $status_filter === 'pending' ? '#4f46e5' : '#f59e0b'; ?>;"></i>
+                    <span>Pending</span>
+                    <span class="er-tab-count"><?php echo $stats['pending']; ?></span>
+                </a>
+                <a href="?status=approved" class="er-filter-tab <?php echo $status_filter === 'approved' ? 'active' : ''; ?>">
+                    <i class="fas fa-check" style="color: #22c55e;"></i>
+                    <span>Approved</span>
+                    <span class="er-tab-count"><?php echo $stats['approved']; ?></span>
+                </a>
+                <a href="?status=rejected" class="er-filter-tab <?php echo $status_filter === 'rejected' ? 'active' : ''; ?>">
+                    <i class="fas fa-times" style="color: #fb5664;"></i>
+                    <span>Rejected</span>
+                    <span class="er-tab-count"><?php echo $stats['rejected']; ?></span>
+                </a>
+                <span class="er-tabs-divider d-none d-sm-inline-block"></span>
+            </div>
+            <div class="dropdown py-2">
+                <button class="er-all-dropdown-btn dropdown-toggle <?php echo $status_filter === 'all' ? 'is-all' : ''; ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter" style="font-size: 0.78rem;"></i>
+                    <span><?php echo ($status_filter === 'all' || $status_filter === 'pending') ? 'All' : ucfirst($status_filter); ?></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $status_filter === 'all' ? 'active' : ''; ?>" href="?status=all"><span>All</span><span class="badge bg-light text-dark ms-2"><?php echo $stats['total']; ?></span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $status_filter === 'pending' ? 'active' : ''; ?>" href="?status=pending"><span>Pending</span><span class="badge bg-light text-dark ms-2"><?php echo $stats['pending']; ?></span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $status_filter === 'approved' ? 'active' : ''; ?>" href="?status=approved"><span>Approved</span><span class="badge bg-light text-dark ms-2"><?php echo $stats['approved']; ?></span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $status_filter === 'rejected' ? 'active' : ''; ?>" href="?status=rejected"><span>Rejected</span><span class="badge bg-light text-dark ms-2"><?php echo $stats['rejected']; ?></span></a></li>
                 </ul>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-            <div class="card-header bg-white border-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold" style="color: #2b3452;">
-                    Email Change Requests
-                    <?php if ($status_filter && $status_filter !== 'all'): ?>
-                        <span class="badge rounded-pill align-middle ms-2" style="font-size: 0.75rem; font-weight: 600; <?php 
-                            if ($status_filter === 'pending') echo 'background: #fff8eb; color: #e49122; border: 1px solid #ffeeba;';
-                            if ($status_filter === 'approved') echo 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;';
-                            if ($status_filter === 'rejected') echo 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;';
-                        ?>"><?php echo ucfirst($status_filter); ?></span>
-                    <?php endif; ?>
-                </h5>
+        <div class="er-requests-card">
+            <div class="er-requests-card-header d-flex justify-content-between align-items-center">
+                <h5 class="er-requests-card-title">Email Change Requests</h5>
             </div>
             <div class="card-body p-0">
                 <?php if (empty($requests)): ?>
-                    <div class="text-center py-5">
-                        <div class="mb-4 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; background: #f8f9fa; border-radius: 50%; color: #cbd5e1;">
-                            <i class="fas fa-inbox fa-3x" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <div class="er-empty-state">
+                        <div class="mb-2 d-inline-block">
+                            <svg width="210" height="126" viewBox="0 0 210 126" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="erEnvBody" x1="58" y1="22" x2="148" y2="100" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#D7DEFF"/>
+                                        <stop offset="100%" stop-color="#B9C5FC"/>
+                                    </linearGradient>
+                                    <linearGradient id="erEnvFlap" x1="58" y1="22" x2="148" y2="68" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#E5EAFF"/>
+                                        <stop offset="100%" stop-color="#C8D2FE"/>
+                                    </linearGradient>
+                                    <filter id="erBadgeShadow" x="98" y="48" width="60" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                                        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#4F46E5" flood-opacity="0.16"/>
+                                    </filter>
+                                </defs>
+                                <path d="M18 86C14 68 38 42 74 44C102 45 124 22 158 28C186 33 198 58 188 78C178 98 136 108 98 106C58 104 22 104 18 86Z" fill="#EFF2FC"/>
+                                <circle cx="40" cy="30" r="2.2" fill="#1E1B4B"/>
+                                <circle cx="163" cy="18" r="3.6" fill="#C7D2FE"/>
+                                <rect x="57" y="23" width="90" height="68" rx="10" fill="url(#erEnvBody)" stroke="#9AA8EC" stroke-width="1"/>
+                                <path d="M58 29L102 62L146 29" stroke="#8C9CE8" stroke-width="1.2" fill="url(#erEnvFlap)"/>
+                                <path d="M59 87L89 58M145 87L115 58" stroke="#A6B4F4" stroke-width="1.1"/>
+                                <g filter="url(#erBadgeShadow)">
+                                    <circle cx="128" cy="78" r="22" fill="#FFFFFF"/>
+                                </g>
+                                <circle cx="128" cy="78" r="14" stroke="#4F46E5" stroke-width="2.6"/>
+                                <path d="M128 70.5V78.5L133.5 81.5" stroke="#4F46E5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <h4 class="fw-bold" style="color: #475569;">No requests found</h4>
-                        <p class="text-muted mx-auto mb-5" style="max-width: 300px;">
-                            <?php if ($status_filter && $status_filter !== 'all'): ?>
+                        <h4 class="er-empty-title">No requests found</h4>
+                        <p class="er-empty-subtitle">
+                            <?php if ($stats['total'] > 0 && $status_filter && $status_filter !== 'all'): ?>
                                 You don't have any <?php echo $status_filter; ?> requests at the moment. Check back later.
                             <?php else: ?>
                                 No email change requests have been submitted yet.
@@ -872,7 +1573,7 @@ if (isset($_SESSION['message'])) {
                                     <tr style="transition: all 0.2s; border-bottom: 1px solid #f8f9fa;">
                                         <td class="px-4 py-3">
                                             <div class="d-flex align-items-center">
-                                                <div class="d-flex align-items-center justify-content-center rounded-circle me-3 text-white fw-bold shadow-sm" style="width: 42px; height: 42px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                                                <div class="d-flex align-items-center justify-content-center rounded-circle me-3 text-white fw-bold shadow-sm" style="width: 42px; height: 42px; background: linear-gradient(135deg, #4f46e5, #4338ca);">
                                                     <?php echo strtoupper(substr($request['company_name'] ?? 'C', 0, 1)); ?>
                                                 </div>
                                                 <div>
@@ -951,25 +1652,20 @@ if (isset($_SESSION['message'])) {
         </section>
 
         <section id="section-company" class="content-section" style="display: <?php echo $current_section === 'company' ? 'block' : 'none'; ?>;">
-            <div class="card mb-4 sticky-controls">
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-9">
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="companySearch" placeholder="Search company by name, owner, or city...">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="planFilter" data-plan-filter>
-                                <option value="">All Plans</option>
-                                <option value="free">Free</option>
-                                <option value="basic">Basic</option>
-                                <option value="premium">Premium</option>
-                                <option value="enterprise">Enterprise</option>
-                            </select>
-                        </div>
-                    </div>
+            <div class="cs-toolbar sticky-controls">
+                <div class="cs-search-wrap">
+                    <i class="fas fa-search cs-search-icon"></i>
+                    <input type="text" class="cs-search-input" id="companySearch" placeholder="Search company by name, owner, or city...">
+                </div>
+                <div class="cs-plan-wrap">
+                    <i class="fas fa-filter" style="color: #4f46e5; font-size: 0.82rem;"></i>
+                    <select class="form-select cs-plan-select" id="planFilter" data-plan-filter>
+                        <option value="">All Plans</option>
+                        <option value="free">Free</option>
+                        <option value="basic">Basic</option>
+                        <option value="premium">Premium</option>
+                        <option value="enterprise">Enterprise</option>
+                    </select>
                 </div>
             </div>
             <div id="companiesGrid" class="company-grid">
@@ -978,65 +1674,148 @@ if (isset($_SESSION['message'])) {
         </section>
 
         <section id="section-contact" class="content-section" style="display: <?php echo $current_section === 'contact' ? 'block' : 'none'; ?>;">
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="stat-card text-center">
-                        <div class="stat-number"><?php echo $contactStats['total']; ?></div>
-                        <div class="stat-label">Total Messages</div>
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="er-stat-card er-stat-total">
+                        <div class="er-stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="er-stat-info">
+                            <div class="er-stat-label">Total Messages</div>
+                            <div class="er-stat-value" id="contactStatTotal"><?php echo $contactStats['total']; ?></div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-card text-center" style="border-top: 3px solid #28a745;">
-                        <div class="stat-number text-success"><?php echo $contactStats['logged_in']; ?></div>
-                        <div class="stat-label">From Logged In Users</div>
+                <div class="col-6 col-md-4">
+                    <div class="er-stat-card er-stat-approved">
+                        <div class="er-stat-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="er-stat-info">
+                            <div class="er-stat-label">From Logged In Users</div>
+                            <div class="er-stat-value" id="contactStatLoggedIn"><?php echo $contactStats['logged_in']; ?></div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-card text-center" style="border-top: 3px solid #6c757d;">
-                        <div class="stat-number text-secondary"><?php echo $contactStats['guests']; ?></div>
-                        <div class="stat-label">From Guests</div>
+                <div class="col-6 col-md-4">
+                    <div class="er-stat-card er-stat-guests">
+                        <div class="er-stat-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="er-stat-info">
+                            <div class="er-stat-label">From Guests</div>
+                            <div class="er-stat-value" id="contactStatGuests"><?php echo $contactStats['guests']; ?></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-comments me-2"></i>
-                        Contact Messages
-                    </h5>
+            <div class="er-filter-bar cm-filter-bar">
+                <div class="er-filter-tabs" role="tablist">
+                    <a href="javascript:void(0)" class="er-filter-tab active" data-contact-filter="all">
+                        <i class="fas fa-inbox" style="color: #4f46e5;"></i>
+                        <span>All</span>
+                        <span class="er-tab-count" id="contactTabCountAll"><?php echo $contactStats['total']; ?></span>
+                    </a>
+                    <a href="javascript:void(0)" class="er-filter-tab" data-contact-filter="logged_in">
+                        <i class="fas fa-user-check" style="color: #22c55e;"></i>
+                        <span>Logged In</span>
+                        <span class="er-tab-count" id="contactTabCountLoggedIn"><?php echo $contactStats['logged_in']; ?></span>
+                    </a>
+                    <a href="javascript:void(0)" class="er-filter-tab" data-contact-filter="guests">
+                        <i class="fas fa-user" style="color: #64748b;"></i>
+                        <span>Guests</span>
+                        <span class="er-tab-count" id="contactTabCountGuests"><?php echo $contactStats['guests']; ?></span>
+                    </a>
                 </div>
-                <div class="card-body">
+                <div class="cm-search-wrap">
+                    <i class="fas fa-search text-muted" style="font-size: 0.82rem;"></i>
+                    <input type="text" class="cm-search-input" id="contactSearchInput" placeholder="Search name or email...">
+                </div>
+            </div>
+
+            <div class="er-requests-card">
+                <div class="er-requests-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="er-requests-card-title">Contact Messages</h5>
+                    <span class="er-tab-count" id="contactVisibleCount"><?php echo $contactStats['total']; ?></span>
+                </div>
+                <div class="card-body p-0" id="contactMessagesBody">
                     <?php if (empty($contactMessages)): ?>
-                        <div class="text-center py-5">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No contact messages found</h5>
-                            <p class="text-muted">No contact form submissions have been received yet.</p>
+                        <div class="er-empty-state">
+                            <div class="mb-2 d-inline-block">
+                                <svg width="210" height="126" viewBox="0 0 210 126" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <defs>
+                                        <linearGradient id="cmEnvBody" x1="58" y1="22" x2="148" y2="100" gradientUnits="userSpaceOnUse">
+                                            <stop offset="0%" stop-color="#D7DEFF"/>
+                                            <stop offset="100%" stop-color="#B9C5FC"/>
+                                        </linearGradient>
+                                        <filter id="cmBadgeShadow" x="98" y="48" width="60" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                                            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#4F46E5" flood-opacity="0.16"/>
+                                        </filter>
+                                    </defs>
+                                    <path d="M18 86C14 68 38 42 74 44C102 45 124 22 158 28C186 33 198 58 188 78C178 98 136 108 98 106C58 104 22 104 18 86Z" fill="#EFF2FC"/>
+                                    <circle cx="40" cy="30" r="2.2" fill="#1E1B4B"/>
+                                    <circle cx="163" cy="18" r="3.6" fill="#C7D2FE"/>
+                                    <rect x="57" y="25" width="90" height="62" rx="14" fill="url(#cmEnvBody)" stroke="#9AA8EC" stroke-width="1"/>
+                                    <circle cx="84" cy="56" r="4" fill="#FFFFFF"/>
+                                    <circle cx="102" cy="56" r="4" fill="#FFFFFF"/>
+                                    <circle cx="120" cy="56" r="4" fill="#FFFFFF"/>
+                                    <g filter="url(#cmBadgeShadow)">
+                                        <circle cx="132" cy="78" r="21" fill="#FFFFFF"/>
+                                    </g>
+                                    <path d="M124 73H140M124 79H135" stroke="#4F46E5" stroke-width="2.6" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <h4 class="er-empty-title">No contact messages found</h4>
+                            <p class="er-empty-subtitle">No contact form submissions have been received yet.</p>
                         </div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr style="background: #667eea; color: white;">
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Actions</th>
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.94rem;">
+                                <thead class="bg-light text-muted" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                                    <tr>
+                                        <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Sender</th>
+                                        <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Email</th>
+                                        <th class="border-0 px-4 py-3 fw-semibold text-uppercase">User Type</th>
+                                        <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Received</th>
+                                        <th class="border-0 px-4 py-3 fw-semibold text-uppercase text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($contactMessages as $msg): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($msg['id']); ?></td>
-                                            <td><strong><?php echo htmlspecialchars($msg['name']); ?></strong></td>
-                                            <td>
-                                                <a href="mailto:<?php echo htmlspecialchars($msg['emailId']); ?>">
+                                    <?php foreach ($contactMessages as $msg):
+                                        $isLogged = isset($msg['user_logged']) && $msg['user_logged'] == 1;
+                                        $formattedDate = !empty($msg['created_date']) ? date('M d, Y', strtotime($msg['created_date'])) : '—';
+                                    ?>
+                                        <tr style="transition: all 0.2s; border-bottom: 1px solid #f1f5f9;">
+                                            <td class="px-4 py-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="cm-avatar">
+                                                        <?php echo strtoupper(substr(trim($msg['name'] ?? 'U'), 0, 1)) ?: 'U'; ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold" style="color: #0f172a;"><?php echo htmlspecialchars($msg['name']); ?></div>
+                                                        <div class="text-muted small">ID: #<?php echo htmlspecialchars($msg['id']); ?></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <a href="mailto:<?php echo htmlspecialchars($msg['emailId']); ?>" class="cm-email-link">
                                                     <?php echo htmlspecialchars($msg['emailId']); ?>
                                                 </a>
                                             </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-primary view-contact-btn" data-message='<?php echo htmlspecialchars(json_encode($msg), ENT_QUOTES, 'UTF-8'); ?>'>
-                                                    <i class="fas fa-eye me-1"></i>View
+                                            <td class="px-4 py-3">
+                                                <span class="cm-type-badge <?php echo $isLogged ? 'is-logged' : 'is-guest'; ?>">
+                                                    <i class="fas <?php echo $isLogged ? 'fa-user-check' : 'fa-user'; ?>" style="font-size: 0.72rem;"></i>
+                                                    <?php echo $isLogged ? 'Logged In' : 'Guest'; ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-muted" style="font-size: 0.88rem; white-space: nowrap;">
+                                                <?php echo htmlspecialchars($formattedDate); ?>
+                                            </td>
+                                            <td class="px-4 py-3 text-end">
+                                                <button class="btn btn-sm btn-primary cm-view-btn view-contact-btn" data-message='<?php echo htmlspecialchars(json_encode($msg), ENT_QUOTES, 'UTF-8'); ?>'>
+                                                    <i class="fas fa-eye"></i>
+                                                    <span>View</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -1053,60 +1832,118 @@ if (isset($_SESSION['message'])) {
         <?php 
         $testimonial_status_filter = $_GET['status'] ?? 'pending';
         ?>
-        
-        <div class="card mb-4 border-0 shadow-sm rounded-4" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
-            <div class="card-body p-2">
-                <ul class="nav nav-pills flex-nowrap nav-fill gap-2 p-1 bg-light rounded-4 mobile-scrollable-tabs" role="tablist" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
-                    <style>
-                        .mobile-scrollable-tabs::-webkit-scrollbar { display: none; }
-                        .mobile-scrollable-tabs .nav-link { white-space: nowrap; }
-                    </style>
-                    <li class="nav-item" role="presentation">
-                        <a href="?section=testimonials&status=pending" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'pending' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'pending' ? 'background: linear-gradient(135deg, #f59e0b, #ea580c); color: white;' : 'color: #495057;'; ?>">
-                            <i class="fas fa-clock me-2"></i>Pending <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['pending']; ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="?section=testimonials&status=approved" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'approved' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'approved' ? 'background: linear-gradient(135deg, #84fab0, #8fd3f4); color: #1e293b;' : 'color: #495057;'; ?>">
-                            <i class="fas fa-check me-2"></i>Approved <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['approved']; ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="?section=testimonials&status=rejected" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'rejected' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'rejected' ? 'background: linear-gradient(135deg, #ff0844, #ffb199); color: white;' : 'color: #495057;'; ?>">
-                            <i class="fas fa-times me-2"></i>Rejected <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['rejected']; ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="?section=testimonials&status=all" class="nav-link rounded-pill <?php echo $testimonial_status_filter === 'all' ? 'active shadow-sm' : ''; ?>" style="font-weight: 500; transition: all 0.3s; <?php echo $testimonial_status_filter === 'all' ? 'background: linear-gradient(135deg, #667eea, #764ba2); color: white;' : 'color: #495057;'; ?>">
-                            <i class="fas fa-list me-2"></i>All <span class="badge bg-white text-dark ms-2 rounded-pill shadow-sm"><?php echo $testimonialStats['total']; ?></span>
-                        </a>
-                    </li>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-total">
+                    <div class="er-stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Total Testimonials</div>
+                        <div class="er-stat-value"><?php echo $testimonialStats['total']; ?></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-pending">
+                    <div class="er-stat-icon">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Pending</div>
+                        <div class="er-stat-value"><?php echo $testimonialStats['pending']; ?></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-approved">
+                    <div class="er-stat-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Approved</div>
+                        <div class="er-stat-value"><?php echo $testimonialStats['approved']; ?></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="er-stat-card er-stat-rejected">
+                    <div class="er-stat-icon">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <div class="er-stat-info">
+                        <div class="er-stat-label">Rejected</div>
+                        <div class="er-stat-value"><?php echo $testimonialStats['rejected']; ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="er-filter-bar">
+            <div class="er-filter-tabs" role="tablist">
+                <a href="?section=testimonials&status=pending" class="er-filter-tab <?php echo $testimonial_status_filter === 'pending' ? 'active' : ''; ?>">
+                    <i class="fas fa-clock" style="color: <?php echo $testimonial_status_filter === 'pending' ? '#4f46e5' : '#f59e0b'; ?>;"></i>
+                    <span>Pending</span>
+                    <span class="er-tab-count"><?php echo $testimonialStats['pending']; ?></span>
+                </a>
+                <a href="?section=testimonials&status=approved" class="er-filter-tab <?php echo $testimonial_status_filter === 'approved' ? 'active' : ''; ?>">
+                    <i class="fas fa-check" style="color: #22c55e;"></i>
+                    <span>Approved</span>
+                    <span class="er-tab-count"><?php echo $testimonialStats['approved']; ?></span>
+                </a>
+                <a href="?section=testimonials&status=rejected" class="er-filter-tab <?php echo $testimonial_status_filter === 'rejected' ? 'active' : ''; ?>">
+                    <i class="fas fa-times" style="color: #fb5664;"></i>
+                    <span>Rejected</span>
+                    <span class="er-tab-count"><?php echo $testimonialStats['rejected']; ?></span>
+                </a>
+                <span class="er-tabs-divider d-none d-sm-inline-block"></span>
+            </div>
+            <div class="dropdown py-2">
+                <button class="er-all-dropdown-btn dropdown-toggle <?php echo $testimonial_status_filter === 'all' ? 'is-all' : ''; ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter" style="font-size: 0.78rem;"></i>
+                    <span><?php echo ($testimonial_status_filter === 'all' || $testimonial_status_filter === 'pending') ? 'All' : ucfirst($testimonial_status_filter); ?></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $testimonial_status_filter === 'all' ? 'active' : ''; ?>" href="?section=testimonials&status=all"><span>All</span><span class="badge bg-light text-dark ms-2"><?php echo $testimonialStats['total']; ?></span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $testimonial_status_filter === 'pending' ? 'active' : ''; ?>" href="?section=testimonials&status=pending"><span>Pending</span><span class="badge bg-light text-dark ms-2"><?php echo $testimonialStats['pending']; ?></span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $testimonial_status_filter === 'approved' ? 'active' : ''; ?>" href="?section=testimonials&status=approved"><span>Approved</span><span class="badge bg-light text-dark ms-2"><?php echo $testimonialStats['approved']; ?></span></a></li>
+                    <li><a class="dropdown-item d-flex justify-content-between align-items-center <?php echo $testimonial_status_filter === 'rejected' ? 'active' : ''; ?>" href="?section=testimonials&status=rejected"><span>Rejected</span><span class="badge bg-light text-dark ms-2"><?php echo $testimonialStats['rejected']; ?></span></a></li>
                 </ul>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-            <div class="card-header bg-white border-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold" style="color: #2b3452;">
-                    Customer Testimonials
-                    <?php if ($testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
-                        <span class="badge rounded-pill align-middle ms-2" style="font-size: 0.75rem; font-weight: 600; <?php 
-                            if ($testimonial_status_filter === 'pending') echo 'background: #fff8eb; color: #e49122; border: 1px solid #ffeeba;';
-                            if ($testimonial_status_filter === 'approved') echo 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;';
-                            if ($testimonial_status_filter === 'rejected') echo 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;';
-                        ?>"><?php echo ucfirst($testimonial_status_filter); ?></span>
-                    <?php endif; ?>
-                </h5>
+        <div class="er-requests-card">
+            <div class="er-requests-card-header d-flex justify-content-between align-items-center">
+                <h5 class="er-requests-card-title">Customer Testimonials</h5>
+                <span class="er-tab-count"><?php echo count($testimonials); ?></span>
             </div>
             <div class="card-body p-0">
                 <?php if (empty($testimonials)): ?>
-                    <div class="text-center py-5">
-                        <div class="mb-4 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; background: #f8f9fa; border-radius: 50%; color: #cbd5e1;">
-                            <i class="fas fa-star fa-3x" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <div class="er-empty-state">
+                        <div class="mb-2 d-inline-block">
+                            <svg width="210" height="126" viewBox="0 0 210 126" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="tmStarBody" x1="66" y1="18" x2="138" y2="96" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#D7DEFF"/>
+                                        <stop offset="100%" stop-color="#B9C5FC"/>
+                                    </linearGradient>
+                                    <filter id="tmBadgeShadow" x="98" y="48" width="60" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                                        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#4F46E5" flood-opacity="0.16"/>
+                                    </filter>
+                                </defs>
+                                <path d="M18 86C14 68 38 42 74 44C102 45 124 22 158 28C186 33 198 58 188 78C178 98 136 108 98 106C58 104 22 104 18 86Z" fill="#EFF2FC"/>
+                                <circle cx="40" cy="30" r="2.2" fill="#1E1B4B"/>
+                                <circle cx="163" cy="18" r="3.6" fill="#C7D2FE"/>
+                                <path d="M102 22L112.5 43.2L136 46.6L119 63.1L123 86.5L102 75.5L81 86.5L85 63.1L68 46.6L91.5 43.2L102 22Z" fill="url(#tmStarBody)" stroke="#9AA8EC" stroke-width="1.2" stroke-linejoin="round"/>
+                                <g filter="url(#tmBadgeShadow)">
+                                    <circle cx="132" cy="78" r="21" fill="#FFFFFF"/>
+                                </g>
+                                <path d="M132 69L134.8 74.6L141 75.5L136.5 79.9L137.6 86L132 83.1L126.4 86L127.5 79.9L123 75.5L129.2 74.6L132 69Z" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <h4 class="fw-bold" style="color: #475569;">No testimonials found</h4>
-                        <p class="text-muted mx-auto mb-5" style="max-width: 300px;">
-                            <?php if ($testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
+                        <h4 class="er-empty-title">No testimonials found</h4>
+                        <p class="er-empty-subtitle">
+                            <?php if ($testimonialStats['total'] > 0 && $testimonial_status_filter && $testimonial_status_filter !== 'all'): ?>
                                 You don't have any <?php echo $testimonial_status_filter; ?> testimonials at the moment.
                             <?php else: ?>
                                 No testimonials have been submitted yet.
@@ -1115,66 +1952,85 @@ if (isset($_SESSION['message'])) {
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
-                            <thead class="bg-light text-muted" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.94rem;">
+                            <thead class="bg-light text-muted" style="font-size: 0.8rem; letter-spacing: 0.5px;">
                                 <tr>
-                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase" style="width: 60px;">ID</th>
-                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Name & Email</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Customer</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Email</th>
                                     <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Shop Details</th>
+                                    <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Rating</th>
                                     <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Status</th>
                                     <th class="border-0 px-4 py-3 fw-semibold text-uppercase text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($testimonials as $testimonial): ?>
-                                    <tr style="transition: all 0.2s; border-bottom: 1px solid #f8f9fa;">
-                                        <td class="px-4 py-3 text-muted">#<?php echo htmlspecialchars($testimonial['id']); ?></td>
+                                <?php foreach ($testimonials as $testimonial):
+                                    $tName = $testimonial['user_name'] ?? 'N/A';
+                                    $tInitial = strtoupper(substr(trim($tName), 0, 1)) ?: 'T';
+                                    $tShop = $testimonial['company_name'] ?? '';
+                                    $tPerson = !empty($testimonial['owner_name']) ? $testimonial['owner_name'] : ($testimonial['tailor_name'] ?? '');
+                                    $tStars = max(1, min(5, (int)($testimonial['star'] ?? 5)));
+                                    $tStatus = $testimonial['status'] ?? 'pending';
+                                ?>
+                                    <tr style="transition: all 0.2s; border-bottom: 1px solid #f1f5f9;">
                                         <td class="px-4 py-3">
-                                            <div class="fw-bold" style="color: #334155;"><?php echo escape($testimonial['user_name'] ?? 'N/A'); ?></div>
-                                            <a href="mailto:<?php echo htmlspecialchars($testimonial['email']); ?>" class="text-decoration-none small" style="color: #3b82f6;">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="cm-avatar"><?php echo escape($tInitial); ?></div>
+                                                <div>
+                                                    <div class="fw-bold" style="color: #0f172a;"><?php echo escape($tName); ?></div>
+                                                    <div class="text-muted small">ID: #<?php echo htmlspecialchars($testimonial['id']); ?></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <a href="mailto:<?php echo htmlspecialchars($testimonial['email']); ?>" class="cm-email-link">
                                                 <?php echo htmlspecialchars($testimonial['email']); ?>
                                             </a>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <div style="color: #475569; font-weight: 500;"><?php echo escape($testimonial['company_name'] ?? 'N/A'); ?></div>
-                                            <?php if (!empty($testimonial['owner_name'])): ?>
-                                                <div class="small text-muted"><?php echo escape($testimonial['owner_name']); ?></div>
+                                            <?php if (!empty($tShop)): ?>
+                                                <div class="fw-semibold" style="color: #1e293b;"><?php echo escape($tShop); ?></div>
+                                                <?php if (!empty($tPerson)): ?>
+                                                    <div class="small text-muted"><?php echo escape($tPerson); ?></div>
+                                                <?php endif; ?>
+                                            <?php elseif (!empty($tPerson)): ?>
+                                                <div class="fw-medium" style="color: #334155;"><?php echo escape($tPerson); ?></div>
+                                            <?php else: ?>
+                                                <span class="text-muted">—</span>
                                             <?php endif; ?>
                                         </td>
+                                        <td class="px-4 py-3" style="white-space: nowrap;">
+                                            <div class="d-inline-flex align-items-center gap-1" title="<?php echo $tStars; ?>/5">
+                                                <?php for ($s = 1; $s <= 5; $s++): ?>
+                                                    <i class="fas fa-star" style="font-size: 0.78rem; color: <?php echo $s <= $tStars ? '#f59e0b' : '#e2e8f0'; ?>;"></i>
+                                                <?php endfor; ?>
+                                            </div>
+                                        </td>
                                         <td class="px-4 py-3">
-                                            <?php 
-                                            $showStatusBadge = false;
-                                            if ($testimonial_status_filter === 'all' || $testimonial_status_filter === '') {
-                                                $showStatusBadge = true;
-                                            } elseif ($testimonial_status_filter === $testimonial['status']) {
-                                                $showStatusBadge = true;
-                                            }
-                                            
-                                            if ($showStatusBadge): 
-                                            ?>
-                                            <span class="badge rounded-pill px-3 py-2 fw-semibold <?php 
-                                                if ($testimonial['status'] === 'pending') echo 'bg-warning bg-opacity-10 border border-warning border-opacity-25';
-                                                elseif ($testimonial['status'] === 'approved') echo 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
-                                                elseif ($testimonial['status'] === 'rejected') echo 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
-                                                else echo 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25';
-                                            ?> " <?php if ($testimonial['status'] === 'pending') echo 'style="color: #b45309;"'; ?>>
-                                                <i class="fas <?php 
-                                                    echo $testimonial['status'] === 'approved' ? 'fa-check-circle' : 
-                                                        ($testimonial['status'] === 'rejected' ? 'fa-times-circle' : 'fa-clock'); 
-                                                ?> me-1" style="font-size: 0.8rem; vertical-align: middle;"></i>
-                                                <?php echo ucfirst($testimonial['status']); ?>
-                                            </span>
+                                            <?php if ($tStatus === 'approved'): ?>
+                                                <span class="cm-type-badge" style="background: #dcfce7; color: #15803d;">
+                                                    <i class="fas fa-check-circle" style="font-size: 0.75rem;"></i>
+                                                    Approved
+                                                </span>
+                                            <?php elseif ($tStatus === 'rejected'): ?>
+                                                <span class="cm-type-badge" style="background: #ffe4e6; color: #be123c;">
+                                                    <i class="fas fa-times-circle" style="font-size: 0.75rem;"></i>
+                                                    Rejected
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="cm-type-badge" style="background: #ffedd5; color: #b45309;">
+                                                    <i class="fas fa-clock" style="font-size: 0.75rem;"></i>
+                                                    Pending
+                                                </span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="px-4 py-3 text-end">
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-light rounded-circle shadow-sm" 
-                                                    style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s;"
-                                                    onmouseover="this.style.color='#3b82f6'; this.style.backgroundColor='#eff6ff';"
-                                                    onmouseout="this.style.color='#64748b'; this.style.backgroundColor='#f8f9fa';"
+                                            <button type="button"
+                                                    class="btn btn-sm btn-primary cm-view-btn"
                                                     onclick="viewTestimonialDetails(<?php echo $testimonial['id']; ?>)"
                                                     title="View Details">
                                                 <i class="fas fa-eye"></i>
+                                                <span>View</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -2061,113 +2917,178 @@ if (isset($_SESSION['message'])) {
                 });
         }
         
+        let contactMessagesCache = <?php echo json_encode($contactMessages, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        let activeContactFilter = 'all';
+
+        function formatContactShortDate(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+        }
+
+        function attachContactViewListeners(container) {
+            if (!container) return;
+            container.querySelectorAll('.view-contact-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', function() {
+                    try {
+                        let messageDataStr = this.getAttribute('data-message');
+                        messageDataStr = messageDataStr.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+                        const messageData = JSON.parse(messageDataStr);
+                        if (typeof viewContactMessage === 'function') {
+                            viewContactMessage(messageData);
+                        } else {
+                            console.error('viewContactMessage function not found');
+                        }
+                    } catch (e) {
+                        console.error('Error parsing message data:', e, this.getAttribute('data-message'));
+                        alert('Error loading message details. Please try again.');
+                    }
+                });
+            });
+        }
+
+        function applyContactFilterAndRender() {
+            const searchQuery = (document.getElementById('contactSearchInput')?.value || '').trim().toLowerCase();
+            const filtered = (contactMessagesCache || []).filter(msg => {
+                const isLogged = Number(msg.user_logged) === 1;
+                if (activeContactFilter === 'logged_in' && !isLogged) return false;
+                if (activeContactFilter === 'guests' && isLogged) return false;
+                if (!searchQuery) return true;
+                const name = (msg.name || '').toLowerCase();
+                const email = (msg.emailId || '').toLowerCase();
+                const text = (msg.message || '').toLowerCase();
+                return name.includes(searchQuery) || email.includes(searchQuery) || text.includes(searchQuery);
+            });
+
+            const visibleBadge = document.getElementById('contactVisibleCount');
+            if (visibleBadge) visibleBadge.textContent = filtered.length;
+
+            const cardBody = document.getElementById('contactMessagesBody');
+            if (!cardBody) return;
+
+            if (filtered.length === 0) {
+                cardBody.innerHTML = `
+                    <div class="er-empty-state">
+                        <div class="mb-2 d-inline-block">
+                            <svg width="210" height="126" viewBox="0 0 210 126" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M18 86C14 68 38 42 74 44C102 45 124 22 158 28C186 33 198 58 188 78C178 98 136 108 98 106C58 104 22 104 18 86Z" fill="#EFF2FC"/>
+                                <circle cx="40" cy="30" r="2.2" fill="#1E1B4B"/>
+                                <circle cx="163" cy="18" r="3.6" fill="#C7D2FE"/>
+                                <rect x="57" y="25" width="90" height="62" rx="14" fill="#CBD5FE" stroke="#9AA8EC" stroke-width="1"/>
+                                <circle cx="84" cy="56" r="4" fill="#FFFFFF"/>
+                                <circle cx="102" cy="56" r="4" fill="#FFFFFF"/>
+                                <circle cx="120" cy="56" r="4" fill="#FFFFFF"/>
+                                <circle cx="132" cy="78" r="21" fill="#FFFFFF"/>
+                                <path d="M124 73H140M124 79H135" stroke="#4F46E5" stroke-width="2.6" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h4 class="er-empty-title">No contact messages found</h4>
+                        <p class="er-empty-subtitle">${(contactMessagesCache || []).length ? 'Try adjusting your filter tab or search query.' : 'No contact form submissions have been received yet.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let rowsHtml = '';
+            filtered.forEach(msg => {
+                const isLogged = Number(msg.user_logged) === 1;
+                const initial = escapeHtml((msg.name || 'U').trim().charAt(0).toUpperCase() || 'U');
+                const formattedDate = escapeHtml(formatContactShortDate(msg.created_date));
+                rowsHtml += `
+                    <tr style="transition: all 0.2s; border-bottom: 1px solid #f1f5f9;">
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="cm-avatar">${initial}</div>
+                                <div>
+                                    <div class="fw-bold" style="color: #0f172a;">${escapeHtml(msg.name)}</div>
+                                    <div class="text-muted small">ID: #${escapeHtml(String(msg.id))}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <a href="mailto:${escapeHtml(msg.emailId)}" class="cm-email-link">
+                                ${escapeHtml(msg.emailId)}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="cm-type-badge ${isLogged ? 'is-logged' : 'is-guest'}">
+                                <i class="fas ${isLogged ? 'fa-user-check' : 'fa-user'}" style="font-size: 0.72rem;"></i>
+                                ${isLogged ? 'Logged In' : 'Guest'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-muted" style="font-size: 0.88rem; white-space: nowrap;">
+                            ${formattedDate}
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-primary cm-view-btn view-contact-btn" data-message='${JSON.stringify(msg).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'>
+                                <i class="fas fa-eye"></i>
+                                <span>View</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            cardBody.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.94rem;">
+                        <thead class="bg-light text-muted" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                            <tr>
+                                <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Sender</th>
+                                <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Email</th>
+                                <th class="border-0 px-4 py-3 fw-semibold text-uppercase">User Type</th>
+                                <th class="border-0 px-4 py-3 fw-semibold text-uppercase">Received</th>
+                                <th class="border-0 px-4 py-3 fw-semibold text-uppercase text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            attachContactViewListeners(cardBody);
+        }
+
+        document.querySelectorAll('[data-contact-filter]').forEach(tab => {
+            tab.addEventListener('click', function() {
+                activeContactFilter = this.getAttribute('data-contact-filter') || 'all';
+                document.querySelectorAll('[data-contact-filter]').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                applyContactFilterAndRender();
+            });
+        });
+
+        const contactSearchInput = document.getElementById('contactSearchInput');
+        if (contactSearchInput) {
+            contactSearchInput.addEventListener('input', applyContactFilterAndRender);
+        }
+
         function renderContactMessages(messages, stats) {
             const section = document.getElementById('section-contact');
             if (!section) return;
-            
-            // Update stats cards
-            const statCards = section.querySelectorAll('.stat-card .stat-number');
-            if (statCards.length >= 3) {
-                statCards[0].textContent = stats.total;
-                statCards[1].textContent = stats.logged_in;
-                statCards[2].textContent = stats.guests;
-            }
-            
-            // Get or create card body
-            let cardBody = section.querySelector('.card-body');
-            if (!cardBody) {
-                // If card body doesn't exist, create the card structure
-                const card = section.querySelector('.card') || document.createElement('div');
-                card.className = 'card';
-                if (!card.querySelector('.card-header')) {
-                    card.innerHTML = `
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-comments me-2"></i>
-                                Contact Messages
-                            </h5>
-                        </div>
-                        <div class="card-body"></div>
-                    `;
-                }
-                cardBody = card.querySelector('.card-body');
-            }
-            
-            if (messages.length === 0) {
-                cardBody.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No contact messages found</h5>
-                        <p class="text-muted">No contact form submissions have been received yet.</p>
-                    </div>
-                `;
-            } else {
-                // Build table rows HTML
-                let rowsHtml = '';
-                messages.forEach(msg => {
-                    rowsHtml += `
-                        <tr>
-                            <td>${msg.id}</td>
-                            <td><strong>${escapeHtml(msg.name)}</strong></td>
-                            <td>
-                                <a href="mailto:${escapeHtml(msg.emailId)}">
-                                    ${escapeHtml(msg.emailId)}
-                                </a>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-primary view-contact-btn" data-message='${JSON.stringify(msg).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'>
-                                    <i class="fas fa-eye me-1"></i>View
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                // Replace entire card body content with table
-                cardBody.innerHTML = `
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr style="background: #667eea; color: white;">
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${rowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                
-                // Attach event listeners to view buttons after rendering
-                setTimeout(() => {
-                    cardBody.querySelectorAll('.view-contact-btn').forEach(btn => {
-                        // Remove any existing listeners to prevent duplicates
-                        const newBtn = btn.cloneNode(true);
-                        btn.parentNode.replaceChild(newBtn, btn);
-                        
-                        newBtn.addEventListener('click', function() {
-                            try {
-                                let messageDataStr = this.getAttribute('data-message');
-                                // Decode HTML entities
-                                messageDataStr = messageDataStr.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
-                                const messageData = JSON.parse(messageDataStr);
-                                if (typeof viewContactMessage === 'function') {
-                                    viewContactMessage(messageData);
-                                } else {
-                                    console.error('viewContactMessage function not found');
-                                }
-                            } catch (e) {
-                                console.error('Error parsing message data:', e, this.getAttribute('data-message'));
-                                alert('Error loading message details. Please try again.');
-                            }
-                        });
-                    });
-                }, 100);
-            }
+
+            contactMessagesCache = Array.isArray(messages) ? messages : [];
+
+            const totalEl = document.getElementById('contactStatTotal');
+            const loggedEl = document.getElementById('contactStatLoggedIn');
+            const guestsEl = document.getElementById('contactStatGuests');
+            const tabAll = document.getElementById('contactTabCountAll');
+            const tabLogged = document.getElementById('contactTabCountLoggedIn');
+            const tabGuests = document.getElementById('contactTabCountGuests');
+
+            if (totalEl) totalEl.textContent = stats.total;
+            if (loggedEl) loggedEl.textContent = stats.logged_in;
+            if (guestsEl) guestsEl.textContent = stats.guests;
+            if (tabAll) tabAll.textContent = stats.total;
+            if (tabLogged) tabLogged.textContent = stats.logged_in;
+            if (tabGuests) tabGuests.textContent = stats.guests;
+
+            applyContactFilterAndRender();
         }
 
         // Company listing
@@ -2261,56 +3182,90 @@ if (isset($_SESSION['message'])) {
                 return matchesPlan && matchesSearch;
             });
             if (!filtered.length) {
-                grid.innerHTML = '<div class="text-center text-muted py-5 w-100">No companies found</div>';
+                grid.innerHTML = `
+                    <div class="er-requests-card">
+                        <div class="er-empty-state">
+                            <div class="mb-2 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 76px; height: 76px; background: #eef2ff; color: #4f46e5;">
+                                <i class="fas fa-building fa-2x"></i>
+                            </div>
+                            <h4 class="er-empty-title">No companies found</h4>
+                            <p class="er-empty-subtitle">Try adjusting your search query or subscription plan filter.</p>
+                        </div>
+                    </div>`;
                 return;
             }
-            
+
             function createInfoItem(icon, text) {
-                const isLong = text && text.length > 30;
-                const fullWidthClass = isLong ? 'full-width' : '';
-                return `<li class="${fullWidthClass}"><i class="${icon}"></i><span>${text}</span></li>`;
+                return `<li><i class="${icon}"></i><span>${escapeHtml(text)}</span></li>`;
             }
-            grid.innerHTML = filtered.map(company => `
-                <div class="company-row">
-                    <div class="company-main-card plan-${company.subscription_plan}" style="cursor: pointer;" onclick="viewCompanyDetails(${company.id})">
-                        <div class="company-details">
-                            <span class="badge"><i class="fas fa-crown me-1"></i>${company.plan_label}</span>
-                            <h4>${company.company_name}</h4>
-                            <p class="owner-name">Owner: ${company.owner_name || 'N/A'}</p>
-                            <div class="company-contact">
-                                <span><i class="fas fa-envelope"></i>${company.business_email || '-'}</span>
-                                <span><i class="fas fa-phone"></i>${company.business_phone || '-'}</span>
-                                ${company.remaining_days !== null ? `<span><i class="fas fa-clock"></i>${company.remaining_days} days left</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="company-stats">
-                            <div>
-                                <span class="stat-number">${company.stats.total_customers ?? 0}</span>
-                                <small>Customers</small>
-                            </div>
-                            <div>
-                                <span class="stat-number">${company.stats.total_orders ?? 0}</span>
-                                <small>Orders</small>
-                            </div>
-                            <div>
-                                <span class="stat-number">${company.stats.total_users ?? 0}</span>
-                                <small>Users</small>
-                            </div>
+
+            grid.innerHTML = filtered.map(company => {
+                const planKey = escapeHtml(company.subscription_plan || 'free');
+                const locationText = [company.city, company.state].filter(Boolean).join(', ') || 'Not provided';
+                const expiryLine = company.subscription_plan === 'free'
+                    ? createInfoItem('far fa-calendar-check', 'Duration: Lifetime')
+                    : (company.subscription_expiry ? createInfoItem('far fa-calendar-check', `Expiry: ${company.subscription_expiry}`) : '');
+
+                return `
+                <div class="cs-company-card" onclick="viewCompanyDetails(${Number(company.id)})">
+                    <div class="cs-company-primary">
+                        <span class="cs-plan-badge plan-${planKey}">
+                            <i class="fas fa-crown"></i>
+                            <span>${escapeHtml(company.plan_label || 'Free Plan')}</span>
+                        </span>
+                        <h4 class="cs-company-title">${escapeHtml(company.company_name || 'Unnamed Shop')}</h4>
+                        <p class="cs-company-owner">
+                            <i class="fas fa-user"></i>
+                            <span>Owner: ${escapeHtml(company.owner_name || 'N/A')}</span>
+                        </p>
+                        <div class="cs-company-meta">
+                            <span class="cs-meta-item"><i class="fas fa-envelope"></i><span>${escapeHtml(company.business_email || '-')}</span></span>
+                            <span class="cs-meta-item"><i class="fas fa-phone"></i><span>${escapeHtml(company.business_phone || '-')}</span></span>
+                            ${company.remaining_days !== null && company.remaining_days !== undefined ? `<span class="cs-meta-item is-expiry"><i class="far fa-clock"></i><span>${Number(company.remaining_days)} days left</span></span>` : ''}
                         </div>
                     </div>
-                    <div class="company-info-card">
-                        <h5><i class="fas fa-info-circle"></i>Company Info</h5>
-                        <ul class="company-info-list">
-                            ${createInfoItem('fas fa-map-marker-alt', `${company.city || '-'}, ${company.state || '-'}`)}
+
+                    <div class="cs-company-kpis">
+                        <div class="cs-kpi-item">
+                            <div class="cs-kpi-icon is-customers"><i class="fas fa-users"></i></div>
+                            <div class="cs-kpi-value">${Number(company.stats?.total_customers ?? 0)}</div>
+                            <div class="cs-kpi-label">Customers</div>
+                        </div>
+                        <div class="cs-kpi-item">
+                            <div class="cs-kpi-icon is-orders"><i class="fas fa-shopping-cart"></i></div>
+                            <div class="cs-kpi-value">${Number(company.stats?.total_orders ?? 0)}</div>
+                            <div class="cs-kpi-label">Orders</div>
+                        </div>
+                        <div class="cs-kpi-item">
+                            <div class="cs-kpi-icon is-users"><i class="fas fa-user"></i></div>
+                            <div class="cs-kpi-value">${Number(company.stats?.total_users ?? 0)}</div>
+                            <div class="cs-kpi-label">Users</div>
+                        </div>
+                    </div>
+
+                    <div class="cs-company-info">
+                        <div class="cs-info-header">
+                            <h6 class="cs-info-title"><i class="fas fa-info-circle"></i>Company Info</h6>
+                            <div class="dropdown" onclick="event.stopPropagation();">
+                                <button type="button" class="cs-info-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Company options">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="viewCompanyDetails(${Number(company.id)})"><i class="fas fa-eye me-2 text-primary"></i>View Details</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <ul class="cs-info-list">
+                            ${createInfoItem('fas fa-map-marker-alt', locationText)}
                             ${createInfoItem('fas fa-globe', company.website || 'Not provided')}
                             ${createInfoItem('fas fa-file-invoice', `GST: ${company.tax_number || 'Not provided'}`)}
-                            ${createInfoItem('fas fa-calendar', `Joined: ${company.created_at || '—'}`)}
-                            ${company.subscription_plan === 'free' ? createInfoItem('fas fa-infinity', 'Duration: Lifetime') : (company.subscription_expiry ? createInfoItem('fas fa-flag-checkered', `Expiry: ${company.subscription_expiry}`) : '')}
+                            ${createInfoItem('far fa-calendar-alt', `Joined: ${company.created_at || '—'}`)}
+                            ${expiryLine}
                             ${createInfoItem('fas fa-map-pin', company.business_address || 'No address provided')}
                         </ul>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
             
             // Restore scroll position after rendering (only if coming from company details)
             const currentSection = localStorage.getItem('selectedSection') || 'requests';

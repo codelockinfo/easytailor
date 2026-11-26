@@ -646,7 +646,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                     </td>
                                     <td>
                                         <div class="fw-semibold text-dark"><?php echo htmlspecialchars($cName); ?></div>
-                                        <small class="text-muted"><i class="fas fa-phone-alt me-1" style="font-size: 0.65rem;"></i><?php echo htmlspecialchars($ord['customer_phone'] ?? ''); ?></small>
+                                        <small class="text-muted"><i class="fas fa-phone me-1" style="font-size: 0.65rem;"></i><?php echo htmlspecialchars($ord['customer_phone'] ?? ''); ?></small>
                                     </td>
                                     <td class="text-muted"><?php echo htmlspecialchars($ord['cloth_type_name'] ?? 'Custom'); ?></td>
                                     <td class="fw-bold text-dark"><?php echo format_currency($ord['total_amount']); ?></td>
@@ -690,7 +690,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                     <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;"><?php echo htmlspecialchars($cust['customer_code'] ?? ''); ?></span>
                                 </div>
                                 <div class="text-muted small mt-1" style="font-size: 0.75rem;">
-                                    <i class="fas fa-phone-alt me-1"></i><?php echo htmlspecialchars($cust['phone'] ?? $cust['phone_number'] ?? 'No phone'); ?>
+                                    <i class="fas fa-phone me-1"></i><?php echo htmlspecialchars($cust['phone'] ?? $cust['phone_number'] ?? 'No phone'); ?>
                                 </div>
                                 <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
                                     <i class="fas fa-shopping-bag me-1 text-muted"></i><?php echo (int)($cust['order_count'] ?? 0); ?> orders
@@ -930,7 +930,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                     <div class="text-muted small text-truncate" style="font-size: 0.74rem;">
                                         <span><?php echo htmlspecialchars($pd['cloth_type_name'] ?? 'Garment'); ?></span>
                                         <?php if (!empty($pd['customer_phone'])): ?>
-                                            <span class="ms-1 text-secondary"><i class="fas fa-phone-alt me-1 opacity-75" style="font-size: 0.65rem;"></i><?php echo htmlspecialchars($pd['customer_phone']); ?></span>
+                                            <span class="ms-1 text-secondary"><i class="fas fa-phone me-1 opacity-75" style="font-size: 0.65rem;"></i><?php echo htmlspecialchars($pd['customer_phone']); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>

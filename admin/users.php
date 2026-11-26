@@ -1073,7 +1073,7 @@ include 'includes/page-header.php';
                                     </div>
                                     <div class="tailor-meta-chip" id="tailorViewPhoneWrap">
                                         <span class="tailor-meta-icon" style="background: #e0f2fe; color: #0284c7;">
-                                            <i class="fas fa-phone-alt"></i>
+                                            <i class="fas fa-phone"></i>
                                         </span>
                                         <div class="min-w-0">
                                             <div class="tailor-meta-label">Phone</div>

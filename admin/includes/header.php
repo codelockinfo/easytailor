@@ -1894,7 +1894,6 @@ $seoOptions = [
                                         </div>
                                         <div style="min-width: 0;">
                                             <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">${escapeHtml(cust.name)}</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;"><i class="fas fa-phone-alt me-1" style="font-size: 0.62rem;"></i>${escapeHtml(cust.phone || 'No phone')}</div>
                                         </div>
                                     </div>
                                     <div class="text-end ps-2 flex-shrink-0">
@@ -2089,16 +2088,51 @@ $seoOptions = [
 
             const mobileToggle = document.getElementById('mobileSearchToggle');
             const mobileDrawer = document.getElementById('mobileSearchDrawer');
+            const desktopResults = document.getElementById('globalSearchResults');
+            const mobileResults = document.getElementById('mobileGlobalSearchResults');
+
+            function closeMobileSearchDrawer() {
+                if (mobileDrawer) {
+                    mobileDrawer.style.display = 'none';
+                }
+                if (mobileResults) {
+                    mobileResults.style.display = 'none';
+                }
+            }
+
             if (mobileToggle && mobileDrawer) {
                 mobileToggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     const isOpen = mobileDrawer.style.display !== 'none';
                     mobileDrawer.style.display = isOpen ? 'none' : 'block';
                     if (!isOpen) {
+                        // Close any open header dropdowns (notifications/profile/language) before opening search
+                        document.querySelectorAll('.top-header [data-bs-toggle="dropdown"]').forEach(btn => {
+                            if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                                bootstrap.Dropdown.getInstance(btn)?.hide();
+                            }
+                        });
                         const mobInput = document.getElementById('mobileGlobalSearchInput');
                         if (mobInput) mobInput.focus();
                     }
                 });
+
+                document.addEventListener('click', function(e) {
+                    if (mobileDrawer.style.display !== 'none' &&
+                        !mobileDrawer.contains(e.target) &&
+                        !mobileToggle.contains(e.target)) {
+                        closeMobileSearchDrawer();
+                    }
+                });
             }
+
+            document.addEventListener('show.bs.dropdown', function(e) {
+                if (e.target && e.target.closest('.top-header')) {
+                    closeMobileSearchDrawer();
+                    if (desktopResults) {
+                        desktopResults.style.display = 'none';
+                    }
+                }
+            });
         });
         </script>

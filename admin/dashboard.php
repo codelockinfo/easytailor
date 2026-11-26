@@ -270,6 +270,107 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
             padding: 0 2px !important;
         }
     }
+    @media (max-width: 767.98px) {
+        .dash-stat-card {
+            padding: 10px 11px !important;
+            border-radius: 12px !important;
+            margin-bottom: 0 !important;
+        }
+        .dash-stat-card .dash-stat-icon {
+            width: 26px !important;
+            height: 26px !important;
+        }
+        .dash-stat-card .dash-stat-icon i {
+            font-size: 0.74rem !important;
+        }
+        .dash-stat-card .dash-stat-bars {
+            transform: scale(0.8);
+            transform-origin: right bottom;
+        }
+        .dash-stat-card .dash-stat-body {
+            margin-top: 4px !important;
+            padding-top: 0 !important;
+        }
+        .dash-stat-card .dash-stat-val {
+            font-size: 1.0rem !important;
+        }
+        .dash-stat-card .dash-stat-lbl {
+            font-size: 0.65rem !important;
+            margin-top: 2px !important;
+        }
+        .morning-pulse-strip {
+            --bs-gutter-x: 0.35rem;
+        }
+        .morning-pulse-box {
+            padding: 7px 3px !important;
+            border-radius: 10px !important;
+        }
+        .morning-pulse-num {
+            font-size: 1.0rem !important;
+        }
+        .morning-pulse-lbl {
+            font-size: 0.54rem !important;
+            letter-spacing: 0 !important;
+            line-height: 1.15 !important;
+            white-space: nowrap !important;
+        }
+        .quick-action-card {
+            padding: 9px 10px !important;
+            border-radius: 12px !important;
+            margin-bottom: 0 !important;
+        }
+        .quick-action-inner {
+            gap: 7px !important;
+        }
+        .quick-action-icon {
+            width: 30px !important;
+            height: 30px !important;
+            border-radius: 8px !important;
+        }
+        .quick-action-icon i {
+            font-size: 0.80rem !important;
+        }
+        .quick-action-title {
+            font-size: 0.73rem !important;
+            line-height: 1.2 !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+        .quick-action-sub {
+            font-size: 0.60rem !important;
+            line-height: 1.2 !important;
+        }
+        .quick-action-chevron {
+            font-size: 0.65rem !important;
+            margin-left: 4px !important;
+        }
+        .grow-business-card {
+            margin-bottom: 0 !important;
+        }
+    }
+    @media (max-width: 360px) {
+        .morning-pulse-lbl {
+            font-size: 0.48rem !important;
+        }
+        .quick-action-title {
+            font-size: 0.68rem !important;
+        }
+    }
+    @media (max-width: 575.98px), (min-width: 992px) and (max-width: 1199.98px) {
+        .grow-business-content {
+            gap: 10px !important;
+        }
+        .grow-business-list {
+            min-width: 0;
+            font-size: 0.80rem !important;
+            gap: 10px !important;
+        }
+        .grow-business-img {
+            width: 112px !important;
+            height: 112px !important;
+        }
+    }
     </style>
 
     <div class="welcome-banner overflow-hidden position-relative">
@@ -638,81 +739,81 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
     <div class="row g-2 g-md-3 mb-2 mb-md-3">
         <!-- 1. Advance Amount -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #faf5ff; border: 1px solid #f3e8ff !important;">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100 dash-stat-card" style="background: #faf5ff; border: 1px solid #f3e8ff !important;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #ede9fe; color: #7c3aed;">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0 dash-stat-icon" style="width: 30px; height: 30px; background: #ede9fe; color: #7c3aed;">
                         <i class="fas fa-hand-holding-usd" style="font-size: 0.85rem;"></i>
                     </div>
-                    <div class="d-flex align-items-end gap-1 opacity-75">
+                    <div class="d-flex align-items-end gap-1 opacity-75 dash-stat-bars">
                         <span style="width: 3px; height: 7px; background: #c084fc; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 13px; background: #a855f7; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 10px; background: #9333ea; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 18px; background: #7e22ce; border-radius: 2px;"></span>
                     </div>
                 </div>
-                <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_advance'] ?? 0); ?></div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Advance Amount</div>
+                <div class="mt-1 pt-1 dash-stat-body">
+                    <div class="fw-bold text-dark mb-0 dash-stat-val" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_advance'] ?? 0); ?></div>
+                    <div class="text-muted dash-stat-lbl" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Advance Amount</div>
                 </div>
             </div>
         </div>
         <!-- 2. Pending Amount -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fff1f2; border: 1px solid #fee2e2 !important;">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100 dash-stat-card" style="background: #fff1f2; border: 1px solid #fee2e2 !important;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #fee2e2; color: #ef4444;">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0 dash-stat-icon" style="width: 30px; height: 30px; background: #fee2e2; color: #ef4444;">
                         <i class="fas fa-clock" style="font-size: 0.85rem;"></i>
                     </div>
-                    <div class="d-flex align-items-end gap-1 opacity-75">
+                    <div class="d-flex align-items-end gap-1 opacity-75 dash-stat-bars">
                         <span style="width: 3px; height: 7px; background: #fca5a5; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 14px; background: #f87171; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 11px; background: #ef4444; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 19px; background: #dc2626; border-radius: 2px;"></span>
                     </div>
                 </div>
-                <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_pending'] ?? 0); ?></div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Pending Amount</div>
+                <div class="mt-1 pt-1 dash-stat-body">
+                    <div class="fw-bold text-dark mb-0 dash-stat-val" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_pending'] ?? 0); ?></div>
+                    <div class="text-muted dash-stat-lbl" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Pending Amount</div>
                 </div>
             </div>
         </div>
         <!-- 3. Total Amount -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100 dash-stat-card" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #dcfce7; color: #10b981;">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0 dash-stat-icon" style="width: 30px; height: 30px; background: #dcfce7; color: #10b981;">
                         <i class="fas fa-money-bill-wave" style="font-size: 0.85rem;"></i>
                     </div>
-                    <div class="d-flex align-items-end gap-1 opacity-75">
+                    <div class="d-flex align-items-end gap-1 opacity-75 dash-stat-bars">
                         <span style="width: 3px; height: 7px; background: #86efac; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 13px; background: #4ade80; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 10px; background: #22c55e; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 18px; background: #16a34a; border-radius: 2px;"></span>
                     </div>
                 </div>
-                <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_amount'] ?? 0); ?></div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Amount</div>
+                <div class="mt-1 pt-1 dash-stat-body">
+                    <div class="fw-bold text-dark mb-0 dash-stat-val" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo format_currency($orderStats['total_amount'] ?? 0); ?></div>
+                    <div class="text-muted dash-stat-lbl" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Amount</div>
                 </div>
             </div>
         </div>
         <!-- 4. Total Orders -->
         <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100" style="background: #fffbeb; border: 1px solid #fef3c7 !important;">
+            <div class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 h-100 dash-stat-card" style="background: #fffbeb; border: 1px solid #fef3c7 !important;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0" style="width: 30px; height: 30px; background: #fef3c7; color: #f59e0b;">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 flex-shrink-0 dash-stat-icon" style="width: 30px; height: 30px; background: #fef3c7; color: #f59e0b;">
                         <i class="fas fa-layer-group" style="font-size: 0.85rem;"></i>
                     </div>
-                    <div class="d-flex align-items-end gap-1 opacity-75">
+                    <div class="d-flex align-items-end gap-1 opacity-75 dash-stat-bars">
                         <span style="width: 3px; height: 6px; background: #fde68a; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 11px; background: #fcd34d; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 15px; background: #fbbf24; border-radius: 2px;"></span>
                         <span style="width: 3px; height: 18px; background: #f59e0b; border-radius: 2px;"></span>
                     </div>
                 </div>
-                <div class="mt-1 pt-1">
-                    <div class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo number_format($orderStats['total'] ?? 0); ?></div>
-                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Orders</div>
+                <div class="mt-1 pt-1 dash-stat-body">
+                    <div class="fw-bold text-dark mb-0 dash-stat-val" style="font-size: 1.15rem; line-height: 1.15; letter-spacing: -0.3px;"><?php echo number_format($orderStats['total'] ?? 0); ?></div>
+                    <div class="text-muted dash-stat-lbl" style="font-size: 0.68rem; font-weight: 500; line-height: 1.2; margin-top: 3px;">Total Orders</div>
                 </div>
             </div>
         </div>
@@ -755,29 +856,29 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                 </div>
 
                 <!-- Morning Quick Stats Strip -->
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-3 morning-pulse-strip">
                     <div class="col-3">
-                        <div class="p-2 rounded-3 text-center" style="background: #fef2f2; border: 1px solid #fee2e2;">
-                            <div class="fw-bold text-danger" style="font-size: 1.15rem; line-height: 1.1;"><?php echo $morningCounts['overdue']; ?></div>
-                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Overdue</div>
+                        <div class="p-2 rounded-3 text-center h-100 d-flex flex-column justify-content-center morning-pulse-box" style="background: #fef2f2; border: 1px solid #fecaca;">
+                            <div class="fw-bold text-danger morning-pulse-num" style="font-size: 1.15rem; line-height: 1.1;"><?php echo $morningCounts['overdue']; ?></div>
+                            <div class="text-muted text-uppercase morning-pulse-lbl" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Overdue</div>
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="p-2 rounded-3 text-center" style="background: #fefce8; border: 1px solid #fef08a;">
-                            <div class="fw-bold" style="font-size: 1.15rem; line-height: 1.1; color: #ca8a04;"><?php echo $morningCounts['today']; ?></div>
-                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Due Today</div>
+                        <div class="p-2 rounded-3 text-center h-100 d-flex flex-column justify-content-center morning-pulse-box" style="background: #fefce8; border: 1px solid #fde047;">
+                            <div class="fw-bold morning-pulse-num" style="font-size: 1.15rem; line-height: 1.1; color: #ca8a04;"><?php echo $morningCounts['today']; ?></div>
+                            <div class="text-muted text-uppercase morning-pulse-lbl" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Due Today</div>
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="p-2 rounded-3 text-center" style="background: #fff7ed; border: 1px solid #ffedd5;">
-                            <div class="fw-bold" style="font-size: 1.15rem; line-height: 1.1; color: #ea580c;"><?php echo $morningCounts['tomorrow']; ?></div>
-                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Tomorrow</div>
+                        <div class="p-2 rounded-3 text-center h-100 d-flex flex-column justify-content-center morning-pulse-box" style="background: #fff7ed; border: 1px solid #fed7aa;">
+                            <div class="fw-bold morning-pulse-num" style="font-size: 1.15rem; line-height: 1.1; color: #ea580c;"><?php echo $morningCounts['tomorrow']; ?></div>
+                            <div class="text-muted text-uppercase morning-pulse-lbl" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Tomorrow</div>
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="p-2 rounded-3 text-center" style="background: #ecfdf5; border: 1px solid #d1fae5;">
-                            <div class="fw-bold text-success" style="font-size: 1.15rem; line-height: 1.1;"><?php echo $morningCounts['ready']; ?></div>
-                            <div class="text-muted text-uppercase" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Ready Pickup</div>
+                        <div class="p-2 rounded-3 text-center h-100 d-flex flex-column justify-content-center morning-pulse-box" style="background: #ecfdf5; border: 1px solid #a7f3d0;">
+                            <div class="fw-bold text-success morning-pulse-num" style="font-size: 1.15rem; line-height: 1.1;"><?php echo $morningCounts['ready']; ?></div>
+                            <div class="text-muted text-uppercase morning-pulse-lbl" style="font-size: 0.63rem; font-weight: 600; letter-spacing: 0.3px;">Ready Pickup</div>
                         </div>
                     </div>
                 </div>
@@ -799,20 +900,23 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                             $rowBg = '#ffffff';
                             $rowBorder = '#e2e8f0';
                             if ($isOverdue) {
-                                $rowBg = '#fff5f5';
+                                $rowBg = '#fef2f2';
                                 $rowBorder = '#fecaca';
                             } elseif ($isDueToday) {
                                 $rowBg = '#fefce8';
-                                $rowBorder = '#fef08a';
+                                $rowBorder = '#fde047';
+                            } elseif ($isDueTomorrow) {
+                                $rowBg = '#fff7ed';
+                                $rowBorder = '#fed7aa';
                             } elseif ($pd['status'] === 'completed') {
-                                $rowBg = '#f0fdf4';
-                                $rowBorder = '#bbf7d0';
+                                $rowBg = '#ecfdf5';
+                                $rowBorder = '#a7f3d0';
                             }
                         ?>
                         <div class="p-2 p-sm-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2 transition-hover" style="background: <?php echo $rowBg; ?>; border: 1px solid <?php echo $rowBorder; ?>;">
                             <div class="d-flex align-items-center gap-2 min-w-0" style="flex: 1 1 230px;">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: <?php echo $isOverdue ? '#fee2e2' : ($isDueToday ? '#fef08a' : ($pd['status'] === 'completed' ? '#dcfce7' : '#eff6ff')); ?>; color: <?php echo $isOverdue ? '#ef4444' : ($isDueToday ? '#ca8a04' : ($pd['status'] === 'completed' ? '#16a34a' : '#3b82f6')); ?>;">
-                                    <i class="fas fa-<?php echo $isOverdue ? 'exclamation' : ($pd['status'] === 'completed' ? 'check' : 'tshirt'); ?>"></i>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: <?php echo $isOverdue ? '#fee2e2' : ($isDueToday ? '#fef08a' : ($isDueTomorrow ? '#ffedd5' : ($pd['status'] === 'completed' ? '#dcfce7' : '#eff6ff'))); ?>; color: <?php echo $isOverdue ? '#ef4444' : ($isDueToday ? '#ca8a04' : ($isDueTomorrow ? '#ea580c' : ($pd['status'] === 'completed' ? '#16a34a' : '#3b82f6'))); ?>;">
+                                    <i class="fas fa-<?php echo $isOverdue ? 'exclamation' : ($isDueToday ? 'bolt' : ($isDueTomorrow ? 'clock' : ($pd['status'] === 'completed' ? 'check' : 'tshirt'))); ?>"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -1048,66 +1152,66 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
         </div>
         <div class="row g-2">
             <div class="col-6 col-md-3">
-                <a href="orders.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover" style="background: #faf5ff; border: 1px solid #ede9fe !important;">
+                <a href="orders.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover quick-action-card" style="background: #faf5ff; border: 1px solid #ede9fe !important;">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 min-w-0">
-                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 36px; height: 36px; background: #8b5cf6; color: #ffffff;">
+                        <div class="d-flex align-items-center gap-2 min-w-0 quick-action-inner">
+                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0 quick-action-icon" style="width: 36px; height: 36px; background: #8b5cf6; color: #ffffff;">
                                 <i class="fas fa-clipboard-list" style="font-size: 0.95rem;"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="fw-bold text-dark text-truncate" style="font-size: 0.80rem;">New Order</div>
-                                <div class="text-muted small text-truncate" style="font-size: 0.65rem;">Create a new order</div>
+                                <div class="fw-bold text-dark text-truncate quick-action-title" style="font-size: 0.80rem;">New Order</div>
+                                <div class="text-muted small text-truncate quick-action-sub" style="font-size: 0.65rem;">Create a new order</div>
                             </div>
                         </div>
-                        <i class="fas fa-chevron-right flex-shrink-0 ms-1" style="color: #8b5cf6; font-size: 0.72rem;"></i>
+                        <i class="fas fa-chevron-right flex-shrink-0 ms-1 quick-action-chevron" style="color: #8b5cf6; font-size: 0.72rem;"></i>
                     </div>
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="measurements.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover" style="background: #f0f9ff; border: 1px solid #e0f2fe !important;">
+                <a href="measurements.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover quick-action-card" style="background: #f0f9ff; border: 1px solid #e0f2fe !important;">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 min-w-0">
-                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 36px; height: 36px; background: #0284c7; color: #ffffff;">
+                        <div class="d-flex align-items-center gap-2 min-w-0 quick-action-inner">
+                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0 quick-action-icon" style="width: 36px; height: 36px; background: #0284c7; color: #ffffff;">
                                 <i class="fas fa-ruler-combined" style="font-size: 0.95rem;"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="fw-bold text-truncate" style="font-size: 0.80rem; color: #0284c7;">Add Measurement</div>
-                                <div class="text-muted small text-truncate" style="font-size: 0.65rem;">Record measurements</div>
+                                <div class="fw-bold text-truncate quick-action-title" style="font-size: 0.80rem; color: #0284c7;">Add Measurement</div>
+                                <div class="text-muted small text-truncate quick-action-sub" style="font-size: 0.65rem;">Record measurements</div>
                             </div>
                         </div>
-                        <i class="fas fa-chevron-right flex-shrink-0 ms-1" style="color: #0284c7; font-size: 0.72rem;"></i>
+                        <i class="fas fa-chevron-right flex-shrink-0 ms-1 quick-action-chevron" style="color: #0284c7; font-size: 0.72rem;"></i>
                     </div>
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="customers.php" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
+                <a href="customers.php" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover quick-action-card" style="background: #f0fdf4; border: 1px solid #dcfce7 !important;">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 min-w-0">
-                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 36px; height: 36px; background: #16a34a; color: #ffffff;">
+                        <div class="d-flex align-items-center gap-2 min-w-0 quick-action-inner">
+                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0 quick-action-icon" style="width: 36px; height: 36px; background: #16a34a; color: #ffffff;">
                                 <i class="fas fa-users" style="font-size: 0.95rem;"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="fw-bold text-truncate" style="font-size: 0.80rem; color: #16a34a;">Customers</div>
-                                <div class="text-muted small text-truncate" style="font-size: 0.65rem;">View customers</div>
+                                <div class="fw-bold text-truncate quick-action-title" style="font-size: 0.80rem; color: #16a34a;">Customers</div>
+                                <div class="text-muted small text-truncate quick-action-sub" style="font-size: 0.65rem;">View customers</div>
                             </div>
                         </div>
-                        <i class="fas fa-chevron-right flex-shrink-0 ms-1" style="color: #16a34a; font-size: 0.72rem;"></i>
+                        <i class="fas fa-chevron-right flex-shrink-0 ms-1 quick-action-chevron" style="color: #16a34a; font-size: 0.72rem;"></i>
                     </div>
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="expenses.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover" style="background: #fff7ed; border: 1px solid #ffedd5 !important;">
+                <a href="expenses.php?action=create" class="card border-0 shadow-sm rounded-4 p-2 p-sm-3 text-decoration-none h-100 transition-hover quick-action-card" style="background: #fff7ed; border: 1px solid #ffedd5 !important;">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2 min-w-0">
-                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 36px; height: 36px; background: #ea580c; color: #ffffff;">
+                        <div class="d-flex align-items-center gap-2 min-w-0 quick-action-inner">
+                            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0 quick-action-icon" style="width: 36px; height: 36px; background: #ea580c; color: #ffffff;">
                                 <i class="fas fa-wallet" style="font-size: 0.95rem;"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="fw-bold text-truncate" style="font-size: 0.80rem; color: #ea580c;">Record Expense</div>
-                                <div class="text-muted small text-truncate" style="font-size: 0.65rem;">Add business expense</div>
+                                <div class="fw-bold text-truncate quick-action-title" style="font-size: 0.80rem; color: #ea580c;">Record Expense</div>
+                                <div class="text-muted small text-truncate quick-action-sub" style="font-size: 0.65rem;">Add business expense</div>
                             </div>
                         </div>
-                        <i class="fas fa-chevron-right flex-shrink-0 ms-1" style="color: #ea580c; font-size: 0.72rem;"></i>
+                        <i class="fas fa-chevron-right flex-shrink-0 ms-1 quick-action-chevron" style="color: #ea580c; font-size: 0.72rem;"></i>
                     </div>
                 </a>
             </div>
@@ -1118,7 +1222,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
     <div class="row g-3 mb-3">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom flex-wrap gap-2">
+                <div class="d-flex justify-content-between align-items-center px-3 px-md-4 py-2 py-md-3 border-bottom flex-wrap gap-2">
                     <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
                         <i class="fas fa-clock text-purple me-2" style="color: #8b5cf6;"></i><?php echo !empty($search) ? 'Orders Matching "' . htmlspecialchars($search) . '"' : 'Recent Orders'; ?>
                     </h6>
@@ -1192,7 +1296,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                         </div>
 
                         <!-- 2. Mobile Card View: Beautiful Stacked Cards (d-block d-md-none) -->
-                        <div class="d-md-none p-3 d-flex flex-column gap-2" style="background: #f8fafc;">
+                        <div class="d-md-none p-2 d-flex flex-column gap-2" style="background: #f8fafc;">
                             <?php foreach ($recentOrders as $order): 
                                 $cName = $order['customer_name'] ?? (($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
                                 if (empty($cName) && !empty($order['measurement_customer_name'])) {
@@ -1207,7 +1311,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                     default => 'background-color: #ef4444; color: white;'
                                 };
                             ?>
-                            <div class="card border rounded-3 p-3 shadow-xs bg-white" style="border-color: #e2e8f0 !important;">
+                            <div class="card border rounded-3 p-2 px-3 mb-0 shadow-xs bg-white" style="border-color: #e2e8f0 !important;">
                                 <!-- Top Row: Order # and Status -->
                                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                                     <div class="d-flex align-items-center gap-2">
@@ -1224,8 +1328,8 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                 </div>
 
                                 <!-- Middle Row: Customer, Garment, Amount, Due Date -->
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                    <div class="min-w-0">
                                         <div class="fw-bold text-dark" style="font-size: 0.90rem;">
                                             <?php echo htmlspecialchars($cName); ?>
                                         </div>
@@ -1233,7 +1337,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                                             <i class="fas fa-cut me-1 opacity-75"></i><?php echo htmlspecialchars($order['cloth_type_name'] ?? 'Custom'); ?>
                                         </div>
                                     </div>
-                                    <div class="text-end">
+                                    <div class="text-end flex-shrink-0">
                                         <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                             <?php echo format_currency($order['total_amount']); ?>
                                         </div>
@@ -1268,7 +1372,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
     </div>
 
     <!-- 4. AT LAST: MONTHLY REVENUE GRAPH (col-lg-8) + GROW BUSINESS BANNER (col-lg-4) -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-0 mb-lg-4">
         <!-- Monthly Revenue (col-lg-8) -->
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100">
@@ -1297,7 +1401,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
 
         <!-- Grow Your Tailoring Business Card (col-lg-4) -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 overflow-hidden h-100 d-flex flex-column justify-content-between" style="background: #fff1f2; border: 1px solid #ffe4e6 !important;">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 overflow-hidden h-100 d-flex flex-column justify-content-between grow-business-card" style="background: #fff1f2; border: 1px solid #ffe4e6 !important;">
                 <!-- Header -->
                 <div class="mb-2">
                     <h5 class="fw-bold text-dark mb-0" style="font-size: 1.15rem; line-height: 1.3;">
@@ -1306,8 +1410,8 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                 </div>
 
                 <!-- Main Content: Features & Large Image -->
-                <div class="d-flex align-items-center justify-content-between gap-3 my-auto py-2">
-                    <ul class="list-unstyled mb-0 d-flex flex-column justify-content-between gap-3" style="font-size: 0.90rem; color: #334155;">
+                <div class="d-flex align-items-center justify-content-between gap-3 my-auto py-2 grow-business-content">
+                    <ul class="list-unstyled mb-0 d-flex flex-column justify-content-between gap-3 grow-business-list" style="font-size: 0.90rem; color: #334155;">
                         <li class="d-flex align-items-center">
                             <i class="fas fa-check-circle text-success me-2" style="font-size: 1rem;"></i>
                             <span class="fw-semibold">Manage Orders Easily</span>
@@ -1326,7 +1430,7 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                         </li>
                     </ul>
                     <div class="flex-shrink-0">
-                        <img src="../assets/images/dashboard/grow_business_bg.png" alt="Tailoring Business" style="width: 175px; height: 165px; object-fit: cover; object-position: center; border-radius: 16px; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.12); border: 2px solid #ffffff;">
+                        <img src="../assets/images/dashboard/grow_business_bg.png" alt="Tailoring Business" class="grow-business-img" style="width: 175px; height: 165px; object-fit: cover; object-position: center; border-radius: 16px; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.12); border: 2px solid #ffffff;">
                     </div>
                 </div>
 

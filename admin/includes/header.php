@@ -104,9 +104,17 @@ $seoOptions = [
             --sidebar-width: 236px;
             --header-height: 62px;
         }
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            overflow-x: clip;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
+        }
+        .min-w-0 {
+            min-width: 0 !important;
         }
         .sidebar {
             position: fixed;
@@ -692,8 +700,9 @@ $seoOptions = [
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
-                max-width: 100vw !important;
+                max-width: 100% !important;
                 overflow-x: hidden;
+                overflow-x: clip;
             }
             .top-header {
                 left: 0 !important;
@@ -701,9 +710,15 @@ $seoOptions = [
                 position: fixed;
                 top: 0;
                 right: 0 !important;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
                 height: 58px;
                 background: #ffffff;
                 box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            }
+            .top-header > div {
+                min-width: 0;
             }
             .page-main-title {
                 display: inline-block !important;
@@ -731,8 +746,11 @@ $seoOptions = [
                 display: block;
             }
             .content-area {
-                padding: 12px 12px 80px !important;
+                padding: 12px 12px 68px !important;
                 padding-top: calc(var(--header-height) + 12px) !important;
+                max-width: 100%;
+                overflow-x: hidden;
+                overflow-x: clip;
             }
         }
 
@@ -761,6 +779,9 @@ $seoOptions = [
             bottom: 0;
             left: 0;
             right: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             height: 60px;
             background: #ffffff;
             border-top: 1px solid #f1f5f9;
@@ -1055,7 +1076,7 @@ $seoOptions = [
         @media (max-width: 420px) {
             .notif-dropdown-menu {
                 width: calc(100vw - 20px) !important;
-                min-width: 290px !important;
+                min-width: min(290px, calc(100vw - 20px)) !important;
             }
             .notif-header-left h6 {
                 font-size: 0.82rem !important;

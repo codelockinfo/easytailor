@@ -657,10 +657,10 @@ $seoOptions = [
                 <div class="dropdown">
                     <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle me-1"></i>
-                        <?php echo htmlspecialchars($current_user['name']); ?>
+                        <?php echo htmlspecialchars((string)($current_user['name'] ?? 'User')); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><h6 class="dropdown-header"><?php echo htmlspecialchars($current_user['name']); ?></h6></li>
+                        <li><h6 class="dropdown-header"><?php echo htmlspecialchars((string)($current_user['name'] ?? 'User')); ?></h6></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2"></i>Profile</a></li>
                         <li><a class="dropdown-item" href="change-password.php"><i class="fas fa-key me-2"></i>Change Password</a></li>

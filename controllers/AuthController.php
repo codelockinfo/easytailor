@@ -20,6 +20,15 @@ class AuthController {
         if (!$user) {
             return ['success' => false, 'message' => 'User not found'];
         }
+        if ((empty($user['role']) || !isset($user['company_id']) || empty($user['username'])) && !empty($user['id'])) {
+            $freshUser = $this->userModel->find($user['id']);
+            if ($freshUser && is_array($freshUser)) {
+                $user = array_merge($freshUser, $user);
+                if (empty($user['role']) && !empty($freshUser['role'])) {
+                    $user['role'] = $freshUser['role'];
+                }
+            }
+        }
         if (!class_exists('Company')) {
             if (file_exists(__DIR__ . '/../admin/models/Company.php')) {
                 require_once __DIR__ . '/../admin/models/Company.php';
@@ -574,7 +583,7 @@ class AuthController {
         }
         $this->passwordResetModel->markAsUsed($reset['id']);
 
-        return ['success' => true, 'message' => 'Password has been reset successfully'];
+        return ['success' => true, 'message' => 'Password has been reset successfully', 'user' => $user];
     }
     public function validateResetToken($token) {
         if (empty($token)) {

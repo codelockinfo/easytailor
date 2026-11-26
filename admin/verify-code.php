@@ -196,12 +196,12 @@ if (isset($_GET['resend'])) {
                             </div>
                             
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-verify">
+                                <button type="submit" class="btn btn-primary btn-verify" id="btnVerifyCode">
                                     <i class="fas fa-check-circle me-2"></i>
                                     Verify Code
                                 </button>
                                 
-                                <a href="?resend=1" class="btn btn-outline-secondary">
+                                <a href="?resend=1" class="btn btn-outline-secondary" id="btnResendCode">
                                     <i class="fas fa-redo me-2"></i>
                                     Resend Code
                                 </a>
@@ -294,6 +294,29 @@ if (isset($_GET['resend'])) {
                 bsAlert.close();
             });
         }, 5000);
+
+        // Loader on verify and resend
+        const verifyForm = document.getElementById('verifyForm');
+        const btnVerify = document.getElementById('btnVerifyCode');
+        const btnResend = document.getElementById('btnResendCode');
+
+        if (verifyForm && btnVerify) {
+            verifyForm.addEventListener('submit', function() {
+                if (fullCodeInput && fullCodeInput.value.length === 6) {
+                    btnVerify.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Verifying Code...';
+                    btnVerify.style.pointerEvents = 'none';
+                    btnVerify.style.opacity = '0.85';
+                }
+            });
+        }
+
+        if (btnResend) {
+            btnResend.addEventListener('click', function() {
+                btnResend.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Sending Code...';
+                btnResend.style.pointerEvents = 'none';
+                btnResend.style.opacity = '0.85';
+            });
+        }
     </script>
 </body>
 </html>

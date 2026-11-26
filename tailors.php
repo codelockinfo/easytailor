@@ -916,10 +916,7 @@ $seoOptions = [
                                 ` : ''}
                                 
                                 <div class="tailor-info">
-                                    <div class="info-item">
-                                        <i class="fas fa-phone"></i>
-                                        <span>${tailor.phone}</span>
-                                    </div>
+                                   
                                     ${tailor.years_experience ? `
                                     <div class="info-item">
                                         <i class="fas fa-award"></i>

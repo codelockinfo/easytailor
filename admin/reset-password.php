@@ -50,7 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['reset_token']);
             unset($_SESSION['verified_reset_token']);
             
-            // Set success message in session and redirect to login
+            // Auto-login user immediately
+            $user = $result['user'] ?? null;
+            if ($user) {
+                $loginResult = $authController->completeUserLogin($user);
+                if (!empty($loginResult['success'])) {
+                    $_SESSION['login_success'] = 'Password reset successfully! You are now logged in.';
+                    smart_redirect($loginResult['redirect'] ?? 'dashboard.php');
+                }
+            }
+            
+            // Fallback: Set success message in session and redirect to login
             $_SESSION['login_success'] = 'Your password has been reset successfully. Please login with your new password.';
             smart_redirect('login.php');
         } else {
@@ -224,9 +234,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-reset">
+                                <button type="submit" class="btn btn-primary btn-reset" id="btnSubmitReset">
                                     <i class="fas fa-check-circle me-2"></i>
-                                    Reset Password
+                                    Reset Password & Login
                                 </button>
                             </div>
                         </form>
@@ -343,7 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Form validation
+        // Form validation & loader
         document.getElementById('resetForm').addEventListener('submit', function(e) {
             const newPass = newPasswordInput.value;
             const confirmPass = confirmPasswordInput.value;
@@ -358,6 +368,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 e.preventDefault();
                 alert('Password must be at least 6 characters long!');
                 return false;
+            }
+
+            const btnReset = document.getElementById('btnSubmitReset');
+            if (btnReset) {
+                btnReset.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving & Logging In...';
+                btnReset.style.pointerEvents = 'none';
+                btnReset.style.opacity = '0.85';
             }
         });
         

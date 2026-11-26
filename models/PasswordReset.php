@@ -108,7 +108,7 @@ class PasswordReset extends BaseModel {
      */
     public function getUserByEmail($email) {
         $this->ensureTableExists();
-        $query = "SELECT id, full_name, email FROM users WHERE email = :email AND status = 'active' LIMIT 1";
+        $query = "SELECT * FROM users WHERE email = :email AND status = 'active' LIMIT 1";
         $stmt = $this->query($query, ['email' => $email]);
         return $stmt->fetch();
     }

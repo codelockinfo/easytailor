@@ -35,13 +35,40 @@
         function openAdminSidebar() {
             document.querySelector('.sidebar')?.classList.add('show');
             document.getElementById('sidebarOverlay')?.classList.add('show');
+            document.documentElement.classList.add('sidebar-open');
             document.body.classList.add('sidebar-open');
         }
         function closeAdminSidebar() {
             document.querySelector('.sidebar')?.classList.remove('show');
             document.getElementById('sidebarOverlay')?.classList.remove('show');
+            document.documentElement.classList.remove('sidebar-open');
             document.body.classList.remove('sidebar-open');
         }
+        (function() {
+            function isMobileSidebarOpen() {
+                return document.body.classList.contains('sidebar-open') || Boolean(document.querySelector('.sidebar.show'));
+            }
+            document.addEventListener('wheel', function(e) {
+                if (!isMobileSidebarOpen()) return;
+                const sidebar = e.target.closest ? e.target.closest('.sidebar') : null;
+                if (!sidebar) {
+                    e.preventDefault();
+                    return;
+                }
+                const atTop = sidebar.scrollTop <= 0 && e.deltaY < 0;
+                const atBottom = sidebar.scrollTop + sidebar.clientHeight >= sidebar.scrollHeight - 1 && e.deltaY > 0;
+                if (sidebar.scrollHeight <= sidebar.clientHeight || atTop || atBottom) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            document.addEventListener('touchmove', function(e) {
+                if (!isMobileSidebarOpen()) return;
+                const sidebar = e.target.closest ? e.target.closest('.sidebar') : null;
+                if (!sidebar || sidebar.scrollHeight <= sidebar.clientHeight) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        })();
         document.getElementById('sidebarToggle')?.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -290,8 +317,8 @@
             }
         });
         window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                document.querySelector('.sidebar').classList.remove('show');
+            if (window.innerWidth > 991.98) {
+                closeAdminSidebar();
             }
         });
         if (typeof window !== 'undefined') {

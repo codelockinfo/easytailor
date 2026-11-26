@@ -664,8 +664,8 @@ include 'includes/page-header.php';
             </div>
             <div id="paginationContainer">
             <?php if ($totalPages > 1): ?>
-                <nav aria-label="Cloth type pagination">
-                    <ul class="pagination justify-content-center">
+                <nav aria-label="Cloth type pagination" class="p-3">
+                    <ul class="pagination justify-content-center mb-0">
                         <?php if ($page > 1): ?>
                             <li class="page-item">
                                 <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo $category_filter ? '&category=' . urlencode($category_filter) : ''; ?><?php echo $search ? '&search=' . urlencode($search) : ''; ?>">Previous</a>
@@ -1313,8 +1313,8 @@ function updatePagination(pagination, search, category) {
     const totalPages = pagination.total_pages;
     
     let html = `
-        <nav aria-label="Cloth type pagination">
-            <ul class="pagination justify-content-center">
+        <nav aria-label="Cloth type pagination" class="p-3">
+            <ul class="pagination justify-content-center mb-0">
     `;
     
     if (page > 1) {

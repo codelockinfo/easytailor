@@ -23,6 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'notes' => sanitize_input($_POST['notes'])
                 ];
                 
+                $phoneDigits = preg_replace('/\D/', '', $data['phone']);
+                if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL) || strlen($phoneDigits) < 10) {
+                    $_SESSION['flash_message'] = 'Valid email and 10-digit phone number are required.';
+                    $_SESSION['flash_type'] = 'error';
+                    break;
+                }
                 $contactId = $contactModel->createContact($data);
                 if ($contactId) {
                     require_once '../helpers/GA4Helper.php';
@@ -46,6 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'notes' => sanitize_input($_POST['notes'])
                 ];
                 
+                $phoneDigits = preg_replace('/\D/', '', $data['phone']);
+                if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL) || strlen($phoneDigits) < 10) {
+                    $_SESSION['flash_message'] = 'Valid email and 10-digit phone number are required.';
+                    $_SESSION['flash_type'] = 'error';
+                    break;
+                }
                 if ($contactModel->update($contactId, $data)) {
                     $_SESSION['flash_message'] = 'Contact updated successfully';
                     $_SESSION['flash_type'] = 'success';
@@ -678,11 +690,11 @@ include 'includes/page-header.php';
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label fw-semibold small text-muted">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" style="border-radius: 10px;">
+                            <label for="email" class="form-label fw-semibold small text-muted">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" required style="border-radius: 10px;">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label fw-semibold small text-muted">Phone</label>
+                            <label for="phone" class="form-label fw-semibold small text-muted">Phone *</label>
                             <div class="input-group">
                                 <span class="input-group-text" style="border-radius: 10px 0 0 10px;">+91</span>
                                 <input type="tel" 
@@ -692,6 +704,7 @@ include 'includes/page-header.php';
                                        placeholder="10-digit mobile number"
                                        pattern="[0-9]{10}"
                                        maxlength="10"
+                                       required
                                        style="border-radius: 0 10px 10px 0;">
                             </div>
                             <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
@@ -812,6 +825,8 @@ document.getElementById('contactModal').addEventListener('hidden.bs.modal', func
     document.getElementById('contactAction').value = 'create';
     document.getElementById('contactId').value = '';
     document.getElementById('contactForm').reset();
+    document.getElementById('email')?.classList.remove('is-invalid');
+    document.getElementById('phone')?.classList.remove('is-invalid');
 });
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
@@ -853,17 +868,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const contactForm = document.getElementById('contactForm');
     if (contactForm && document.getElementById('phone')) {
         contactForm.addEventListener('submit', function(e) {
-            const phoneInput = document.getElementById('phone');
-            if (phoneInput.value.trim()) {
-                const phoneValue = getPhoneWithPrefix('phone', '+91');
-                if (!validatePhoneNumber('phone', '+91')) {
-                    e.preventDefault();
-                    phoneInput.focus();
-                    alert('Please enter a valid 10-digit phone number.');
-                    return false;
-                }
-                phoneInput.value = phoneValue;
+            const emailInput = document.getElementById('email');
+            if (emailInput && !emailInput.value.trim()) {
+                e.preventDefault();
+                emailInput.classList.add('is-invalid');
+                emailInput.focus();
+                return false;
             }
+            if (emailInput) {
+                emailInput.classList.remove('is-invalid');
+            }
+            const phoneInput = document.getElementById('phone');
+            const phoneDigits = phoneInput.value.trim();
+            if (!phoneDigits || !validatePhoneNumber('phone', '+91')) {
+                e.preventDefault();
+                phoneInput.classList.add('is-invalid');
+                phoneInput.focus();
+                alert('Please enter a valid 10-digit phone number.');
+                return false;
+            }
+            phoneInput.classList.remove('is-invalid');
+            phoneInput.value = getPhoneWithPrefix('phone', '+91');
         });
     }
     const searchInput = document.getElementById('searchInput');

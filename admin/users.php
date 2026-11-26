@@ -357,6 +357,86 @@ require_once 'includes/header.php';
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     transition: all 0.2s ease;
 }
+.tailor-profile-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 4px solid #6366f1 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
+    transition: none !important;
+}
+.tailor-profile-card:hover {
+    transform: none !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
+}
+.tailor-profile-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+    font-size: 1.35rem;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 14px rgba(79, 70, 229, 0.24);
+    letter-spacing: -0.5px;
+}
+.tailor-meta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: stretch;
+}
+.tailor-meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 7px 12px;
+    min-width: 0;
+}
+.tailor-meta-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+}
+.tailor-meta-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.45px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    line-height: 1.1;
+}
+.tailor-meta-value {
+    font-size: 0.80rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.25;
+    word-break: break-word;
+}
+@media (max-width: 767.98px) {
+    .tailor-profile-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+        font-size: 1.15rem;
+    }
+    .tailor-meta-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    .tailor-meta-chip {
+        padding: 7px 10px;
+    }
+}
 </style>
 
 <?php if ($message): ?>
@@ -962,40 +1042,52 @@ include 'includes/page-header.php';
                 <!-- Content Container -->
                 <div id="tailorModalContent" style="display: none;">
                     <!-- 1. Tailor Profile Summary Card -->
-                    <div class="card border-0 shadow-sm mb-3" style="background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0 !important;">
-                        <div class="card-body p-3 p-md-4">
-                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div id="tailorViewAvatar" class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 52px; height: 52px; border-radius: 14px; font-size: 1.3rem; background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe;">
+                    <div class="card border-0 mb-3 tailor-profile-card">
+                        <div class="card-body p-3">
+                            <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3 min-w-0">
+                                    <div id="tailorViewAvatar" class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold tailor-profile-avatar">
                                         T
                                     </div>
-                                    <div>
+                                    <div class="min-w-0">
                                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <h5 class="fw-bold text-dark mb-0" id="tailorViewName">Tailor Name</h5>
-                                            <span class="badge fw-medium d-inline-flex align-items-center gap-1" id="tailorViewRoleBadge" style="background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px;">
+                                            <h5 class="fw-bold text-dark mb-0 text-capitalize" id="tailorViewName" style="font-size: 1.08rem; letter-spacing: -0.2px;">Tailor Name</h5>
+                                            <span class="badge fw-semibold d-inline-flex align-items-center gap-1" id="tailorViewRoleBadge" style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.70rem; padding: 4px 9px; border-radius: 7px;">
                                                 <i class="fas fa-cut"></i> Tailor
                                             </span>
-                                            <span class="badge rounded-pill fw-semibold px-2 py-1" id="tailorViewStatusBadge" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 0.7rem;">
+                                            <span class="badge rounded-pill fw-semibold d-inline-flex align-items-center gap-1 px-2 py-1" id="tailorViewStatusBadge" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 0.70rem;">
                                                 Active
                                             </span>
                                         </div>
-                                        <div class="text-muted small mt-1">
-                                            <span>@<span id="tailorViewUsername">username</span></span>
-                                        </div>
                                     </div>
                                 </div>
-                                <div class="d-flex flex-wrap gap-2 gap-md-4 align-items-center" style="font-size: 0.83rem;">
-                                    <div id="tailorViewEmailWrap">
-                                        <i class="fas fa-envelope text-muted me-1"></i>
-                                        <span id="tailorViewEmail" class="text-dark fw-medium">—</span>
+                                <div class="tailor-meta-grid">
+                                    <div class="tailor-meta-chip" id="tailorViewEmailWrap">
+                                        <span class="tailor-meta-icon" style="background: #eef2ff; color: #4f46e5;">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="tailor-meta-label">Email</div>
+                                            <div class="tailor-meta-value" id="tailorViewEmail">—</div>
+                                        </div>
                                     </div>
-                                    <div id="tailorViewPhoneWrap">
-                                        <i class="fas fa-phone text-muted me-1"></i>
-                                        <span id="tailorViewPhone" class="text-dark fw-medium">—</span>
+                                    <div class="tailor-meta-chip" id="tailorViewPhoneWrap">
+                                        <span class="tailor-meta-icon" style="background: #e0f2fe; color: #0284c7;">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="tailor-meta-label">Phone</div>
+                                            <div class="tailor-meta-value" id="tailorViewPhone">Not provided</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <i class="far fa-calendar-alt text-muted me-1"></i>
-                                        <span class="text-muted">Joined:</span> <span id="tailorViewJoined" class="text-dark fw-medium">—</span>
+                                    <div class="tailor-meta-chip">
+                                        <span class="tailor-meta-icon" style="background: #f3e8ff; color: #7c3aed;">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="tailor-meta-label">Joined</div>
+                                            <div class="tailor-meta-value" id="tailorViewJoined">—</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1037,7 +1129,7 @@ include 'includes/page-header.php';
                             <span class="badge rounded-pill bg-light text-dark border px-2 py-1" id="tailorItemsCountBadge" style="font-size: 0.72rem;">0 Items</span>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 justify-content-end">
-                            <select id="tailorModalStatusFilter" class="form-select form-select-sm" style="width: auto; min-width: 130px; border-radius: 10px; font-size: 0.8rem; ">
+                            <select id="tailorModalStatusFilter" class="form-select form-select-sm" style="width: auto; min-width: 135px; height: 36px; padding: 0 2.2rem 0 0.75rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.4;">
                                 <option value="">All Statuses</option>
                                 <option value="pending">Pending</option>
                                 <option value="in_progress">In Progress</option>
@@ -1154,9 +1246,12 @@ function renderTailorModal(data) {
     const initial = cleanName.charAt(0).toUpperCase() || 'T';
     document.getElementById('tailorViewName').textContent = cleanName;
     document.getElementById('tailorViewAvatar').textContent = initial;
-    document.getElementById('tailorViewUsername').textContent = user.username || '';
-    document.getElementById('tailorViewEmail').textContent = user.email || '—';
-    document.getElementById('tailorViewPhone').textContent = user.phone || '—';
+    const emailEl = document.getElementById('tailorViewEmail');
+    const phoneEl = document.getElementById('tailorViewPhone');
+    emailEl.textContent = user.email || 'Not provided';
+    emailEl.classList.toggle('text-muted', !user.email);
+    phoneEl.textContent = user.phone || 'Not provided';
+    phoneEl.classList.toggle('text-muted', !user.phone);
 
     const joinedDate = (() => {
         if (!user.created_at) return '—';
@@ -1172,7 +1267,7 @@ function renderTailorModal(data) {
     // Status badge
     const isActive = (user.status || 'active').toLowerCase() === 'active';
     const statusBadge = document.getElementById('tailorViewStatusBadge');
-    statusBadge.textContent = isActive ? 'Active' : 'Inactive';
+    statusBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: ${isActive ? '#16a34a' : '#94a3b8'}; display: inline-block;"></span>${isActive ? 'Active' : 'Inactive'}`;
     statusBadge.style.background = isActive ? '#dcfce7' : '#f1f5f9';
     statusBadge.style.color = isActive ? '#15803d' : '#64748b';
     statusBadge.style.borderColor = isActive ? '#bbf7d0' : '#e2e8f0';

@@ -666,15 +666,6 @@ include 'includes/page-header.php';
                         Get started by adding your first customer.
                     <?php endif; ?>
                 </p>
-                <?php if (!$customerLimitCheck['allowed']): ?>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerLimitUpgradeModal" style="border-radius: 12px; opacity: 0.65;">
-                    <i class="fas fa-plus me-1"></i>Add Customer
-                </button>
-                <?php else: ?>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal" style="border-radius: 12px;">
-                    <i class="fas fa-plus me-1"></i>Add Customer
-                </button>
-                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>

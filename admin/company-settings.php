@@ -486,7 +486,7 @@ select.form-select.settings-input,
                 <div>
                     <div style="font-size: 0.84rem; color: rgba(255,255,255,0.85); margin-bottom: 2px;">Company Settings</div>
                     <div style="font-size: 1.85rem; font-weight: 800; line-height: 1.15; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 4px;">
-                        <?php echo htmlspecialchars($company['company_name'] ?: ($current_user['name'] ?? 'User')); ?> ⚙️
+                        <?php echo htmlspecialchars($company['company_name'] ?: ($current_user['name'] ?? 'User')); ?>
                     </div>
                     <div style="font-size: 0.78rem; color: rgba(255,255,255,0.82); line-height: 1.45; max-width: 380px;">
                         Manage your shop profile, logo, business details and settings to grow your tailoring business.
@@ -570,7 +570,7 @@ select.form-select.settings-input,
             <div>
                 <div style="font-size: 0.76rem; color: rgba(255,255,255,0.85); margin-bottom: 2px;">Company Settings</div>
                 <div style="font-size: 1.45rem; font-weight: 800; line-height: 1.15; color: #ffffff; letter-spacing: -0.3px; margin-bottom: 4px;">
-                    <?php echo htmlspecialchars($company['company_name'] ?: ($current_user['name'] ?? 'User')); ?> ⚙️
+                    <?php echo htmlspecialchars($company['company_name'] ?: ($current_user['name'] ?? 'User')); ?>
                 </div>
             </div>
             

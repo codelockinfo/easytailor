@@ -507,6 +507,10 @@ if (!function_exists('getCustomerAvatarDesign')) {
     background: #fee2e2;
     color: #dc2626;
 }
+.remove-garment-btn:hover i,
+.remove-garment-btn:focus i {
+    color: #ffffff !important;
+}
 .cat-table-head th {
     background-color: #f8fafc !important;
     color: #334155 !important;
@@ -1413,7 +1417,7 @@ function addGarmentBlock(presetClothTypeId = '', presetData = {}, measurementId 
                     </span>
                 </button>
                 <div class="d-flex align-items-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-garment-btn p-1 px-2 border-0" onclick="removeGarmentBlock(${currentId})" title="Remove this garment" style="border-radius: 8px; font-size: 0.78rem;">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-garment-btn p-1 px-2 border-0" onclick="removeGarmentBlock(${currentId})" title="Remove this garment" style="border-radius: 8px; font-size: 0.95rem;">
                         <i class="fas fa-trash-alt text-danger"></i>
                     </button>
                 </div>

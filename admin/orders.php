@@ -100,7 +100,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
-                $customerPhone = !empty($_POST['customer_phone']) ? sanitize_input($_POST['customer_phone']) : null;
+                $customerPhone = !empty($_POST['customer_phone']) ? trim(sanitize_input($_POST['customer_phone'])) : '';
+                if ($customerPhone === '') {
+                    $_SESSION['message'] = 'Please enter a phone number.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
 
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
@@ -278,7 +284,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $advanceAmount = isset($_POST['advance_amount']) ? (float)$_POST['advance_amount'] : 0.0;
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
-                $customerPhone = !empty($_POST['customer_phone']) ? sanitize_input($_POST['customer_phone']) : null;
+                $customerPhone = !empty($_POST['customer_phone']) ? trim(sanitize_input($_POST['customer_phone'])) : '';
+                if ($customerPhone === '') {
+                    $_SESSION['message'] = 'Please enter a phone number.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
 
                 $data = [
                     'customer_name' => sanitize_input($_POST['customer_id']),
@@ -1487,9 +1499,6 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <a href="order-details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light border text-primary fw-semibold px-2 py-1" style="border-radius: 8px; font-size: 0.75rem;">
-                            View <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
                     </div>
                     <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
                         <div class="row g-2">
@@ -1760,7 +1769,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="customer_id" class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
+                            <label for="customer_id" class="form-label fw-semibold">Customer *</label>
                             <input type="hidden" id="customer_id" name="customer_id" value="">
                             <div class="customer-picker-container position-relative">
                                 <div class="customer-select-box" id="customerSelectBox" tabindex="0">
@@ -1789,8 +1798,8 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="customer_phone" class="form-label fw-semibold">Phone Number</label>
-                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15">
+                            <label for="customer_phone" class="form-label fw-semibold">Phone Number *</label>
+                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15" required>
                         </div>
                     </div>
 
@@ -2358,6 +2367,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
                 return false;
+            }
+            const phoneInputEl = document.getElementById('customer_phone');
+            const phoneVal = phoneInputEl?.value?.trim();
+            if (!phoneVal) {
+                e.preventDefault();
+                showOrderAlert('Please enter a phone number for this order.', 'Phone Number Required', 'warning');
+                if (phoneInputEl) {
+                    phoneInputEl.classList.add('is-invalid');
+                    phoneInputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    phoneInputEl.focus();
+                }
+                return false;
+            }
+            if (phoneInputEl) {
+                phoneInputEl.classList.remove('is-invalid');
             }
             const cards = document.querySelectorAll('.order-item-card');
             if (cards.length === 0) {
@@ -4194,9 +4218,6 @@ function displayFilterResults(orders) {
                             ` : ''}
                         </div>
                     </div>
-                    <a href="order-details.php?id=${order.id}" class="btn btn-sm btn-light border text-primary fw-semibold px-2 py-1" style="border-radius: 8px; font-size: 0.75rem;">
-                        View <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
                 </div>
 
                 <!-- Order Info Grid -->
@@ -4459,46 +4480,124 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
         cards.forEach(c => mobileCardsList.appendChild(c));
     }
 });
-document.addEventListener('shown.bs.dropdown', function(e) {
-    const toggle = e.target;
-    const dropdown = toggle.closest('.dropdown');
-    
-    if (!dropdown || (!dropdown.closest('.table td') && !dropdown.closest('.order-mobile-card'))) return;
-    
-    const menu = dropdown.querySelector('.dropdown-menu');
-    if (!menu) return;
-    setTimeout(function() {
+(function() {
+    let activeFloatingToggle = null;
+    let activeFloatingMenu = null;
+
+    function positionFloatingDropdown(toggle, menu) {
+        if (!toggle || !menu || !menu.classList.contains('show')) return;
         const toggleRect = toggle.getBoundingClientRect();
-        const menuRect = menu.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
+        if (toggleRect.width === 0 && toggleRect.height === 0) return;
+
         menu.style.position = 'fixed';
         menu.style.zIndex = '9999';
         menu.style.pointerEvents = 'auto';
-        menu.style.minWidth = '150px';
+        menu.style.minWidth = '165px';
+        menu.style.margin = '0';
+        menu.style.right = 'auto';
+        menu.style.bottom = 'auto';
+        menu.style.transform = 'none';
+        menu.style.inset = 'auto';
         menu.style.visibility = 'visible';
         menu.style.opacity = '1';
-        let top = toggleRect.bottom;
-        let left = toggleRect.left;
-        if (top + menuRect.height > viewportHeight - 10) {
-            top = toggleRect.top - menuRect.height;
-            if (top < 10) {
-                top = viewportHeight - menuRect.height - 10;
+
+        const menuWidth = menu.offsetWidth || 165;
+        const menuHeight = menu.offsetHeight || 220;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const gap = 6;
+
+        let top = toggleRect.bottom + gap;
+        if (top + menuHeight > viewportHeight - 10) {
+            if (toggleRect.top - menuHeight - gap >= 10) {
+                top = toggleRect.top - menuHeight - gap;
+            } else {
+                top = Math.max(10, viewportHeight - menuHeight - 10);
             }
         }
-        if (left + menuRect.width > viewportWidth - 10) {
-            left = viewportWidth - menuRect.width - 10;
+
+        let left = toggleRect.right - menuWidth;
+        if (left + menuWidth > viewportWidth - 10) {
+            left = viewportWidth - menuWidth - 10;
         }
         if (left < 10) {
             left = 10;
         }
-        
+
         menu.style.top = top + 'px';
         menu.style.left = left + 'px';
-        menu.style.transform = 'none';
-        menu.style.inset = 'auto';
-    }, 10);
-});
+    }
+
+    document.addEventListener('shown.bs.dropdown', function(e) {
+        const toggle = e.target;
+        const dropdown = toggle.closest('.dropdown');
+        if (!dropdown || (!dropdown.closest('.table td') && !dropdown.closest('.order-mobile-card'))) return;
+
+        const menu = toggle._orderStatusMenu || dropdown.querySelector('.dropdown-menu');
+        if (!menu) return;
+
+        toggle._orderStatusMenu = menu;
+        if (!menu._origParent) {
+            menu._origParent = dropdown;
+            menu._origNextSibling = menu.nextSibling;
+        }
+
+        // Portal to body so parent overflow/transform (.table-responsive, .card:hover) never clips or traps fixed positioning
+        if (menu.parentElement !== document.body) {
+            document.body.appendChild(menu);
+        }
+
+        activeFloatingToggle = toggle;
+        activeFloatingMenu = menu;
+
+        positionFloatingDropdown(toggle, menu);
+        requestAnimationFrame(function() {
+            positionFloatingDropdown(toggle, menu);
+        });
+    });
+
+    document.addEventListener('hidden.bs.dropdown', function(e) {
+        const toggle = e.target;
+        const menu = toggle._orderStatusMenu;
+        if (!menu) return;
+
+        if (activeFloatingMenu === menu) {
+            activeFloatingToggle = null;
+            activeFloatingMenu = null;
+        }
+
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+        menu.style.position = '';
+        menu.style.transform = '';
+        menu.style.inset = '';
+        menu.style.margin = '';
+
+        if (menu._origParent && menu._origParent.isConnected) {
+            if (menu._origNextSibling && menu._origNextSibling.parentNode === menu._origParent) {
+                menu._origParent.insertBefore(menu, menu._origNextSibling);
+            } else {
+                menu._origParent.appendChild(menu);
+            }
+        } else if (menu.parentElement === document.body) {
+            menu.remove();
+        }
+    });
+
+    window.addEventListener('scroll', function() {
+        if (activeFloatingToggle && activeFloatingMenu) {
+            positionFloatingDropdown(activeFloatingToggle, activeFloatingMenu);
+        }
+    }, true);
+
+    window.addEventListener('resize', function() {
+        if (activeFloatingToggle && activeFloatingMenu) {
+            positionFloatingDropdown(activeFloatingToggle, activeFloatingMenu);
+        }
+    });
+})();
 
 const canSendInvoice = <?php echo $canSendInvoice ? 'true' : 'false'; ?>;
 const canGenerateInvoice = <?php echo $canGenerateInvoice ? 'true' : 'false'; ?>;
@@ -4660,10 +4759,8 @@ function printOrderInvoiceFromModal() {
     
     .table td .dropdown-menu {
         z-index: 9999 !important;
-        min-width: 150px;
+        min-width: 165px;
         pointer-events: auto !important;
-        position: fixed !important;
-        right: 100px !important;
     }
     
     .table td .dropdown-menu.show {
@@ -4693,9 +4790,6 @@ function printOrderInvoiceFromModal() {
     }
 
     @media (max-width: 768px) {
-        .table td .dropdown-menu {
-            right: 0 !important;
-        }
         .card-header.d-flex {
         display: flex !important;
         align-items: flex-start !important;

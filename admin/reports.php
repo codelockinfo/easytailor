@@ -293,6 +293,27 @@ include 'includes/page-header.php';
             <div class="card-body p-3">
                 <div style="height: 300px; position: relative;">
                     <canvas id="orderStatusChart"></canvas>
+                    <div id="orderStatusEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-between text-center p-3 p-sm-4" style="display: none; background: linear-gradient(180deg, #fffdf7 0%, #fffbeb 100%); border: 1.5px dashed #fde68a; border-radius: 14px;">
+                        <div class="my-auto d-flex flex-column align-items-center w-100">
+                            <div class="position-relative d-inline-flex align-items-center justify-content-center mb-3" style="width: 104px; height: 104px; border-radius: 50%; background: conic-gradient(#fef3c7 0deg 110deg, #e0f2fe 110deg 200deg, #dcfce7 200deg 290deg, #ede9fe 290deg 360deg); padding: 14px;">
+                                <div class="w-100 h-100 rounded-circle bg-white d-flex flex-column align-items-center justify-content-center shadow-xs" style="border: 1px solid #fef3c7;">
+                                    <i class="fas fa-chart-pie mb-1" style="font-size: 1.25rem; color: #d97706;"></i>
+                                    <span class="fw-bold text-dark lh-1" style="font-size: 0.85rem;">0 Orders</span>
+                                </div>
+                            </div>
+                            <div class="fw-bold text-dark mb-1" style="font-size: 1.02rem;">No Orders Yet</div>
+                            <p class="text-muted mb-3" style="font-size: 0.82rem; max-width: 270px; line-height: 1.4;">Order status breakdown will appear here once tailoring orders are created.</p>
+                            <a href="orders.php?action=create" class="btn btn-sm btn-primary rounded-pill px-4 py-2 fw-semibold shadow-xs" style="font-size: 0.82rem; background: #4f46e5; border-color: #4f46e5;">
+                                <i class="fas fa-plus me-1"></i>Create First Order
+                            </a>
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 pt-2 w-100 opacity-75" style="font-size: 0.7rem;">
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#ffc107;"></span>Pending</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#17a2b8;"></span>In Progress</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#28a745;"></span>Completed</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#007bff;"></span>Delivered</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -331,6 +352,27 @@ include 'includes/page-header.php';
             <div class="card-body p-3">
                 <div style="height: 300px; position: relative;">
                     <canvas id="paymentMethodChart"></canvas>
+                    <div id="paymentMethodEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-between text-center p-3 p-sm-4" style="display: none; background: linear-gradient(180deg, #f8fffd 0%, #f0fdfa 100%); border: 1.5px dashed #99f6e4; border-radius: 14px;">
+                        <div class="my-auto d-flex flex-column align-items-center w-100">
+                            <div class="position-relative d-inline-flex align-items-center justify-content-center mb-3" style="width: 104px; height: 104px; border-radius: 50%; background: conic-gradient(#ccfbf1 0deg 130deg, #dbeafe 130deg 240deg, #ede9fe 240deg 360deg); padding: 14px;">
+                                <div class="w-100 h-100 rounded-circle bg-white d-flex flex-column align-items-center justify-content-center shadow-xs" style="border: 1px solid #ccfbf1;">
+                                    <i class="fas fa-credit-card mb-1" style="font-size: 1.25rem; color: #0d9488;"></i>
+                                    <span class="fw-bold text-dark lh-1" style="font-size: 0.85rem;">₹0.00</span>
+                                </div>
+                            </div>
+                            <div class="fw-bold text-dark mb-1" style="font-size: 1.02rem;">No Payment Data</div>
+                            <p class="text-muted mb-3" style="font-size: 0.82rem; max-width: 270px; line-height: 1.4;">Payment method breakdown will appear here once payments or expenses are recorded.</p>
+                            <a href="expenses.php?action=create" class="btn btn-sm btn-outline-secondary rounded-pill px-4 py-2 fw-semibold bg-white shadow-xs" style="font-size: 0.82rem; border-color: #99f6e4; color: #0f766e;">
+                                <i class="fas fa-plus me-1"></i>Record Expense
+                            </a>
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 pt-2 w-100 opacity-75" style="font-size: 0.7rem;">
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#10b981;"></span>Cash</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#3b82f6;"></span>UPI</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#8b5cf6;"></span>Card</span>
+                            <span class="d-inline-flex align-items-center gap-1 text-secondary"><span class="rounded-circle" style="width:7px;height:7px;background:#f59e0b;"></span>Bank</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -483,12 +525,12 @@ include 'includes/page-header.php';
             </div>
         </div>
         <?php else: ?>
-        <div class="alert alert-warning mb-0 d-flex align-items-center justify-content-between" style="border-radius: 12px;">
+        <div class="alert alert-warning mb-0 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 gap-sm-3" style="border-radius: 12px;">
             <div>
                 <i class="fas fa-lock me-2"></i>
                 <strong>Data Export Locked:</strong> <?php echo $exportCheck['message']; ?>
             </div>
-            <a href="subscriptions.php" class="btn btn-warning btn-sm" style="border-radius: 8px;">Upgrade Plan</a>
+            <a href="subscriptions.php" class="btn btn-warning btn-sm flex-shrink-0 align-self-center px-3" style="border-radius: 8px; white-space: nowrap;">Upgrade Plan</a>
         </div>
         <?php endif; ?>
     </div>
@@ -497,6 +539,13 @@ include 'includes/page-header.php';
 <script>
 // Global chart variables
 let revenueExpenseChart, orderStatusChart, expenseCategoryChart, paymentMethodChart;
+
+function toggleChartEmptyState(canvasId, emptyId, hasData) {
+    const canvas = document.getElementById(canvasId);
+    const emptyEl = document.getElementById(emptyId);
+    if (canvas) canvas.style.display = hasData ? 'block' : 'none';
+    if (emptyEl) emptyEl.style.display = hasData ? 'none' : 'flex';
+}
 
 // Initialize charts with initial data
 function initializeCharts() {
@@ -546,19 +595,22 @@ function initializeCharts() {
     });
 
     // Order Status Chart
+    const initOrderStatusData = [
+        <?php echo (int)$orderStats['pending']; ?>,
+        <?php echo (int)$orderStats['in_progress']; ?>,
+        <?php echo (int)$orderStats['completed']; ?>,
+        <?php echo (int)$orderStats['delivered']; ?>,
+        <?php echo (int)$orderStats['cancelled']; ?>
+    ];
+    const hasInitOrders = initOrderStatusData.reduce((sum, val) => sum + val, 0) > 0;
+    toggleChartEmptyState('orderStatusChart', 'orderStatusEmptyState', hasInitOrders);
     const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
     orderStatusChart = new Chart(orderStatusCtx, {
         type: 'doughnut',
         data: {
             labels: ['Pending', 'In Progress', 'Completed', 'Delivered', 'Cancelled'],
             datasets: [{
-                data: [
-                    <?php echo $orderStats['pending']; ?>,
-                    <?php echo $orderStats['in_progress']; ?>,
-                    <?php echo $orderStats['completed']; ?>,
-                    <?php echo $orderStats['delivered']; ?>,
-                    <?php echo $orderStats['cancelled']; ?>
-                ],
+                data: initOrderStatusData,
                 backgroundColor: [
                     '#ffc107',
                     '#17a2b8',
@@ -624,6 +676,8 @@ function initializeCharts() {
         return ucwords(str_replace('_', ' ', $pm['payment_method']));
     }, $expenseStats['by_payment_method'])); ?>;
     const initPmData = <?php echo json_encode(array_column($expenseStats['by_payment_method'], 'total')); ?>;
+    const hasInitPm = initPmLabels.length > 0 && initPmData.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) > 0;
+    toggleChartEmptyState('paymentMethodChart', 'paymentMethodEmptyState', hasInitPm);
     paymentMethodChart = new Chart(paymentMethodCtx, {
         type: 'pie',
         data: {
@@ -684,13 +738,8 @@ function updateCharts(data) {
     // Update the data
     orderStatusChart.data.datasets[0].data = orderStatusData;
     
-    // If all values are 0, Chart.js might not render properly, so we need to handle it
     const totalOrders = orderStatusData.reduce((sum, val) => sum + val, 0);
-    if (totalOrders === 0) {
-        console.log('No orders found in the selected date range - chart will show empty');
-        // Ensure the chart still renders even with all zeros
-        orderStatusChart.options.plugins.legend.display = true;
-    }
+    toggleChartEmptyState('orderStatusChart', 'orderStatusEmptyState', totalOrders > 0);
     
     // Update the chart
     try {
@@ -747,8 +796,13 @@ function updateCharts(data) {
     // Update Payment Method Chart
     const updPmLabels = (data.charts.payment_methods.labels || []).map(l => l.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
     const updPmData = data.charts.payment_methods.data || [];
+    const hasUpdPm = updPmLabels.length > 0 && updPmData.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) > 0;
+    toggleChartEmptyState('paymentMethodChart', 'paymentMethodEmptyState', hasUpdPm);
     paymentMethodChart.data.labels = updPmLabels.length ? updPmLabels : ['None'];
     paymentMethodChart.data.datasets[0].data = updPmData.length ? updPmData : [0];
+    if (hasUpdPm) {
+        paymentMethodChart.resize();
+    }
     paymentMethodChart.update();
 }
 

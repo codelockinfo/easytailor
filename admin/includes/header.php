@@ -121,9 +121,17 @@ $seoOptions = [
             --sidebar-width: 236px;
             --header-height: 62px;
         }
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            overflow-x: clip;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
+        }
+        .min-w-0 {
+            min-width: 0 !important;
         }
         .sidebar {
             position: fixed;
@@ -709,8 +717,9 @@ $seoOptions = [
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
-                max-width: 100vw !important;
+                max-width: 100% !important;
                 overflow-x: hidden;
+                overflow-x: clip;
             }
             .top-header {
                 left: 0 !important;
@@ -718,9 +727,15 @@ $seoOptions = [
                 position: fixed;
                 top: 0;
                 right: 0 !important;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
                 height: 58px;
                 background: #ffffff;
                 box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            }
+            .top-header > div {
+                min-width: 0;
             }
             .page-main-title {
                 display: inline-block !important;
@@ -748,8 +763,11 @@ $seoOptions = [
                 display: block;
             }
             .content-area {
-                padding: 12px 12px 80px !important;
+                padding: 12px 12px 68px !important;
                 padding-top: calc(var(--header-height) + 12px) !important;
+                max-width: 100%;
+                overflow-x: hidden;
+                overflow-x: clip;
             }
         }
 
@@ -778,6 +796,9 @@ $seoOptions = [
             bottom: 0;
             left: 0;
             right: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             height: 60px;
             background: #ffffff;
             border-top: 1px solid #f1f5f9;
@@ -1072,7 +1093,7 @@ $seoOptions = [
         @media (max-width: 420px) {
             .notif-dropdown-menu {
                 width: calc(100vw - 20px) !important;
-                min-width: 290px !important;
+                min-width: min(290px, calc(100vw - 20px)) !important;
             }
             .notif-header-left h6 {
                 font-size: 0.82rem !important;
@@ -1873,7 +1894,6 @@ $seoOptions = [
                                         </div>
                                         <div style="min-width: 0;">
                                             <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">${escapeHtml(cust.name)}</div>
-                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;"><i class="fas fa-phone-alt me-1" style="font-size: 0.62rem;"></i>${escapeHtml(cust.phone || 'No phone')}</div>
                                         </div>
                                     </div>
                                     <div class="text-end ps-2 flex-shrink-0">
@@ -2068,16 +2088,51 @@ $seoOptions = [
 
             const mobileToggle = document.getElementById('mobileSearchToggle');
             const mobileDrawer = document.getElementById('mobileSearchDrawer');
+            const desktopResults = document.getElementById('globalSearchResults');
+            const mobileResults = document.getElementById('mobileGlobalSearchResults');
+
+            function closeMobileSearchDrawer() {
+                if (mobileDrawer) {
+                    mobileDrawer.style.display = 'none';
+                }
+                if (mobileResults) {
+                    mobileResults.style.display = 'none';
+                }
+            }
+
             if (mobileToggle && mobileDrawer) {
                 mobileToggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     const isOpen = mobileDrawer.style.display !== 'none';
                     mobileDrawer.style.display = isOpen ? 'none' : 'block';
                     if (!isOpen) {
+                        // Close any open header dropdowns (notifications/profile/language) before opening search
+                        document.querySelectorAll('.top-header [data-bs-toggle="dropdown"]').forEach(btn => {
+                            if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                                bootstrap.Dropdown.getInstance(btn)?.hide();
+                            }
+                        });
                         const mobInput = document.getElementById('mobileGlobalSearchInput');
                         if (mobInput) mobInput.focus();
                     }
                 });
+
+                document.addEventListener('click', function(e) {
+                    if (mobileDrawer.style.display !== 'none' &&
+                        !mobileDrawer.contains(e.target) &&
+                        !mobileToggle.contains(e.target)) {
+                        closeMobileSearchDrawer();
+                    }
+                });
             }
+
+            document.addEventListener('show.bs.dropdown', function(e) {
+                if (e.target && e.target.closest('.top-header')) {
+                    closeMobileSearchDrawer();
+                    if (desktopResults) {
+                        desktopResults.style.display = 'none';
+                    }
+                }
+            });
         });
         </script>

@@ -150,6 +150,7 @@ class Order extends BaseModel {
         $where_clauses = [];
 
         $itemCountSub = "(SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_1" : "") . ") as item_count";
+        $totalQtySub = "(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_4" : "") . ") as total_quantity";
         $clothNamesSub = "(SELECT GROUP_CONCAT(DISTINCT ct2.name SEPARATOR ', ') FROM order_items oi JOIN cloth_types ct2 ON oi.cloth_type_id = ct2.id WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_2" : "") . ") as all_cloth_type_names";
         $tailorNamesSub = "(SELECT GROUP_CONCAT(DISTINCT u2.full_name SEPARATOR ', ') FROM order_items oi JOIN users u2 ON oi.assigned_tailor_id = u2.id WHERE oi.order_id = o.id" . ($isTailor ? " AND oi.assigned_tailor_id = :tailor_ctx_3" : "") . ") as all_tailor_names";
 
@@ -157,6 +158,7 @@ class Order extends BaseModel {
             $params['tailor_ctx_1'] = $tailorId;
             $params['tailor_ctx_2'] = $tailorId;
             $params['tailor_ctx_3'] = $tailorId;
+            $params['tailor_ctx_4'] = $tailorId;
         }
 
         $query = "SELECT o.*, 
@@ -166,6 +168,7 @@ class Order extends BaseModel {
                          creator.full_name as created_by_name,
                          COALESCE(NULLIF(ms.name, ''), NULLIF(o.customer_name, '')) as measurement_customer_name,
                          $itemCountSub,
+                         $totalQtySub,
                          $clothNamesSub,
                          $tailorNamesSub
                   FROM " . $this->table . " o

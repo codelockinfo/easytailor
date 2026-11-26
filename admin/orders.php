@@ -998,17 +998,72 @@ select:disabled {
     border-color: #cbd5e1;
 }
 .order-item-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) 28px 28px;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     padding: 8px 12px;
     background: #ffffff;
-    flex-wrap: wrap;
+}
+.item-cloth-type-select,
+.item-tailor-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+.item-collapse-btn,
+.item-delete-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 575.98px) {
+    .order-item-header {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .item-cloth-type-select {
+        flex: 1 1 100%;
+    }
+    .item-tailor-select {
+        flex: 1 1 140px;
+    }
+    .item-collapse-btn {
+        margin-left: auto;
+    }
 }
 .order-item-body {
     padding: 12px 14px;
     border-top: 1px solid #f1f5f9;
     background: #fafbfe;
+}
+.item-qty-group {
+    width: 102px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.item-qty-group .btn {
+    border-color: #ced4da;
+    background: #ffffff;
+    color: #334155;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+}
+.item-qty-group .btn:hover {
+    background: #eef2ff;
+    color: #4f46e5;
+    border-color: #c7d2fe;
+}
+.item-qty-input::-webkit-outer-spin-button,
+.item-qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.item-qty-input {
+    -moz-appearance: textfield;
 }
 .measurement-pills-grid {
     display: grid;
@@ -1263,6 +1318,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                             <th class="py-3">DUE DATE</th>
                             <th class="py-3">STATUS</th>
                             <th class="py-3">AMOUNT</th>
+                            <th class="py-3 text-center">QUANTITY</th>
                             <th class="pe-3 py-3 text-end">ACTIONS</th>
                         </tr>
                     </thead>
@@ -1302,12 +1358,14 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                     $itemCount = (int)($order['item_count'] ?? 0);
                                     $displayCloth = !empty($order['all_cloth_type_names']) ? $order['all_cloth_type_names'] : display_val($order['cloth_type_name']);
                                 ?>
-                                <span class="badge fw-medium" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px;">
-                                    <?php echo htmlspecialchars($displayCloth); ?>
-                                </span>
-                                <?php if ($itemCount > 1): ?>
-                                    <span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;"><?php echo $itemCount; ?> Items</span>
-                                <?php endif; ?>
+                                <div class="d-inline-flex align-items-center gap-1" style="max-width: 235px;">
+                                    <span class="badge fw-medium" title="<?php echo htmlspecialchars($displayCloth); ?>" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px; display: inline-block; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">
+                                        <?php echo htmlspecialchars($displayCloth); ?>
+                                    </span>
+                                    <?php if ($itemCount > 1): ?>
+                                        <span class="badge rounded-pill bg-light text-primary border flex-shrink-0" style="font-size: 0.68rem; white-space: nowrap;"><?php echo $itemCount; ?> Items</span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <?php if (!has_role('tailor')): ?>
                             <td class="py-3">
@@ -1363,6 +1421,12 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                         <?php endif; ?>
                                     </div>
                                 </div>
+                            </td>
+                            <?php $orderQty = max(1, (int)(($order['total_quantity'] ?? 0) > 0 ? $order['total_quantity'] : ($order['item_count'] ?? 1))); ?>
+                            <td class="py-3 text-center">
+                                <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-size: 0.78rem;">
+                                    <?php echo $orderQty; ?>
+                                </span>
                             </td>
                             <td class="pe-3 py-3 text-end">
                                 <div class="d-inline-flex align-items-center gap-1">
@@ -1553,6 +1617,14 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 <div class="mt-1 <?php echo $isOverdue ? 'text-danger fw-bold' : 'text-dark fw-medium'; ?>">
                                     <?php if ($isOverdue): ?><i class="fas fa-exclamation-circle text-danger me-1"></i><?php endif; ?>
                                     <?php echo format_date($order['due_date']); ?>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Quantity</div>
+                                <div class="mt-1">
+                                    <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-size: 0.75rem;">
+                                        <?php echo $orderQty; ?>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -2511,10 +2583,22 @@ function renderMeasurementPills(mData, notes = '') {
 
 function calculateTotalFromItems() {
     let sum = 0;
-    const priceInputs = document.querySelectorAll('.item-price-input');
-    priceInputs.forEach(input => {
-        const val = parseFloat(input.value) || 0;
-        sum += val;
+    const cards = document.querySelectorAll('.order-item-card');
+    cards.forEach(card => {
+        const priceVal = parseFloat(card.querySelector('.item-price-input')?.value) || 0;
+        const qtyInput = card.querySelector('.item-qty-input');
+        const qtyVal = qtyInput ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
+        const lineTotal = priceVal * qtyVal;
+        const subtotalEl = card.querySelector('.item-line-total');
+        if (subtotalEl) {
+            if (qtyVal > 1) {
+                subtotalEl.textContent = 'Subtotal: ₹' + lineTotal.toFixed(2);
+                subtotalEl.style.display = 'inline-block';
+            } else {
+                subtotalEl.style.display = 'none';
+            }
+        }
+        sum += lineTotal;
     });
 
     const totalInput = document.getElementById('total_amount');
@@ -2579,12 +2663,19 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
         initPrice = standardRate.toFixed(2);
     }
 
-    // Build cloth types options
+    function truncateLabel(str, maxLen) {
+        const s = String(str || '').trim();
+        return s.length > maxLen ? s.slice(0, maxLen).trimEnd() + '...' : s;
+    }
+
+    // Build cloth types options (truncate very long names with ... so full price stays visible)
     let clothOptions = '<option value="">Select Cloth Type *</option>';
     clothTypesList.forEach(ct => {
         const selected = currentClothId && String(ct.id) === currentClothId ? 'selected' : '';
         const rateText = ct.standard_rate ? ' - ₹' + parseFloat(ct.standard_rate).toFixed(2) : '';
-        clothOptions += `<option value="${ct.id}" data-rate="${ct.standard_rate || 0}" ${selected}>${escapeHtml(ct.name)}${rateText}</option>`;
+        const fullLabel = `${ct.name || ''}${rateText}`;
+        const shortLabel = `${truncateLabel(ct.name || '', 28)}${rateText}`;
+        clothOptions += `<option value="${ct.id}" data-rate="${ct.standard_rate || 0}" title="${escapeHtml(fullLabel)}" ${selected}>${escapeHtml(shortLabel)}</option>`;
     });
 
     // Build tailors options
@@ -2594,17 +2685,13 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
         tailorOptions += `<option value="${t.id}" ${selected}>${escapeHtml(t.full_name)}</option>`;
     });
 
-    // Measurement badge text & pills
-    let measBadgeText = 'Custom / No Measurement';
+    // Measurement pills
     let pillsHtml = '';
     if (measObj) {
-        measBadgeText = `${escapeHtml(measObj.cloth_type_name)} - ${escapeHtml(measObj.created_at)}`;
         pillsHtml = renderMeasurementPills(measObj.measurement_data, measObj.notes);
     } else if (itemData.measurement_data) {
-        measBadgeText = itemData.cloth_type_name ? `${escapeHtml(itemData.cloth_type_name)}` : 'Saved Measurement';
         pillsHtml = renderMeasurementPills(itemData.measurement_data, itemData.notes);
     } else if (measId) {
-        measBadgeText = `Measurement #${measId}`;
         pillsHtml = `<div class="text-muted small py-2 text-center"><i class="fas fa-spinner fa-spin me-1"></i>Loading measurements...</div>`;
         fetch(`ajax/get_measurement_details.php?id=${encodeURIComponent(measId)}`)
             .then(res => res.json())
@@ -2612,10 +2699,6 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
                 const pillsBox = card.querySelector('.item-pills-container');
                 if (pillsBox && mData && !mData.error) {
                     pillsBox.innerHTML = renderMeasurementPills(mData.measurement_data, mData.notes);
-                    const badge = card.querySelector('.item-meas-title');
-                    if (badge && mData.cloth_type_name) {
-                        badge.textContent = `${mData.cloth_type_name} - ${mData.created_at || ''}`;
-                    }
                 }
             })
             .catch(() => {});
@@ -2626,31 +2709,27 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
     }
 
     const standardRateText = standardRate > 0 ? standardRate.toFixed(2) : '0.00';
+    const initQty = Math.max(1, parseInt(itemData.quantity, 10) || 1);
 
     card.innerHTML = `
+        <input type="hidden" class="item-measurement-id" name="items[${index}][measurement_id]" value="${measId}">
         <div class="order-item-header">
             <!-- 1. Cloth Type Select with Rate -->
-            <select class="form-select item-cloth-type-select" name="items[${index}][cloth_type_id]" required style="width: auto; min-width: 170px; border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500; ">
+            <select class="form-select item-cloth-type-select" name="items[${index}][cloth_type_id]" required style="border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
                 ${clothOptions}
             </select>
 
-            <!-- 2. Measurement Badge -->
-            <div class="item-meas-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; font-weight: 500; height: 38px; display: inline-flex; align-items: center; white-space: nowrap;">
-                <span class="item-meas-title">${measBadgeText}</span>
-            </div>
-            <input type="hidden" class="item-measurement-id" name="items[${index}][measurement_id]" value="${measId}">
-
-            <!-- 3. Assigned Tailor Select -->
-            <select class="form-select item-tailor-select" name="items[${index}][assigned_tailor_id]" required style="width: auto; min-width: 150px; border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
+            <!-- 2. Assigned Tailor Select -->
+            <select class="form-select item-tailor-select" name="items[${index}][assigned_tailor_id]" required style="border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
                 ${tailorOptions}
             </select>
 
-            <!-- 4. Collapse / Expand toggle button -->
-            <button type="button" class="btn btn-link p-1 text-secondary item-collapse-btn ms-auto" title="Expand / Collapse" style="text-decoration: none; font-size: 0.95rem;">
+            <!-- 3. Collapse / Expand toggle button -->
+            <button type="button" class="btn btn-link p-1 text-secondary item-collapse-btn" title="Expand / Collapse" style="text-decoration: none; font-size: 0.95rem;">
                 <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} toggle-icon"></i>
             </button>
 
-            <!-- 5. Delete button -->
+            <!-- 4. Delete button -->
             <button type="button" class="btn btn-link p-1 text-secondary item-delete-btn" title="Remove Item" style="text-decoration: none; font-size: 0.95rem;">
                 <i class="far fa-trash-alt"></i>
             </button>
@@ -2662,14 +2741,27 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
                 ${pillsHtml}
             </div>
             <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-wrap gap-2">
-                <span class="small text-muted" style="font-size: 0.78rem;">
-                    <i class="fas fa-tag me-1 text-primary"></i>Standard Rate: ₹<span class="item-standard-rate">${standardRateText}</span>
-                </span>
-                <div class="d-flex align-items-center gap-2">
-                    <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Rate / Price:</label>
-                    <div class="input-group input-group-sm" style="width: 125px;">
-                        <span class="input-group-text bg-white text-muted fw-bold">₹</span>
-                        <input type="number" class="form-control form-control-sm item-price-input" name="items[${index}][price]" step="0.01" min="0" placeholder="0.00" value="${initPrice}" required style="font-weight: 600; border-radius: 0 6px 6px 0;">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="small text-muted" style="font-size: 0.78rem;">
+                        <i class="fas fa-tag me-1 text-primary"></i>Standard Rate: ₹<span class="item-standard-rate">${standardRateText}</span>
+                    </span>
+                    <span class="small text-primary fw-semibold item-line-total" style="font-size: 0.78rem; display: none;"></span>
+                </div>
+                <div class="d-flex align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Qty:</label>
+                        <div class="input-group input-group-sm item-qty-group">
+                            <button type="button" class="btn btn-outline-secondary item-qty-minus" aria-label="Decrease quantity">-</button>
+                            <input type="number" class="form-control form-control-sm text-center item-qty-input px-1" name="items[${index}][quantity]" min="1" step="1" value="${initQty}" required style="font-weight: 600;">
+                            <button type="button" class="btn btn-outline-secondary item-qty-plus" aria-label="Increase quantity">+</button>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Rate / Price:</label>
+                        <div class="input-group input-group-sm" style="width: 125px;">
+                            <span class="input-group-text bg-white text-muted fw-bold">₹</span>
+                            <input type="number" class="form-control form-control-sm item-price-input" name="items[${index}][price]" step="0.01" min="0" placeholder="0.00" value="${initPrice}" required style="font-weight: 600; border-radius: 0 6px 6px 0;">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2681,6 +2773,9 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
     // Event listeners inside the card
     const clothSelect = card.querySelector('.item-cloth-type-select');
     const priceInput = card.querySelector('.item-price-input');
+    const qtyInput = card.querySelector('.item-qty-input');
+    const qtyMinusBtn = card.querySelector('.item-qty-minus');
+    const qtyPlusBtn = card.querySelector('.item-qty-plus');
     const collapseBtn = card.querySelector('.item-collapse-btn');
     const toggleIcon = card.querySelector('.toggle-icon');
     const bodyEl = card.querySelector('.order-item-body');
@@ -2716,6 +2811,31 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
         priceInput.dataset.autoFilled = 'false';
         calculateTotalFromItems();
     });
+
+    if (qtyMinusBtn && qtyInput) {
+        qtyMinusBtn.addEventListener('click', function() {
+            const cur = parseInt(qtyInput.value, 10) || 1;
+            qtyInput.value = Math.max(1, cur - 1);
+            calculateTotalFromItems();
+        });
+    }
+    if (qtyPlusBtn && qtyInput) {
+        qtyPlusBtn.addEventListener('click', function() {
+            const cur = parseInt(qtyInput.value, 10) || 1;
+            qtyInput.value = cur + 1;
+            calculateTotalFromItems();
+        });
+    }
+    if (qtyInput) {
+        qtyInput.addEventListener('input', function() {
+            calculateTotalFromItems();
+        });
+        qtyInput.addEventListener('change', function() {
+            const val = parseInt(qtyInput.value, 10);
+            qtyInput.value = (isNaN(val) || val < 1) ? 1 : val;
+            calculateTotalFromItems();
+        });
+    }
 
     deleteBtn.addEventListener('click', function() {
         const cardMeasId = card.getAttribute('data-measurement-id');
@@ -3333,6 +3453,7 @@ function editOrder(order) {
                             cloth_type_id: it.cloth_type_id,
                             measurement_id: it.measurement_id,
                             assigned_tailor_id: it.assigned_tailor_id,
+                            quantity: it.quantity ?? 1,
                             price: it.price,
                             measurement_data: it.measurement_data,
                             cloth_type_name: it.cloth_type_name,
@@ -4037,6 +4158,7 @@ function displayFilterResults(orders) {
         const statusBadgeClass = statusClasses[order.status] || 'bg-secondary';
         const statusDisplay = order.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+        const orderQty = Math.max(1, parseInt((order.total_quantity > 0 ? order.total_quantity : (order.item_count || 1)), 10) || 1);
         const totalAmt = parseFloat(order.total_amount) || 0;
         const advAmt = parseFloat(order.advance_amount) || 0;
         const pendingAmt = (order.balance_amount !== undefined && order.balance_amount !== null) ? parseFloat(order.balance_amount) : Math.max(0, totalAmt - advAmt);
@@ -4067,10 +4189,12 @@ function displayFilterResults(orders) {
                     </div>
                 </td>
                 <td class="py-3">
-                    <span class="badge fw-medium" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px;">
-                        ${escapeHtml(order.all_cloth_type_names || order.cloth_type_name || '-')}
-                    </span>
-                    ${order.item_count && order.item_count > 1 ? `<span class="badge rounded-pill bg-light text-primary border ms-1" style="font-size: 0.68rem;">${order.item_count} Items</span>` : ''}
+                    <div class="d-inline-flex align-items-center gap-1" style="max-width: 235px;">
+                        <span class="badge fw-medium" title="${escapeHtml(order.all_cloth_type_names || order.cloth_type_name || '-')}" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 0.78rem; border-radius: 6px; padding: 4px 8px; display: inline-block; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">
+                            ${escapeHtml(order.all_cloth_type_names || order.cloth_type_name || '-')}
+                        </span>
+                        ${order.item_count && order.item_count > 1 ? `<span class="badge rounded-pill bg-light text-primary border flex-shrink-0" style="font-size: 0.68rem; white-space: nowrap;">${order.item_count} Items</span>` : ''}
+                    </div>
                 </td>
                 ${!isTailor ? `
                 <td class="py-3">
@@ -4114,6 +4238,11 @@ function displayFilterResults(orders) {
                             `}
                         </div>
                     </div>
+                </td>
+                <td class="py-3 text-center">
+                    <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-size: 0.78rem;">
+                        ${orderQty}
+                    </span>
                 </td>
                 <td class="pe-3 py-3 text-end">
                     <div class="d-inline-flex align-items-center gap-1">
@@ -4286,6 +4415,14 @@ function displayFilterResults(orders) {
                             <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Due Date</div>
                             <div class="mt-1 ${isOverdue ? 'text-danger fw-bold' : 'text-dark fw-medium'}">
                                 ${isOverdue ? '<i class="fas fa-exclamation-circle text-danger me-1"></i>' : ''}${dueDate}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600;">Quantity</div>
+                            <div class="mt-1">
+                                <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-size: 0.75rem;">
+                                    ${orderQty}
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -581,6 +581,7 @@ require_once 'includes/header.php';
                                 <th class="py-3">GARMENT / CLOTH TYPE</th>
                                 <th class="py-3">MEASUREMENT</th>
                                 <th class="py-3">ASSIGNED TAILOR</th>
+                                <th class="py-3 text-center">QTY</th>
                                 <th class="py-3 text-end">RATE / PRICE</th>
                                 <th class="pe-4 py-3 text-center">STATUS</th>
                             </tr>
@@ -647,8 +648,17 @@ require_once 'includes/header.php';
                                         <span class="text-muted small" style="font-style: italic;">Unassigned</span>
                                     <?php endif; ?>
                                 </td>
+                                <?php $oiQty = max(1, (int)($oi['quantity'] ?? 1)); ?>
+                                <td class="py-3 text-center">
+                                    <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-size: 0.78rem;">
+                                        <?php echo $oiQty; ?>
+                                    </span>
+                                </td>
                                 <td class="py-3 text-end fw-bold text-dark" style="font-size: 0.88rem;">
                                     <?php echo format_currency($oi['price']); ?>
+                                    <?php if ($oiQty > 1): ?>
+                                        <div class="text-muted fw-normal" style="font-size: 0.72rem;">Total: <?php echo format_currency((float)$oi['price'] * $oiQty); ?></div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="pe-4 py-3 text-center">
                                     <?php if ($canEditItem): ?>
@@ -689,8 +699,8 @@ require_once 'includes/header.php';
                         </tbody>
                         <tfoot style="background: #f8fafc; font-size: 0.84rem; font-weight: 700;">
                             <tr>
-                                <td colspan="4" class="ps-4 py-2 text-muted text-uppercase">Total Items Combined:</td>
-                                <td class="py-2 text-end text-primary"><?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_column($orderItems, 'price')) : $order['total_amount']); ?></td>
+                                <td colspan="5" class="ps-4 py-2 text-muted text-uppercase">Total Items Combined:</td>
+                                <td class="py-2 text-end text-primary"><?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_map(fn($x) => (float)($x['price'] ?? 0) * max(1, (int)($x['quantity'] ?? 1)), $orderItems)) : $order['total_amount']); ?></td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -797,9 +807,16 @@ require_once 'includes/header.php';
                             </div>
                         </div>
 
+                        <?php $oiQtyMob = max(1, (int)($oi['quantity'] ?? 1)); ?>
                         <div class="d-flex justify-content-between align-items-center pt-1">
-                            <span class="text-muted fw-semibold" style="font-size: 0.78rem;">Rate / Price:</span>
-                            <span class="fw-bold text-dark fs-6"><?php echo format_currency($oi['price']); ?></span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted fw-semibold" style="font-size: 0.78rem;">Qty:</span>
+                                <span class="badge rounded-pill fw-semibold px-2 py-1" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-size: 0.75rem;"><?php echo $oiQtyMob; ?></span>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted fw-semibold me-1" style="font-size: 0.78rem;">Rate:</span>
+                                <span class="fw-bold text-dark fs-6"><?php echo format_currency($oi['price']); ?></span>
+                            </div>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -810,7 +827,7 @@ require_once 'includes/header.php';
                             <i class="fas fa-calculator me-1 text-primary"></i>Total Items Combined:
                         </span>
                         <span class="fw-bold text-primary fs-6">
-                            <?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_column($orderItems, 'price')) : $order['total_amount']); ?>
+                            <?php echo format_currency(has_role('tailor') && !empty($orderItems) ? array_sum(array_map(fn($x) => (float)($x['price'] ?? 0) * max(1, (int)($x['quantity'] ?? 1)), $orderItems)) : $order['total_amount']); ?>
                         </span>
                     </div>
                 </div>

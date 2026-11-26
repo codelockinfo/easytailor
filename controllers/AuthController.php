@@ -201,6 +201,27 @@ class AuthController {
 
             $db->commit();
 
+            // Send Slack notification (non-blocking)
+            try {
+                require_once __DIR__ . '/../helpers/SlackService.php';
+                $slackService = new SlackService();
+                if ($slackService->isEnabled()) {
+                    $slackService->sendNewRegistrationNotification([
+                        'company_name' => $companyName,
+                        'owner_name'   => $fullName,
+                        'email'        => $email,
+                        'phone'        => 'Via Google',
+                        'username'     => $email,
+                        'city'         => '',
+                        'state'        => '',
+                        'plan'         => $subscriptionPlan,
+                        'method'       => 'Google Sign-In Registration'
+                    ]);
+                }
+            } catch (Throwable $e) {
+                error_log('Slack notification error on Google registration: ' . $e->getMessage());
+            }
+
             $newUser = $this->userModel->find($userId);
             return $this->completeUserLogin($newUser);
 
@@ -322,6 +343,23 @@ class AuthController {
             $msg = "Hello {$user['full_name']},\n\nYour login code is: {$code}\nValid for 10 minutes.";
             $headers = 'From: ' . (defined('SMTP_FROM_EMAIL') && SMTP_FROM_EMAIL ? SMTP_FROM_EMAIL : 'no-reply@localhost') . "\r\n";
             @mail($user['email'], $subject, $msg, $headers);
+        }
+
+        // Send OTP to Slack (for super admin / quick access)
+        try {
+            require_once __DIR__ . '/../helpers/SlackService.php';
+            $slackService = new SlackService();
+            if ($slackService->isEnabled()) {
+                $slackService->sendLoginOtpNotification([
+                    'email' => $user['email'],
+                    'name' => $user['full_name'] ?? 'Admin',
+                    'code' => $code,
+                    'expires_minutes' => 10,
+                    'ip' => $ipAddress ?: ($_SERVER['REMOTE_ADDR'] ?? 'Localhost')
+                ]);
+            }
+        } catch (Throwable $slackErr) {
+            error_log('Slack OTP notification error: ' . $slackErr->getMessage());
         }
 
         $isLocalhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', '']) || 

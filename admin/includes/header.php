@@ -153,11 +153,14 @@ $seoOptions = [
             top: 0;
             left: 0;
             height: 100vh;
+            height: 100dvh;
             width: var(--sidebar-width);
             background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%);
             z-index: 1000;
             transition: all 0.3s ease;
             overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
         .sidebar-header {
             padding: 1rem 1.1rem;
@@ -459,7 +462,7 @@ $seoOptions = [
         input::placeholder,
         textarea::placeholder,
         select::placeholder {
-            color: #000000 !important;
+            color: #9ca3af !important;
             opacity: 1;
         }
         .form-control,
@@ -605,7 +608,7 @@ $seoOptions = [
         }
         
         .form-select::placeholder {
-            color: #000000 !important;
+            color: #9ca3af !important;
             font-weight: 400;
             opacity: 1;
         }
@@ -690,14 +693,27 @@ $seoOptions = [
             bottom: 0;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(3px);
-            z-index: 1040;
+            z-index: 1045;
             opacity: 0;
             visibility: hidden;
+            touch-action: none;
+            overscroll-behavior: contain;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         .sidebar-overlay.show {
             opacity: 1;
             visibility: visible;
+        }
+        html.sidebar-open,
+        body.sidebar-open,
+        html:has(body.sidebar-open) {
+            overflow: hidden !important;
+            overscroll-behavior: none !important;
+        }
+        body.sidebar-open .main-content,
+        body.sidebar-open .content-area {
+            overflow: hidden !important;
+            touch-action: none !important;
         }
         @media (max-width: 991.98px) {
             :root {
@@ -708,6 +724,8 @@ $seoOptions = [
                 width: 280px !important;
                 max-width: 85vw !important;
                 z-index: 1050 !important;
+                bottom: 0;
+                height: auto;
                 box-shadow: none;
             }
             .sidebar.show {
@@ -1641,11 +1659,15 @@ $seoOptions = [
 
             function openSidebar() {
                 sidebar?.classList.add('show');
+                document.getElementById('sidebarOverlay')?.classList.add('show');
+                document.documentElement.classList.add('sidebar-open');
                 document.body.classList.add('sidebar-open');
             }
 
             function closeSidebar() {
                 sidebar?.classList.remove('show');
+                document.getElementById('sidebarOverlay')?.classList.remove('show');
+                document.documentElement.classList.remove('sidebar-open');
                 document.body.classList.remove('sidebar-open');
             }
 

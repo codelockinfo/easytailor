@@ -1000,10 +1000,14 @@ select:disabled {
 .order-item-header {
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) 28px 28px;
-    align-items: center;
+    align-items: start;
     gap: 10px;
     padding: 8px 12px;
     background: #ffffff;
+}
+.order-item-field {
+    min-width: 0;
+    width: 100%;
 }
 .item-cloth-type-select,
 .item-tailor-select {
@@ -1015,6 +1019,7 @@ select:disabled {
 .item-delete-btn {
     width: 28px;
     height: 28px;
+    margin-top: 5px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1024,10 +1029,10 @@ select:disabled {
         display: flex;
         flex-wrap: wrap;
     }
-    .item-cloth-type-select {
+    .order-item-cloth-wrap {
         flex: 1 1 100%;
     }
-    .item-tailor-select {
+    .order-item-tailor-wrap {
         flex: 1 1 140px;
     }
     .item-collapse-btn {
@@ -1845,7 +1850,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
 <div class="modal fade" id="orderModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" id="orderForm">
+            <form method="POST" id="orderForm" novalidate>
                 <div class="modal-header">
                     <h5 class="modal-title" id="orderModalTitle">Create Order</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -1859,7 +1864,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         <div class="col-md-6 mb-3">
                             <label for="customer_id" class="form-label fw-semibold">Customer *</label>
                             <input type="hidden" id="customer_id" name="customer_id" value="">
-                            <div class="customer-picker-container position-relative">
+                            <div class="customer-picker-container position-relative" id="customerPickerContainer">
                                 <div class="customer-select-box" id="customerSelectBox" tabindex="0">
                                     <span class="customer-select-text text-muted" id="selectedCustomerDisplay">Select Customer</span>
                                     <div class="d-flex align-items-center">
@@ -1884,10 +1889,12 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                     </div>
                                 </div>
                             </div>
+                            <div class="invalid-feedback" id="customerSelectFeedback">Please select a customer.</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="customer_phone" class="form-label fw-semibold">Phone Number *</label>
                             <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15" required>
+                            <div class="invalid-feedback" id="customerPhoneFeedback">Please enter phone number.</div>
                         </div>
                     </div>
 
@@ -1895,10 +1902,12 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         <div class="col-md-6 mb-3">
                             <label for="order_date" class="form-label fw-semibold">Order Date *</label>
                             <input type="date" class="form-control" id="order_date" name="order_date" value="<?php echo date('Y-m-d'); ?>" required>
+                            <div class="invalid-feedback">Please enter order date.</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="due_date" class="form-label fw-semibold">Due Date *</label>
                             <input type="date" class="form-control" id="due_date" name="due_date" required>
+                            <div class="invalid-feedback">Please enter due date.</div>
                         </div>
                     </div>
                     <input type="hidden" id="cloth_type_id" name="cloth_type_id" value="">
@@ -1951,9 +1960,10 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="advance_amount" class="form-label">Advance Amount *</label>
-                            <div class="input-group">
+                            <div class="input-group has-validation">
                                 <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" id="advance_amount" name="advance_amount" step="0.01" min="0" value="0" placeholder="0.00" required>
+                                <div class="invalid-feedback" id="advanceAmountFeedback">Please enter advance amount.</div>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -1978,6 +1988,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                                 <option value="card">Card</option>
                                 <option value="cheque">Cheque</option>
                             </select>
+                            <div class="invalid-feedback">Please select payment method.</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-muted">Payment Summary</label>
@@ -2441,64 +2452,160 @@ document.addEventListener('DOMContentLoaded', function() {
         advanceAmountInput.addEventListener('change', calculatePendingAmount);
     }
 
+    function syncCustomerValidation(showError) {
+        const customerVal = document.getElementById('customer_id')?.value?.trim();
+        const box = document.getElementById('customerSelectBox');
+        const picker = document.getElementById('customerPickerContainer');
+        const invalid = !customerVal && showError;
+        if (box) box.classList.toggle('is-invalid', invalid);
+        if (picker) picker.classList.toggle('is-invalid', invalid);
+        return Boolean(customerVal);
+    }
+
+    window.clearOrderInlineErrors = function() {
+        document.getElementById('customerSelectBox')?.classList.remove('is-invalid');
+        document.getElementById('customerPickerContainer')?.classList.remove('is-invalid');
+        document.getElementById('orderForm')?.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.getElementById('orderForm')?.querySelectorAll('.item-price-feedback.d-block').forEach(el => el.classList.remove('d-block'));
+    }
+
     const orderFormEl = document.getElementById('orderForm');
     if (orderFormEl) {
+        ['customer_phone', 'order_date', 'due_date', 'advance_amount', 'payment_method'].forEach(fieldId => {
+            const el = document.getElementById(fieldId);
+            if (!el) return;
+            el.addEventListener(el.tagName === 'SELECT' || el.type === 'date' ? 'change' : 'input', function() {
+                if (this.classList.contains('is-invalid') && this.value.trim() !== '') {
+                    if (this.type !== 'number' || Number(this.value) >= 0) {
+                        this.classList.remove('is-invalid');
+                    }
+                }
+            });
+        });
+
         orderFormEl.addEventListener('submit', function(e) {
             calculateTotalFromItems();
-            const customerVal = document.getElementById('customer_id')?.value?.trim();
-            if (!customerVal) {
-                e.preventDefault();
-                showOrderAlert('Please select a customer for this order.', 'Customer Required', 'warning');
-                const box = document.getElementById('customerSelectBox');
-                if (box) {
-                    box.classList.add('is-invalid');
-                    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return false;
+            let firstInvalidEl = null;
+
+            if (!syncCustomerValidation(true)) {
+                firstInvalidEl = document.getElementById('customerSelectBox');
             }
+
             const phoneInputEl = document.getElementById('customer_phone');
-            const phoneVal = phoneInputEl?.value?.trim();
-            if (!phoneVal) {
-                e.preventDefault();
-                showOrderAlert('Please enter a phone number for this order.', 'Phone Number Required', 'warning');
-                if (phoneInputEl) {
+            if (phoneInputEl) {
+                if (!phoneInputEl.value.trim()) {
                     phoneInputEl.classList.add('is-invalid');
-                    phoneInputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    phoneInputEl.focus();
+                    firstInvalidEl = firstInvalidEl || phoneInputEl;
+                } else {
+                    phoneInputEl.classList.remove('is-invalid');
                 }
+            }
+
+            const orderDateEl = document.getElementById('order_date');
+            if (orderDateEl) {
+                if (!orderDateEl.value) {
+                    orderDateEl.classList.add('is-invalid');
+                    firstInvalidEl = firstInvalidEl || orderDateEl;
+                } else {
+                    orderDateEl.classList.remove('is-invalid');
+                }
+            }
+
+            const dueDateEl = document.getElementById('due_date');
+            if (dueDateEl) {
+                if (!dueDateEl.value) {
+                    dueDateEl.classList.add('is-invalid');
+                    firstInvalidEl = firstInvalidEl || dueDateEl;
+                } else {
+                    dueDateEl.classList.remove('is-invalid');
+                }
+            }
+
+            const cards = document.querySelectorAll('.order-item-card');
+            cards.forEach((card) => {
+                const clothEl = card.querySelector('.item-cloth-type-select');
+                const tailorEl = card.querySelector('.item-tailor-select');
+                const qtyEl = card.querySelector('.item-qty-input');
+                const priceEl = card.querySelector('.item-price-input');
+                const priceFb = card.querySelector('.item-price-feedback');
+
+                if (clothEl) {
+                    if (!clothEl.value) {
+                        clothEl.classList.add('is-invalid');
+                        firstInvalidEl = firstInvalidEl || clothEl;
+                    } else {
+                        clothEl.classList.remove('is-invalid');
+                    }
+                }
+                if (tailorEl) {
+                    if (!tailorEl.value) {
+                        tailorEl.classList.add('is-invalid');
+                        firstInvalidEl = firstInvalidEl || tailorEl;
+                    } else {
+                        tailorEl.classList.remove('is-invalid');
+                    }
+                }
+                if (qtyEl) {
+                    const qVal = parseInt(qtyEl.value, 10);
+                    if (isNaN(qVal) || qVal < 1) {
+                        qtyEl.classList.add('is-invalid');
+                        firstInvalidEl = firstInvalidEl || qtyEl;
+                    } else {
+                        qtyEl.classList.remove('is-invalid');
+                    }
+                }
+                if (priceEl) {
+                    const pRaw = priceEl.value.trim();
+                    const pVal = Number(pRaw);
+                    if (pRaw === '' || Number.isNaN(pVal) || pVal < 0) {
+                        priceEl.classList.add('is-invalid');
+                        if (priceFb) priceFb.classList.add('d-block');
+                        firstInvalidEl = firstInvalidEl || priceEl;
+                    } else {
+                        priceEl.classList.remove('is-invalid');
+                        if (priceFb) priceFb.classList.remove('d-block');
+                    }
+                }
+            });
+
+            const advanceEl = document.getElementById('advance_amount');
+            const total = parseFloat(document.getElementById('total_amount')?.value || 0);
+            const advanceRaw = advanceEl ? advanceEl.value.trim() : '';
+            const advance = parseFloat(advanceRaw || 0);
+            if (advanceEl) {
+                const advFb = document.getElementById('advanceAmountFeedback');
+                if (advanceRaw === '' || Number.isNaN(Number(advanceRaw)) || advance < 0) {
+                    if (advFb) advFb.textContent = advance < 0 ? 'Advance amount cannot be negative.' : 'Please enter advance amount.';
+                    advanceEl.classList.add('is-invalid');
+                    firstInvalidEl = firstInvalidEl || advanceEl;
+                } else {
+                    advanceEl.classList.remove('is-invalid');
+                }
+            }
+
+            const paymentMethodEl = document.getElementById('payment_method');
+            if (paymentMethodEl) {
+                if (!paymentMethodEl.value) {
+                    paymentMethodEl.classList.add('is-invalid');
+                    firstInvalidEl = firstInvalidEl || paymentMethodEl;
+                } else {
+                    paymentMethodEl.classList.remove('is-invalid');
+                }
+            }
+
+            if (firstInvalidEl) {
+                e.preventDefault();
+                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (typeof firstInvalidEl.focus === 'function') firstInvalidEl.focus();
                 return false;
             }
-            if (phoneInputEl) {
-                phoneInputEl.classList.remove('is-invalid');
-            }
-            const cards = document.querySelectorAll('.order-item-card');
+
             if (cards.length === 0) {
                 e.preventDefault();
                 showOrderAlert('Please add at least one garment to the order.', 'Garment Required', 'warning');
                 return false;
             }
-            let missingField = false;
-            cards.forEach((card, idx) => {
-                const cloth = card.querySelector('.item-cloth-type-select')?.value;
-                const tailor = card.querySelector('.item-tailor-select')?.value;
-                const price = card.querySelector('.item-price-input')?.value;
-                if (!cloth || !tailor || price === '') {
-                    missingField = true;
-                }
-            });
-            if (missingField) {
-                e.preventDefault();
-                showOrderAlert('Please select Cloth Type, Assigned Tailor, and Rate for all garments.', 'Required Fields', 'warning');
-                return false;
-            }
 
-            const total = parseFloat(document.getElementById('total_amount')?.value || 0);
-            const advance = parseFloat(document.getElementById('advance_amount')?.value || 0);
-            if (advance < 0) {
-                e.preventDefault();
-                showOrderAlert('Advance amount cannot be negative.', 'Invalid Advance Amount', 'warning');
-                return false;
-            }
             if (advance > total && total > 0) {
                 e.preventDefault();
                 showOrderAlert('Advance amount (₹' + advance.toFixed(2) + ') cannot be greater than Total amount (₹' + total.toFixed(2) + ').', 'Invalid Advance Amount', 'warning');
@@ -2715,14 +2822,20 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
         <input type="hidden" class="item-measurement-id" name="items[${index}][measurement_id]" value="${measId}">
         <div class="order-item-header">
             <!-- 1. Cloth Type Select with Rate -->
-            <select class="form-select item-cloth-type-select" name="items[${index}][cloth_type_id]" required style="border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
-                ${clothOptions}
-            </select>
+            <div class="order-item-field order-item-cloth-wrap">
+                <select class="form-select item-cloth-type-select" name="items[${index}][cloth_type_id]" required style="border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
+                    ${clothOptions}
+                </select>
+                <div class="invalid-feedback">Please select a cloth type.</div>
+            </div>
 
             <!-- 2. Assigned Tailor Select -->
-            <select class="form-select item-tailor-select" name="items[${index}][assigned_tailor_id]" required style="border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
-                ${tailorOptions}
-            </select>
+            <div class="order-item-field order-item-tailor-wrap">
+                <select class="form-select item-tailor-select" name="items[${index}][assigned_tailor_id]" required style="border-radius: 8px; border-color: #d1d5db; font-size: 0.85rem; font-weight: 500;">
+                    ${tailorOptions}
+                </select>
+                <div class="invalid-feedback">Please select a tailor.</div>
+            </div>
 
             <!-- 3. Collapse / Expand toggle button -->
             <button type="button" class="btn btn-link p-1 text-secondary item-collapse-btn" title="Expand / Collapse" style="text-decoration: none; font-size: 0.95rem;">
@@ -2740,14 +2853,14 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
             <div class="item-pills-container">
                 ${pillsHtml}
             </div>
-            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-wrap gap-2">
-                <div class="d-flex align-items-center flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-start mt-2 pt-2 border-top flex-wrap gap-2">
+                <div class="d-flex align-items-center flex-wrap gap-2 pt-1">
                     <span class="small text-muted" style="font-size: 0.78rem;">
                         <i class="fas fa-tag me-1 text-primary"></i>Standard Rate: ₹<span class="item-standard-rate">${standardRateText}</span>
                     </span>
                     <span class="small text-primary fw-semibold item-line-total" style="font-size: 0.78rem; display: none;"></span>
                 </div>
-                <div class="d-flex align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-start flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-2">
                         <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Qty:</label>
                         <div class="input-group input-group-sm item-qty-group">
@@ -2756,12 +2869,15 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
                             <button type="button" class="btn btn-outline-secondary item-qty-plus" aria-label="Increase quantity">+</button>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Rate / Price:</label>
-                        <div class="input-group input-group-sm" style="width: 125px;">
-                            <span class="input-group-text bg-white text-muted fw-bold">₹</span>
-                            <input type="number" class="form-control form-control-sm item-price-input" name="items[${index}][price]" step="0.01" min="0" placeholder="0.00" value="${initPrice}" required style="font-weight: 600; border-radius: 0 6px 6px 0;">
+                    <div class="d-flex flex-column align-items-end">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="small text-muted fw-semibold mb-0" style="font-size: 0.78rem;">Rate / Price:</label>
+                            <div class="input-group input-group-sm" style="width: 125px;">
+                                <span class="input-group-text bg-white text-muted fw-bold">₹</span>
+                                <input type="number" class="form-control form-control-sm item-price-input" name="items[${index}][price]" step="0.01" min="0" placeholder="0.00" value="${initPrice}" required style="font-weight: 600; border-radius: 0 6px 6px 0;">
+                            </div>
                         </div>
+                        <div class="invalid-feedback text-end item-price-feedback" style="font-size: 0.75rem;">Please enter rate / price.</div>
                     </div>
                 </div>
             </div>
@@ -2792,23 +2908,46 @@ function addOrderItemCard(itemData = {}, isExpanded = true) {
         }
     });
 
+    const tailorSelect = card.querySelector('.item-tailor-select');
+    const priceFeedback = card.querySelector('.item-price-feedback');
+
     clothSelect.addEventListener('change', function() {
+        if (this.value) this.classList.remove('is-invalid');
         const selectedOpt = this.options[this.selectedIndex];
         const rate = selectedOpt ? parseFloat(selectedOpt.getAttribute('data-rate')) || 0 : 0;
         if (stdRateSpan) stdRateSpan.textContent = rate > 0 ? rate.toFixed(2) : '0.00';
         if (priceInput && (!priceInput.value || parseFloat(priceInput.value) === 0 || priceInput.dataset.autoFilled === 'true' || !itemData.price)) {
             priceInput.value = rate > 0 ? rate.toFixed(2) : '0.00';
             priceInput.dataset.autoFilled = 'true';
+            priceInput.classList.remove('is-invalid');
+            if (priceFeedback) priceFeedback.classList.remove('d-block');
         }
         calculateTotalFromItems();
     });
 
+    if (tailorSelect) {
+        tailorSelect.addEventListener('change', function() {
+            if (this.value) this.classList.remove('is-invalid');
+        });
+    }
+
+    function syncItemPriceFeedback() {
+        if (!priceInput) return;
+        const raw = priceInput.value.trim();
+        if (raw !== '' && !Number.isNaN(Number(raw)) && Number(raw) >= 0) {
+            priceInput.classList.remove('is-invalid');
+            if (priceFeedback) priceFeedback.classList.remove('d-block');
+        }
+    }
+
     priceInput.addEventListener('input', function() {
         priceInput.dataset.autoFilled = 'false';
+        syncItemPriceFeedback();
         calculateTotalFromItems();
     });
     priceInput.addEventListener('change', function() {
         priceInput.dataset.autoFilled = 'false';
+        syncItemPriceFeedback();
         calculateTotalFromItems();
     });
 
@@ -3238,9 +3377,11 @@ function setCustomerValue(name, phone = '', triggerChange = true) {
     if (customerSelectBox) {
         customerSelectBox.classList.remove('is-invalid');
     }
+    document.getElementById('customerPickerContainer')?.classList.remove('is-invalid');
     const phoneInput = document.getElementById('customer_phone');
     if (phoneInput && phone) {
         phoneInput.value = phone;
+        phoneInput.classList.remove('is-invalid');
     }
     if (triggerChange) {
         customerIdInput.dispatchEvent(new Event('change'));
@@ -3749,6 +3890,7 @@ if (orderModalEl) {
         if (idEl) idEl.value = '';
         const formEl = document.getElementById('orderForm');
         if (formEl) formEl.reset();
+        if (typeof window.clearOrderInlineErrors === 'function') window.clearOrderInlineErrors();
         const dateEl = document.getElementById('order_date');
         if (dateEl) dateEl.value = '<?php echo date('Y-m-d'); ?>';
         const phoneEl = document.getElementById('customer_phone');

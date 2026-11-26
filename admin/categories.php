@@ -478,7 +478,7 @@ include 'includes/page-header.php';
 <div class="modal fade" id="categoryModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <form method="POST" id="categoryForm">
+            <form method="POST" id="categoryForm" novalidate>
                 <div class="modal-header">
                     <h5 class="modal-title" id="categoryModalTitle">Add Category</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -491,6 +491,7 @@ include 'includes/page-header.php';
                     <div class="mb-3">
                         <label for="name" class="form-label">Category Name *</label>
                         <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="invalid-feedback">Please enter a category name.</div>
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
@@ -540,7 +541,9 @@ function editCategory(cat) {
     document.getElementById('categoryModalTitle').textContent = 'Edit Category';
     document.getElementById('categoryAction').value = 'update';
     document.getElementById('categoryId').value = cat.id;
-    document.getElementById('name').value = cat.name;
+    const nameInput = document.getElementById('name');
+    nameInput.value = cat.name;
+    nameInput.classList.remove('is-invalid');
     document.getElementById('description').value = cat.description || '';
     document.getElementById('status').value = cat.status;
     new bootstrap.Modal(document.getElementById('categoryModal')).show();
@@ -606,10 +609,26 @@ document.getElementById('sortCategoriesBtn')?.addEventListener('click', function
     }
 });
 
+document.getElementById('categoryForm')?.addEventListener('submit', function(e) {
+    const nameInput = document.getElementById('name');
+    if (nameInput && nameInput.value.trim() === '') {
+        e.preventDefault();
+        nameInput.classList.add('is-invalid');
+        nameInput.focus();
+    }
+});
+
+document.getElementById('name')?.addEventListener('input', function() {
+    if (this.value.trim() !== '') {
+        this.classList.remove('is-invalid');
+    }
+});
+
 document.getElementById('categoryModal')?.addEventListener('hidden.bs.modal', function() {
     document.getElementById('categoryModalTitle').textContent = 'Add Category';
     document.getElementById('categoryAction').value = 'create';
     document.getElementById('categoryForm').reset();
+    document.getElementById('name')?.classList.remove('is-invalid');
 });
         </script>
 <?php require_once 'includes/footer.php'; ?>

@@ -514,54 +514,56 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                         </div>
                     </div>
                 </div>
-                <?php if ($prog < 100): ?>
-                <div class="mt-1">
-                    <a href="company-settings.php" class="wb-pill-btn-mob">
-                        Complete Profile <i class="fas fa-arrow-right ms-1" style="font-size: 0.70rem;"></i>
-                    </a>
-                </div>
-                <?php endif; ?>
-                <div class="d-flex flex-column gap-1 mt-1 pt-1">
-                    <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
-                        <?php 
-                        $row1Fields = ['business_address' => 'Address', 'city' => 'City', 'state' => 'State'];
-                        foreach ($row1Fields as $key => $label): 
-                        ?>
-                            <?php if ($fieldsDone[$key]): ?>
-                                <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: #ffffff; font-weight: 500;">
-                                    <span style="width: 13px; height: 13px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 8px; flex-shrink: 0;">
-                                        <i class="fas fa-check"></i>
+                <div class="d-flex align-items-center justify-content-between gap-2 mt-1 pt-1">
+                    <div class="d-flex flex-column gap-1 flex-grow-1" style="min-width: 0;">
+                        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <?php 
+                            $row1Fields = ['business_address' => 'Address', 'city' => 'City', 'state' => 'State'];
+                            foreach ($row1Fields as $key => $label): 
+                            ?>
+                                <?php if ($fieldsDone[$key]): ?>
+                                    <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.68rem; color: #ffffff; font-weight: 500;">
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 7px; flex-shrink: 0;">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                        <?php echo $label; ?>
                                     </span>
-                                    <?php echo $label; ?>
-                                </span>
-                            <?php else: ?>
-                                <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: rgba(255,255,255,0.85); font-weight: 500;">
-                                    <span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
-                                    <?php echo $label; ?>
-                                </span>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
-                        <?php 
-                        $row2Fields = ['postal_code' => 'PIN Code', 'logo' => 'Business Logo'];
-                        foreach ($row2Fields as $key => $label): 
-                        ?>
-                            <?php if ($fieldsDone[$key]): ?>
-                                <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: #ffffff; font-weight: 500;">
-                                    <span style="width: 13px; height: 13px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 8px; flex-shrink: 0;">
-                                        <i class="fas fa-check"></i>
+                                <?php else: ?>
+                                    <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.68rem; color: rgba(255,255,255,0.85); font-weight: 500;">
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
+                                        <?php echo $label; ?>
                                     </span>
-                                    <?php echo $label; ?>
-                                </span>
-                            <?php else: ?>
-                                <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.70rem; color: rgba(255,255,255,0.85); font-weight: 500;">
-                                    <span style="width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
-                                    <?php echo $label; ?>
-                                </span>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <?php 
+                            $row2Fields = ['postal_code' => 'PIN Code', 'logo' => 'Business Logo'];
+                            foreach ($row2Fields as $key => $label): 
+                            ?>
+                                <?php if ($fieldsDone[$key]): ?>
+                                    <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.68rem; color: #ffffff; font-weight: 500;">
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #00e676; display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-size: 7px; flex-shrink: 0;">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                        <?php echo $label; ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="d-inline-flex align-items-center gap-1" style="font-size: 0.68rem; color: rgba(255,255,255,0.85); font-weight: 500;">
+                                        <span style="width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.18); display: inline-flex; flex-shrink: 0;"></span>
+                                        <?php echo $label; ?>
+                                    </span>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
+                    <?php if ($prog < 100): ?>
+                    <div class="flex-shrink-0">
+                        <a href="company-settings.php" class="wb-pill-btn-mob text-nowrap" style="padding: 6px 12px; font-size: 0.72rem;">
+                            Complete Profile <i class="fas fa-arrow-right ms-1" style="font-size: 0.66rem;"></i>
+                        </a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

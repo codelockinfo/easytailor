@@ -1,5 +1,4 @@
 <?php
-
 require_once '../config/config.php';
 if (is_logged_in()) {
     if (get_user_role() === 'tailor') {
@@ -15,12 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($authMethod === 'otp_verify') {
         $email = trim(sanitize_input($_POST['email'] ?? ''));
         $code = trim(sanitize_input($_POST['code'] ?? ''));
-
         if (!empty($email) && !empty($code)) {
             require_once '../controllers/AuthController.php';
             $authController = new AuthController();
             $result = $authController->verifyLoginOtp($email, $code);
-
             if ($result['success']) {
                 smart_redirect($result['redirect'] ?? 'dashboard.php');
                 exit;
@@ -35,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     }
-
     $username = sanitize_input($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     if ($username === 'codelock2021@gmail.com' && $password === 'Codelock@63') {
@@ -48,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once '../controllers/AuthController.php';
         $authController = new AuthController();
         $result = $authController->loginWithPasswordOtp($username, $password, $_SERVER['REMOTE_ADDR'] ?? '');
-        
         if ($result['success']) {
             if (!empty($result['requires_otp'])) {
                 $_SESSION['login_success'] = $result['message'];
@@ -69,35 +64,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
 if (isset($_SESSION['login_error'])) {
     $error_message = $_SESSION['login_error'];
     unset($_SESSION['login_error']);
 }
-
+if (isset($_GET['error'])) {
+    if ($_GET['error'] === 'account_deleted') {
+        $error_message = 'Your account or company record no longer exists in the system. You have been logged out.';
+    } elseif ($_GET['error'] === 'account_inactive') {
+        $error_message = 'Your account is currently inactive or disabled. Please contact administrator.';
+    }
+}
 if (isset($_GET['logout'])) {
     $success_message = 'You have been logged out successfully';
 }
-
 if (isset($_SESSION['reg_success'])) {
     $success_message = $_SESSION['reg_success'];
     unset($_SESSION['reg_success']);
 }
-
 if (isset($_SESSION['login_success'])) {
     $success_message = $_SESSION['login_success'];
     unset($_SESSION['login_success']);
 }
-
 $isVerifyStep = (isset($_GET['step']) && $_GET['step'] === 'verify' && !empty($_GET['email']));
 $verifyEmail = $isVerifyStep ? sanitize_input($_GET['email']) : '';
 ?>
 <?php
 require_once '../helpers/SEOHelper.php';
-
 $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 $canonicalUrl = $baseUrl . '/admin/login.php';
-
 $seoOptions = [
     'title' => 'Login - ' . (defined('APP_NAME') ? APP_NAME : 'Tailoring Management System'),
     'description' => 'Login to your tailoring management system account to manage your tailor shop, customers, orders, and invoices.',
@@ -272,7 +267,7 @@ $seoOptions = [
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>
                         </a>
-                        <p class="mb-0 opacity-75"><?php echo __t('sign_in_to_account', 'Sign in to your account'); ?></p>
+                        <p class="mb-0 opacity-75"><?php echo $isVerifyStep ? 'Email Verification' : __t('sign_in_to_account', 'Sign in to your account'); ?></p>
                     </div>
                     <div class="card-body p-4">
                         <?php if ($error_message): ?>
@@ -282,21 +277,17 @@ $seoOptions = [
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php endif; ?>
-                        
                         <?php if ($success_message): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                 <i class="fas fa-check-circle me-2"></i>
-                                <?php echo htmlspecialchars($success_message); ?>
+                                <?php echo $success_message; ?>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php endif; ?>
-                        
-                        <!-- Unified Login Alert Box -->
                         <div id="otpAlertBox" class="alert d-none mb-3" role="alert"></div>
 
-                        <!-- Step 1: Email / Username + Password (default view) -->
                         <div id="stepPassword" style="<?php echo $isVerifyStep ? 'display:none;' : ''; ?>">
-                            <!-- Continue with Google Button -->
+                     
                             <div class="mb-3">
                                 <a href="google-login.php" class="btn btn-google w-100" id="btnGoogleLogin">
                                     <svg class="me-2 flex-shrink-0" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -308,17 +299,14 @@ $seoOptions = [
                                     <span><?php echo __t('continue_with_google', 'Continue with Google'); ?></span>
                                 </a>
                             </div>
-
                             <div class="login-divider my-3 d-flex align-items-center">
                                 <span class="divider-line"></span>
                                 <span class="divider-text"><?php echo __t('or', 'or'); ?></span>
                                 <span class="divider-line"></span>
                             </div>
-
                             <form method="POST" action="" id="passwordLoginForm" onsubmit="handlePasswordLogin(event)">
                                 <input type="hidden" name="csrf_token" id="loginCsrfToken" value="<?php echo generate_csrf_token(); ?>">
                                 <input type="hidden" name="auth_method" value="password">
-
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username or Email</label>
                                     <div class="input-group">
@@ -338,7 +326,6 @@ $seoOptions = [
                                         <i class="fas fa-times-circle me-1"></i><span></span>
                                     </div>
                                 </div>
-
                                 <div class="mb-3" id="passwordFieldBlock">
                                     <label for="password" class="form-label">Password</label>
                                     <div class="input-group">
@@ -360,14 +347,12 @@ $seoOptions = [
                                         <i class="fas fa-times-circle me-1"></i><span></span>
                                     </div>
                                 </div>
-
                                 <div class="d-grid mb-3">
                                     <button type="submit" id="btnPasswordSignIn" class="btn btn-primary btn-login">
                                         <span class="btn-text"><i class="fas fa-sign-in-alt me-2"></i>Sign In</span>
                                         <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
                                     </button>
                                 </div>
-
                                 <div class="text-center mt-3 mb-1">
                                     <a href="forgot-password.php" class="text-decoration-none small text-muted">
                                         <i class="fas fa-key me-1"></i>Forgot Password?
@@ -375,19 +360,15 @@ $seoOptions = [
                                 </div>
                             </form>
                         </div>
-
-                        <!-- Step 2: OTP — Enter Code -->
                         <div id="stepOtpVerify" style="<?php echo $isVerifyStep ? 'display:block;' : 'display:none;'; ?>">
                             <div class="p-2 mb-3 rounded-3 text-center" style="background:#f1f5f9;font-size:0.82rem;">
                                 <span>Code sent to <strong id="otpTargetEmailText" class="text-dark"><?php echo htmlspecialchars($verifyEmail); ?></strong></span>
                                 <button type="button" class="btn btn-link btn-sm text-primary p-0 ms-1" style="font-size:0.8rem;text-decoration:none;" onclick="backToPassword()">Change</button>
                             </div>
-
                             <form id="formVerifyOtp" onsubmit="handleVerifyOtp(event)">
                                 <input type="hidden" id="otpCsrfToken" value="<?php echo generate_csrf_token(); ?>">
                                 <input type="hidden" id="postOtpEmail" value="<?php echo htmlspecialchars($verifyEmail); ?>">
                                 <input type="hidden" id="postOtpCode">
-
                                 <div class="mb-3">
                                     <label class="form-label text-center w-100 mb-2" style="font-size:0.88rem;font-weight:600;">Verification Code</label>
                                     <div class="code-inputs" id="codeInputsContainer">
@@ -399,24 +380,27 @@ $seoOptions = [
                                         <input type="text" class="code-digit" maxlength="1" pattern="\d" inputmode="numeric" required>
                                     </div>
                                 </div>
-
                                 <div class="text-center mb-3">
                                     <button type="button" id="btnResendOtp" class="btn btn-link text-decoration-none p-0" style="font-size:0.82rem;" onclick="handleResendOtp()" disabled>
                                         Resend code in <span id="otpCountdown" class="fw-bold">60</span>s
                                     </button>
                                 </div>
-
                                 <div class="d-grid mb-3">
                                     <button type="submit" id="btnVerifyOtp" class="btn btn-primary btn-login">
                                         <span class="btn-text"><i class="fas fa-check-circle me-2"></i>Verify &amp; Sign In</span>
                                         <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
                                     </button>
                                 </div>
-
                                 <div class="text-center">
-                                    <button type="button" class="btn btn-link p-0 text-secondary small text-decoration-none" onclick="backToPassword()">
-                                        <i class="fas fa-arrow-left me-1"></i>Back to Password Login
-                                    </button>
+                                    <?php if (isset($_GET['registered']) && $_GET['registered'] === '1'): ?>
+                                        <a href="register.php" class="btn btn-link p-0 text-secondary small text-decoration-none">
+                                            <i class="fas fa-arrow-left me-1"></i>Back to Registration
+                                        </a>
+                                    <?php else: ?>
+                                        <button type="button" class="btn btn-link p-0 text-secondary small text-decoration-none" onclick="backToPassword()">
+                                            <i class="fas fa-arrow-left me-1"></i>Back to Password Login
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </form>
                         </div>
@@ -446,12 +430,10 @@ $seoOptions = [
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let resendTimer = null;
         let cooldownSeconds = 60;
-
         document.getElementById('togglePassword').addEventListener('click', function() {
             const password = document.getElementById('password');
             const icon = this.querySelector('i');
@@ -467,7 +449,6 @@ $seoOptions = [
             }
         });
         setTimeout(function() {
-            // Auto close only flash banner alerts, NEVER touch #otpAlertBox
             const alerts = document.querySelectorAll('.alert.alert-dismissible:not(#otpAlertBox)');
             alerts.forEach(function(alert) {
                 try {
@@ -480,7 +461,6 @@ $seoOptions = [
         (function() {
             var attempts = 0;
             var maxAttempts = 50;
-            
             function fireGA4Event() {
                 if (typeof gtag !== 'undefined' && typeof window.dataLayer !== 'undefined') {
                     try {
@@ -504,11 +484,9 @@ $seoOptions = [
         unset($_SESSION['ga4_event']);
         endif; 
         ?>
-
         function showOtpAlert(message, type = 'danger') {
             let box = document.getElementById('otpAlertBox');
             if (!box) {
-                // In case it was somehow removed from DOM, recreate it
                 const container = document.getElementById('stepPassword') || document.querySelector('.card-body');
                 if (container) {
                     box = document.createElement('div');
@@ -529,7 +507,6 @@ $seoOptions = [
             box.classList.remove('d-none');
             box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
-
         function hideOtpAlert() {
             const box = document.getElementById('otpAlertBox');
             if (box) {
@@ -537,7 +514,6 @@ $seoOptions = [
                 box.style.display = 'none';
             }
         }
-
         function clearFieldErrors() {
             const u = document.getElementById('username');
             const p = document.getElementById('password');
@@ -554,8 +530,6 @@ $seoOptions = [
                 pf.querySelector('span').textContent = '';
             }
         }
-
-        // Clear field validation errors as user types
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('username')?.addEventListener('input', function() {
                 this.classList.remove('is-invalid');
@@ -570,19 +544,16 @@ $seoOptions = [
                 hideOtpAlert();
             });
         });
-
         async function handlePasswordLogin(e) {
             if (e) e.preventDefault();
             hideOtpAlert();
             clearFieldErrors();
-
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const username = (usernameInput?.value || '').trim();
             const password = passwordInput?.value || '';
             const csrf = document.getElementById('loginCsrfToken')?.value || '';
             const btn = document.getElementById('btnPasswordSignIn');
-
             if (!username) {
                 if (usernameInput) usernameInput.classList.add('is-invalid');
                 const uf = document.getElementById('usernameFeedback');
@@ -594,7 +565,6 @@ $seoOptions = [
                 usernameInput?.focus();
                 return;
             }
-
             if (!password) {
                 if (passwordInput) passwordInput.classList.add('is-invalid');
                 const pf = document.getElementById('passwordFeedback');
@@ -606,9 +576,7 @@ $seoOptions = [
                 passwordInput?.focus();
                 return;
             }
-
             setButtonLoading(btn, true);
-         
             try {
                 const res = await fetch('ajax/auth_otp.php', {
                     method: 'POST',
@@ -620,7 +588,6 @@ $seoOptions = [
                         csrf_token: csrf
                     })
                 });
-
                 const text = await res.text();
                 let data;
                 try {
@@ -630,28 +597,22 @@ $seoOptions = [
                     showOtpAlert('Server error occurred during login. Please try again.');
                     return;
                 }
-
                 if (data.success) {
                     if (data.redirect && !data.requires_otp) {
                         window.location.href = data.redirect;
                         return;
                     }
-
-                    // Password is correct! OTP was generated and sent!
                     showOtpAlert(data.message || 'Password verified! Verification code has been sent to your email.', 'success');
                     document.getElementById('otpTargetEmailText').textContent = data.email || username;
                     document.getElementById('postOtpEmail').value = data.email || username;
                     document.getElementById('stepPassword').style.display = 'none';
                     document.getElementById('stepOtpVerify').style.display = 'block';
-
                     startOtpCountdown(data.cooldown || 60);
-
                     setTimeout(() => {
                         const firstInput = document.querySelector('.code-digit');
                         if (firstInput) firstInput.focus();
                     }, 100);
                 } else {
-                    // Specific highlight based on error type
                     if (data.error_type === 'user_not_found') {
                         if (usernameInput) {
                             usernameInput.classList.add('is-invalid');
@@ -686,8 +647,6 @@ $seoOptions = [
                 setButtonLoading(btn, false);
             }
         }
-
-        // Check if redirected from server POST with step=verify
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('step') === 'verify') {
@@ -701,8 +660,6 @@ $seoOptions = [
                 }
             }
         })();
-
-        // Go back to password form
         function backToPassword() {
             hideOtpAlert();
             if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
@@ -711,8 +668,6 @@ $seoOptions = [
             document.getElementById('password').value = '';
             document.getElementById('password')?.focus();
         }
-
-        // ── Countdown timer & button helpers ──────────────────────────────────
         function startOtpCountdown(seconds = 60) {
             cooldownSeconds = seconds;
             const resendBtn = document.getElementById('btnResendOtp');
@@ -732,7 +687,6 @@ $seoOptions = [
                 }
             }, 1000);
         }
-
         function setButtonLoading(btn, isLoading) {
             if (!btn) return;
             const textEl = btn.querySelector('.btn-text');
@@ -743,8 +697,6 @@ $seoOptions = [
                 spinEl.classList.toggle('d-none', !isLoading);
             }
         }
-
-        // ── Resend OTP ─────────────────────────────────────────────────────────
         async function handleResendOtp() {
             hideOtpAlert();
             const email = document.getElementById('postOtpEmail')?.value || document.getElementById('otpEmail')?.value || '';
@@ -774,8 +726,6 @@ $seoOptions = [
                 resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i> Resend Verification Code';
             }
         }
-
-        // ── Verify OTP ─────────────────────────────────────────────────────────
         async function handleVerifyOtp(e) {
             if (e) e.preventDefault();
             hideOtpAlert();
@@ -810,8 +760,6 @@ $seoOptions = [
                 setButtonLoading(btn, false);
             }
         }
-
-        // ── Digit input navigation (auto-tab, backspace, paste) ────────────────
         (function() {
             const container = document.getElementById('codeInputsContainer');
             if (!container) return;
@@ -838,7 +786,15 @@ $seoOptions = [
                 });
             });
         })();
-
+        <?php if ($isVerifyStep): ?>
+        window.addEventListener('DOMContentLoaded', function() {
+            startOtpCountdown(60);
+            const firstDigit = document.querySelector('.code-digit');
+            if (firstDigit) {
+                setTimeout(() => firstDigit.focus(), 150);
+            }
+        });
+        <?php endif; ?>
     </script>
 </body>
 </html>

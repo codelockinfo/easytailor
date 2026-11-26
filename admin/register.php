@@ -28,8 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        if (strlen($password) < 6) {
+        if (function_exists('validate_password_strength')) {
+            $pwdCheck = validate_password_strength($password);
+            if (!$pwdCheck['valid']) {
+                $_SESSION['reg_error'] = $pwdCheck['message'];
+                $_SESSION['reg_form_data'] = $_POST;
+                header('Location: register.php');
+                exit;
+            }
+        } elseif (strlen($password) < 6) {
             $_SESSION['reg_error'] = 'Password must be at least 6 characters';
+            $_SESSION['reg_form_data'] = $_POST;
             header('Location: register.php');
             exit;
         }
@@ -141,113 +150,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->commit();
             }
 
-            // Attempt to send welcome email (non-blocking)
-            $mailService = new MailService();
+            // Clear promo offer source cookie if applicable
             if ($cameFromOffer) {
-                $welcomeMessage = 'Congratulations! You have successfully registered and your Professional Plan (1 Year Free) has been activated! Please login with your credentials to get started.';
-                // Clear the offer source cookie after successful registration
                 setcookie('promo_offer_source', '', time() - 3600, '/');
-                // Note: Removed offer_claimed cookie to allow users to claim offers multiple times through different profiles
-            } else {
-                $welcomeMessage = 'Registration successful! Please login with your credentials.';
             }
 
-            $emailSent = false;
-            $mailError = '';
-
-            if ($mailService->isEnabled()) {
-                $emailSent = $mailService->sendWelcomeEmail([
-                    'email' => $businessEmail,
-                    'name' => $ownerName,
-                    'companyName' => $companyName,
-                    'username' => $username
-                ]);
-                $mailError = $mailService->getLastError();
-            }
-
-            if (!$emailSent) {
-                // Fallback to native mail() with inline template
-                $baseUrl = rtrim(APP_URL, '/');
-                if (substr($baseUrl, -6) === '/admin') {
-                    $baseUrl = substr($baseUrl, 0, -6);
-                }
-                $manageUrl = $baseUrl . '/admin/login.php';
-                $logoPath = get_logo_path('footer-logo.png') ?: get_logo_path('brand-logo.png') ?: 'assets/images/logo.png';
-                $logoUrl = $baseUrl . '/' . ltrim(str_replace(['../', './'], '', $logoPath), '/');
-
-                $subject = 'Welcome to ' . APP_NAME;
-                $body = "
-                <html>
-                    <head>
-                        <meta charset='UTF-8'>
-                        <style>
-                            body { background:#f5f6fa; font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; }
-                            .wrapper { padding:32px 0; }
-                            .card { max-width:600px; margin:0 auto; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 12px 40px rgba(17,24,39,0.12); }
-                            .header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:40px 40px 24px; text-align:center; }
-                            .header img { max-width:180px; height:auto; margin-bottom:20px; }
-                            .header h1 { color:#ffffff; margin:0; font-size:28px; }
-                            .content { padding:32px 40px 24px; color:#2d3748; }
-                            .content p { font-size:16px; line-height:1.6; margin:0 0 16px; }
-                            .button { display:inline-block; padding:16px 32px; background:linear-gradient(135deg,#4c51bf 0%,#667eea 100%); color:#ffffff !important; text-decoration:none; border-radius:8px; font-weight:600; }
-                            .footer { padding:24px 40px 40px; border-top:1px solid #edf2f7; text-align:center; color:#718096; font-size:13px; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class='wrapper'>
-                            <div class='card'>
-                                <div class='header'>
-                                    <img src='{$logoUrl}' alt='" . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . "'>
-                                    <h1>Welcome to " . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . "!</h1>
-                                </div>
-                                <div class='content'>
-                                    <p>Hi " . htmlspecialchars($ownerName, ENT_QUOTES, 'UTF-8') . ",</p>
-                                    <p>Thanks for registering <strong>" . htmlspecialchars($companyName, ENT_QUOTES, 'UTF-8') . "</strong> with " . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . ". Your dashboard is ready to manage orders, customers, tailors, and payments in one place.</p>";
-
-                if (!empty($username)) {
-                    $body .= "<p><strong>Username:</strong> " . htmlspecialchars($username, ENT_QUOTES, 'UTF-8') . "</p>";
-                }
-
-                $supportEmail = SMTP_FROM_EMAIL ?: 'support@' . ($_SERVER['SERVER_NAME'] ?? 'example.com');
-
-                $body .= "
-                                    <p>Click the button below to start managing your tailor shop right away.</p>
-                                    <p style='text-align:center; margin:32px 0;'>
-                                        <a class='button' href='" . htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') . "' style='color:#ffffff !important;'><span style='color:#ffffff !important;'>Manage Your Tailor</span></a>
-                                    </p>
-                                    <p>If you need help, reply to this email or contact us at <a href='mailto:" . htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') . "</a>.</p>
-                                </div>
-                                <div class='footer'>
-                                    <p>Cheers,<br>" . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . " Team</p>
-                                    <p>&copy; " . date('Y') . ' ' . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . ". All rights reserved.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                </html>";
-
-                $headers = "MIME-Version: 1.0\r\n";
-                $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-                $fromEmail = SMTP_FROM_EMAIL ?: 'no-reply@' . ($_SERVER['SERVER_NAME'] ?? 'example.com');
-                $fromName = SMTP_FROM_NAME ?: APP_NAME;
-                $headers .= "From: " . $fromName . " <" . $fromEmail . ">\r\n";
-
-                $emailSent = mail($businessEmail, $subject, $body, $headers);
-
-                if (!$emailSent) {
-                    $welcomeMessage .= ' (We could not deliver the welcome email. Please verify SMTP settings.)';
-                    $fallbackError = $mailError ?: 'mail() fallback failed';
-                    error_log('Welcome email failed: ' . $fallbackError);
-                }
-            }
-
+            // Generate and dispatch Email OTP for immediate verification & login
+            require_once '../controllers/AuthController.php';
+            $authController = new AuthController();
+            $otpCustomSubject = 'Your Registration Verification Code - ' . APP_NAME;
+            $otpCustomMessage = 'Thank you for registering with ' . APP_NAME . '! Please use the following 6-digit verification code to verify your email and sign in directly to your dashboard:';
+            $otpResult = $authController->requestLoginOtp(
+                $businessEmail,
+                $_SERVER['REMOTE_ADDR'] ?? '',
+                $otpCustomSubject,
+                $otpCustomMessage
+            );
 
             // Track signup event for GA4
             require_once '../helpers/GA4Helper.php';
             $_SESSION['ga4_event'] = GA4Helper::trackSignup($userId, $companyId, $companyName, $ownerName);
             
-            // Success - redirect to login
-            $_SESSION['reg_success'] = $welcomeMessage;
+            // Set success notice and redirect directly to OTP verification & direct login step
+            $regSuccessNotice = 'Registration successful! A 6-digit verification code has been sent to ' . htmlspecialchars($businessEmail) . '. Please enter it below to access your dashboard.';
+            if (!empty($otpResult['dev_otp'])) {
+                $regSuccessNotice .= ' (Verification Code: ' . $otpResult['dev_otp'] . ')';
+            }
+            $_SESSION['login_success'] = $regSuccessNotice;
+            smart_redirect('login.php?step=verify&email=' . urlencode($businessEmail) . '&registered=1');
+            exit;
             smart_redirect('login.php');
             exit;
             
@@ -441,6 +372,30 @@ $seoOptions = [
             letter-spacing: 0.5px;
             color: #94a3b8;
         }
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            background: #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .password-strength.weak { background: #dc3545; width: 33%; }
+        .password-strength.medium { background: #ffc107; width: 66%; }
+        .password-strength.strong { background: #28a745; width: 100%; }
+        .password-requirements {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .requirement {
+            padding: 2px 0;
+            transition: color 0.2s ease;
+        }
+        .requirement.met {
+            color: #28a745;
+        }
+        .requirement.met i {
+            color: #28a745;
+        }
         @media (max-width: 768px) {
             .register-header h2 {
                 font-size: 1.25rem;
@@ -590,6 +545,21 @@ $seoOptions = [
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
+                                    <div class="password-strength" id="regStrengthBar"></div>
+                                    <div class="password-requirements mt-2">
+                                        <div class="requirement" id="req-length">
+                                            <i class="fas fa-circle"></i> At least 6 characters
+                                        </div>
+                                        <div class="requirement" id="req-uppercase">
+                                            <i class="fas fa-circle"></i> Contains uppercase letter
+                                        </div>
+                                        <div class="requirement" id="req-lowercase">
+                                            <i class="fas fa-circle"></i> Contains lowercase letter
+                                        </div>
+                                        <div class="requirement" id="req-number">
+                                            <i class="fas fa-circle"></i> Contains number
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <label for="confirm_password" class="form-label">
@@ -612,6 +582,7 @@ $seoOptions = [
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
+                                    <small class="d-block mt-2" id="regMatchMessage" style="font-size: 12px;"></small>
                                 </div>
                             </div>
                             
@@ -770,7 +741,95 @@ $seoOptions = [
             setupPhoneValidationInline('business_phone', '+91');
         });
         
-        // Password match validation
+        // Real-time password requirements validation
+        const regPasswordInput = document.getElementById('password');
+        const regConfirmPasswordInput = document.getElementById('confirm_password');
+        const regStrengthBar = document.getElementById('regStrengthBar');
+        const regMatchMsg = document.getElementById('regMatchMessage');
+
+        function updateRegRequirement(id, met) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const icon = el.querySelector('i');
+            if (met) {
+                el.classList.add('met');
+                if (icon) {
+                    icon.classList.remove('fa-circle');
+                    icon.classList.add('fa-check-circle');
+                }
+            } else {
+                el.classList.remove('met');
+                if (icon) {
+                    icon.classList.remove('fa-check-circle');
+                    icon.classList.add('fa-circle');
+                }
+            }
+        }
+
+        function checkRegPasswordMatch() {
+            if (!regPasswordInput || !regConfirmPasswordInput || !regMatchMsg) return;
+            const p1 = regPasswordInput.value;
+            const p2 = regConfirmPasswordInput.value;
+            if (p2.length > 0) {
+                if (p1 === p2) {
+                    regMatchMsg.textContent = '✓ Passwords match';
+                    regMatchMsg.className = 'd-block mt-2 text-success';
+                    regConfirmPasswordInput.classList.remove('is-invalid');
+                    regConfirmPasswordInput.classList.add('is-valid');
+                } else {
+                    regMatchMsg.textContent = '✗ Passwords do not match';
+                    regMatchMsg.className = 'd-block mt-2 text-danger';
+                    regConfirmPasswordInput.classList.remove('is-valid');
+                    regConfirmPasswordInput.classList.add('is-invalid');
+                }
+            } else {
+                regMatchMsg.textContent = '';
+                regConfirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+            }
+        }
+
+        if (regPasswordInput) {
+            regPasswordInput.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+
+                const hasLength = password.length >= 6;
+                const hasUppercase = /[A-Z]/.test(password);
+                const hasLowercase = /[a-z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+
+                updateRegRequirement('req-length', hasLength);
+                updateRegRequirement('req-uppercase', hasUppercase);
+                updateRegRequirement('req-lowercase', hasLowercase);
+                updateRegRequirement('req-number', hasNumber);
+
+                if (hasLength) strength++;
+                if (hasUppercase) strength++;
+                if (hasLowercase) strength++;
+                if (hasNumber) strength++;
+
+                if (regStrengthBar) {
+                    regStrengthBar.className = 'password-strength';
+                    if (password.length > 0) {
+                        if (strength <= 1) {
+                            regStrengthBar.classList.add('weak');
+                        } else if (strength <= 3) {
+                            regStrengthBar.classList.add('medium');
+                        } else {
+                            regStrengthBar.classList.add('strong');
+                        }
+                    }
+                }
+
+                checkRegPasswordMatch();
+            });
+        }
+
+        if (regConfirmPasswordInput) {
+            regConfirmPasswordInput.addEventListener('input', checkRegPasswordMatch);
+        }
+
+        // Form submit validation
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             // Validate phone number
             const businessPhone = document.getElementById('business_phone');
@@ -791,6 +850,17 @@ $seoOptions = [
             if (password !== confirmPassword) {
                 e.preventDefault();
                 alert('Passwords do not match!');
+                return false;
+            }
+
+            const hasLength = password.length >= 6;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+
+            if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber) {
+                e.preventDefault();
+                alert('Password must meet all 4 conditions:\n• At least 6 characters\n• Contains uppercase letter\n• Contains lowercase letter\n• Contains number');
                 return false;
             }
         });

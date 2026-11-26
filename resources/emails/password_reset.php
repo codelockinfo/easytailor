@@ -32,7 +32,7 @@
                                         <span style="display:inline-block;font-size:30px;letter-spacing:10px;font-weight:700;color:#4c51bf;">
                                             <?= htmlspecialchars($code ?? ''); ?>
                                         </span>
-                                        <p style="margin:12px 0 0;font-size:13px;color:#718096;">Code expires in 15 minutes</p>
+                                        <p style="margin:12px 0 0;font-size:13px;color:#718096;">Code expires in 1 minute</p>
                                     </td>
                                 </tr>
                             </table>

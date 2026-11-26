@@ -16,7 +16,7 @@ try {
 
     if (!is_logged_in()) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        echo json_encode(['success' => false, 'error' => 'Unauthorized', 'logged_out' => true]);
         exit;
     }
 

@@ -12,7 +12,7 @@
                     <tr>
                         <td align="center" style="padding:36px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
                             <img src="<?= htmlspecialchars($logoUrl ?? ''); ?>" alt="<?= htmlspecialchars($appName ?? 'TailorPro'); ?>" style="max-width:160px;height:auto;margin-bottom:18px;">
-                            <h2 style="margin:0;color:#fff;font-size:26px;line-height:1.3;">Login Verification Code</h2>
+                            <h2 style="margin:0;color:#fff;font-size:26px;line-height:1.3;"><?= htmlspecialchars($title ?? 'Verification Code'); ?></h2>
                         </td>
                     </tr>
                     <tr>
@@ -20,12 +20,18 @@
                             <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">
                                 Hi <?= htmlspecialchars($userName ?? 'there'); ?>,
                             </p>
+                            <?php if (!empty($customMessage)): ?>
+                            <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">
+                                <?= htmlspecialchars($customMessage); ?>
+                            </p>
+                            <?php else: ?>
                             <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">
                                 You recently requested to sign in to your <strong><?= htmlspecialchars($appName ?? 'TailorPro'); ?></strong> account using Email OTP.
                             </p>
                             <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">
                                 Please use the following 6-digit one-time verification code to complete your login:
                             </p>
+                            <?php endif; ?>
                             <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:24px 0;">
                                 <tr>
                                     <td align="center" style="padding:22px;background-color:#f7f8ff;border:2px dashed #667eea;border-radius:12px;">
@@ -33,7 +39,7 @@
                                             <?= htmlspecialchars($code ?? ''); ?>
                                         </span>
                                         <p style="margin:12px 0 0;font-size:13px;color:#718096;font-weight:500;">
-                                            This code will expire in <strong>10 minutes</strong>.
+                                            This code will expire in <strong>1 minute</strong>.
                                         </p>
                                     </td>
                                 </tr>

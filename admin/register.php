@@ -81,9 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         try {
-            $database = new Database();
-            $db = $database->getConnection();
-            $db->beginTransaction();
             $cameFromOffer = false;
             $subscriptionPlan = 'free';
             $subscriptionExpiry = null;
@@ -121,99 +118,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $companyData['show_on_listing'] = Company::isProfileComplete($companyData) ? 1 : 0;
-            
-            $companyId = $companyModel->createCompany($companyData);
-            
-            if (!$companyId) {
-                throw new Exception('Failed to create company');
-            }
-            
-            // Populate default cloth types with measurement chart images (farmas)
-            require_once '../helpers/DefaultDataHelper.php';
-            DefaultDataHelper::createDefaultClothTypes($companyId);
-            
-            // Create owner user account
+
+            // Prepare user data (hashed password only); store and user are created only after OTP verification.
             $userData = [
-                'company_id' => $companyId,
                 'username' => $username,
                 'email' => $businessEmail,
-                'password' => $password,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
                 'full_name' => $ownerName,
                 'role' => 'admin',
                 'phone' => $businessPhone,
                 'address' => sanitize_input($_POST['business_address'] ?? ''),
                 'status' => 'active'
             ];
-            
-            $userId = $userModel->createUser($userData);
-            
-            if (!$userId) {
-                throw new Exception('Failed to create user account');
-            }
-            
-            // Update company with user_id (owner user ID)
-            $updateResult = $companyModel->update($companyId, ['user_id' => $userId]);
-            
-            if (!$updateResult) {
-                throw new Exception('Failed to link user to company');
-            }
-            
-            // Commit transaction
-            if (isset($db) && $db->inTransaction()) {
-                $db->commit();
-            }
 
-            // Clear promo offer source cookie if applicable
-            if ($cameFromOffer) {
-                setcookie('promo_offer_source', '', time() - 3600, '/');
-            }
-
-            // Generate and dispatch Email OTP for immediate verification & login
             require_once '../controllers/AuthController.php';
             $authController = new AuthController();
-            $otpCustomSubject = 'Your Registration Verification Code - ' . APP_NAME;
-            $otpCustomMessage = 'Thank you for registering with ' . APP_NAME . '! Please use the following 6-digit verification code to verify your email and sign in directly to your dashboard:';
-            $otpResult = $authController->requestLoginOtp(
-                $businessEmail,
-                $_SERVER['REMOTE_ADDR'] ?? '',
-                $otpCustomSubject,
-                $otpCustomMessage
-            );
+            $otpResult = $authController->requestPendingRegistrationOtp([
+                'email' => $businessEmail,
+                'username' => $username,
+                'owner_name' => $ownerName,
+                'came_from_offer' => $cameFromOffer,
+                'company_data' => $companyData,
+                'user_data' => $userData,
+            ], $_SERVER['REMOTE_ADDR'] ?? '');
 
-            // Send Slack notification (non-blocking)
-            try {
-                require_once '../helpers/SlackService.php';
-                $slackService = new SlackService();
-                if ($slackService->isEnabled()) {
-                    $slackService->sendNewRegistrationNotification([
-                        'company_name' => $companyName,
-                        'owner_name'   => $ownerName,
-                        'email'        => $businessEmail,
-                        'phone'        => $businessPhone,
-                        'username'     => $username,
-                        'city'         => sanitize_input($_POST['city'] ?? ''),
-                        'state'        => sanitize_input($_POST['state'] ?? ''),
-                        'plan'         => $subscriptionPlan,
-                        'method'       => $cameFromOffer ? 'Special Offer Registration' : 'Web Registration'
-                    ]);
-                }
-            } catch (Throwable $e) {
-                error_log('Slack notification error on registration: ' . $e->getMessage());
+            if (empty($otpResult['success'])) {
+                $_SESSION['reg_error'] = $otpResult['message'] ?? 'Unable to send verification code. Please check your email address and try again.';
+                $_SESSION['reg_form_data'] = $_POST;
+                header('Location: register.php');
+                exit;
             }
 
-            // Track signup event for GA4
-            require_once '../helpers/GA4Helper.php';
-            $_SESSION['ga4_event'] = GA4Helper::trackSignup($userId, $companyId, $companyName, $ownerName);
-            
-            // Set success notice and redirect directly to OTP verification & direct login step
-            $regSuccessNotice = 'Registration successful! A 6-digit verification code has been sent to ' . htmlspecialchars($businessEmail) . '. Please enter it below to access your dashboard.';
+            $regSuccessNotice = 'Almost done! A 6-digit verification code has been sent to ' . htmlspecialchars($businessEmail) . '. Enter it below to complete your store registration.';
             if (!empty($otpResult['dev_otp'])) {
-                $regSuccessNotice .= ' (Verification Code: ' . $otpResult['dev_otp'] . ')';
+                $regSuccessNotice = $otpResult['message'] ?? ('Verification Code: <strong>' . htmlspecialchars($otpResult['dev_otp']) . '</strong>');
             }
             $_SESSION['login_success'] = $regSuccessNotice;
             smart_redirect('login.php?step=verify&email=' . urlencode($businessEmail) . '&registered=1');
-            exit;
-            smart_redirect('login.php');
             exit;
             
         } catch (Exception $e) {

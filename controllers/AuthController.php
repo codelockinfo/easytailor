@@ -30,10 +30,10 @@ class AuthController {
             }
         }
         if (!class_exists('Company')) {
-            if (file_exists(__DIR__ . '/../admin/models/Company.php')) {
-                require_once __DIR__ . '/../admin/models/Company.php';
-            } elseif (file_exists(__DIR__ . '/../models/Company.php')) {
+            if (file_exists(__DIR__ . '/../models/Company.php')) {
                 require_once __DIR__ . '/../models/Company.php';
+            } elseif (file_exists(__DIR__ . '/../admin/models/Company.php')) {
+                require_once __DIR__ . '/../admin/models/Company.php';
             }
         }
         $companyModel = new Company();
@@ -293,42 +293,20 @@ class AuthController {
         ];
     }
 
-    public function requestLoginOtp($email, $ipAddress = null, $customSubject = null, $customMessage = null) {
-        $email = trim(sanitize_input($email ?? ''));
+    private function isLocalhostEnv() {
+        return in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', ''], true) ||
+               strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false ||
+               strpos($_SERVER['SERVER_NAME'] ?? '', 'localhost') !== false ||
+               (php_sapi_name() === 'cli');
+    }
 
-        if (empty($email)) {
-            return ['success' => false, 'message' => 'Please enter your registered email address.'];
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return ['success' => false, 'message' => 'Please enter a valid email address.'];
-        }
-        $user = $this->userModel->getActiveUserByEmail($email);
-        if (!$user) {
-            return ['success' => false, 'message' => 'No active account found with this email address.'];
-        }
-        $cooldown = $this->loginOtpModel->getRecentRequestCooldown($email, 60);
-        if ($cooldown > 0) {
-            return [
-                'success' => false,
-                'message' => "Please wait {$cooldown} seconds before requesting a new OTP.",
-                'cooldown' => $cooldown
-            ];
-        }
-        $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-        $token = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+1 minute'));
-
-        $saved = $this->loginOtpModel->createOtp($user['id'], $user['email'], $code, $token, $expiresAt, $ipAddress);
-        if (!$saved) {
-            return ['success' => false, 'message' => 'Failed to generate OTP. Please try again.'];
-        }
+    private function dispatchOtpEmail($email, $name, $code, $customSubject = null, $customMessage = null) {
         $emailSent = false;
         $mailError = '';
         if ($this->mailService->isEnabled()) {
             $emailSent = $this->mailService->sendLoginOtpEmail([
-                'email' => $user['email'],
-                'name' => $user['full_name'],
+                'email' => $email,
+                'name' => $name,
                 'code' => $code,
                 'subject' => $customSubject,
                 'title' => !empty($customSubject) ? $customSubject : 'Verification Code',
@@ -342,40 +320,231 @@ class AuthController {
         }
 
         if (!$emailSent) {
+            error_log("OTP email failed for {$email}: " . ($mailError ?: 'Unknown mail error'));
             $subject = !empty($customSubject) ? $customSubject : ('Your Verification Code - ' . APP_NAME);
-            $msg = "Hello {$user['full_name']},\n\n" . (!empty($customMessage) ? ($customMessage . "\n\n") : '') . "Your verification code is: {$code}\nValid for 1 minute.";
+            $msg = "Hello {$name},\n\n" . (!empty($customMessage) ? ($customMessage . "\n\n") : '') . "Your verification code is: {$code}\nValid for 5 minutes.";
             $headers = 'From: ' . (defined('SMTP_FROM_EMAIL') && SMTP_FROM_EMAIL ? SMTP_FROM_EMAIL : 'no-reply@localhost') . "\r\n";
-            @mail($user['email'], $subject, $msg, $headers);
+            @mail($email, $subject, $msg, $headers);
         }
 
-        $isLocalhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', '']) || 
-                       strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false ||
-                       strpos($_SERVER['SERVER_NAME'] ?? '', 'localhost') !== false ||
-                       (php_sapi_name() === 'cli');
-
         if (!$emailSent) {
-            if ($isLocalhost) {
+            if ($this->isLocalhostEnv()) {
                 return [
                     'success' => true,
-                    'message' => "SMTP is not configured on localhost. Your OTP is: <strong>{$code}</strong>",
-                    'email' => $user['email'],
+                    'message' => "SMTP email could not be delivered from localhost. Your OTP is: <strong>{$code}</strong>",
+                    'email' => $email,
                     'cooldown' => 60,
                     'dev_otp' => $code
                 ];
-            } else {
-                return [
-                    'success' => false,
-                    'message' => 'Unable to send email. Please check SMTP configuration.' . (!empty($mailError) ? " ({$mailError})" : '')
-                ];
             }
+            return [
+                'success' => false,
+                'message' => 'Unable to send verification email. Please try again later.' . (!empty($mailError) ? " ({$mailError})" : '')
+            ];
         }
 
         return [
             'success' => true,
             'message' => 'Verification code has been sent to your email address.',
-            'email' => $user['email'],
+            'email' => $email,
             'cooldown' => 60
         ];
+    }
+
+    public function requestPendingRegistrationOtp(array $pendingData, $ipAddress = null) {
+        $email = trim(sanitize_input($pendingData['email'] ?? ''));
+        $ownerName = trim($pendingData['owner_name'] ?? 'Store Owner');
+
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'message' => 'Please enter a valid email address.'];
+        }
+
+        $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $_SESSION['pending_registration'] = array_merge($pendingData, [
+            'email' => $email,
+            'otp_code' => $code,
+            'expires_at' => time() + 300,
+            'attempts' => 0,
+            'last_sent_at' => time(),
+            'ip_address' => $ipAddress,
+        ]);
+
+        $subject = 'Your Registration Verification Code - ' . APP_NAME;
+        $message = 'Thank you for registering with ' . APP_NAME . '! Please use the following 6-digit verification code to verify your email and complete your tailor shop registration:';
+
+        $result = $this->dispatchOtpEmail($email, $ownerName, $code, $subject, $message);
+        if (!$result['success']) {
+            unset($_SESSION['pending_registration']);
+        }
+        return $result;
+    }
+
+    private function verifyPendingRegistrationOtp($email, $code) {
+        $pending = $_SESSION['pending_registration'] ?? null;
+        if (!$pending || strcasecmp($pending['email'] ?? '', $email) !== 0) {
+            return ['success' => false, 'message' => 'Registration session expired. Please submit the registration form again.'];
+        }
+        if (empty($pending['otp_code'])) {
+            return ['success' => false, 'message' => 'No active OTP found. Please request a new code.'];
+        }
+        if ((int)($pending['attempts'] ?? 0) >= 5) {
+            $_SESSION['pending_registration']['otp_code'] = '';
+            return ['success' => false, 'message' => 'Too many failed attempts. This OTP has been invalidated. Please request a new one.'];
+        }
+        if (time() > (int)($pending['expires_at'] ?? 0)) {
+            $_SESSION['pending_registration']['otp_code'] = '';
+            return ['success' => false, 'message' => 'Verification code has expired. Please request a new one.'];
+        }
+        if (!hash_equals((string)$pending['otp_code'], (string)$code)) {
+            $_SESSION['pending_registration']['attempts'] = (int)($pending['attempts'] ?? 0) + 1;
+            $remaining = 5 - $_SESSION['pending_registration']['attempts'];
+            $remainMsg = $remaining > 0 ? " You have {$remaining} attempt(s) remaining." : " Maximum attempts reached.";
+            return ['success' => false, 'message' => 'Invalid verification code.' . $remainMsg];
+        }
+
+        if (!class_exists('Company')) {
+            if (file_exists(__DIR__ . '/../models/Company.php')) {
+                require_once __DIR__ . '/../models/Company.php';
+            } elseif (file_exists(__DIR__ . '/../admin/models/Company.php')) {
+                require_once __DIR__ . '/../admin/models/Company.php';
+            }
+        }
+        require_once __DIR__ . '/../helpers/DefaultDataHelper.php';
+
+        $companyModel = new Company();
+        if ($companyModel->emailExists($email) || $this->userModel->usernameExists($pending['username'] ?? $email)) {
+            unset($_SESSION['pending_registration']);
+            return ['success' => false, 'message' => 'This email is already registered. Please sign in instead.'];
+        }
+
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+            $db->beginTransaction();
+
+            $companyId = $companyModel->createCompany($pending['company_data']);
+            if (!$companyId) {
+                throw new Exception('Failed to create company');
+            }
+
+            DefaultDataHelper::createDefaultClothTypes($companyId);
+
+            $userData = $pending['user_data'];
+            $userData['company_id'] = $companyId;
+            $userId = $this->userModel->create($userData);
+            if (!$userId) {
+                throw new Exception('Failed to create user account');
+            }
+
+            $updateResult = $companyModel->update($companyId, ['user_id' => $userId]);
+            if (!$updateResult) {
+                throw new Exception('Failed to link user to company');
+            }
+
+            if (isset($db) && $db->inTransaction()) {
+                $db->commit();
+            }
+        } catch (Exception $e) {
+            if (isset($db) && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log('Pending registration completion failed: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to complete registration. Please try again.'];
+        }
+
+        $cameFromOffer = !empty($pending['came_from_offer']);
+        if ($cameFromOffer) {
+            setcookie('promo_offer_source', '', time() - 3600, '/');
+        }
+
+        try {
+            require_once __DIR__ . '/../helpers/SlackService.php';
+            $slackService = new SlackService();
+            if ($slackService->isEnabled()) {
+                $slackService->sendNewRegistrationNotification([
+                    'company_name' => $pending['company_data']['company_name'] ?? '',
+                    'owner_name'   => $pending['owner_name'] ?? '',
+                    'email'        => $email,
+                    'phone'        => $pending['company_data']['business_phone'] ?? '',
+                    'username'     => $pending['username'] ?? $email,
+                    'city'         => $pending['company_data']['city'] ?? '',
+                    'state'        => $pending['company_data']['state'] ?? '',
+                    'plan'         => $pending['company_data']['subscription_plan'] ?? 'free',
+                    'method'       => $cameFromOffer ? 'Special Offer Registration' : 'Web Registration'
+                ]);
+            }
+        } catch (Throwable $e) {
+            error_log('Slack notification error on registration: ' . $e->getMessage());
+        }
+
+        if (file_exists(__DIR__ . '/../helpers/GA4Helper.php')) {
+            require_once __DIR__ . '/../helpers/GA4Helper.php';
+            $_SESSION['ga4_event'] = GA4Helper::trackSignup(
+                $userId,
+                $companyId,
+                $pending['company_data']['company_name'] ?? '',
+                $pending['owner_name'] ?? ''
+            );
+        }
+
+        unset($_SESSION['pending_registration']);
+        $newUser = $this->userModel->find($userId);
+        return $this->completeUserLogin($newUser);
+    }
+
+    public function requestLoginOtp($email, $ipAddress = null, $customSubject = null, $customMessage = null) {
+        $email = trim(sanitize_input($email ?? ''));
+
+        if (empty($email)) {
+            return ['success' => false, 'message' => 'Please enter your registered email address.'];
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'message' => 'Please enter a valid email address.'];
+        }
+        $user = $this->userModel->getActiveUserByEmail($email);
+        if (!$user) {
+            $pending = $_SESSION['pending_registration'] ?? null;
+            if ($pending && strcasecmp($pending['email'] ?? '', $email) === 0) {
+                $elapsed = time() - (int)($pending['last_sent_at'] ?? 0);
+                if ($elapsed < 60) {
+                    $cooldown = 60 - $elapsed;
+                    return [
+                        'success' => false,
+                        'message' => "Please wait {$cooldown} seconds before requesting a new OTP.",
+                        'cooldown' => $cooldown
+                    ];
+                }
+                $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+                $_SESSION['pending_registration']['otp_code'] = $code;
+                $_SESSION['pending_registration']['expires_at'] = time() + 300;
+                $_SESSION['pending_registration']['attempts'] = 0;
+                $_SESSION['pending_registration']['last_sent_at'] = time();
+
+                $subject = !empty($customSubject) ? $customSubject : ('Your Registration Verification Code - ' . APP_NAME);
+                $message = !empty($customMessage) ? $customMessage : ('Thank you for registering with ' . APP_NAME . '! Please use the following 6-digit verification code to verify your email and complete your tailor shop registration:');
+                return $this->dispatchOtpEmail($email, $pending['owner_name'] ?? 'Store Owner', $code, $subject, $message);
+            }
+            return ['success' => false, 'message' => 'No active account found with this email address.'];
+        }
+        $cooldown = $this->loginOtpModel->getRecentRequestCooldown($email, 60);
+        if ($cooldown > 0) {
+            return [
+                'success' => false,
+                'message' => "Please wait {$cooldown} seconds before requesting a new OTP.",
+                'cooldown' => $cooldown
+            ];
+        }
+        $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+
+        $saved = $this->loginOtpModel->createOtp($user['id'], $user['email'], $code, $token, $expiresAt, $ipAddress);
+        if (!$saved) {
+            return ['success' => false, 'message' => 'Failed to generate OTP. Please try again.'];
+        }
+
+        return $this->dispatchOtpEmail($user['email'], $user['full_name'], $code, $customSubject, $customMessage);
     }
     public function verifyLoginOtp($email, $code) {
         $email = trim(sanitize_input($email ?? ''));
@@ -388,6 +557,12 @@ class AuthController {
         if (!preg_match('/^\d{6}$/', $code)) {
             return ['success' => false, 'message' => 'Please enter a valid 6-digit numeric code.'];
         }
+
+        $pending = $_SESSION['pending_registration'] ?? null;
+        if ($pending && strcasecmp($pending['email'] ?? '', $email) === 0) {
+            return $this->verifyPendingRegistrationOtp($email, $code);
+        }
+
         $otp = $this->loginOtpModel->findLatestActiveOtp($email);
         if (!$otp) {
             return ['success' => false, 'message' => 'No active OTP found or code already used. Please request a new code.'];

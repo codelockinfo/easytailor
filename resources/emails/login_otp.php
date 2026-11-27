@@ -39,7 +39,7 @@
                                             <?= htmlspecialchars($code ?? ''); ?>
                                         </span>
                                         <p style="margin:12px 0 0;font-size:13px;color:#718096;font-weight:500;">
-                                            This code will expire in <strong>1 minute</strong>.
+                                            This code will expire in <strong>5 minutes</strong>.
                                         </p>
                                     </td>
                                 </tr>

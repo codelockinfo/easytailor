@@ -23,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             } else {
                 $_SESSION['login_error'] = $result['message'];
-                smart_redirect('login.php?method=otp&email=' . urlencode($email));
+                smart_redirect('login.php?step=verify&email=' . urlencode($email));
                 exit;
             }
         } else {
             $_SESSION['login_error'] = 'Please enter both your email and the 6-digit verification code.';
-            smart_redirect('login.php?method=otp');
+            smart_redirect('login.php?step=verify');
             exit;
         }
     }
@@ -277,7 +277,7 @@ $seoOptions = [
                             </div>
                         <?php endif; ?>
                         <?php if ($success_message): ?>
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <div class="alert alert-success alert-dismissible fade show<?php echo $isVerifyStep ? ' no-auto-dismiss' : ''; ?>" role="alert">
                                 <i class="fas fa-check-circle me-2"></i>
                                 <?php echo $success_message; ?>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -362,7 +362,11 @@ $seoOptions = [
                         <div id="stepOtpVerify" style="<?php echo $isVerifyStep ? 'display:block;' : 'display:none;'; ?>">
                             <div class="p-2 mb-3 rounded-3 text-center" style="background:#f1f5f9;font-size:0.82rem;">
                                 <span>Code sent to <strong id="otpTargetEmailText" class="text-dark"><?php echo htmlspecialchars($verifyEmail); ?></strong></span>
-                                <button type="button" class="btn btn-link btn-sm text-primary p-0 ms-1" style="font-size:0.8rem;text-decoration:none;" onclick="backToPassword()">Change</button>
+                                <?php if (isset($_GET['registered']) && $_GET['registered'] === '1'): ?>
+                                    <a href="register.php" class="btn btn-link btn-sm text-primary p-0 ms-1" style="font-size:0.8rem;text-decoration:none;">Change</a>
+                                <?php else: ?>
+                                    <button type="button" class="btn btn-link btn-sm text-primary p-0 ms-1" style="font-size:0.8rem;text-decoration:none;" onclick="backToPassword()">Change</button>
+                                <?php endif; ?>
                             </div>
                             <form id="formVerifyOtp" onsubmit="handleVerifyOtp(event)">
                                 <input type="hidden" id="otpCsrfToken" value="<?php echo generate_csrf_token(); ?>">
@@ -448,7 +452,7 @@ $seoOptions = [
             }
         });
         setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert.alert-dismissible:not(#otpAlertBox)');
+            const alerts = document.querySelectorAll('.alert.alert-dismissible:not(#otpAlertBox):not(.no-auto-dismiss)');
             alerts.forEach(function(alert) {
                 try {
                     const bsAlert = new bootstrap.Alert(alert);
@@ -712,7 +716,7 @@ $seoOptions = [
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showOtpAlert('A new verification code has been sent to your email.', 'success');
+                    showOtpAlert(data.dev_otp ? data.message : 'A new verification code has been sent to your email.', 'success');
                     startOtpCountdown(data.cooldown || 60);
                 } else {
                     showOtpAlert(data.message || 'Failed to resend code.');

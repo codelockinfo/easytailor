@@ -40,6 +40,17 @@ class MailService
         return $this->lastError;
     }
 
+    private function isLocalEnvironment(): bool
+    {
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+        $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? '');
+        return in_array($remoteAddr, ['127.0.0.1', '::1', ''], true)
+            || stripos($host, 'localhost') !== false
+            || stripos($host, '127.0.0.1') !== false
+            || stripos($host, '.local') !== false
+            || php_sapi_name() === 'cli';
+    }
+
     private function createMailer(): ?PHPMailer
     {
         if (!$this->canSend) {
@@ -55,6 +66,18 @@ class MailService
         $mailer->Username = SMTP_USERNAME;
         $mailer->Password = SMTP_PASSWORD;
         $mailer->CharSet = 'UTF-8';
+        $mailer->Timeout = 15;
+
+        if ($this->isLocalEnvironment()) {
+            // Allow local development environments (e.g. WAMP without ini_cafile or with antivirus SSL proxy) to reach SMTP.
+            $mailer->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+        }
 
         $encryption = strtolower(trim((string)(defined('SMTP_ENCRYPTION') ? SMTP_ENCRYPTION : '')));
         if ($port === 465 && ($encryption === 'tls' || empty($encryption))) {
@@ -256,7 +279,7 @@ class MailService
             $mailer->AltBody = "Hello {$name},\n\n"
                 . $customAlt
                 . "Your verification code for " . APP_NAME . " is: {$code}\n\n"
-                . "This code is valid for 1 minute. Never share this code with anyone.\n"
+                . "This code is valid for 5 minutes. Never share this code with anyone.\n"
                 . "If you did not request this code, you can safely ignore this email.";
 
             $mailer->send();

@@ -412,6 +412,24 @@ $seoOptions = [
         .dropdown-item:focus i {
             color: #4f46e5 !important;
         }
+        .dropdown-menu .dropdown-item.active,
+        .dropdown-menu .dropdown-item:active,
+        .dropdown-menu .dropdown-item.active:hover,
+        .dropdown-menu .dropdown-item.active:focus,
+        .dropdown-item.active,
+        .dropdown-item:active,
+        .dropdown-item.active:hover,
+        .dropdown-item.active:focus {
+            background: #4f46e5 !important;
+            background-color: #4f46e5 !important;
+            color: #ffffff !important;
+        }
+        .dropdown-menu .dropdown-item.active i,
+        .dropdown-menu .dropdown-item:active i,
+        .dropdown-item.active i,
+        .dropdown-item:active i {
+            color: #ffffff !important;
+        }
         .dropdown-menu .dropdown-item.text-danger,
         .dropdown-item.text-danger {
             color: #dc2626 !important;

@@ -76,19 +76,35 @@ $recentOrders = !empty($search) ? $searchResults['orders'] : $orderModel->getOrd
 $totalOrderCount = ($orderStats['pending'] ?? 0) + ($orderStats['in_progress'] ?? 0) + ($orderStats['completed'] ?? 0) + ($orderStats['delivered'] ?? 0) + ($orderStats['cancelled'] ?? 0);
 $overdueOrders = $orderModel->getOverdueOrders();
 $ordersDueToday = $orderModel->getOrdersDueToday();
-$monthlyRevenue = [];
-for ($i = 11; $i >= 0; $i--) {
-    $date = date('Y-m', strtotime("-$i months"));
-    $year = date('Y', strtotime($date));
-    $month = date('m', strtotime($date));
-    $revenue = (float)$orderModel->getMonthlyRevenue($year, $month);
-    $monthlyRevenue[] = [
-        'month' => date('M', strtotime($date)),
-        'full_month' => date('M Y', strtotime($date)),
-        'revenue' => $revenue
+$currentYear = (int)date('Y');
+$lastYear = $currentYear - 1;
+$thisYearTotals = $orderModel->getYearlyMonthlyRevenue($currentYear);
+$lastYearTotals = $orderModel->getYearlyMonthlyRevenue($lastYear);
+
+$buildYearlyChartData = function(int $year, array $totals) {
+    $labels = [];
+    $fullLabels = [];
+    $data = [];
+    for ($m = 1; $m <= 12; $m++) {
+        $ts = mktime(0, 0, 0, $m, 1, $year);
+        $labels[] = date('M', $ts);
+        $fullLabels[] = date('M Y', $ts);
+        $data[] = (float)($totals[$m] ?? 0);
+    }
+    return [
+        'year' => $year,
+        'labels' => $labels,
+        'fullLabels' => $fullLabels,
+        'data' => $data,
+        'total' => array_sum($data),
     ];
-}
-$currentMonthRevenue = end($monthlyRevenue)['revenue'] ?? 0;
+};
+
+$revenueChartDatasets = [
+    'this_year' => $buildYearlyChartData($currentYear, $thisYearTotals),
+    'last_year' => $buildYearlyChartData($lastYear, $lastYearTotals),
+];
+$currentMonthRevenue = (float)($thisYearTotals[(int)date('n')] ?? 0);
 
 $companyForProgress = $companyModelForProgress->find($companyId);
 $completionProgress = Company::calculateProfileCompletion($companyForProgress);
@@ -1402,17 +1418,29 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                         <small class="text-muted" style="font-size: 0.72rem;">Annual earnings and revenue growth trends</small>
                     </div>
                     <div class="dropdown">
-                        <button class="btn btn-sm rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border: 1px solid #e2e8f0; font-size: 0.75rem;" data-bs-toggle="dropdown">
-                            <i class="fas fa-calendar-alt text-muted me-1" style="font-size: 0.70rem;"></i> This Year <i class="fas fa-chevron-down ms-1" style="font-size: 0.62rem;"></i>
+                        <button class="btn btn-sm rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border: 1px solid #e2e8f0; font-size: 0.75rem;" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar-alt text-muted me-1" style="font-size: 0.70rem;"></i> <span id="revenuePeriodLabel">This Year</span> <i class="fas fa-chevron-down ms-1" style="font-size: 0.62rem;"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px; font-size: 0.8rem;">
-                            <li><a class="dropdown-item active" href="#">This Year</a></li>
-                            <li><a class="dropdown-item" href="#">Last Year</a></li>
+                            <li><a class="dropdown-item active revenue-period-option" href="#" data-period="this_year" data-label="This Year">This Year</a></li>
+                            <li><a class="dropdown-item revenue-period-option" href="#" data-period="last_year" data-label="Last Year">Last Year</a></li>
                         </ul>
                     </div>
                 </div>
                 <div style="position: relative; height: 215px; width: 100%;">
                     <canvas id="revenueChart"></canvas>
+                    <div id="revenueEmptyState" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center text-center rounded-4 p-3" style="display: none; background: linear-gradient(180deg, #fafaff 0%, #f5f3ff 100%); border: 1.5px dashed #ddd6fe;">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; background: #ede9fe; color: #7c3aed;">
+                            <i class="fas fa-chart-line fa-lg"></i>
+                        </div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 0.94rem;">No Revenue Data Yet</div>
+                        <p class="text-muted mb-2" style="font-size: 0.76rem; max-width: 280px; line-height: 1.4;">
+                            Record order payments to see monthly revenue trends for <span id="revenueEmptyYear"><?php echo $currentYear; ?></span>.
+                        </p>
+                        <span class="badge rounded-pill px-3 py-1" style="background: #ffffff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 0.72rem; font-weight: 600;">
+                            ₹0.00 Total Revenue
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1492,12 +1520,6 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
-    if (revenueCtx) {
-        const gradient = revenueCtx.createLinearGradient(0, 0, 0, 230);
-        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.28)');
-        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
-
     const orderStatusCanvas = document.getElementById('orderStatusPieChart');
     const orderStatusCtx = orderStatusCanvas?.getContext('2d');
     if (orderStatusCtx) {
@@ -1610,13 +1632,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    new Chart(revenueCtx, {
+    const revenueCanvas = document.getElementById('revenueChart');
+    const revenueEmptyState = document.getElementById('revenueEmptyState');
+    const revenueEmptyYear = document.getElementById('revenueEmptyYear');
+    const revenuePeriodLabel = document.getElementById('revenuePeriodLabel');
+    const revenueDatasets = <?php echo json_encode($revenueChartDatasets); ?>;
+    let currentRevenuePeriod = 'this_year';
+    let revenueChartInstance = null;
+
+    function renderRevenueChart(period) {
+        currentRevenuePeriod = period in revenueDatasets ? period : 'this_year';
+        const dataset = revenueDatasets[currentRevenuePeriod];
+        const values = Array.isArray(dataset?.data) ? dataset.data.map(v => Number(v) || 0) : [];
+        const hasRevenue = values.some(v => v > 0);
+
+        if (!hasRevenue) {
+            if (revenueCanvas) revenueCanvas.style.display = 'none';
+            if (revenueEmptyState) revenueEmptyState.style.display = 'flex';
+            if (revenueEmptyYear && dataset?.year) {
+                revenueEmptyYear.textContent = dataset.year;
+            }
+            return;
+        }
+
+        if (revenueEmptyState) revenueEmptyState.style.display = 'none';
+        if (revenueCanvas) revenueCanvas.style.display = 'block';
+
+        const revenueCtx = revenueCanvas?.getContext('2d');
+        if (!revenueCtx) return;
+
+        if (revenueChartInstance) {
+            revenueChartInstance.data.labels = dataset.labels;
+            revenueChartInstance.data.datasets[0].data = values;
+            revenueChartInstance.update();
+            return;
+        }
+
+        const gradient = revenueCtx.createLinearGradient(0, 0, 0, 230);
+        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.28)');
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
+
+        revenueChartInstance = new Chart(revenueCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                labels: dataset.labels,
                 datasets: [{
                     label: 'Revenue',
-                    data: [15, 20, 25, 30, 40, 60, 100, 220, 450, 700],
+                    data: values,
                     borderColor: '#8b5cf6',
                     backgroundColor: gradient,
                     borderWidth: 2.5,
@@ -1636,25 +1698,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
+                            title: function(items) {
+                                const idx = items[0]?.dataIndex ?? 0;
+                                const activeDs = revenueDatasets[currentRevenuePeriod];
+                                return activeDs?.fullLabels?.[idx] || items[0]?.label || '';
+                            },
                             label: function(context) {
-                                return ' ₹' + Number(context.raw || 0).toLocaleString();
+                                return ' ₹' + Number(context.raw || 0).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
                             }
                         }
                     }
                 },
                 scales: {
                     y: {
-                        min: 0,
-                        max: 700,
+                        beginAtZero: true,
+                        suggestedMax: 100,
                         ticks: {
-                            stepSize: 100,
-                            font: { size: 9 },
+                            maxTicksLimit: 6,
+                            font: { size: 10 },
                             color: '#94a3b8',
                             callback: function(value) {
-                                if ([0, 100, 300, 500, 700].indexOf(value) !== -1) {
-                                    return '₹' + value;
-                                }
-                                return null;
+                                return '₹' + Number(value).toLocaleString('en-IN');
                             }
                         },
                         grid: {
@@ -1676,6 +1743,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
-</script>
+
+    renderRevenueChart('this_year');
+
+    document.querySelectorAll('.revenue-period-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            const period = this.getAttribute('data-period') || 'this_year';
+            const label = this.getAttribute('data-label') || 'This Year';
+
+            document.querySelectorAll('.revenue-period-option').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+
+            if (revenuePeriodLabel) {
+                revenuePeriodLabel.textContent = label;
+            }
+            renderRevenueChart(period);
+        });
+    });
+});</script>
 <?php require_once 'includes/footer.php'; ?>

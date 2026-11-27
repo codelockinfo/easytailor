@@ -520,6 +520,54 @@ class Order extends BaseModel {
         $result = $stmt->fetch();
         return $result['total'] ?? 0;
     }
+
+    public function getYearlyMonthlyRevenue($year = null) {
+        $companyId = $this->getCompanyId();
+        $year = $year ? (int)$year : (int)date('Y');
+        $isTailor = has_role('tailor');
+        $tailorId = $isTailor ? (int)get_user_id() : null;
+
+        $monthlyTotals = array_fill(1, 12, 0.0);
+        if (!$this->conn) {
+            return $monthlyTotals;
+        }
+
+        $effectiveDate = "CASE WHEN order_date IS NOT NULL AND YEAR(order_date) > 0 THEN order_date ELSE DATE(created_at) END";
+        $receivedAmount = "GREATEST(0, COALESCE(advance_amount, 0))";
+        $query = "SELECT MONTH($effectiveDate) AS month_num,
+                         COALESCE(SUM($receivedAmount), 0) AS total
+                  FROM " . $this->table . "
+                  WHERE YEAR($effectiveDate) = :year
+                  AND status != 'cancelled'";
+
+        if ($companyId) {
+            $query .= " AND company_id = :company_id";
+        }
+        if ($isTailor) {
+            $query .= " AND (assigned_tailor_id = :tailor_id OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = " . $this->table . ".id AND oi.assigned_tailor_id = :tailor_id_item))";
+        }
+        $query .= " GROUP BY month_num";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+        if ($companyId) {
+            $stmt->bindParam(':company_id', $companyId, PDO::PARAM_INT);
+        }
+        if ($isTailor) {
+            $stmt->bindParam(':tailor_id', $tailorId, PDO::PARAM_INT);
+            $stmt->bindParam(':tailor_id_item', $tailorId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $m = (int)($row['month_num'] ?? 0);
+            if ($m >= 1 && $m <= 12) {
+                $monthlyTotals[$m] = round((float)$row['total'], 2);
+            }
+        }
+
+        return $monthlyTotals;
+    }
     public function getOrderById($id) {
         $companyId = $this->getCompanyId();
         $query = "SELECT * FROM " . $this->table . " WHERE id = :id";

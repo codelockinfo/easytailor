@@ -436,10 +436,14 @@ $seoOptions = [
             background-color: #4f46e5 !important;
             color: #ffffff !important;
         }
-        .dropdown-menu .dropdown-item.active i,
-        .dropdown-menu .dropdown-item:active i,
-        .dropdown-item.active i,
-        .dropdown-item:active i {
+        .dropdown-menu .dropdown-item.active *,
+        .dropdown-menu .dropdown-item:active *,
+        .dropdown-item.active *,
+        .dropdown-item:active *,
+        .dropdown-menu .dropdown-item.text-danger.active,
+        .dropdown-menu .dropdown-item.text-danger:active,
+        .dropdown-item.text-danger.active,
+        .dropdown-item.text-danger:active {
             color: #ffffff !important;
         }
         .dropdown-menu .dropdown-item.text-danger,

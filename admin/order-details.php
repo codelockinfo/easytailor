@@ -573,7 +573,7 @@ require_once 'includes/header.php';
                         <span class="badge rounded-pill bg-primary" style="font-size: 0.72rem;"><?php echo count($orderItems); ?> <?php echo count($orderItems) === 1 ? 'Garment' : 'Garments'; ?></span>
                     </div>
                 </div>
-                <div class="table-responsive d-none d-md-block" style="overflow-x: auto; overflow-y: visible; min-height: 260px; padding-bottom: 75px;">
+                <div class="table-responsive d-none d-md-block" style="overflow-x: auto; overflow-y: visible;">
                     <table class="table table-hover align-middle mb-0">
                         <thead style="background: #f8fafc; font-size: 0.78rem; font-weight: 700; color: #475569;">
                             <tr>
@@ -844,9 +844,10 @@ require_once 'includes/header.php';
                     </span>
                 </div>
                 <div class="card-body p-4">
-                    <div class="timeline-container position-relative ps-4" style="border-left: 2px solid #e2e8f0; margin-left: 10px;">
-                        <div class="timeline-item position-relative mb-4">
-                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #3b82f6; left: -23px; top: 4px; box-shadow: 0 0 0 3px #dbeafe;"></div>
+                    <div class="timeline-container position-relative" style="margin-left: 4px;">
+                        <div class="position-absolute" style="left: 6px; top: 10px; bottom: 24px; width: 2px; background: #e2e8f0;"></div>
+                        <div class="timeline-item position-relative mb-4" style="padding-left: 28px;">
+                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #3b82f6; left: 7px; top: 5px; transform: translateX(-50%); box-shadow: 0 0 0 3px #dbeafe;"></div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="fw-bold text-dark small"><i class="fas fa-calendar-plus text-muted me-2"></i>Order Created</span>
@@ -857,15 +858,8 @@ require_once 'includes/header.php';
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <div class="timeline-item position-relative mb-4">
-                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #10b981; left: -23px; top: 4px; box-shadow: 0 0 0 3px #d1fae5;"></div>
-                            <div>
-                                <span class="fw-bold text-dark small"><i class="fas fa-calendar-check text-muted me-2"></i>Order Date</span>
-                                <div class="text-muted" style="font-size: 0.8rem;"><?php echo format_date($order['order_date'], 'M j, Y'); ?></div>
-                            </div>
-                        </div>
-                        <div class="timeline-item position-relative mb-4">
-                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #f59e0b; left: -23px; top: 4px; box-shadow: 0 0 0 3px #fef3c7;"></div>
+                        <div class="timeline-item position-relative mb-4" style="padding-left: 28px;">
+                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #f59e0b; left: 7px; top: 5px; transform: translateX(-50%); box-shadow: 0 0 0 3px #fef3c7;"></div>
                             <div>
                                 <span class="fw-bold text-dark small"><i class="fas fa-calendar-alt text-muted me-2"></i>Due Date</span>
                                 <div class="<?php echo $isOverdue ? 'text-danger fw-bold' : 'text-muted'; ?>" style="font-size: 0.8rem;">
@@ -873,8 +867,8 @@ require_once 'includes/header.php';
                                 </div>
                             </div>
                         </div>
-                        <div class="timeline-item position-relative">
-                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #64748b; left: -23px; top: 4px; box-shadow: 0 0 0 3px #f1f5f9;"></div>
+                        <div class="timeline-item position-relative" style="padding-left: 28px;">
+                            <div class="position-absolute rounded-circle" style="width: 12px; height: 12px; background: #64748b; left: 7px; top: 5px; transform: translateX(-50%); box-shadow: 0 0 0 3px #f1f5f9;"></div>
                             <div>
                                 <span class="fw-bold text-dark small"><i class="fas fa-clock text-muted me-2"></i>Last Updated</span>
                                 <div class="text-muted" style="font-size: 0.8rem;"><?php echo format_date($order['updated_at'] ?? $order['created_at'], 'M j, Y H:i'); ?></div>
@@ -907,7 +901,7 @@ require_once 'includes/header.php';
                         </div>
                         <div class="fw-bold text-dark fs-6 mb-1">No notes added yet.</div>
                         <div class="text-muted small mb-3">Add internal notes for this order.</div>
-                        <button type="button" class="btn btn-outline-primary rounded-3 px-4 py-2 w-100" style="max-width: 320px; border-color: #3b82f6; color: #2563eb; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#editNotesModal">
+                        <button type="button" class="btn btn-outline-primary rounded-3 px-4 py-2 w-100" style="max-width: 320px; border-color: #3b82f6; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#editNotesModal">
                             <i class="fas fa-plus-circle me-2"></i>Add Note
                         </button>
                     <?php endif; ?>
@@ -1558,6 +1552,27 @@ startSingleOrderSyncTimer();
     .no-print, .btn, .card-header button, .card-header a {
         display: none !important;
     }
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+.btn-outline-secondary:not(.text-dark):hover,
+.btn-outline-secondary:not(.text-dark):focus,
+.btn-outline-secondary:not(.text-dark):active {
+    background-color: #6d28d9 !important;
+    border-color: #6d28d9 !important;
+    color: #ffffff !important;
+}
+.btn-outline-warning:hover,
+.btn-outline-warning:focus,
+.btn-outline-warning:active {
+    background-color: #f59e0b !important;
+    border-color: #f59e0b !important;
+    color: #ffffff !important;
 }
 </style>
 <?php require_once 'includes/footer.php'; ?>

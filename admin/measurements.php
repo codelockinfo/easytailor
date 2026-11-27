@@ -3085,4 +3085,18 @@ function displayFilterResults(measurements) {
     transform: none !important;
     outline: none !important;
 }
+@media (max-width: 575.98px) {
+    #addMeasurementModal .modal-footer {
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+        gap: 10px !important;
+    }
+    #addMeasurementModal .modal-footer .btn {
+        margin: 0 !important;
+        padding: 10px 16px !important;
+        font-size: 0.85rem !important;
+        white-space: nowrap !important;
+        flex: 0 1 auto !important;
+    }
+}
 </style>

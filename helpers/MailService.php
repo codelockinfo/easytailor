@@ -105,6 +105,31 @@ class MailService
         return $baseUrl;
     }
 
+    private function resolveLogoFilePath(): ?string
+    {
+        $candidates = [];
+        if (function_exists('get_site_setting')) {
+            foreach (['footer_logo', 'admin_logo', 'website_logo'] as $key) {
+                $val = get_site_setting($key, '');
+                if (!empty($val)) {
+                    $candidates[] = ltrim(str_replace(['../', './'], '', (string)$val), '/');
+                }
+            }
+        }
+        $candidates[] = 'assets/images/tailor_logo.png';
+        $candidates[] = 'uploads/logos/footer-logo.png';
+        $candidates[] = 'uploads/logos/brand-logo.png';
+
+        foreach ($candidates as $relPath) {
+            $fullPath = APP_PATH . $relPath;
+            if (is_file($fullPath) && filesize($fullPath) > 0) {
+                return $fullPath;
+            }
+        }
+
+        return null;
+    }
+
     private function getLogoUrl(): string
     {
         $logoPath = get_logo_path('footer-logo.png');
@@ -112,11 +137,26 @@ class MailService
             $logoPath = get_logo_path('brand-logo.png');
         }
         if (!$logoPath) {
-            $logoPath = 'assets/images/logo.png';
+            $logoPath = 'assets/images/tailor_logo.png';
         }
 
         $cleanPath = ltrim(str_replace(['../', './'], '', $logoPath), '/');
         return $this->getBaseUrl() . '/' . $cleanPath;
+    }
+
+    private function attachBrandLogo(PHPMailer $mailer): string
+    {
+        $filePath = $this->resolveLogoFilePath();
+        if ($filePath !== null) {
+            try {
+                $mailer->addEmbeddedImage($filePath, 'tailorpro_brand_logo', basename($filePath));
+                return 'cid:tailorpro_brand_logo';
+            } catch (PHPMailerException $e) {
+                error_log('MailService logo embed failed: ' . $e->getMessage());
+            }
+        }
+
+        return $this->getLogoUrl();
     }
 
     private function renderTemplate(string $template, array $data = []): string
@@ -162,7 +202,7 @@ class MailService
 
             $mailer->Body = $this->renderTemplate('welcome', [
                 'appName' => APP_NAME,
-                'logoUrl' => $this->getLogoUrl(),
+                'logoUrl' => $this->attachBrandLogo($mailer),
                 'ownerName' => $name,
                 'companyName' => $companyName,
                 'manageUrl' => $manageUrl,
@@ -217,7 +257,7 @@ class MailService
 
             $mailer->Body = $this->renderTemplate('password_reset', [
                 'appName' => APP_NAME,
-                'logoUrl' => $this->getLogoUrl(),
+                'logoUrl' => $this->attachBrandLogo($mailer),
                 'ownerName' => $name,
                 'code' => $code,
                 'resetUrl' => $resetUrl,
@@ -267,7 +307,7 @@ class MailService
 
             $mailer->Body = $this->renderTemplate('login_otp', [
                 'appName' => APP_NAME,
-                'logoUrl' => $this->getLogoUrl(),
+                'logoUrl' => $this->attachBrandLogo($mailer),
                 'userName' => $name,
                 'code' => $code,
                 'title' => $payload['title'] ?? 'Login Verification Code',

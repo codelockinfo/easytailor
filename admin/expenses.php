@@ -235,6 +235,38 @@ $categories = $expenseCategories;
     border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
 }
+.date-filter-wrap {
+    position: relative;
+    width: 100%;
+}
+.date-filter-wrap input[type="date"] {
+    width: 100%;
+    min-width: 0;
+}
+.date-filter-placeholder {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 12px;
+    right: 34px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    color: #212529;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 10px;
+}
+@media (max-width: 767.98px) {
+    .date-filter-placeholder {
+        right: 12px;
+    }
+}
+.date-filter-wrap.has-value .date-filter-placeholder,
+.date-filter-wrap input[type="date"]:focus + .date-filter-placeholder {
+    display: none;
+}
 .expenses-main-card {
     border-radius: 14px;
     border: 1px solid #f1f5f9 !important;
@@ -377,10 +409,16 @@ include 'includes/page-header.php';
 <!-- Row 2: Date Filters & Clear -->
 <div class="row g-2 align-items-center mb-3">
     <div class="col-6 col-md-5">
-        <input type="date" class="form-control" id="dateFromFilter" title="From Date" placeholder="From Date">
+        <div class="date-filter-wrap">
+            <input type="date" class="form-control" id="dateFromFilter" title="From Date" aria-label="From Date" placeholder="From Date">
+            <span class="date-filter-placeholder"><span class="text-truncate">From Date</span><i class="far fa-calendar-alt ms-auto text-muted d-md-none"></i></span>
+        </div>
     </div>
     <div class="col-6 col-md-5">
-        <input type="date" class="form-control" id="dateToFilter" title="To Date" placeholder="To Date">
+        <div class="date-filter-wrap">
+            <input type="date" class="form-control" id="dateToFilter" title="To Date" aria-label="To Date" placeholder="To Date">
+            <span class="date-filter-placeholder"><span class="text-truncate">To Date</span><i class="far fa-calendar-alt ms-auto text-muted d-md-none"></i></span>
+        </div>
     </div>
     <div class="col-12 col-md-2">
         <button type="button" id="clearFilters" class="btn btn-outline-danger align-items-center justify-content-center text-nowrap w-100" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 16px; display: inline-flex;" title="Clear Filters">
@@ -998,6 +1036,18 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
+    function syncDateFilterPlaceholder(inputEl) {
+        const wrap = inputEl?.closest('.date-filter-wrap');
+        if (wrap) {
+            wrap.classList.toggle('has-value', Boolean(inputEl.value));
+        }
+    }
+    [dateFromFilter, dateToFilter].forEach(inputEl => {
+        if (!inputEl) return;
+        syncDateFilterPlaceholder(inputEl);
+        inputEl.addEventListener('input', () => syncDateFilterPlaceholder(inputEl));
+        inputEl.addEventListener('change', () => syncDateFilterPlaceholder(inputEl));
+    });
     [searchInput, dateFromFilter, dateToFilter].forEach(element => {
         if (element) {
             element.addEventListener('change', performFilter);

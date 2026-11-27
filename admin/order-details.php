@@ -1080,11 +1080,13 @@ function openOrderMeasurementsModal(targetMeasurementId = 0, targetClothName = '
                                 aria-expanded="${isItemOpen ? 'true' : 'false'}" 
                                 aria-controls="collapse-order-garment-${gIdx}"
                                 style="font-size: 0.92rem; box-shadow: none;">
-                            <span class="badge bg-primary rounded-pill me-1">#${gIdx + 1}</span>
-                            <span class="text-dark fw-bold">${escapeHtml(garment.cloth_type_name || 'Cloth')}</span>
-                            ${garment.cloth_category ? `<span class="badge bg-light text-primary border small ms-1" style="font-size: 0.70rem;">${escapeHtml(garment.cloth_category)}</span>` : ''}
-                            ${garment.tailor_name ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border small ms-1" style="font-size: 0.70rem;"><i class="fas fa-cut me-1"></i>${escapeHtml(garment.tailor_name)}</span>` : ''}
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small ms-auto me-2">
+                            <div class="d-flex align-items-center gap-1 flex-grow-1" style="min-width: 0; overflow: hidden;">
+                                <span class="badge bg-primary rounded-pill me-1 flex-shrink-0">#${gIdx + 1}</span>
+                                <span class="text-dark fw-bold text-truncate" style="min-width: 0; flex: 0 1 auto;">${escapeHtml(garment.cloth_type_name || 'Cloth')}</span>
+                                ${garment.cloth_category ? `<span class="badge bg-light text-primary border small ms-1 text-truncate flex-shrink-0" style="font-size: 0.70rem; max-width: 85px;">${escapeHtml(garment.cloth_category)}</span>` : ''}
+                                ${garment.tailor_name ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border small ms-1 d-inline-flex align-items-center" style="font-size: 0.70rem; min-width: 0; flex: 0 1 auto; overflow: hidden;"><i class="fas fa-cut me-1 flex-shrink-0"></i><span class="text-truncate">${escapeHtml(garment.tailor_name)}</span></span>` : ''}
+                            </div>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small flex-shrink-0 ms-1 me-1">
                                 ${keys.length} ${keys.length === 1 ? 'Field' : 'Fields'}
                             </span>
                         </button>
@@ -1523,6 +1525,14 @@ startSingleOrderSyncTimer();
     .garment-mobile-card {
         padding: 12px;
     }
+}
+#orderGarmentsAccordion .accordion-button {
+    max-width: 100%;
+    overflow: hidden;
+}
+#orderGarmentsAccordion .accordion-button::after {
+    flex-shrink: 0;
+    margin-left: 4px;
 }
 #orderGarmentsAccordion .accordion-button:not(.collapsed) {
     background-color: #eff6ff !important;

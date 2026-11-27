@@ -1,7 +1,9 @@
 <?php
+ob_start();
 require_once '../../config/config.php';
 require_once '../models/Expense.php';
-require_once '../models/User.php';
+require_once '../../helpers/ExcelExportHelper.php';
+
 if (!is_logged_in()) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
@@ -22,6 +24,7 @@ if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
+
 require_once '../../helpers/SubscriptionHelper.php';
 $exportCheck = SubscriptionHelper::canExportData(get_company_id());
 if (!$exportCheck['allowed']) {
@@ -29,57 +32,79 @@ if (!$exportCheck['allowed']) {
     echo json_encode(['error' => $exportCheck['message']]);
     exit;
 }
+
 try {
     $expenseModel = new Expense();
-    $userModel = new User();
-    $expenses = $expenseModel->getAllExpenses(get_user_id());
+    $expenses = $expenseModel->getExpensesWithDetails();
     $filename = 'expenses_export_' . date('Y-m-d_H-i-s') . '.xls';
-    $excelContent = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-    $excelContent .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
-    $excelContent .= '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">' . "\n";
-    $excelContent .= '<Title>Expenses Export</Title>' . "\n";
-    $excelContent .= '<Author>Tailoring Management System</Author>' . "\n";
-    $excelContent .= '<Created>' . date('c') . '</Created>' . "\n";
-    $excelContent .= '</DocumentProperties>' . "\n";
-    $excelContent .= '<Worksheet ss:Name="Expenses">' . "\n";
-    $excelContent .= '<Table>' . "\n";
-    $excelContent .= '<Row>' . "\n";
-    $headers = [
-        'Expense ID', 'Category', 'Description', 'Amount', 'Expense Date', 'Payment Method',
-        'Receipt Image', 'Created By', 'Created Date'
+
+    $columns = [
+        ['label' => 'Expense ID', 'width' => 95, 'type' => 'String', 'style' => 'CenterText'],
+        ['label' => 'Expense Date', 'width' => 95, 'type' => 'String', 'style' => 'CenterText'],
+        ['label' => 'Type', 'width' => 85, 'type' => 'String', 'style' => 'CenterText'],
+        ['label' => 'Category', 'width' => 140, 'type' => 'String', 'style' => 'Text'],
+        ['label' => 'Description', 'width' => 200, 'type' => 'String', 'style' => 'Text'],
+        ['label' => 'Cash In', 'width' => 100, 'type' => 'Number', 'style' => 'Currency'],
+        ['label' => 'Cash Out', 'width' => 100, 'type' => 'Number', 'style' => 'Currency'],
+        ['label' => 'Amount', 'width' => 100, 'type' => 'Number', 'style' => 'Currency'],
+        ['label' => 'Reference No.', 'width' => 110, 'type' => 'String', 'style' => 'CenterText'],
+        ['label' => 'Created By', 'width' => 130, 'type' => 'String', 'style' => 'Text'],
+        ['label' => 'Created At', 'width' => 125, 'type' => 'String', 'style' => 'CenterText'],
     ];
-    foreach ($headers as $header) {
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($header) . '</Data></Cell>' . "\n";
-    }
-    $excelContent .= '</Row>' . "\n";
+
+    $rows = [];
+    $totalCashIn = 0.0;
+    $totalCashOut = 0.0;
+
     foreach ($expenses as $expense) {
-        $createdBy = $userModel->getUserById($expense['created_by']);
-        $createdByName = $createdBy ? $createdBy['full_name'] : 'Unknown';
-        $cat = !empty($expense['category']) ? $expense['category'] : (!empty($expense['description']) ? ucfirst($expense['description']) : 'General');
-        $excelContent .= '<Row>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">EXP-' . str_pad($expense['id'], 6, '0', STR_PAD_LEFT) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($cat) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['description']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="Number">' . $expense['amount'] . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['expense_date']) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $expense['payment_method']))) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($expense['receipt_image'] ? 'Yes' : 'No') . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars($createdByName) . '</Data></Cell>' . "\n";
-        $excelContent .= '<Cell><Data ss:Type="String">' . htmlspecialchars(date('Y-m-d H:i:s', strtotime($expense['created_at']))) . '</Data></Cell>' . "\n";
-        $excelContent .= '</Row>' . "\n";
+        $rawType = strtolower(trim((string)($expense['payment_method'] ?? 'cash_out')));
+        $isCashIn = ($rawType === 'cash_in');
+        $typeLabel = $isCashIn ? 'Cash In' : ($rawType === 'cash_out' ? 'Cash Out' : ucwords(str_replace('_', ' ', $rawType)));
+
+        $amount = (float)($expense['amount'] ?? 0);
+        $cashInAmt = $isCashIn ? $amount : 0.0;
+        $cashOutAmt = $isCashIn ? 0.0 : $amount;
+
+        $totalCashIn += $cashInAmt;
+        $totalCashOut += $cashOutAmt;
+
+        $cat = trim((string)($expense['category'] ?? ''))
+            ?: (!empty($expense['description']) ? ucfirst(trim((string)$expense['description'])) : 'General');
+
+        $createdAt = !empty($expense['created_at'])
+            ? date('Y-m-d H:i', strtotime($expense['created_at']))
+            : '';
+
+        $rows[] = [
+            'EXP-' . str_pad((string)$expense['id'], 6, '0', STR_PAD_LEFT),
+            $expense['expense_date'] ?? '',
+            $typeLabel,
+            $cat,
+            trim((string)($expense['description'] ?? '')),
+            $cashInAmt,
+            $cashOutAmt,
+            $amount,
+            trim((string)($expense['reference_number'] ?? '')) ?: '-',
+            trim((string)($expense['created_by_name'] ?? '')) ?: 'Unknown',
+            $createdAt,
+        ];
     }
-    $excelContent .= '</Table>' . "\n";
-    $excelContent .= '</Worksheet>' . "\n";
-    $excelContent .= '</Workbook>';
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="' . $filename . '"');
-    header('Cache-Control: max-age=0');
-    header('Pragma: public');
-    header('Content-Length: ' . strlen($excelContent));
-    echo $excelContent;
-    
+
+    $summaryRows = [];
+    if (!empty($rows)) {
+        $summaryRows[] = [
+            0 => ['value' => 'TOTAL (' . count($rows) . ' Entries)', 'type' => 'String', 'style' => 'SummaryText'],
+            5 => ['value' => $totalCashIn, 'type' => 'Number', 'style' => 'SummaryCurrency'],
+            6 => ['value' => $totalCashOut, 'type' => 'Number', 'style' => 'SummaryCurrency'],
+            7 => ['value' => ($totalCashIn - $totalCashOut), 'type' => 'Number', 'style' => 'SummaryCurrency'],
+        ];
+    }
+
+    $xml = ExcelExportHelper::buildWorkbook('Expenses', 'Expenses & Cash Flow Report', $columns, $rows, $summaryRows);
+    ExcelExportHelper::sendDownload($filename, $xml);
 } catch (Exception $e) {
+    error_log('Expense export failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => 'Export failed: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Failed to export expenses']);
+    exit;
 }
-?>

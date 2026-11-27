@@ -215,6 +215,38 @@ if (!function_exists('getCustomerAvatarDesign')) {
     border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
 }
+.date-filter-wrap {
+    position: relative;
+    width: 100%;
+}
+.date-filter-wrap input[type="date"] {
+    width: 100%;
+    min-width: 0;
+}
+.date-filter-placeholder {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 12px;
+    right: 34px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    color: #212529;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 10px;
+}
+@media (max-width: 767.98px) {
+    .date-filter-placeholder {
+        right: 12px;
+    }
+}
+.date-filter-wrap.has-value .date-filter-placeholder,
+.date-filter-wrap input[type="date"]:focus + .date-filter-placeholder {
+    display: none;
+}
 @media (max-width: 767.98px) {
     .category-table th {
         font-size: 0.72rem !important;
@@ -384,10 +416,16 @@ include 'includes/page-header.php';
         </div>
     </div>
     <div class="col-6 col-sm-3 col-md-2 col-lg-2">
-        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
+        <div class="date-filter-wrap">
+            <input type="date" class="form-control" id="startDateFilter" title="Start Date" aria-label="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
+            <span class="date-filter-placeholder"><span class="text-truncate">Start Date</span><i class="far fa-calendar-alt ms-auto text-muted d-md-none"></i></span>
+        </div>
     </div>
     <div class="col-6 col-sm-3 col-md-2 col-lg-2">
-        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
+        <div class="date-filter-wrap">
+            <input type="date" class="form-control" id="endDateFilter" title="End Date" aria-label="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); width: 100%;">
+            <span class="date-filter-placeholder"><span class="text-truncate">End Date</span><i class="far fa-calendar-alt ms-auto text-muted d-md-none"></i></span>
+        </div>
     </div>
     <div class="col-12 col-sm-6 col-md-2 col-lg-2 d-flex gap-2 justify-content-end">
         <button type="button" id="clearSearch" class="btn btn-outline-danger align-items-center justify-content-center text-nowrap flex-grow-1" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 12px; <?php echo empty($search) ? 'display: none !important;' : 'display: inline-flex !important;'; ?>" title="Clear Filters">
@@ -1091,6 +1129,20 @@ if (searchInput) {
     searchInput.addEventListener('input', performSearch);
 }
 
+function syncDateFilterPlaceholder(inputEl) {
+    const wrap = inputEl?.closest('.date-filter-wrap');
+    if (wrap) {
+        wrap.classList.toggle('has-value', Boolean(inputEl.value));
+    }
+}
+
+[startDateFilter, endDateFilter].forEach(inputEl => {
+    if (!inputEl) return;
+    syncDateFilterPlaceholder(inputEl);
+    inputEl.addEventListener('input', () => syncDateFilterPlaceholder(inputEl));
+    inputEl.addEventListener('change', () => syncDateFilterPlaceholder(inputEl));
+});
+
 if (startDateFilter) {
     startDateFilter.addEventListener('change', performSearch);
 }
@@ -1102,8 +1154,14 @@ if (endDateFilter) {
 if (clearSearch) {
     clearSearch.addEventListener('click', function() {
         if (searchInput) searchInput.value = '';
-        if (startDateFilter) startDateFilter.value = '';
-        if (endDateFilter) endDateFilter.value = '';
+        if (startDateFilter) {
+            startDateFilter.value = '';
+            syncDateFilterPlaceholder(startDateFilter);
+        }
+        if (endDateFilter) {
+            endDateFilter.value = '';
+            syncDateFilterPlaceholder(endDateFilter);
+        }
         
         this.style.setProperty('display', 'none', 'important');
         if (customersTable && originalTableContent) {

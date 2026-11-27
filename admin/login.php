@@ -75,7 +75,9 @@ if (isset($_GET['error'])) {
         $error_message = 'Your account is currently inactive or disabled. Please contact administrator.';
     }
 }
-if (isset($_GET['logout'])) {
+if (isset($_GET['password_changed'])) {
+    $success_message = 'Password changed successfully. Please sign in with your new password.';
+} elseif (isset($_GET['logout'])) {
     $success_message = 'You have been logged out successfully';
 }
 if (isset($_SESSION['reg_success'])) {

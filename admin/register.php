@@ -642,9 +642,13 @@ $seoOptions = [
                             </div>
                             
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-register btn-lg py-2">
-                                    <i class="fas fa-user-plus me-2"></i>
-                                    Register My Tailor Shop
+                                <button type="submit" id="btnRegister" class="btn btn-primary btn-register btn-lg py-2">
+                                    <span class="btn-text">
+                                        <i class="fas fa-user-plus me-2"></i>Register My Tailor Shop
+                                    </span>
+                                    <span class="btn-loader d-none">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Registering...
+                                    </span>
                                 </button>
                             </div>
                         </form>
@@ -1076,6 +1080,46 @@ $seoOptions = [
                 e.preventDefault();
                 showRegisterAlert('Password must meet all 4 conditions:\n• At least 6 characters\n• Contains uppercase letter\n• Contains lowercase letter\n• Contains number', 'Password Requirements', 'warning', passwordInput);
                 return false;
+            }
+
+            const agreeTerms = document.getElementById('agree_terms');
+            if (agreeTerms && !agreeTerms.checked) {
+                e.preventDefault();
+                showRegisterAlert('Please agree to the Terms of Service and Privacy Policy.', 'Terms Agreement Required', 'warning', agreeTerms);
+                return false;
+            }
+
+            // All validations passed - show loader on submit button
+            const registerBtn = document.getElementById('btnRegister') || document.querySelector('.btn-register');
+            if (registerBtn) {
+                const textSpan = registerBtn.querySelector('.btn-text');
+                const loaderSpan = registerBtn.querySelector('.btn-loader');
+                if (textSpan && loaderSpan) {
+                    textSpan.classList.add('d-none');
+                    loaderSpan.classList.remove('d-none');
+                } else {
+                    registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Registering...';
+                }
+                registerBtn.classList.add('disabled');
+                registerBtn.style.pointerEvents = 'none';
+                setTimeout(function() {
+                    registerBtn.disabled = true;
+                }, 20);
+            }
+        });
+
+        window.addEventListener('pageshow', function() {
+            const registerBtn = document.getElementById('btnRegister') || document.querySelector('.btn-register');
+            if (registerBtn) {
+                registerBtn.disabled = false;
+                registerBtn.classList.remove('disabled');
+                registerBtn.style.pointerEvents = '';
+                const textSpan = registerBtn.querySelector('.btn-text');
+                const loaderSpan = registerBtn.querySelector('.btn-loader');
+                if (textSpan && loaderSpan) {
+                    textSpan.classList.remove('d-none');
+                    loaderSpan.classList.add('d-none');
+                }
             }
         });
     </script>

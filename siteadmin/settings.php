@@ -29,7 +29,7 @@ if (isset($_SESSION['settings_msg'])) {
 
 // Active tab
 $activeTab = $_GET['tab'] ?? 'payment';
-$validTabs = ['payment', 'seo_identity', 'social', 'contact', 'advertising', 'security', 'scripts'];
+$validTabs = ['payment', 'seo_identity', 'social', 'contact', 'security', 'scripts'];
 if (!in_array($activeTab, $validTabs)) {
     $activeTab = 'payment';
 }
@@ -131,16 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if ($action === 'save_advertising') {
-        SiteSetting::set('advertising_enabled', isset($_POST['advertising_enabled']) ? '1' : '0', 'advertising');
-        SiteSetting::set('advertising_header_banner', trim($_POST['advertising_header_banner'] ?? ''), 'advertising');
-        SiteSetting::set('advertising_sidebar_code', trim($_POST['advertising_sidebar_code'] ?? ''), 'advertising');
-
-        $_SESSION['settings_msg'] = 'Advertising settings updated successfully!';
-        $_SESSION['settings_msg_type'] = 'success';
-        header('Location: settings?tab=advertising');
-        exit;
-    }
 
     if ($action === 'save_security') {
         SiteSetting::set('maintenance_mode', isset($_POST['maintenance_mode']) ? '1' : '0', 'security');
@@ -187,8 +177,8 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             --secondary-color: #4338ca;
             --sidebar-width: 236px;
             --header-height: 62px;
-            --theme-dark: #164e3f;
-            --theme-dark-hover: #123d32;
+            --theme-dark: #4f46e5;
+            --theme-dark-hover: #4338ca;
         }
         body {
             background-color: #f6f8fc;
@@ -441,9 +431,9 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             color: #0f172a;
         }
         .settings-tab-btn.active {
-            background-color: var(--theme-dark);
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(22, 78, 63, 0.25);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
         }
         .settings-tab-btn.active i {
             color: #ffffff;
@@ -497,9 +487,9 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             color: #64748b;
         }
         .mode-banner-test {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            color: #065f46;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            color: #3730a3;
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 0.82rem;
@@ -527,16 +517,17 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
 
         /* Sub-Environment Cards */
         .gateway-card {
-            border: 1px solid #e2e8f0;
+            border: 1px solid #4f46e5;
             border-radius: 14px;
             padding: 1.35rem;
             background: #ffffff;
             height: 100%;
             transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.06);
         }
         .gateway-card.active-env {
-            border-color: #10b981;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+            border-color: #4f46e5;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.1);
         }
         .badge-configured {
             background: #dcfce7;
@@ -575,7 +566,7 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
         }
         
-        /* Custom Green Switch */
+        /* Custom Theme Switch */
         .form-switch .form-check-input {
             width: 3rem;
             height: 1.6rem;
@@ -585,8 +576,8 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             transition: all 0.2s ease;
         }
         .form-switch .form-check-input:checked {
-            background-color: #10b981;
-            border-color: #10b981;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         /* Logo Upload Card */
@@ -620,7 +611,7 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             overflow: hidden;
         }
         .logo-preview-box.dark-bg {
-            background: #1e293b;
+            background: transparent;
         }
         .logo-preview-box img {
             max-width: 100%;
@@ -641,7 +632,7 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
 
         /* Save Button */
         .btn-save-settings {
-            background-color: var(--theme-dark);
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
             color: #ffffff;
             border: none;
             padding: 0.65rem 1.6rem;
@@ -649,12 +640,13 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
             font-weight: 600;
             font-size: 0.88rem;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(22, 78, 63, 0.2);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
         }
         .btn-save-settings:hover {
-            background-color: var(--theme-dark-hover);
+            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
             color: #ffffff;
             transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.32);
         }
 
         /* Responsive Mobile Drawer */
@@ -851,10 +843,7 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
                                 <i class="far fa-envelope"></i>
                                 <span>Contact Information</span>
                             </a>
-                            <a href="settings?tab=advertising" class="settings-tab-btn <?php echo $activeTab === 'advertising' ? 'active' : ''; ?>">
-                                <i class="fas fa-bullhorn"></i>
-                                <span>Advertising</span>
-                            </a>
+
                             <a href="settings?tab=security" class="settings-tab-btn <?php echo $activeTab === 'security' ? 'active' : ''; ?>">
                                 <i class="far fa-shield-alt"></i>
                                 <span>Security & Access</span>
@@ -1115,7 +1104,7 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label"><i class="fab fa-x-twitter text-dark me-1"></i>Twitter / X URL</label>
+                                            <label class="form-label"><svg viewBox="0 0 512 512" width="13" height="13" fill="currentColor" class="text-dark me-1" style="vertical-align:-0.125em;" aria-hidden="true"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/></svg>Twitter / X URL</label>
                                             <input type="url" class="form-control" name="social_twitter" value="<?php echo htmlspecialchars($settings['social_twitter'] ?? ''); ?>" placeholder="https://x.com/yourhandle">
                                         </div>
 
@@ -1163,7 +1152,7 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label"><i class="fas fa-phone-alt text-success me-1"></i>Contact Phone Number</label>
+                                            <label class="form-label"><i class="fas fa-phone text-primary me-1"></i>Contact Phone Number</label>
                                             <input type="text" class="form-control" name="contact_phone" value="<?php echo htmlspecialchars($settings['contact_phone'] ?? ''); ?>" placeholder="+91 98765 43210" required>
                                         </div>
 
@@ -1196,43 +1185,6 @@ $liveKeyConfigured = !empty($settings['razorpay_live_key_id']);
                                 </form>
                             <?php endif; ?>
 
-                            <!-- TAB 5: ADVERTISING -->
-                            <?php if ($activeTab === 'advertising'): ?>
-                                <form method="POST" action="?tab=advertising">
-                                    <input type="hidden" name="action" value="save_advertising">
-
-                                    <h4 class="settings-header-title">Advertising Settings</h4>
-                                    <p class="settings-header-sub">Configure display advertising spots and promotional banners across the system.</p>
-
-                                    <div class="payment-env-card mb-4">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <div class="env-title">Enable Display Advertising</div>
-                                                <div class="env-desc">Toggle display ads and sponsored banners on public pages.</div>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" name="advertising_enabled" value="1" <?php echo ($settings['advertising_enabled'] ?? '0') === '1' ? 'checked' : ''; ?>>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Header Top Banner Ad Code (HTML / JS)</label>
-                                        <textarea class="form-control font-monospace" name="advertising_header_banner" rows="3" placeholder="<!-- Ad tag code -->"><?php echo htmlspecialchars($settings['advertising_header_banner'] ?? ''); ?></textarea>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label">Sidebar / Content Ad Code</label>
-                                        <textarea class="form-control font-monospace" name="advertising_sidebar_code" rows="3" placeholder="<!-- Ad tag code -->"><?php echo htmlspecialchars($settings['advertising_sidebar_code'] ?? ''); ?></textarea>
-                                    </div>
-
-                                    <div class="d-flex justify-content-end">
-                                        <button type="submit" class="btn btn-save-settings">
-                                            <i class="fas fa-check me-2"></i>Save Advertising
-                                        </button>
-                                    </div>
-                                </form>
-                            <?php endif; ?>
 
                             <!-- TAB 6: SECURITY & ACCESS -->
                             <?php if ($activeTab === 'security'): ?>

@@ -440,17 +440,5 @@ function render_custom_footer_scripts() {
     return !empty($customFooter) ? $customFooter . "\n" : '';
 }
 
-function render_ad_banner($location = 'header') {
-    if (get_site_setting('advertising_enabled', '0') !== '1') {
-        return '';
-    }
-    if ($location === 'header') {
-        return get_site_setting('advertising_header_banner', '');
-    }
-    if ($location === 'sidebar') {
-        return get_site_setting('advertising_sidebar_code', '');
-    }
-    return '';
-}
 
 ?>

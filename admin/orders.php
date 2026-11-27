@@ -815,6 +815,38 @@ if (!function_exists('getCustomerAvatarDesign')) {
     border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
 }
+.date-filter-wrap {
+    position: relative;
+    width: 100%;
+}
+.date-filter-wrap input[type="date"] {
+    width: 100%;
+    min-width: 0;
+}
+.date-filter-placeholder {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 12px;
+    right: 34px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    color: #212529;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 10px;
+}
+@media (max-width: 767.98px) {
+    .date-filter-placeholder {
+        right: 12px;
+    }
+}
+.date-filter-wrap.has-value .date-filter-placeholder,
+.date-filter-wrap input[type="date"]:focus + .date-filter-placeholder {
+    display: none;
+}
 #statusFilter, #clothTypeFilter, #tailorFilter {
     height: 42px !important;
     font-size: 0.85rem !important;
@@ -1351,10 +1383,16 @@ include 'includes/page-header.php';
     </div>
     <?php endif; ?>
     <div class="col-6 col-md">
-        <input type="date" class="form-control" id="startDateFilter" title="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div class="date-filter-wrap">
+            <input type="date" class="form-control" id="startDateFilter" title="Start Date" aria-label="Start Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <span class="date-filter-placeholder"><span class="text-truncate">Start Date</span><i class="far fa-calendar-alt ms-auto text-muted d-md-none"></i></span>
+        </div>
     </div>
     <div class="col-6 col-md">
-        <input type="date" class="form-control" id="endDateFilter" title="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div class="date-filter-wrap">
+            <input type="date" class="form-control" id="endDateFilter" title="End Date" aria-label="End Date" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 0.85rem; height: 42px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <span class="date-filter-placeholder"><span class="text-truncate">End Date</span><i class="far fa-calendar-alt ms-auto text-muted d-md-none"></i></span>
+        </div>
     </div>
     <div class="col-6 col-md-auto">
         <button type="button" id="clearFilters" class="btn btn-outline-danger align-items-center justify-content-center text-nowrap w-100" style="border-radius: 14px; height: 42px; font-size: 0.82rem; padding: 0 16px; display: inline-flex;" title="Clear Filters">
@@ -2637,6 +2675,11 @@ document.addEventListener('DOMContentLoaded', function() {
             phoneInputEl.addEventListener('input', function() {
                 const digits = normalizeOrderPhoneDigits(this.value);
                 if (this.value !== digits) this.value = digits;
+                if (digits.length > 0) {
+                    this.dataset.userEdited = '1';
+                } else {
+                    delete this.dataset.userEdited;
+                }
                 if (this.classList.contains('is-invalid') && digits.length === 10) {
                     this.classList.remove('is-invalid');
                 }
@@ -3552,7 +3595,8 @@ function setCustomerValue(name, phone = '', triggerChange = true) {
     }
     document.getElementById('customerPickerContainer')?.classList.remove('is-invalid');
     const phoneInput = document.getElementById('customer_phone');
-    if (phoneInput && phone) {
+    const hasUserTypedPhone = phoneInput && phoneInput.dataset.userEdited === '1' && phoneInput.value.trim() !== '';
+    if (phoneInput && phone && !hasUserTypedPhone) {
         phoneInput.value = phone;
         phoneInput.classList.remove('is-invalid');
     }
@@ -3637,8 +3681,12 @@ if (customerSelectEl) {
         const selectedOpt = (this.tagName === 'SELECT' && this.options) ? this.options[this.selectedIndex] : null;
         const optPhone = selectedOpt ? selectedOpt.getAttribute('data-phone') : (this.getAttribute('data-phone') || '');
         const phoneInput = document.getElementById('customer_phone');
-        if (phoneInput) {
+        const hasUserTypedPhone = phoneInput && phoneInput.dataset.userEdited === '1' && phoneInput.value.trim() !== '';
+        if (phoneInput && !hasUserTypedPhone) {
             phoneInput.value = optPhone || '';
+            if (optPhone) {
+                phoneInput.classList.remove('is-invalid');
+            }
         }
 
         // Reset measurement tags & clear existing cards
@@ -3662,8 +3710,9 @@ if (customerSelectEl) {
                     return response.json();
                 })
                 .then(data => {
-                    if (phoneInput && !phoneInput.value && data && data.length > 0 && data[0].phone_number) {
+                    if (phoneInput && !phoneInput.value.trim() && data && data.length > 0 && data[0].phone_number) {
                         phoneInput.value = data[0].phone_number;
+                        phoneInput.classList.remove('is-invalid');
                     }
                     window.currentCustomerMeasurements = data || [];
                     if (container) container.innerHTML = '';
@@ -3730,9 +3779,11 @@ function editOrder(order) {
     document.getElementById('due_date').value = order.due_date || '';
     if (typeof window.syncOrderDueDateMin === 'function') window.syncOrderDueDateMin();
     if (document.getElementById('customer_phone')) {
+        const editPhoneEl = document.getElementById('customer_phone');
+        delete editPhoneEl.dataset.userEdited;
         let p = String(order.customer_phone || '').replace(/\D/g, '');
         if (p.length > 10 && p.startsWith('91')) p = p.slice(2);
-        document.getElementById('customer_phone').value = p.slice(0, 10);
+        editPhoneEl.value = p.slice(0, 10);
     }
     document.getElementById('total_amount').value = order.total_amount || '';
     document.getElementById('advance_amount').value = (order.advance_amount !== undefined && order.advance_amount !== null) ? order.advance_amount : '0';
@@ -4072,7 +4123,10 @@ if (orderModalEl) {
         if (dateEl) dateEl.value = '<?php echo date('Y-m-d'); ?>';
         if (typeof window.syncOrderDueDateMin === 'function') window.syncOrderDueDateMin();
         const phoneEl = document.getElementById('customer_phone');
-        if (phoneEl) phoneEl.value = '';
+        if (phoneEl) {
+            phoneEl.value = '';
+            delete phoneEl.dataset.userEdited;
+        }
         const waSwitch = document.getElementById('send_whatsapp_invoice');
         if (waSwitch) waSwitch.checked = true;
         const advanceEl = document.getElementById('advance_amount');
@@ -4179,6 +4233,18 @@ function populateFilterOptions(options) {
         }
     }
 }
+function syncDateFilterPlaceholder(inputEl) {
+    const wrap = inputEl?.closest('.date-filter-wrap');
+    if (wrap) {
+        wrap.classList.toggle('has-value', Boolean(inputEl.value));
+    }
+}
+[startDateFilter, endDateFilter].forEach(inputEl => {
+    if (!inputEl) return;
+    syncDateFilterPlaceholder(inputEl);
+    inputEl.addEventListener('input', () => syncDateFilterPlaceholder(inputEl));
+    inputEl.addEventListener('change', () => syncDateFilterPlaceholder(inputEl));
+});
 [searchInput, statusFilter, clothTypeFilter, tailorFilter, startDateFilter, endDateFilter].forEach(element => {
     if (!element) return;
     element.addEventListener('change', performFilter);

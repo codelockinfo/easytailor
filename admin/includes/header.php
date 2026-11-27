@@ -1142,10 +1142,24 @@ $seoOptions = [
             white-space: nowrap !important;
             line-height: 1.3 !important;
         }
+        @media (max-width: 575.98px) {
+            .notif-dropdown-menu {
+                position: fixed !important;
+                top: 64px !important;
+                left: 50% !important;
+                right: auto !important;
+                bottom: auto !important;
+                inset: 64px auto auto 50% !important;
+                transform: translateX(-50%) !important;
+                width: calc(100vw - 24px) !important;
+                max-width: 400px !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+            }
+        }
         @media (max-width: 420px) {
             .notif-dropdown-menu {
                 width: calc(100vw - 20px) !important;
-                min-width: min(290px, calc(100vw - 20px)) !important;
             }
             .notif-header-left h6 {
                 font-size: 0.82rem !important;

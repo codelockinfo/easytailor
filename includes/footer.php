@@ -83,6 +83,12 @@ $currentYear = date('Y');
     font-size: 13px !important;
     line-height: 1 !important;
 }
+.footer-social-btn svg {
+    width: 13px !important;
+    height: 13px !important;
+    fill: #ffffff !important;
+    display: block !important;
+}
 
 .footer-social-btn:hover {
     transform: translateY(-2px) !important;
@@ -94,6 +100,7 @@ $currentYear = date('Y');
 .footer-social-btn.yt { background: #ff0000 !important; }
 .footer-social-btn.li { background: #0a66c2 !important; }
 .footer-social-btn.ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%) !important; }
+.footer-social-btn.tw { background: #000000 !important; }
 .footer-social-btn.wa { background: #25d366 !important; }
 </style>
 <footer id="contact" class="footer-section py-3 d-none d-md-block">
@@ -215,7 +222,7 @@ $currentYear = date('Y');
                                     <a href="<?php echo htmlspecialchars($fbUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                                 <?php endif; ?>
                                 <?php if (!empty($twUrl)): ?>
-                                    <a href="<?php echo htmlspecialchars($twUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn" style="background:#000;" aria-label="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
+                                    <a href="<?php echo htmlspecialchars($twUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn tw" aria-label="X (Twitter)"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/></svg></a>
                                 <?php endif; ?>
                                 <?php if (!empty($ytUrl)): ?>
                                     <a href="<?php echo htmlspecialchars($ytUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn yt" aria-label="YouTube"><i class="fab fa-youtube"></i></a>

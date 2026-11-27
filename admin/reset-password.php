@@ -195,21 +195,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-                                <div class="password-strength" id="strengthBar"></div>
-                                <div class="password-requirements mt-2">
-                                    <div class="requirement" id="req-length">
-                                        <i class="fas fa-circle"></i> At least 6 characters
-                                    </div>
-                                    <div class="requirement" id="req-uppercase">
-                                        <i class="fas fa-circle"></i> Contains uppercase letter
-                                    </div>
-                                    <div class="requirement" id="req-lowercase">
-                                        <i class="fas fa-circle"></i> Contains lowercase letter
-                                    </div>
-                                    <div class="requirement" id="req-number">
-                                        <i class="fas fa-circle"></i> Contains number
-                                    </div>
-                                </div>
                             </div>
                             
                             <div class="mb-4">
@@ -278,39 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Password strength checker
         newPasswordInput.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-            
-            // Check requirements
-            const hasLength = password.length >= 6;
-            const hasUppercase = /[A-Z]/.test(password);
-            const hasLowercase = /[a-z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-            
-            // Update requirement indicators
-            updateRequirement('req-length', hasLength);
-            updateRequirement('req-uppercase', hasUppercase);
-            updateRequirement('req-lowercase', hasLowercase);
-            updateRequirement('req-number', hasNumber);
-            
-            // Calculate strength
-            if (hasLength) strength++;
-            if (hasUppercase) strength++;
-            if (hasLowercase) strength++;
-            if (hasNumber) strength++;
-            
-            // Update strength bar
-            strengthBar.className = 'password-strength';
-            if (strength === 0 || strength === 1) {
-                strengthBar.classList.add('weak');
-            } else if (strength === 2 || strength === 3) {
-                strengthBar.classList.add('medium');
-            } else {
-                strengthBar.classList.add('strong');
-            }
-            
             checkPasswordMatch();
         });
         
@@ -364,14 +317,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return false;
             }
             
-            const hasLength = newPass.length >= 6;
-            const hasUppercase = /[A-Z]/.test(newPass);
-            const hasLowercase = /[a-z]/.test(newPass);
-            const hasNumber = /[0-9]/.test(newPass);
-
-            if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber) {
+            if (newPass.length < 6) {
                 e.preventDefault();
-                alert('Password must meet all 4 conditions:\n• At least 6 characters\n• Contains uppercase letter\n• Contains lowercase letter\n• Contains number');
+                alert('Password must be at least 6 characters long.');
                 return false;
             }
 

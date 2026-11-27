@@ -108,15 +108,6 @@ function validate_password_strength($password) {
     if (strlen($password) < 6) {
         return ['valid' => false, 'message' => 'Password must be at least 6 characters long.'];
     }
-    if (!preg_match('/[A-Z]/', $password)) {
-        return ['valid' => false, 'message' => 'Password must contain at least one uppercase letter (A-Z).'];
-    }
-    if (!preg_match('/[a-z]/', $password)) {
-        return ['valid' => false, 'message' => 'Password must contain at least one lowercase letter (a-z).'];
-    }
-    if (!preg_match('/[0-9]/', $password)) {
-        return ['valid' => false, 'message' => 'Password must contain at least one number (0-9).'];
-    }
     return ['valid' => true];
 }
 

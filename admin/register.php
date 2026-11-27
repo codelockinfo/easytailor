@@ -556,7 +556,6 @@ $seoOptions = [
                                            ?>"
                                            required>
                                 </div>
-                                <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
                             </div>
                             
                             <div class="row g-2">
@@ -580,21 +579,6 @@ $seoOptions = [
                                                 onclick="togglePasswordField('password')">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                    </div>
-                                    <div class="password-strength" id="regStrengthBar"></div>
-                                    <div class="password-requirements mt-2">
-                                        <div class="requirement" id="req-length">
-                                            <i class="fas fa-circle"></i> At least 6 characters
-                                        </div>
-                                        <div class="requirement" id="req-uppercase">
-                                            <i class="fas fa-circle"></i> Contains uppercase letter
-                                        </div>
-                                        <div class="requirement" id="req-lowercase">
-                                            <i class="fas fa-circle"></i> Contains lowercase letter
-                                        </div>
-                                        <div class="requirement" id="req-number">
-                                            <i class="fas fa-circle"></i> Contains number
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-2">
@@ -622,18 +606,7 @@ $seoOptions = [
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info alert-info-compact mb-2">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>What you get:</strong>
-                                <ul class="mb-0 mt-1">
-                                    <li>Free plan available</li>
-                                    <li>Manage unlimited customers</li>
-                                    <li>Track orders and measurements</li>
-                                    <li>Generate invoices and reports</li>
-                                    <li>Add staff and tailors</li>
-                                </ul>
-                            </div>
-                            
+
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="agree_terms" required>
                                 <label class="form-check-label" for="agree_terms" style="font-size: 0.85rem;">
@@ -960,37 +933,6 @@ $seoOptions = [
 
         if (regPasswordInput) {
             regPasswordInput.addEventListener('input', function() {
-                const password = this.value;
-                let strength = 0;
-
-                const hasLength = password.length >= 6;
-                const hasUppercase = /[A-Z]/.test(password);
-                const hasLowercase = /[a-z]/.test(password);
-                const hasNumber = /[0-9]/.test(password);
-
-                updateRegRequirement('req-length', hasLength);
-                updateRegRequirement('req-uppercase', hasUppercase);
-                updateRegRequirement('req-lowercase', hasLowercase);
-                updateRegRequirement('req-number', hasNumber);
-
-                if (hasLength) strength++;
-                if (hasUppercase) strength++;
-                if (hasLowercase) strength++;
-                if (hasNumber) strength++;
-
-                if (regStrengthBar) {
-                    regStrengthBar.className = 'password-strength';
-                    if (password.length > 0) {
-                        if (strength <= 1) {
-                            regStrengthBar.classList.add('weak');
-                        } else if (strength <= 3) {
-                            regStrengthBar.classList.add('medium');
-                        } else {
-                            regStrengthBar.classList.add('strong');
-                        }
-                    }
-                }
-
                 checkRegPasswordMatch();
             });
         }
@@ -1071,14 +1013,9 @@ $seoOptions = [
             }
 
             const passwordVal = passwordInput.value;
-            const hasLength = passwordVal.length >= 6;
-            const hasUppercase = /[A-Z]/.test(passwordVal);
-            const hasLowercase = /[a-z]/.test(passwordVal);
-            const hasNumber = /[0-9]/.test(passwordVal);
-
-            if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber) {
+            if (passwordVal.length < 6) {
                 e.preventDefault();
-                showRegisterAlert('Password must meet all 4 conditions:\n• At least 6 characters\n• Contains uppercase letter\n• Contains lowercase letter\n• Contains number', 'Password Requirements', 'warning', passwordInput);
+                showRegisterAlert('Password must be at least 6 characters long.', 'Password Requirements', 'warning', passwordInput);
                 return false;
             }
 

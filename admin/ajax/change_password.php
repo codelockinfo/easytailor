@@ -49,9 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $success = true;
             $errorMsg = 'Password changed successfully. Redirecting to login...';
 
-            require_once __DIR__ . '/../../controllers/AuthController.php';
-            $authController = new AuthController();
-            $authController->logout();
+            $_SESSION = [];
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
+            }
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params['path'], $params['domain'],
+                    $params['secure'], $params['httponly']
+                );
+            }
         } else {
             $errorMsg = 'Failed to change password';
         }

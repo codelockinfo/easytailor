@@ -44,9 +44,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $success = true;
                 $errorMsg = 'Password changed successfully. Redirecting to login...';
 
-                require_once '../controllers/AuthController.php';
-                $authController = new AuthController();
-                $authController->logout();
+                $_SESSION = [];
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_destroy();
+                }
+                if (ini_get('session.use_cookies')) {
+                    $params = session_get_cookie_params();
+                    setcookie(session_name(), '', time() - 42000,
+                        $params['path'], $params['domain'],
+                        $params['secure'], $params['httponly']
+                    );
+                }
 
                 if (!$isAjax) {
                     header('Location: login.php?password_changed=1');
@@ -164,21 +172,6 @@ require_once 'includes/header.php';
                             </button>
                             <div class="invalid-feedback" id="newPasswordFeedback"><?php echo htmlspecialchars($fieldErrors['new_password'] ?? 'New password must be at least 6 characters.'); ?></div>
                         </div>
-                        <div class="password-strength" id="changeStrengthBar"></div>
-                        <div class="password-requirements mt-2">
-                            <div class="requirement" id="cp-req-length">
-                                <i class="fas fa-circle"></i> At least 6 characters
-                            </div>
-                            <div class="requirement" id="cp-req-uppercase">
-                                <i class="fas fa-circle"></i> Contains uppercase letter
-                            </div>
-                            <div class="requirement" id="cp-req-lowercase">
-                                <i class="fas fa-circle"></i> Contains lowercase letter
-                            </div>
-                            <div class="requirement" id="cp-req-number">
-                                <i class="fas fa-circle"></i> Contains number
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -286,37 +279,6 @@ function togglePassword(fieldId, btnEl) {
 
     if (cpNewPass) {
         cpNewPass.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-
-            const hasLength = password.length >= 6;
-            const hasUppercase = /[A-Z]/.test(password);
-            const hasLowercase = /[a-z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-
-            updateCpRequirement('cp-req-length', hasLength);
-            updateCpRequirement('cp-req-uppercase', hasUppercase);
-            updateCpRequirement('cp-req-lowercase', hasLowercase);
-            updateCpRequirement('cp-req-number', hasNumber);
-
-            if (hasLength) strength++;
-            if (hasUppercase) strength++;
-            if (hasLowercase) strength++;
-            if (hasNumber) strength++;
-
-            if (cpStrengthBar) {
-                cpStrengthBar.className = 'password-strength';
-                if (password.length > 0) {
-                    if (strength <= 1) {
-                        cpStrengthBar.classList.add('weak');
-                    } else if (strength <= 3) {
-                        cpStrengthBar.classList.add('medium');
-                    } else {
-                        cpStrengthBar.classList.add('strong');
-                    }
-                }
-            }
-
             checkCpMatch();
         });
     }
@@ -393,15 +355,10 @@ function togglePassword(fieldId, btnEl) {
             }
 
             const pwdVal = newInput.value;
-            const hasLength = pwdVal.length >= 6;
-            const hasUppercase = /[A-Z]/.test(pwdVal);
-            const hasLowercase = /[a-z]/.test(pwdVal);
-            const hasNumber = /[0-9]/.test(pwdVal);
-
             if (!pwdVal) {
                 firstInvalid = firstInvalid || setFieldError('new_password', 'Please enter new password.');
-            } else if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber) {
-                firstInvalid = firstInvalid || setFieldError('new_password', 'Password must be at least 6 characters and contain uppercase, lowercase, and a number.');
+            } else if (pwdVal.length < 6) {
+                firstInvalid = firstInvalid || setFieldError('new_password', 'Password must be at least 6 characters long.');
             } else {
                 clearFieldError('new_password');
             }
@@ -447,10 +404,7 @@ function togglePassword(fieldId, btnEl) {
                     if (submitBtn) {
                         submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Redirecting...';
                     }
-                    showBannerAlert(data.message || 'Password changed successfully. Redirecting to login...', 'success');
-                    setTimeout(function() {
-                        window.location.href = data.redirect || 'login.php?password_changed=1';
-                    }, 1000);
+                    window.location.href = data.redirect || 'login.php?password_changed=1';
                     return;
                 } else if (data.redirect) {
                     window.location.href = data.redirect;

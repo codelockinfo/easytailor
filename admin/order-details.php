@@ -439,7 +439,7 @@ require_once 'includes/header.php';
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white d-none d-md-block">
         <div class="card-body p-3">
             <div class="row g-3 align-items-center">
-                <div class="col-6 col-md-4 col-xl-2">
+                <div class="col-6 col-md-4 col-xl">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #eff6ff; color: #3b82f6;">
                             <i class="fas fa-file-alt fs-5"></i>
@@ -451,7 +451,7 @@ require_once 'includes/header.php';
                     </div>
                 </div>
               
-                <div class="col-6 col-md-4 col-xl-2">
+                <div class="col-6 col-md-4 col-xl">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #f5f3ff; color: #8b5cf6;">
                             <i class="fas fa-shopping-bag fs-5"></i>
@@ -462,7 +462,7 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-xl-2">
+                <div class="col-6 col-md-4 col-xl">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #ecfdf5; color: #10b981;">
                             <i class="fas fa-check-circle fs-5"></i>
@@ -478,7 +478,7 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-xl-2">
+                <div class="col-6 col-md-4 col-xl">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #fef2f2; color: #ef4444;">
                             <i class="fas fa-exclamation-circle fs-5"></i>
@@ -489,7 +489,7 @@ require_once 'includes/header.php';
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-xl-2">
+                <div class="col-6 col-md-4 col-xl">
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #eff6ff; color: #3b82f6;">
                             <i class="fas fa-calendar-alt fs-5"></i>
@@ -498,21 +498,6 @@ require_once 'includes/header.php';
                             <div class="text-muted small fw-medium" style="font-size: 0.78rem;">Due Date</div>
                             <div class="fw-bold fs-6 text-dark"><?php echo format_date($order['due_date'], 'M j, Y'); ?></div>
                             <div class="text-muted" style="font-size: 0.72rem;"><?php echo $dueText; ?></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-xl-2">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #f0fdf4; color: #16a34a;">
-                            <i class="fas fa-tasks fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small fw-medium" style="font-size: 0.78rem;">Order Status</div>
-                            <div class="mt-1">
-                                <span class="badge rounded-pill text-white px-3 py-1" id="orderDetailStatusBadgeDesk" style="<?php echo $statusBadgeBg; ?> font-size: 0.8rem; font-weight: 500; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#statusModal" title="Click to update status">
-                                    <?php echo ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>

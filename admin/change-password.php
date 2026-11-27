@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once '../config/config.php';
 require_login();
 require_once 'models/User.php';
@@ -51,6 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($isAjax) {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         header('Content-Type: application/json');
         echo json_encode([
             'success' => $success,
@@ -408,8 +412,11 @@ function togglePassword(fieldId, btnEl) {
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
             }
 
+            const alertContainer = document.getElementById('passwordAlertContainer');
+            if (alertContainer) alertContainer.innerHTML = '';
+
             try {
-                const res = await fetch('change-password.php', {
+                const res = await fetch('ajax/change_password.php', {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
@@ -417,8 +424,16 @@ function togglePassword(fieldId, btnEl) {
                     },
                     body: new FormData(passwordForm)
                 });
+                if (res.redirected && res.url.includes('login')) {
+                    window.location.href = res.url;
+                    return;
+                }
                 const data = await res.json();
 
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
                 if (data.success) {
                     passwordForm.reset();
                     Object.keys(FIELD_MAP).forEach(clearFieldError);

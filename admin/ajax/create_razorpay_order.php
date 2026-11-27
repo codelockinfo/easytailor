@@ -17,7 +17,7 @@ if (!$input) {
     echo json_encode(['success' => false, 'message' => 'Invalid request data']);
     exit;
 }
-$required = ['plan_key', 'plan_name', 'amount', 'duration', 'customer_name', 'customer_email', 'customer_phone'];
+$required = ['plan_key', 'plan_name', 'amount', 'duration'];
 foreach ($required as $field) {
     if (!isset($input[$field]) || empty($input[$field])) {
         echo json_encode(['success' => false, 'message' => "Missing required field: $field"]);
@@ -28,14 +28,7 @@ $planKey = $input['plan_key'];
 $planName = $input['plan_name'];
 $amount = floatval($input['amount']);
 $duration = $input['duration'];
-$customerName = sanitize_input($input['customer_name']);
-$customerEmail = sanitize_input($input['customer_email']);
-$customerPhone = sanitize_input($input['customer_phone']);
-if ($amount <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid amount']);
-    exit;
-}
-$amountInPaise = intval($amount * 100);
+
 $companyId = get_company_id();
 $userId = get_user_id();
 
@@ -43,6 +36,49 @@ if (!$companyId || !$userId) {
     echo json_encode(['success' => false, 'message' => 'User session invalid']);
     exit;
 }
+
+$customerName = sanitize_input($input['customer_name'] ?? '');
+$customerEmail = sanitize_input($input['customer_email'] ?? '');
+$customerPhone = sanitize_input($input['customer_phone'] ?? '');
+
+// Auto-fill customer details from DB if missing
+$database = new Database();
+$db = $database->getConnection();
+if ($db) {
+    $userStmt = $db->prepare("SELECT full_name, email, phone FROM users WHERE id = :id LIMIT 1");
+    $userStmt->bindParam(':id', $userId, PDO::PARAM_INT);
+    $userStmt->execute();
+    $dbUser = $userStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $compStmt = $db->prepare("SELECT company_name, owner_name, business_email, business_phone FROM companies WHERE id = :cid LIMIT 1");
+    $compStmt->bindParam(':cid', $companyId, PDO::PARAM_INT);
+    $compStmt->execute();
+    $dbComp = $compStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    if (empty($customerName)) {
+        $customerName = !empty($dbUser['full_name']) ? $dbUser['full_name'] : (!empty($dbComp['owner_name']) ? $dbComp['owner_name'] : ($dbComp['company_name'] ?? 'User'));
+    }
+    if (empty($customerEmail)) {
+        $customerEmail = !empty($dbUser['email']) ? $dbUser['email'] : ($dbComp['business_email'] ?? 'customer@example.com');
+    }
+    if (empty($customerPhone)) {
+        $rawPhone = !empty($dbUser['phone']) ? $dbUser['phone'] : ($dbComp['business_phone'] ?? '9999999999');
+        $cleanDigits = preg_replace('/[^0-9]/', '', (string)$rawPhone);
+        if (strlen($cleanDigits) > 10 && substr($cleanDigits, 0, 2) === '91') {
+            $cleanDigits = substr($cleanDigits, 2);
+        }
+        if (strlen($cleanDigits) < 10) {
+            $cleanDigits = '9999999999';
+        }
+        $customerPhone = '+91' . $cleanDigits;
+    }
+}
+
+if ($amount <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Invalid amount']);
+    exit;
+}
+$amountInPaise = intval($amount * 100);
 
 try {
     $razorpayKeyId = RAZORPAY_KEY_ID;

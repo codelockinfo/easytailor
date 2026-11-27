@@ -43,6 +43,29 @@ if (!$company) {
     exit;
 }
 
+// Get logged-in user details for auto-filling subscription upgrade
+$loggedInUserId = get_user_id();
+$currentUserData = [];
+if (isset($db) && $loggedInUserId) {
+    $userStmt = $db->prepare("SELECT full_name, email, phone, username FROM users WHERE id = :id LIMIT 1");
+    $userStmt->bindParam(':id', $loggedInUserId, PDO::PARAM_INT);
+    $userStmt->execute();
+    $currentUserData = $userStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+}
+
+$customerName = !empty($currentUserData['full_name']) ? $currentUserData['full_name'] : (!empty($company['owner_name']) ? $company['owner_name'] : ($company['company_name'] ?? 'User'));
+$customerEmail = !empty($currentUserData['email']) ? $currentUserData['email'] : (!empty($company['business_email']) ? $company['business_email'] : ($company['email'] ?? ''));
+
+$rawPhone = !empty($currentUserData['phone']) ? $currentUserData['phone'] : (!empty($company['business_phone']) ? $company['business_phone'] : ($company['phone'] ?? ''));
+$customerPhoneClean = preg_replace('/[^0-9]/', '', (string)$rawPhone);
+if (strlen($customerPhoneClean) > 10 && substr($customerPhoneClean, 0, 2) === '91') {
+    $customerPhoneClean = substr($customerPhoneClean, 2);
+}
+if (strlen($customerPhoneClean) < 10) {
+    $customerPhoneClean = '9999999999';
+}
+$customerPhonePrefixed = '+91' . $customerPhoneClean;
+
 // Get company statistics
 $companyStats = $companyModel->getCompanyStats($companyId);
 
@@ -399,42 +422,26 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
                                 id="selectedPlanDuration">/month</span></h2>
                     </div>
 
-                    <hr class="my-4">
+                    <hr class="my-3">
 
-                    <h6 class="mb-3"><i class="fas fa-user me-2"></i>Customer Details</h6>
-
-                    <div class="mb-3">
-                        <label for="customerName" class="form-label">Full Name <span
-                                class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="customerName" name="customerName" required
-                            placeholder="Enter your full name">
-                        <div class="invalid-feedback">Please provide your full name.</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="customerEmail" class="form-label">Email Address <span
-                                class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="customerEmail" name="customerEmail" required
-                            placeholder="Enter your email address">
-                        <div class="invalid-feedback">Please provide a valid email address.</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="customerPhone" class="form-label">Phone Number <span
-                                class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text">+91</span>
-                            <input type="tel" class="form-control" id="customerPhone" name="customerPhone" required
-                                placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10">
+                    <div class="bg-light rounded p-3 mb-3 border text-start">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small"><i class="fas fa-store me-1 text-primary"></i> Shop</span>
+                            <span class="fw-semibold small"><?php echo htmlspecialchars($company['company_name'] ?? 'Your Shop'); ?></span>
                         </div>
-                        <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
-                        <div class="invalid-feedback">Please provide a valid 10-digit phone number.</div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small"><i class="fas fa-user me-1 text-primary"></i> Subscriber</span>
+                            <span class="fw-semibold small"><?php echo htmlspecialchars($customerName); ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small"><i class="fas fa-envelope me-1 text-primary"></i> Email</span>
+                            <span class="fw-semibold small"><?php echo htmlspecialchars($customerEmail); ?></span>
+                        </div>
                     </div>
 
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <small>You will be redirected to Razorpay secure payment gateway to complete the
-                            transaction.</small>
+                    <div class="alert alert-info mb-0 py-2 text-start">
+                        <i class="fas fa-shield-alt text-primary me-2"></i>
+                        <small>Secured by Razorpay. Instant plan activation upon payment.</small>
                     </div>
                 </form>
             </div>
@@ -492,11 +499,26 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
         <?php endforeach; ?>
     };
 
+    const loggedInCustomer = {
+        name: <?php echo json_encode($customerName); ?>,
+        email: <?php echo json_encode($customerEmail); ?>,
+        phone: <?php echo json_encode($customerPhonePrefixed); ?>
+    };
+
     function selectPlan(planKey, planName, planPrice) {
         selectedPlan = planKey;
         selectedPlanData = planData[planKey];
 
         document.getElementById('selectedPlanName').textContent = planName;
+
+        // Sync duration from the plan card toggle
+        const cardAnnual = document.getElementById('annual-' + planKey);
+        if (cardAnnual && cardAnnual.checked) {
+            document.getElementById('modal-annual').checked = true;
+        } else {
+            document.getElementById('modal-monthly').checked = true;
+        }
+
         updateModalPricing();
 
         const modal = new bootstrap.Modal(document.getElementById('upgradeModal'));
@@ -519,56 +541,22 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
     }
 
     function proceedToPayment() {
-        // Validate form
-        const form = document.getElementById('subscriptionForm');
-        const customerName = document.getElementById('customerName').value.trim();
-        const customerEmail = document.getElementById('customerEmail').value.trim();
-        let customerPhone = document.getElementById('customerPhone').value.trim();
-
-        // Reset validation
-        form.classList.remove('was-validated');
-        document.getElementById('customerName').classList.remove('is-invalid');
-        document.getElementById('customerEmail').classList.remove('is-invalid');
-        document.getElementById('customerPhone').classList.remove('is-invalid');
-
-        // Validate fields
-        let isValid = true;
-
-        if (!customerName) {
-            document.getElementById('customerName').classList.add('is-invalid');
-            isValid = false;
-        }
-
-        if (!customerEmail || !isValidEmail(customerEmail)) {
-            document.getElementById('customerEmail').classList.add('is-invalid');
-            isValid = false;
-        }
-
-        // Clean phone number and validate
-        customerPhone = customerPhone.replace(/[^0-9]/g, '');
-        if (!customerPhone || customerPhone.length !== 10) {
-            document.getElementById('customerPhone').classList.add('is-invalid');
-            isValid = false;
-        } else {
-            // Add +91 prefix for submission
-            customerPhone = '+91' + customerPhone;
-        }
-
-        if (!isValid) {
-            form.classList.add('was-validated');
-            return;
-        }
+        const customerName = loggedInCustomer.name || 'User';
+        const customerEmail = loggedInCustomer.email || 'customer@example.com';
+        const customerPhone = loggedInCustomer.phone || '+919999999999';
 
         // Get pricing details
         const annualRadio = document.getElementById('modal-annual');
-        const isAnnual = annualRadio.checked;
+        const isAnnual = annualRadio ? annualRadio.checked : false;
         const price = isAnnual ? selectedPlanData.price_annual : selectedPlanData.price;
         const duration = isAnnual ? 'yearly' : 'monthly';
 
         // Disable button to prevent double submission
         const payBtn = document.getElementById('payNowBtn');
-        payBtn.disabled = true;
-        payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        if (payBtn) {
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        }
 
         // Create Razorpay order
         fetch('ajax/create_razorpay_order.php', {
@@ -716,8 +704,10 @@ if ($company['subscription_expiry'] && $currentPlan !== 'free') {
 
     // Handle pricing toggle in modal
     document.addEventListener('DOMContentLoaded', function () {
-        // Setup phone validation
-        setupPhoneValidation('customerPhone', '+91');
+        // Setup phone validation if element exists
+        if (document.getElementById('customerPhone')) {
+            setupPhoneValidation('customerPhone', '+91');
+        }
 
         const monthlyRadio = document.getElementById('modal-monthly');
         const annualRadio = document.getElementById('modal-annual');

@@ -513,12 +513,12 @@ include 'includes/page-header.php';
                         </tr>
                         <?php endforeach; ?>
                         <tr id="noResultsRow" style="display: none;">
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
-                                    <i class="fas fa-search fa-lg"></i>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                                    <i class="fas fa-search fa-2x"></i>
                                 </div>
-                                <div class="fw-semibold text-dark">No contacts found</div>
-                                <small class="text-muted">Try adjusting your search or category filter.</small>
+                                <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                                <p class="text-muted small mb-0">No contacts match your search or filter criteria.</p>
                             </td>
                         </tr>
                     </tbody>
@@ -609,12 +609,12 @@ include 'includes/page-header.php';
                     </div>
                 </div>
                 <?php endforeach; ?>
-                <div id="noResultsCards" class="text-center py-5 text-muted" style="display: none;">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
-                        <i class="fas fa-address-book fa-lg"></i>
+                <div id="noResultsCards" class="text-center py-5 text-muted" style="display: none; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
                     </div>
-                    <div class="fw-semibold text-dark">No contacts found</div>
-                    <small class="text-muted">Try adjusting your search or category filter.</small>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">No contacts match your search or filter criteria.</p>
                 </div>
             </div>
             <div id="paginationContainer" class="p-3">

@@ -364,9 +364,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return false;
             }
             
-            if (newPass.length < 6) {
+            const hasLength = newPass.length >= 6;
+            const hasUppercase = /[A-Z]/.test(newPass);
+            const hasLowercase = /[a-z]/.test(newPass);
+            const hasNumber = /[0-9]/.test(newPass);
+
+            if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber) {
                 e.preventDefault();
-                alert('Password must be at least 6 characters long!');
+                alert('Password must meet all 4 conditions:\n• At least 6 characters\n• Contains uppercase letter\n• Contains lowercase letter\n• Contains number');
                 return false;
             }
 

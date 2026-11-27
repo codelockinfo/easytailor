@@ -104,18 +104,124 @@ function format_date($date, $format = 'Y-m-d') {
     return date($format, strtotime($date));
 }
 
+function validate_password_strength($password) {
+    if (strlen($password) < 6) {
+        return ['valid' => false, 'message' => 'Password must be at least 6 characters long.'];
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        return ['valid' => false, 'message' => 'Password must contain at least one uppercase letter (A-Z).'];
+    }
+    if (!preg_match('/[a-z]/', $password)) {
+        return ['valid' => false, 'message' => 'Password must contain at least one lowercase letter (a-z).'];
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        return ['valid' => false, 'message' => 'Password must contain at least one number (0-9).'];
+    }
+    return ['valid' => true];
+}
+
+function validate_user_session($pdo = null, $force_check = false) {
+    static $validationCache = null;
+    
+    if ($force_check) {
+        $validationCache = null;
+    }
+    
+    if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+        return false;
+    }
+    
+    // Site admin session bypass
+    if (!empty($_SESSION['site_admin_logged_in'])) {
+        return true;
+    }
+
+    if ($validationCache !== null) {
+        return $validationCache;
+    }
+
+    try {
+        if (!$pdo) {
+            if (!class_exists('Database')) {
+                require_once __DIR__ . '/database.php';
+            }
+            $database = new Database();
+            $pdo = $database->getConnection();
+        }
+
+        if ($pdo) {
+            $userId = (int)$_SESSION['user_id'];
+            $stmt = $pdo->prepare("SELECT id, status, company_id FROM users WHERE id = :id LIMIT 1");
+            $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user || (isset($user['status']) && $user['status'] !== 'active')) {
+                // User no longer exists in DB or is inactive -> destroy session
+                $_SESSION = [];
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_destroy();
+                }
+                if (!headers_sent() && ini_get("session.use_cookies")) {
+                    $params = session_get_cookie_params();
+                    setcookie(session_name(), '', time() - 42000,
+                        $params["path"], $params["domain"],
+                        $params["secure"], $params["httponly"]
+                    );
+                }
+                $validationCache = false;
+                return false;
+            }
+
+            if (!empty($user['company_id'])) {
+                $compStmt = $pdo->prepare("SELECT id FROM companies WHERE id = :cid LIMIT 1");
+                $cid = (int)$user['company_id'];
+                $compStmt->bindParam(':cid', $cid, PDO::PARAM_INT);
+                $compStmt->execute();
+                if (!$compStmt->fetch()) {
+                    // Associated company was deleted -> destroy session
+                    $_SESSION = [];
+                    if (session_status() === PHP_SESSION_ACTIVE) {
+                        session_destroy();
+                    }
+                    if (!headers_sent() && ini_get("session.use_cookies")) {
+                        $params = session_get_cookie_params();
+                        setcookie(session_name(), '', time() - 42000,
+                            $params["path"], $params["domain"],
+                            $params["secure"], $params["httponly"]
+                        );
+                    }
+                    $validationCache = false;
+                    return false;
+                }
+            }
+
+            $validationCache = true;
+            return true;
+        }
+    } catch (Throwable $e) {
+        // Fallback safely if database is temporarily unreachable
+        return true;
+    }
+
+    return true;
+}
+
 function is_logged_in() {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+    if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+        return false;
+    }
+    return validate_user_session();
 }
 
 function require_login() {
     if (!is_logged_in()) {
         $current_script = $_SERVER['SCRIPT_NAME'] ?? '';
-        if (strpos($current_script, '/admin/') !== false) {
-            smart_redirect('login.php');
-        } else {
-            smart_redirect('admin/login.php');
+        $redirectUrl = (strpos($current_script, '/admin/') !== false) ? 'login.php' : 'admin/login.php';
+        if (isset($_GET['error'])) {
+            $redirectUrl .= '?error=' . urlencode($_GET['error']);
         }
+        smart_redirect($redirectUrl);
     }
 }
 

@@ -191,7 +191,7 @@ if (isset($_GET['resend'])) {
                             
                             <div class="text-center mb-3">
                                 <small class="text-muted">
-                                    Code expires in <span class="timer" id="timer">15:00</span>
+                                    Code expires in <span class="timer" id="timer">1:00</span>
                                 </small>
                             </div>
                             
@@ -269,8 +269,8 @@ if (isset($_GET['resend'])) {
         // Focus first input on load
         codeInputs[0].focus();
         
-        // Countdown timer (15 minutes)
-        let timeLeft = 15 * 60; // 15 minutes in seconds
+        // Countdown timer (1 minute)
+        let timeLeft = 1 * 60; // 1 minute in seconds
         const timerElement = document.getElementById('timer');
         
         const countdown = setInterval(() => {

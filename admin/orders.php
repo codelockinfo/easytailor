@@ -1893,7 +1893,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="customer_phone" class="form-label fw-semibold">Phone Number *</label>
-                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15" required>
+                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="10" required>
                             <div class="invalid-feedback" id="customerPhoneFeedback">Please enter phone number.</div>
                         </div>
                     </div>
@@ -3495,8 +3495,6 @@ if (customerSelectEl) {
                     window.currentCustomerMeasurements = data || [];
                     if (container) container.innerHTML = '';
                     selectedMeasurementIds.clear();
-
-                    // Load ONLY this customer's measurements as cards and tags
                     if (data && data.length > 0) {
                         data.forEach((m, idx) => {
                             selectedMeasurementIds.add(String(m.id));
@@ -3542,12 +3540,10 @@ if (customerSelectEl) {
         }
     });
 }
-
 function editOrder(order) {
     console.log('Editing order:', order);
     const waSwitch = document.getElementById('send_whatsapp_invoice');
     if (waSwitch) waSwitch.checked = false; 
-    
     document.getElementById('orderModalTitle').textContent = 'Edit Order';
     document.getElementById('orderAction').value = 'update';
     document.getElementById('orderId').value = order.id || '';
@@ -3568,8 +3564,6 @@ function editOrder(order) {
     }
     document.getElementById('special_instructions').value = order.special_instructions || '';
     calculatePendingAmount();
-
-    // Clear items and tags
     selectedMeasurementIds.clear();
     const container = document.getElementById('orderItemsContainer');
     if (container) container.innerHTML = '';
@@ -3601,8 +3595,7 @@ function editOrder(order) {
                             notes: it.notes
                         }, idx === 0);
                     });
-                } else {
-                    // Fallback to legacy single order
+                } else 
                     addOrderItemCard({
                         cloth_type_id: order.cloth_type_id,
                         measurement_id: order.measurement_id,
@@ -3633,10 +3626,8 @@ function editOrder(order) {
         }, true);
         updateMeasurementTagsUI();
     }
-
     new bootstrap.Modal(document.getElementById('orderModal')).show();
 }
-
 function updateOrderStatusAjax(orderId, status, clickedElement) {
     if (window.event) {
         window.event.preventDefault();
@@ -3645,7 +3636,6 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
     const originalText = clickedElement.innerHTML;
     clickedElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
     clickedElement.style.pointerEvents = 'none';
-
     fetch('ajax/update_order_status.php', {
         method: 'POST',
         headers: {
@@ -3658,8 +3648,6 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
         if (data.success) {
             clickedElement.innerHTML = originalText;
             clickedElement.style.pointerEvents = 'auto';
-
-            // Close bootstrap dropdown
             const dropdownMenu = clickedElement.closest('.dropdown-menu');
             if (dropdownMenu) {
                 const dropdownToggle = dropdownMenu.parentElement.querySelector('[data-bs-toggle="dropdown"]');
@@ -3668,12 +3656,9 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
                     if (bsDropdown) bsDropdown.hide();
                 }
             }
-
-            // Update UI in-place without page reload
             applyOrderStatusUpdateLocally(orderId, status, data.status_display);
             showToast('Success', 'Order status updated to ' + (data.status_display || status), 'success');
 
-            // Quick poll to refresh stat counters
             if (typeof pollOrderSync === 'function') {
                 setTimeout(pollOrderSync, 500);
             }
@@ -3690,55 +3675,42 @@ function updateOrderStatusAjax(orderId, status, clickedElement) {
         clickedElement.style.pointerEvents = 'auto';
     });
 }
-
-// Global order variable for Quick Pay modal
 window.currentQuickPayOrder = null;
-
 function openQuickPayModal(order) {
     if (!order) return;
     window.currentQuickPayOrder = order;
-
     const modalEl = document.getElementById('quickPayModal');
     if (!modalEl) return;
-
     const orderNum = order.order_number || ('ORD' + order.id);
     document.getElementById('quickPayOrderNum').textContent = '#' + orderNum;
     document.getElementById('quickPayOrderId').value = order.id;
     document.getElementById('quickPayCustomer').textContent = order.customer_name || 'Customer';
-
     const formatCurr = (val) => '₹' + parseFloat(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
     document.getElementById('quickPayTotal').textContent = formatCurr(order.total_amount);
     document.getElementById('quickPayAdvance').textContent = formatCurr(order.advance_amount);
     document.getElementById('quickPayPendingBadge').textContent = formatCurr(order.balance_amount);
-
     const methodSelect = document.getElementById('quickPayMethod');
     if (methodSelect) {
         methodSelect.value = (order.payment_method || 'cash').toLowerCase();
         if (!methodSelect.value) methodSelect.value = 'cash';
     }
-
     const bsModal = new bootstrap.Modal(modalEl);
     bsModal.show();
 }
-
 function submitQuickPay() {
     const orderId = document.getElementById('quickPayOrderId')?.value;
     const paymentMethod = document.getElementById('quickPayMethod')?.value || 'cash';
     const csrfToken = document.getElementById('quickPayCsrfToken')?.value || '<?php echo generate_csrf_token(); ?>';
     const submitBtn = document.getElementById('quickPaySubmitBtn');
-
     if (!orderId) {
         showToast('Error', 'Invalid order selected', 'error');
         return;
     }
-
     const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
     if (submitBtn) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
         submitBtn.disabled = true;
     }
-
     fetch('ajax/quick_pay_order.php', {
         method: 'POST',
         headers: {
@@ -3752,17 +3724,13 @@ function submitQuickPay() {
             submitBtn.innerHTML = origBtnHtml;
             submitBtn.disabled = false;
         }
-
         if (data.success) {
             const modalEl = document.getElementById('quickPayModal');
             if (modalEl) {
                 const bsModal = bootstrap.Modal.getInstance(modalEl);
                 if (bsModal) bsModal.hide();
             }
-
             showToast('Success', data.message || 'Payment settled successfully! Order marked as Fully Paid.', 'success');
-
-            // 1. Update Amount column UI (Desktop & Mobile)
             const amountCell = document.getElementById('orderAmountCell_' + orderId);
             if (amountCell) {
                 const methodLower = (data.order.payment_method || 'cash').toLowerCase();
@@ -3794,8 +3762,6 @@ function submitQuickPay() {
                     </div>
                 `;
             }
-
-            // 2. Replace Quick Pay button with Fully Paid checkmark (Desktop & Mobile)
             const payBtn = document.getElementById('quickPayBtn_' + orderId);
             if (payBtn) {
                 const paidSpan = document.createElement('span');
@@ -3814,8 +3780,6 @@ function submitQuickPay() {
                 paidSpan.innerHTML = '<i class="fas fa-check text-success"></i>';
                 mobilePayBtn.parentNode.replaceChild(paidSpan, mobilePayBtn);
             }
-
-            // 3. Update Edit button's data so opening Edit modal shows 0 pending (Desktop & Mobile)
             const updateEditBtnData = (btnEl) => {
                 if (!btnEl) return;
                 const currentOnClick = btnEl.getAttribute('onclick');
@@ -3861,7 +3825,6 @@ function submitQuickPay() {
         showToast('Error', 'An error occurred while updating payment', 'error');
     });
 }
-
 function showToast(title, message, type = 'info') {
     let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
@@ -3878,7 +3841,6 @@ function showToast(title, message, type = 'info') {
     toastElement.setAttribute('role', 'alert');
     toastElement.setAttribute('aria-live', 'assertive');
     toastElement.setAttribute('aria-atomic', 'true');
-    
     toastElement.innerHTML = `
         <div class="d-flex">
             <div class="toast-body">
@@ -3888,7 +3850,6 @@ function showToast(title, message, type = 'info') {
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
-    
     toastContainer.appendChild(toastElement);
     const toast = new bootstrap.Toast(toastElement, {
         autohide: true,
@@ -3899,18 +3860,15 @@ function showToast(title, message, type = 'info') {
         toastElement.remove();
     });
 }
-
 function viewOrder(orderId) {
     window.location.href = 'order-details.php?id=' + orderId;
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('orderItemsContainer');
     if (container && container.children.length === 0) {
         addOrderItemCard({}, true);
     }
 });
-
 const orderModalEl = document.getElementById('orderModal');
 if (orderModalEl) {
     orderModalEl.addEventListener('show.bs.modal', function() {
@@ -3923,7 +3881,6 @@ if (orderModalEl) {
             addOrderItemCard({}, true);
         }
     });
-
     orderModalEl.addEventListener('hidden.bs.modal', function() {
         const titleEl = document.getElementById('orderModalTitle');
         if (titleEl) titleEl.textContent = 'Create Order';
@@ -3943,8 +3900,7 @@ if (orderModalEl) {
         const advanceEl = document.getElementById('advance_amount');
         if (advanceEl) advanceEl.value = '0';
         const paymentMethodEl = document.getElementById('payment_method');
-        if (paymentMethodEl) paymentMethodEl.value = 'cash';
-        
+        if (paymentMethodEl) paymentMethodEl.value = 'cash'; 
         window.currentCustomerMeasurements = [];
         selectedMeasurementIds.clear();
         updateMeasurementTagsUI();
@@ -3965,7 +3921,6 @@ if (orderModalEl) {
         if (typeof renderCustomerOptions === 'function') {
             renderCustomerOptions('');
         }
-
         const container = document.getElementById('orderItemsContainer');
         if (container) {
             container.innerHTML = '';
@@ -3974,7 +3929,6 @@ if (orderModalEl) {
         calculatePendingAmount();
     });
 }
-
 let filterTimeout;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
@@ -3991,7 +3945,6 @@ const filterCount = document.getElementById('filterCount');
 const ordersTable = document.getElementById('ordersTableBody') || document.querySelector('.table tbody');
 const originalTableContent = ordersTable ? ordersTable.innerHTML : '';
 loadFilterOptions();
-
 function loadFilterOptions() {
     fetch('ajax/filter_orders.php?page=1&limit=1')
         .then(response => {
@@ -4022,7 +3975,6 @@ function loadFilterOptions() {
             console.error('Error loading filter options:', error);
         });
 }
-
 function populateFilterOptions(options) {
     const clothTypeSelect = document.getElementById('clothTypeFilter');
     if (clothTypeSelect && options.cloth_types) {
@@ -4056,13 +4008,11 @@ function populateFilterOptions(options) {
         element.addEventListener('input', performFilter);
     }
 });
-
 if (clearFilters) {
     clearFilters.addEventListener('click', function() {
         window.location.href = 'orders.php';
     });
 }
-
 function performFilter() {
     clearTimeout(filterTimeout);
     if (this === searchInput) {
@@ -4073,7 +4023,6 @@ function performFilter() {
         executeFilter();
     }
 }
-
 function executeFilter() {
     const search = searchInput.value.trim();
     const status = statusFilter.value;
@@ -4084,7 +4033,6 @@ function executeFilter() {
     const urlParams = new URLSearchParams(window.location.search);
     const customerIdParam = urlParams.get('customer_id');
     const hasActiveFilters = Boolean(search || status || clothType || tailor || startDate || endDate || customerIdParam);
-    
     if (hasActiveFilters) {
         filterResults.style.display = 'block';
         if (filterAlertBox) {
@@ -4101,7 +4049,6 @@ function executeFilter() {
     } else {
         filterResults.style.display = 'none';
     }
-    
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status) params.append('status', status);
@@ -4112,7 +4059,6 @@ function executeFilter() {
     if (customerIdParam) params.append('customer_id', customerIdParam);
     params.append('page', '1');
     params.append('limit', '<?php echo RECORDS_PER_PAGE; ?>');
-    
     fetch(`ajax/filter_orders.php?${params.toString()}`)
         .then(response => {
             if (!response.ok) {
@@ -4124,7 +4070,6 @@ function executeFilter() {
             if (text.trim().startsWith('<')) {
                 throw new Error('Server returned HTML instead of JSON. Check for PHP errors.');
             }
-            
             try {
                 const data = JSON.parse(text);
                 if (data.success) {
@@ -4159,7 +4104,6 @@ function executeFilter() {
                     } else {
                         filterResults.style.display = 'none';
                     }
-                    
                     const paginationContainer = document.getElementById('paginationContainer');
                     if (paginationContainer) {
                         if (data.pagination.total_pages <= 1) {
@@ -4183,7 +4127,6 @@ function executeFilter() {
             showFilterError(error.message);
         });
 }
-
 function showFilterError(errorMessage) {
     if (filterResults) filterResults.style.display = 'block';
     if (filterAlertBox) {
@@ -4223,42 +4166,38 @@ function showFilterError(errorMessage) {
         `;
     }
 }
-
 function displayFilterResults(orders) {
     if (!ordersTable) {
         console.error('Orders table not found');
         return;
     }
-    
     const isTailor = <?php echo has_role('tailor') ? 'true' : 'false'; ?>;
     const ordersMobileList = document.getElementById('ordersMobileCardsList');
-    
     if (orders.length === 0) {
         ordersTable.innerHTML = `
             <tr>
                 <td colspan="${isTailor ? '8' : '9'}" class="text-center py-5">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-1">No orders found</h5>
-                    <p class="text-muted small">Try adjusting your filter criteria</p>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
         if (ordersMobileList) {
             ordersMobileList.innerHTML = `
-                <div class="text-center py-5">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                <div class="text-center py-5" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-1">No orders found</h5>
-                    <p class="text-muted small">Try adjusting your filter criteria</p>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </div>
             `;
         }
         return;
     }
-    
     const palettes = [
         { bg: '#eff6ff', border: '#dbeafe', color: '#3b82f6' },
         { bg: '#f0fdf4', border: '#dcfce7', color: '#10b981' },
@@ -4267,7 +4206,6 @@ function displayFilterResults(orders) {
         { bg: '#fdf2f8', border: '#fce7f3', color: '#ec4899' },
         { bg: '#f0fdfa', border: '#ccfbf1', color: '#0d9488' }
     ];
-    
     const statusClasses = {
         'pending': 'cat-badge-pending',
         'in_progress': 'cat-badge-in_progress',
@@ -4275,9 +4213,7 @@ function displayFilterResults(orders) {
         'delivered': 'cat-badge-delivered',
         'cancelled': 'cat-badge-cancelled'
     };
-    
     const formatCurrency = (amount) => '₹' + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 });
-    
     const formatDate = (dateString) => {
         if (!dateString) return '-';
         const date = new Date(dateString);
@@ -4287,7 +4223,6 @@ function displayFilterResults(orders) {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
-    
     let tableHTML = '';
     let cardsHTML = '';
     orders.forEach((order, index) => {
@@ -4299,17 +4234,13 @@ function displayFilterResults(orders) {
         const pal = palettes[index % palettes.length];
         const statusBadgeClass = statusClasses[order.status] || 'bg-secondary';
         const statusDisplay = order.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
         const orderQty = Math.max(1, parseInt((order.total_quantity > 0 ? order.total_quantity : (order.item_count || 1)), 10) || 1);
         const totalAmt = parseFloat(order.total_amount) || 0;
         const advAmt = parseFloat(order.advance_amount) || 0;
         const pendingAmt = (order.balance_amount !== undefined && order.balance_amount !== null) ? parseFloat(order.balance_amount) : Math.max(0, totalAmt - advAmt);
-
         const pmLower = (order.payment_method || 'cash').toLowerCase();
         const pmDisplay = pmLower === 'online' ? 'Online' : (pmLower.charAt(0).toUpperCase() + pmLower.slice(1));
         const pmBadgeClass = pmLower === 'online' ? 'bg-primary text-white' : 'bg-light text-dark border';
-
-        // 1. Desktop Table Row
         tableHTML += `
             <tr class="order-row" id="orderRow_${order.id}" data-status="${escapeHtml(order.status)}" data-customer="${escapeHtml(customerName)}">
                 <td class="ps-3 py-3">
@@ -4491,11 +4422,8 @@ function displayFilterResults(orders) {
                 </td>
             </tr>
         `;
-
-        // 2. Mobile Card
         cardsHTML += `
             <div class="order-mobile-card shadow-sm" id="orderCard_${order.id}" data-status="${escapeHtml(order.status)}" data-customer="${escapeHtml(customerName)}">
-                <!-- Header: Order # & Status -->
                 <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                     <span class="badge fw-semibold" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8rem; padding: 5px 9px; border-radius: 8px;">
                         #${escapeHtml(order.order_number)}
@@ -4504,8 +4432,6 @@ function displayFilterResults(orders) {
                         ${escapeHtml(statusDisplay)}
                     </span>
                 </div>
-
-                <!-- Customer Row -->
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div class="d-flex align-items-center gap-2 min-w-0">
                         <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-bold" style="width: 38px; height: 38px; border-radius: 10px; background: ${pal.bg}; border: 1px solid ${pal.border}; color: ${pal.color}; font-size: 0.9rem;">
@@ -4523,8 +4449,6 @@ function displayFilterResults(orders) {
                         </div>
                     </div>
                 </div>
-
-                <!-- Order Info Grid -->
                 <div class="rounded-3 p-2 mb-3" style="background: #f8fafc; border: 1px solid #edf2f7; font-size: 0.8rem;">
                     <div class="row g-2">
                         <div class="col-6">
@@ -4569,8 +4493,6 @@ function displayFilterResults(orders) {
                         </div>
                     </div>
                 </div>
-
-                <!-- Financial Box -->
                 <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: #ffffff; border: 1px solid #e2e8f0;">
                     <div>
                         <div class="text-muted" style="font-size: 0.68rem; text-transform: uppercase; font-weight: 600;">Total Amount</div>
@@ -4596,8 +4518,6 @@ function displayFilterResults(orders) {
                         `}
                     </div>
                 </div>
-
-                <!-- Action Bar in Card Footer -->
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
                     <span class="text-muted small" style="font-size: 0.72rem;">Actions</span>
                     <div class="d-inline-flex align-items-center gap-1">
@@ -4705,13 +4625,10 @@ function displayFilterResults(orders) {
             </div>
         `;
     });
-    
     ordersTable.innerHTML = tableHTML;
     if (ordersMobileList) {
         ordersMobileList.innerHTML = cardsHTML;
     }
-    
-    // Bind click events to both desktop and mobile buttons
     document.querySelectorAll('.quick-pay-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             try {
@@ -4770,7 +4687,6 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
     if (sortIcon) {
         sortIcon.className = sortAscending ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
     }
-    
     const tableBody = document.getElementById('ordersTableBody') || document.querySelector('.table tbody');
     if (tableBody) {
         const rows = Array.from(tableBody.querySelectorAll('tr.order-row'));
@@ -4795,12 +4711,10 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
 (function() {
     let activeFloatingToggle = null;
     let activeFloatingMenu = null;
-
     function positionFloatingDropdown(toggle, menu) {
         if (!toggle || !menu || !menu.classList.contains('show')) return;
         const toggleRect = toggle.getBoundingClientRect();
         if (toggleRect.width === 0 && toggleRect.height === 0) return;
-
         menu.style.position = 'fixed';
         menu.style.zIndex = '9999';
         menu.style.pointerEvents = 'auto';
@@ -4812,13 +4726,11 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
         menu.style.inset = 'auto';
         menu.style.visibility = 'visible';
         menu.style.opacity = '1';
-
         const menuWidth = menu.offsetWidth || 165;
         const menuHeight = menu.offsetHeight || 220;
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
         const gap = 6;
-
         let top = toggleRect.bottom + gap;
         if (top + menuHeight > viewportHeight - 10) {
             if (toggleRect.top - menuHeight - gap >= 10) {
@@ -4827,7 +4739,6 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
                 top = Math.max(10, viewportHeight - menuHeight - 10);
             }
         }
-
         let left = toggleRect.right - menuWidth;
         if (left + menuWidth > viewportWidth - 10) {
             left = viewportWidth - menuWidth - 10;
@@ -4835,39 +4746,30 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
         if (left < 10) {
             left = 10;
         }
-
         menu.style.top = top + 'px';
         menu.style.left = left + 'px';
     }
-
     document.addEventListener('shown.bs.dropdown', function(e) {
         const toggle = e.target;
         const dropdown = toggle.closest('.dropdown');
         if (!dropdown || (!dropdown.closest('.table td') && !dropdown.closest('.order-mobile-card'))) return;
-
         const menu = toggle._orderStatusMenu || dropdown.querySelector('.dropdown-menu');
         if (!menu) return;
-
         toggle._orderStatusMenu = menu;
         if (!menu._origParent) {
             menu._origParent = dropdown;
             menu._origNextSibling = menu.nextSibling;
         }
-
-        // Portal to body so parent overflow/transform (.table-responsive, .card:hover) never clips or traps fixed positioning
         if (menu.parentElement !== document.body) {
             document.body.appendChild(menu);
         }
-
         activeFloatingToggle = toggle;
         activeFloatingMenu = menu;
-
         positionFloatingDropdown(toggle, menu);
         requestAnimationFrame(function() {
             positionFloatingDropdown(toggle, menu);
         });
     });
-
     document.addEventListener('hidden.bs.dropdown', function(e) {
         const toggle = e.target;
         const menu = toggle._orderStatusMenu;
@@ -4877,7 +4779,6 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
             activeFloatingToggle = null;
             activeFloatingMenu = null;
         }
-
         menu.style.top = '';
         menu.style.left = '';
         menu.style.right = '';
@@ -4886,7 +4787,6 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
         menu.style.transform = '';
         menu.style.inset = '';
         menu.style.margin = '';
-
         if (menu._origParent && menu._origParent.isConnected) {
             if (menu._origNextSibling && menu._origNextSibling.parentNode === menu._origParent) {
                 menu._origParent.insertBefore(menu, menu._origNextSibling);
@@ -4897,24 +4797,20 @@ document.getElementById('sortOrdersBtn')?.addEventListener('click', function(e) 
             menu.remove();
         }
     });
-
     window.addEventListener('scroll', function() {
         if (activeFloatingToggle && activeFloatingMenu) {
             positionFloatingDropdown(activeFloatingToggle, activeFloatingMenu);
         }
     }, true);
-
     window.addEventListener('resize', function() {
         if (activeFloatingToggle && activeFloatingMenu) {
             positionFloatingDropdown(activeFloatingToggle, activeFloatingMenu);
         }
     });
 })();
-
 const canSendInvoice = <?php echo $canSendInvoice ? 'true' : 'false'; ?>;
 const canGenerateInvoice = <?php echo $canGenerateInvoice ? 'true' : 'false'; ?>;
 
-// Print Invoice directly
 function printOrderInvoice(orderId) {
     if (!orderId) return;
     if (!canGenerateInvoice) {
@@ -4923,10 +4819,7 @@ function printOrderInvoice(orderId) {
     }
     window.open('print-invoice.php?order_id=' + orderId, '_blank');
 }
-
-// Global order variable for Send Invoice modal
 window.currentSendInvoiceOrder = null;
-
 function openSendInvoiceModal(order) {
     if (!order) return;
     if (!canSendInvoice) {
@@ -4934,14 +4827,11 @@ function openSendInvoiceModal(order) {
         return;
     }
     window.currentSendInvoiceOrder = order;
-    
     const modalEl = document.getElementById('sendInvoiceModal');
     if (!modalEl) return;
-    
     const orderNum = order.order_number || ('ORD' + order.id);
     document.getElementById('sendInvoiceOrderNum').textContent = '#' + orderNum;
     document.getElementById('sendInvoiceCustomerName').value = order.customer_name || 'Customer';
-    
     const phoneInput = document.getElementById('sendInvoicePhone');
     if (phoneInput) {
         let rawPhone = String(order.customer_phone || '').replace(/\D/g, '');
@@ -4950,25 +4840,19 @@ function openSendInvoiceModal(order) {
         }
         phoneInput.value = rawPhone;
     }
-    
     document.getElementById('sendInvoiceClothType').textContent = order.cloth_type_name || 'Tailoring Item';
     document.getElementById('sendInvoiceDueDate').textContent = order.due_date || 'N/A';
     document.getElementById('sendInvoiceTotal').textContent = '₹' + parseFloat(order.total_amount || 0).toFixed(2);
-    document.getElementById('sendInvoiceAdvance').textContent = '₹' + parseFloat(order.advance_amount || 0).toFixed(2);
-    
+    document.getElementById('sendInvoiceAdvance').textContent = '₹' + parseFloat(order.advance_amount || 0).toFixed(2);   
     const balance = order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, parseFloat(order.total_amount || 0) - parseFloat(order.advance_amount || 0));
     document.getElementById('sendInvoiceBalance').textContent = '₹' + balance.toFixed(2);
-    
     generateInvoiceMessagePreview();
-    
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
 }
-
 function generateInvoiceMessagePreview() {
     const order = window.currentSendInvoiceOrder;
     if (!order) return;
-    
     const custName = document.getElementById('sendInvoiceCustomerName')?.value || order.customer_name || 'Customer';
     const orderNum = order.order_number || ('ORD' + order.id);
     const clothType = order.cloth_type_name || 'Tailoring Item';
@@ -4977,7 +4861,6 @@ function generateInvoiceMessagePreview() {
     const balance = (order.balance_amount !== undefined ? parseFloat(order.balance_amount) : Math.max(0, parseFloat(order.total_amount || 0) - parseFloat(order.advance_amount || 0))).toFixed(2);
     const dueDate = order.due_date || '';
     const paymentMethod = (order.payment_method || 'Cash').toUpperCase();
-    
     let msg = '';
     const centerWidth = 55;
     if (typeof currentCompanyName !== 'undefined' && currentCompanyName && currentCompanyName.trim()) {
@@ -4997,33 +4880,27 @@ function generateInvoiceMessagePreview() {
     msg += `⏳ *Balance Due:* ₹${balance}\n`;
     msg += `--------------------------------\n`;
     msg += `Thank you for choosing us! 🙏`;
-    
     const msgPreviewEl = document.getElementById('sendInvoiceMessage');
     if (msgPreviewEl) {
         msgPreviewEl.value = msg;
     }
 }
-
 function sendInvoiceViaWhatsApp() {
     const phoneInput = document.getElementById('sendInvoicePhone');
     let phone = phoneInput ? phoneInput.value.trim() : '';
     phone = phone.replace(/\D/g, '');
-    
     if (!phone) {
         showOrderAlert('Please enter a valid 10-digit WhatsApp phone number.', 'Invalid Phone Number', 'warning');
         phoneInput?.focus();
         return;
     }
-    
     if (phone.length === 10) {
         phone = '91' + phone;
     }
-    
     const msg = document.getElementById('sendInvoiceMessage')?.value || '';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
 }
-
 function copyInvoiceMessage() {
     const msgEl = document.getElementById('sendInvoiceMessage');
     if (!msgEl) return;
@@ -5041,20 +4918,15 @@ function copyInvoiceMessage() {
         showOrderAlert('Message copied to clipboard!', 'Copied', 'success');
     });
 }
-
 function printOrderInvoiceFromModal() {
     if (window.currentSendInvoiceOrder && window.currentSendInvoiceOrder.id) {
         printOrderInvoice(window.currentSendInvoiceOrder.id);
     }
 }
-
-// --- Real-time In-Place Updates & Live Polling Synchronization ---
 function applyOrderStatusUpdateLocally(orderId, newStatus, statusDisplay) {
     const display = statusDisplay || (newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('_', ' '));
     const badgeClass = 'cat-badge-' + newStatus;
     const allBadgeClasses = ['cat-badge-pending', 'cat-badge-in_progress', 'cat-badge-completed', 'cat-badge-delivered', 'cat-badge-cancelled'];
-
-    // Desktop row
     const row = document.getElementById('orderRow_' + orderId);
     if (row) {
         row.setAttribute('data-status', newStatus);
@@ -5065,11 +4937,9 @@ function applyOrderStatusUpdateLocally(orderId, newStatus, statusDisplay) {
             badge.textContent = display;
         }
         row.classList.remove('order-row-highlight');
-        void row.offsetWidth; // trigger reflow
+        void row.offsetWidth; 
         row.classList.add('order-row-highlight');
     }
-
-    // Mobile card
     const card = document.getElementById('orderCard_' + orderId);
     if (card) {
         card.setAttribute('data-status', newStatus);
@@ -5084,7 +4954,6 @@ function applyOrderStatusUpdateLocally(orderId, newStatus, statusDisplay) {
         card.classList.add('order-row-highlight');
     }
 }
-
 function playSyncNotificationSound() {
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -5103,14 +4972,11 @@ function playSyncNotificationSound() {
         osc.start(now);
         osc.stop(now + 0.35);
     } catch (e) {
-        // Audio might be muted until user gesture
     }
 }
-
 let lastOrderSyncTime = '<?php echo date("Y-m-d H:i:s"); ?>';
 let isOrderSyncActive = false;
 let orderSyncInterval = null;
-
 function getVisibleOrderIds() {
     const ids = [];
     document.querySelectorAll('.order-row[id^="orderRow_"]').forEach(el => {
@@ -5123,16 +4989,13 @@ function getVisibleOrderIds() {
     });
     return ids;
 }
-
 function pollOrderSync() {
     if (isOrderSyncActive) return;
     isOrderSyncActive = true;
-
     const visibleIds = getVisibleOrderIds();
     const formData = new FormData();
     formData.append('last_sync', lastOrderSyncTime);
     formData.append('visible_ids', visibleIds.join(','));
-
     fetch('ajax/sync_orders.php', {
         method: 'POST',
         body: formData
@@ -5140,13 +5003,15 @@ function pollOrderSync() {
     .then(r => r.json())
     .then(data => {
         isOrderSyncActive = false;
-        if (!data || !data.success) return;
-
+        if (!data || !data.success) {
+            if (data && data.logged_out) {
+                window.location.href = 'login.php?error=account_deleted';
+            }
+            return;
+        }
         if (data.server_time) {
             lastOrderSyncTime = data.server_time;
         }
-
-        // 1. Update status statistics cards
         if (data.stats) {
             ['pending', 'in_progress', 'completed', 'delivered'].forEach(st => {
                 const el = document.getElementById('stat-' + st);
@@ -5155,8 +5020,6 @@ function pollOrderSync() {
                 }
             });
         }
-
-        // 2. Handle removed orders (tailor unassigned from order)
         if (data.removed_order_ids && data.removed_order_ids.length > 0) {
             data.removed_order_ids.forEach(remId => {
                 const row = document.getElementById('orderRow_' + remId);
@@ -5174,22 +5037,16 @@ function pollOrderSync() {
                 }
             });
         }
-
-        // 3. Update existing visible orders with new status
         if (data.status_updates && data.status_updates.length > 0) {
             data.status_updates.forEach(u => {
                 applyOrderStatusUpdateLocally(u.id, u.status, u.status_display);
                 showToast('Status Updated', `Order #${u.order_number} is now ${u.status_display}`, 'info');
             });
         }
-
-        // 4. Handle new orders assigned or created
         if (data.new_orders && data.new_orders.length > 0) {
             playSyncNotificationSound();
             const orderNums = data.new_orders.map(o => '#' + o.order_number).join(', ');
             showToast('New Order Assigned', `You have new order(s): ${orderNums}`, 'success');
-
-            // Refresh orders table dynamically via existing executeFilter() without page refresh!
             if (typeof executeFilter === 'function') {
                 executeFilter();
             }
@@ -5200,13 +5057,11 @@ function pollOrderSync() {
         console.warn('Real-time sync notice:', err);
     });
 }
-
 function startOrderSyncTimer() {
     if (orderSyncInterval) clearInterval(orderSyncInterval);
     const intervalMs = document.hidden ? 10000 : 4000;
     orderSyncInterval = setInterval(pollOrderSync, intervalMs);
 }
-
 document.addEventListener('visibilitychange', function() {
     startOrderSyncTimer();
     if (!document.hidden) {
@@ -5214,9 +5069,7 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-// Start real-time sync polling
 startOrderSyncTimer();
-
 </script>
 <?php require_once 'includes/footer.php'; ?>
 <style>
@@ -5228,22 +5081,18 @@ startOrderSyncTimer();
         overflow-y: visible !important;
         position: relative;
     }
-    
     .table td .dropdown {
         position: static;
     }
-    
     .table td .dropdown-toggle {
         position: relative;
         z-index: 1;
     }
-    
     .table td .dropdown-menu {
         z-index: 9999 !important;
         min-width: 165px;
         pointer-events: auto !important;
     }
-    
     .table td .dropdown-menu.show {
         display: block !important;
         visibility: visible !important;
@@ -5253,12 +5102,10 @@ startOrderSyncTimer();
         overflow: visible !important;
         position: relative;
     }
-    
     .card {
         overflow: visible !important;
         position: relative;
     }
-    
     .table {
         margin-bottom: 0;
         position: relative;
@@ -5269,7 +5116,6 @@ startOrderSyncTimer();
     .table td {
         position: static;
     }
-
     @media (max-width: 768px) {
         .card-header.d-flex {
         display: flex !important;

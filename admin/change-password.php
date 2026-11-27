@@ -24,13 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newPassword = (string)($_POST['new_password'] ?? '');
         $confirmPassword = (string)($_POST['confirm_password'] ?? '');
         $user = $userModel->find($userId);
-
         if ($currentPassword === '') {
             $errorField = 'current_password';
             $errorMsg = 'Please enter current password.';
         } elseif (!$user || !password_verify($currentPassword, $user['password'])) {
             $errorField = 'current_password';
             $errorMsg = 'Current password is incorrect.';
+        } elseif (function_exists('validate_password_strength') && !($pwdCheck = validate_password_strength($newPassword))['valid']) {
+            $errorField = 'new_password';
+            $errorMsg = $pwdCheck['message'];
         } elseif (strlen($newPassword) < 6) {
             $errorField = 'new_password';
             $errorMsg = 'New password must be at least 6 characters.';
@@ -149,7 +151,21 @@ require_once 'includes/header.php';
                             </button>
                             <div class="invalid-feedback" id="newPasswordFeedback"><?php echo htmlspecialchars($fieldErrors['new_password'] ?? 'New password must be at least 6 characters.'); ?></div>
                         </div>
-                        <small class="text-muted">Minimum 6 characters</small>
+                        <div class="password-strength" id="changeStrengthBar"></div>
+                        <div class="password-requirements mt-2">
+                            <div class="requirement" id="cp-req-length">
+                                <i class="fas fa-circle"></i> At least 6 characters
+                            </div>
+                            <div class="requirement" id="cp-req-uppercase">
+                                <i class="fas fa-circle"></i> Contains uppercase letter
+                            </div>
+                            <div class="requirement" id="cp-req-lowercase">
+                                <i class="fas fa-circle"></i> Contains lowercase letter
+                            </div>
+                            <div class="requirement" id="cp-req-number">
+                                <i class="fas fa-circle"></i> Contains number
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -169,16 +185,7 @@ require_once 'includes/header.php';
                             </button>
                             <div class="invalid-feedback" id="confirmPasswordFeedback"><?php echo htmlspecialchars($fieldErrors['confirm_password'] ?? 'New passwords do not match!'); ?></div>
                         </div>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Password Requirements:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>At least 6 characters long</li>
-                            <li>Mix of letters and numbers recommended</li>
-                            <li>Avoid common words or patterns</li>
-                        </ul>
+                        <small class="d-block mt-2" id="cpMatchMessage" style="font-size: 12px;"></small>
                     </div>
                     
                     <div class="d-grid gap-2">
@@ -218,6 +225,93 @@ function togglePassword(fieldId, btnEl) {
 }
 
 (function() {
+    const cpNewPass = document.getElementById('new_password');
+    const cpConfirmPass = document.getElementById('confirm_password');
+    const cpStrengthBar = document.getElementById('changeStrengthBar');
+    const cpMatchMsg = document.getElementById('cpMatchMessage');
+
+    function updateCpRequirement(id, met) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const icon = el.querySelector('i');
+        if (met) {
+            el.classList.add('met');
+            if (icon) {
+                icon.classList.remove('fa-circle');
+                icon.classList.add('fa-check-circle');
+            }
+        } else {
+            el.classList.remove('met');
+            if (icon) {
+                icon.classList.remove('fa-check-circle');
+                icon.classList.add('fa-circle');
+            }
+        }
+    }
+
+    function checkCpMatch() {
+        if (!cpNewPass || !cpConfirmPass || !cpMatchMsg) return;
+        const p1 = cpNewPass.value;
+        const p2 = cpConfirmPass.value;
+        if (p2.length > 0) {
+            if (p1 === p2) {
+                cpMatchMsg.textContent = '✓ Passwords match';
+                cpMatchMsg.className = 'd-block mt-2 text-success';
+                cpConfirmPass.classList.remove('is-invalid');
+                cpConfirmPass.classList.add('is-valid');
+            } else {
+                cpMatchMsg.textContent = '✗ Passwords do not match';
+                cpMatchMsg.className = 'd-block mt-2 text-danger';
+                cpConfirmPass.classList.remove('is-valid');
+                cpConfirmPass.classList.add('is-invalid');
+            }
+        } else {
+            cpMatchMsg.textContent = '';
+            cpConfirmPass.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+
+    if (cpNewPass) {
+        cpNewPass.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+
+            const hasLength = password.length >= 6;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+
+            updateCpRequirement('cp-req-length', hasLength);
+            updateCpRequirement('cp-req-uppercase', hasUppercase);
+            updateCpRequirement('cp-req-lowercase', hasLowercase);
+            updateCpRequirement('cp-req-number', hasNumber);
+
+            if (hasLength) strength++;
+            if (hasUppercase) strength++;
+            if (hasLowercase) strength++;
+            if (hasNumber) strength++;
+
+            if (cpStrengthBar) {
+                cpStrengthBar.className = 'password-strength';
+                if (password.length > 0) {
+                    if (strength <= 1) {
+                        cpStrengthBar.classList.add('weak');
+                    } else if (strength <= 3) {
+                        cpStrengthBar.classList.add('medium');
+                    } else {
+                        cpStrengthBar.classList.add('strong');
+                    }
+                }
+            }
+
+            checkCpMatch();
+        });
+    }
+
+    if (cpConfirmPass) {
+        cpConfirmPass.addEventListener('input', checkCpMatch);
+    }
+
     const FIELD_MAP = {
         current_password: { inputId: 'current_password', feedbackId: 'currentPasswordFeedback' },
         new_password:     { inputId: 'new_password',     feedbackId: 'newPasswordFeedback' },
@@ -285,10 +379,16 @@ function togglePassword(fieldId, btnEl) {
                 clearFieldError('current_password');
             }
 
-            if (!newInput.value) {
+            const pwdVal = newInput.value;
+            const hasLength = pwdVal.length >= 6;
+            const hasUppercase = /[A-Z]/.test(pwdVal);
+            const hasLowercase = /[a-z]/.test(pwdVal);
+            const hasNumber = /[0-9]/.test(pwdVal);
+
+            if (!pwdVal) {
                 firstInvalid = firstInvalid || setFieldError('new_password', 'Please enter new password.');
-            } else if (newInput.value.length < 6) {
-                firstInvalid = firstInvalid || setFieldError('new_password', 'New password must be at least 6 characters.');
+            } else if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber) {
+                firstInvalid = firstInvalid || setFieldError('new_password', 'Password must be at least 6 characters and contain uppercase, lowercase, and a number.');
             } else {
                 clearFieldError('new_password');
             }
@@ -337,6 +437,11 @@ function togglePassword(fieldId, btnEl) {
                 if (data.success) {
                     passwordForm.reset();
                     Object.keys(FIELD_MAP).forEach(clearFieldError);
+                    if (cpStrengthBar) cpStrengthBar.className = 'password-strength';
+                    ['cp-req-length', 'cp-req-uppercase', 'cp-req-lowercase', 'cp-req-number'].forEach(function(id) {
+                        updateCpRequirement(id, false);
+                    });
+                    if (cpMatchMsg) cpMatchMsg.textContent = '';
                     showBannerAlert(data.message || 'Password changed successfully', 'success');
                 } else if (data.field) {
                     const target = setFieldError(data.field, data.message);
@@ -360,5 +465,29 @@ function togglePassword(fieldId, btnEl) {
 <style>
     .card-header {
         color: white !important;
+    }
+    .password-strength {
+        height: 5px;
+        border-radius: 3px;
+        margin-top: 5px;
+        background: #e9ecef;
+        transition: all 0.3s ease;
+    }
+    .password-strength.weak { background: #dc3545; width: 33%; }
+    .password-strength.medium { background: #ffc107; width: 66%; }
+    .password-strength.strong { background: #28a745; width: 100%; }
+    .password-requirements {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    .requirement {
+        padding: 2px 0;
+        transition: color 0.2s ease;
+    }
+    .requirement.met {
+        color: #28a745;
+    }
+    .requirement.met i {
+        color: #28a745;
     }
 </style>

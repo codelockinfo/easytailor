@@ -293,7 +293,7 @@ class AuthController {
         ];
     }
 
-    public function requestLoginOtp($email, $ipAddress = null) {
+    public function requestLoginOtp($email, $ipAddress = null, $customSubject = null, $customMessage = null) {
         $email = trim(sanitize_input($email ?? ''));
 
         if (empty($email)) {
@@ -317,7 +317,7 @@ class AuthController {
         }
         $code = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         $token = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+1 minute'));
 
         $saved = $this->loginOtpModel->createOtp($user['id'], $user['email'], $code, $token, $expiresAt, $ipAddress);
         if (!$saved) {
@@ -329,7 +329,10 @@ class AuthController {
             $emailSent = $this->mailService->sendLoginOtpEmail([
                 'email' => $user['email'],
                 'name' => $user['full_name'],
-                'code' => $code
+                'code' => $code,
+                'subject' => $customSubject,
+                'title' => !empty($customSubject) ? $customSubject : 'Verification Code',
+                'message' => $customMessage
             ]);
             if (!$emailSent) {
                 $mailError = $this->mailService->getLastError();
@@ -339,8 +342,8 @@ class AuthController {
         }
 
         if (!$emailSent) {
-            $subject = 'Your Login Verification Code - ' . APP_NAME;
-            $msg = "Hello {$user['full_name']},\n\nYour login code is: {$code}\nValid for 10 minutes.";
+            $subject = !empty($customSubject) ? $customSubject : ('Your Verification Code - ' . APP_NAME);
+            $msg = "Hello {$user['full_name']},\n\n" . (!empty($customMessage) ? ($customMessage . "\n\n") : '') . "Your verification code is: {$code}\nValid for 1 minute.";
             $headers = 'From: ' . (defined('SMTP_FROM_EMAIL') && SMTP_FROM_EMAIL ? SMTP_FROM_EMAIL : 'no-reply@localhost') . "\r\n";
             @mail($user['email'], $subject, $msg, $headers);
         }
@@ -448,7 +451,12 @@ class AuthController {
             return ['success' => false, 'message' => 'Current password is incorrect'];
         }
         
-        if (strlen($new_password) < 6) {
+        if (function_exists('validate_password_strength')) {
+            $pwdCheck = validate_password_strength($new_password);
+            if (!$pwdCheck['valid']) {
+                return ['success' => false, 'message' => $pwdCheck['message']];
+            }
+        } elseif (strlen($new_password) < 6) {
             return ['success' => false, 'message' => 'New password must be at least 6 characters long'];
         }
         
@@ -461,7 +469,12 @@ class AuthController {
         }
     }
     public function resetPassword($user_id, $new_password) {
-        if (strlen($new_password) < 6) {
+        if (function_exists('validate_password_strength')) {
+            $pwdCheck = validate_password_strength($new_password);
+            if (!$pwdCheck['valid']) {
+                return ['success' => false, 'message' => $pwdCheck['message']];
+            }
+        } elseif (strlen($new_password) < 6) {
             return ['success' => false, 'message' => 'Password must be at least 6 characters long'];
         }
         
@@ -514,7 +527,7 @@ class AuthController {
         $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
         
         $token = bin2hex(random_bytes(32));
-        $expires_at = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+        $expires_at = date('Y-m-d H:i:s', strtotime('+1 minute'));
 
         $resetId = $this->passwordResetModel->createResetRequest($email, $code, $token, $expires_at);
         
@@ -542,7 +555,7 @@ class AuthController {
         }
         $message = 'Password reset code has been sent to your email';
         if (!$emailSent) {
-            $message = "EMAIL NOT CONFIGURED - Your verification code is: <strong>$code</strong> (Valid for 15 minutes)";
+            $message = "EMAIL NOT CONFIGURED - Your verification code is: <strong>$code</strong> (Valid for 1 minute)";
             if (!empty($mailError)) {
                 error_log('Password reset email failed: ' . $mailError);
             }
@@ -581,7 +594,12 @@ class AuthController {
         if ($new_password !== $confirm_password) {
             return ['success' => false, 'message' => 'Passwords do not match'];
         }
-        if (strlen($new_password) < 6) {
+        if (function_exists('validate_password_strength')) {
+            $pwdCheck = validate_password_strength($new_password);
+            if (!$pwdCheck['valid']) {
+                return ['success' => false, 'message' => $pwdCheck['message']];
+            }
+        } elseif (strlen($new_password) < 6) {
             return ['success' => false, 'message' => 'Password must be at least 6 characters long'];
         }
         $reset = $this->passwordResetModel->findByToken($token);
@@ -668,7 +686,7 @@ class AuthController {
                         <a href='" . $resetUrl . "' class='button' style='color:#ffffff !important;'><span style='color:#ffffff !important;'>Reset Password</span></a>
                     </p>
                     
-                    <p><strong>This code will expire in 15 minutes.</strong></p>
+                    <p><strong>This code will expire in 1 minute.</strong></p>
                     <p>If you didn't request this password reset, please ignore this email or contact support if you have concerns.</p>
                     
                     <div class='footer'>

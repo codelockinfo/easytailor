@@ -242,19 +242,23 @@ class MailService
 
             $mailer->clearAllRecipients();
             $mailer->addAddress($email, $name);
-            $mailer->Subject = 'Your Login Verification Code - ' . APP_NAME;
+            $mailer->Subject = !empty($payload['subject']) ? $payload['subject'] : ('Your Login Verification Code - ' . APP_NAME);
 
             $mailer->Body = $this->renderTemplate('login_otp', [
                 'appName' => APP_NAME,
                 'logoUrl' => $this->getLogoUrl(),
                 'userName' => $name,
                 'code' => $code,
+                'title' => $payload['title'] ?? 'Login Verification Code',
+                'customMessage' => $payload['message'] ?? null,
                 'supportEmail' => SMTP_FROM_EMAIL,
             ]);
 
+            $customAlt = !empty($payload['message']) ? ($payload['message'] . "\n\n") : '';
             $mailer->AltBody = "Hello {$name},\n\n"
-                . "Your login verification code for " . APP_NAME . " is: {$code}\n\n"
-                . "This code is valid for 10 minutes. Never share this code with anyone.\n"
+                . $customAlt
+                . "Your verification code for " . APP_NAME . " is: {$code}\n\n"
+                . "This code is valid for 1 minute. Never share this code with anyone.\n"
                 . "If you did not request this code, you can safely ignore this email.";
 
             $mailer->send();

@@ -26,6 +26,21 @@ $userId = $current_user['id'];
 $stmt->bindParam(':id', $userId);
 $stmt->execute();
 $headerUserData = $stmt->fetch(PDO::FETCH_ASSOC);
+if (empty($headerUserData)) {
+    $_SESSION = [];
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
+    if (!headers_sent() && ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    smart_redirect('login.php?error=account_deleted');
+    exit;
+}
 $current_user['profile_image'] = $headerUserData['profile_image'] ?? null;
 if (!empty($headerUserData)) {
     if (empty($current_user['role']) && !empty($headerUserData['role'])) {

@@ -703,11 +703,13 @@ include 'includes/page-header.php';
             </div>
         <?php else: ?>
             <div class="text-center py-5">
-                <i class="fas fa-tshirt fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No cloth types found</h5>
-                <p class="text-muted">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                    <i class="fas fa-search fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                <p class="text-muted small mb-3">
                     <?php if (!empty($search) || !empty($category_filter)): ?>
-                        No cloth types match your search criteria.
+                        No cloth types match your filter criteria.
                     <?php else: ?>
                         Get started by adding your first cloth type.
                     <?php endif; ?>
@@ -738,7 +740,7 @@ include 'includes/page-header.php';
                     <div class="row">
                         <div class="col-md-8 mb-3">
                             <label for="name" class="form-label"> Cloth Name *</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Enter Cloth Type" required>
                             <div class="invalid-feedback">Please enter a cloth name.</div>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -767,7 +769,7 @@ include 'includes/page-header.php';
                             <label for="standard_rate" class="form-label">Standard Rate *</label>
                             <div class="input-group has-validation">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" id="standard_rate" name="standard_rate" step="0.01" min="0" required>
+                                <input type="number" class="form-control" id="standard_rate"  placeholder="Enter Standard Rate" name="standard_rate" step="0.01" min="0" required>
                                 <div class="invalid-feedback" id="standardRateFeedback">Please enter a standard rate.</div>
                             </div>
                         </div>
@@ -775,7 +777,7 @@ include 'includes/page-header.php';
                     
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        <textarea class="form-control" id="description"  placeholder="Enter Description" name="description" rows="3"></textarea>
                     </div>
                     
                     <div class="mb-3">
@@ -1193,17 +1195,21 @@ function displayFilterResults(clothTypes) {
         clothTypesTable.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-5">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted" style="font-size: 0.95rem;">No cloth types found</h5>
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
                     <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
         if (mobileCardsList) {
             mobileCardsList.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted" style="font-size: 0.95rem;">No cloth types found</h5>
+                <div class="text-center py-5" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
                     <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </div>
             `;

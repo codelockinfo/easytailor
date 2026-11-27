@@ -1148,18 +1148,22 @@ function displaySearchResults(customers) {
         customersTable.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-5">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted">No customers found</h5>
-                    <p class="text-muted small">Try adjusting your search terms</p>
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your search terms</p>
                 </td>
             </tr>
         `;
         if (mobileCardsContainer) {
             mobileCardsContainer.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted">No customers found</h5>
-                    <p class="text-muted small">Try adjusting your search terms</p>
+                <div class="text-center py-5" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your search terms</p>
                 </div>
             `;
         }

@@ -26,6 +26,76 @@ if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
 
 require_once '../../models/EmailChangeRequest.php';
 require_once '../../models/Company.php';
+require_once '../../helpers/NotificationService.php';
+require_once '../../helpers/MailService.php';
+
+function notifyCompanyEmailChangeStatus(array $request, string $status, string $reviewNotes = ''): void {
+    // 1. In-app bell notification + browser Web Push to company admins & requester
+    try {
+        $notificationService = new NotificationService();
+        $notificationService->onEmailChangeProcessed($request, $status, $reviewNotes);
+    } catch (Throwable $e) {
+        error_log('Email change in-app/push notification failed: ' . $e->getMessage());
+    }
+
+    // 2. Email notification to the company
+    try {
+        $baseUrl = preg_replace('#/(admin|siteadmin)(/ajax)?$#', '', rtrim(APP_URL, '/'));
+        $settingsUrl = $baseUrl . '/admin/company-settings.php';
+
+        $recipients = [];
+        $newEmail = trim((string)($request['new_email'] ?? ''));
+        $currentEmail = trim((string)($request['current_email'] ?? ''));
+
+        if ($status === 'approved') {
+            if (!empty($newEmail) && filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                $recipients[] = $newEmail;
+            }
+            if (!empty($currentEmail) && filter_var($currentEmail, FILTER_VALIDATE_EMAIL) && strcasecmp($currentEmail, $newEmail) !== 0) {
+                $recipients[] = $currentEmail;
+            }
+        } else {
+            if (!empty($currentEmail) && filter_var($currentEmail, FILTER_VALIDATE_EMAIL)) {
+                $recipients[] = $currentEmail;
+            }
+        }
+
+        if (!empty($recipients)) {
+            $mailService = new MailService();
+            foreach (array_unique($recipients) as $recipientEmail) {
+                $sent = false;
+                if ($mailService->isEnabled()) {
+                    $sent = $mailService->sendEmailChangeStatusNotification([
+                        'email' => $recipientEmail,
+                        'ownerName' => $request['owner_name'] ?? 'Business Owner',
+                        'companyName' => $request['company_name'] ?? 'Your Company',
+                        'status' => $status,
+                        'currentEmail' => $currentEmail,
+                        'newEmail' => $newEmail,
+                        'reviewNotes' => $reviewNotes,
+                        'settingsUrl' => $settingsUrl
+                    ]);
+                }
+
+                if (!$sent) {
+                    $subject = ($status === 'approved')
+                        ? 'Business Email Change Approved - ' . APP_NAME
+                        : 'Business Email Change Request Rejected - ' . APP_NAME;
+                    $body = ($status === 'approved')
+                        ? "Hello " . ($request['owner_name'] ?? 'Business Owner') . ",\n\nYour business email change request for " . ($request['company_name'] ?? 'your company') . " to {$newEmail} has been approved and updated.\n"
+                        : "Hello " . ($request['owner_name'] ?? 'Business Owner') . ",\n\nYour business email change request for " . ($request['company_name'] ?? 'your company') . " to {$newEmail} was rejected.\n";
+                    if (!empty(trim($reviewNotes))) {
+                        $body .= "Note: " . trim($reviewNotes) . "\n";
+                    }
+                    $body .= "\nView Company Settings: {$settingsUrl}\n";
+                    @mail($recipientEmail, $subject, $body, "From: " . APP_NAME . " <noreply@tailorpro.in>\r\n");
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('Email change status email failed: ' . $e->getMessage());
+    }
+}
 
 $emailChangeRequestModel = new EmailChangeRequest();
 $companyModel = new Company();
@@ -77,9 +147,11 @@ if ($action === 'approve') {
     $approveResult = $emailChangeRequestModel->approveRequest($requestId, $reviewedBy, $reviewNotes);
 
     if ($approveResult) {
+        notifyCompanyEmailChangeStatus($request, 'approved', $reviewNotes);
+
         echo json_encode([
             'success' => true,
-            'message' => 'Email change request approved successfully. Company email has been updated.'
+            'message' => 'Email change request approved successfully. Company email has been updated and notification sent.'
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to approve request']);
@@ -90,6 +162,8 @@ if ($action === 'approve') {
     $rejectResult = $emailChangeRequestModel->rejectRequest($requestId, $reviewedBy, $reviewNotes);
 
     if ($rejectResult) {
+        notifyCompanyEmailChangeStatus($request, 'rejected', $reviewNotes);
+
         echo json_encode([
             'success' => true,
             'message' => 'Email change request rejected successfully.'
@@ -102,4 +176,3 @@ if ($action === 'approve') {
     echo json_encode(['success' => false, 'message' => 'Invalid action']);
 }
 ?>
-

@@ -77,9 +77,7 @@ class MailService
     private function getBaseUrl(): string
     {
         $baseUrl = rtrim(APP_URL, '/');
-        if (substr($baseUrl, -6) === '/admin') {
-            $baseUrl = substr($baseUrl, 0, -6);
-        }
+        $baseUrl = preg_replace('#/(admin|siteadmin)(/ajax)?$#', '', $baseUrl);
 
         return $baseUrl;
     }
@@ -327,6 +325,87 @@ class MailService
                 "Requested Email: {$newEmail}\n" .
                 "Reason: {$reason}\n\n" .
                 "Review the request: {$dashboardUrl}\n";
+
+            $mailer->send();
+            return true;
+        } catch (PHPMailerException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        } catch (RuntimeException $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
+
+    public function sendEmailChangeStatusNotification(array $payload): bool
+    {
+        if (!$this->canSend) {
+            return false;
+        }
+
+        $email = trim((string)($payload['email'] ?? ''));
+        if (empty($email)) {
+            $this->lastError = 'Missing recipient email.';
+            return false;
+        }
+
+        try {
+            $mailer = $this->createMailer();
+            if (!$mailer) {
+                return false;
+            }
+
+            $status = ($payload['status'] ?? 'approved') === 'approved' ? 'approved' : 'rejected';
+            $ownerName = htmlspecialchars((string)($payload['ownerName'] ?? 'Business Owner'), ENT_QUOTES, 'UTF-8');
+            $companyName = htmlspecialchars((string)($payload['companyName'] ?? 'Your Company'), ENT_QUOTES, 'UTF-8');
+            $currentEmail = htmlspecialchars((string)($payload['currentEmail'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $newEmail = htmlspecialchars((string)($payload['newEmail'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $reviewNotes = trim((string)($payload['reviewNotes'] ?? ''));
+            $safeNotes = nl2br(htmlspecialchars($reviewNotes, ENT_QUOTES, 'UTF-8'));
+            $settingsUrl = htmlspecialchars((string)($payload['settingsUrl'] ?? ($this->getBaseUrl() . '/admin/company-settings.php')), ENT_QUOTES, 'UTF-8');
+
+            $isApproved = ($status === 'approved');
+            $subject = $isApproved
+                ? 'Business Email Change Approved - ' . APP_NAME
+                : 'Business Email Change Request Rejected - ' . APP_NAME;
+            $heading = $isApproved ? 'Email Change Approved' : 'Email Change Request Rejected';
+            $accentColor = $isApproved ? '#10b981' : '#ef4444';
+            $summaryText = $isApproved
+                ? "Good news! Your request to update the business email for <strong>{$companyName}</strong> has been approved. Your business email is now <strong>{$newEmail}</strong>."
+                : "Your request to change the business email for <strong>{$companyName}</strong> to <strong>{$newEmail}</strong> was not approved.";
+            $notesHtml = !empty($reviewNotes)
+                ? "<p style=\"background:#f8fafc;border-left:3px solid {$accentColor};padding:10px 12px;border-radius:6px;\"><strong>Reviewer Note:</strong><br>{$safeNotes}</p>"
+                : '';
+
+            $mailer->clearAllRecipients();
+            $mailer->addAddress($email, (string)($payload['ownerName'] ?? $companyName));
+            $mailer->Subject = $subject;
+
+            $mailer->Body = "
+                <div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;color:#1e293b;\">
+                    <h2 style=\"margin-top:0;color:{$accentColor};\">{$heading}</h2>
+                    <p>Hello {$ownerName},</p>
+                    <p>{$summaryText}</p>
+                    <ul>
+                        <li><strong>Company:</strong> {$companyName}</li>
+                        " . (!empty($currentEmail) ? "<li><strong>Previous Email:</strong> {$currentEmail}</li>" : "") . "
+                        <li><strong>Requested Email:</strong> {$newEmail}</li>
+                    </ul>
+                    {$notesHtml}
+                    <p style=\"margin:20px 0;\">
+                        <a href=\"{$settingsUrl}\" style=\"display:inline-block;padding:10px 18px;background:#4f46e5;color:#ffffff !important;border-radius:6px;text-decoration:none;font-weight:600;\">View Company Settings</a>
+                    </p>
+                    <p style=\"font-size:12px;color:#64748b;margin-bottom:0;\">This is an automated notification from " . htmlspecialchars(APP_NAME, ENT_QUOTES, 'UTF-8') . ".</p>
+                </div>
+            ";
+
+            $mailer->AltBody =
+                "Hello " . ($payload['ownerName'] ?? 'Business Owner') . ",\n\n" .
+                ($isApproved
+                    ? "Your business email change request for " . ($payload['companyName'] ?? 'your company') . " to " . ($payload['newEmail'] ?? '') . " has been approved.\n"
+                    : "Your business email change request for " . ($payload['companyName'] ?? 'your company') . " to " . ($payload['newEmail'] ?? '') . " was rejected.\n") .
+                (!empty($reviewNotes) ? "Reviewer Note: {$reviewNotes}\n" : "") .
+                "\nView Company Settings: " . ($payload['settingsUrl'] ?? ($this->getBaseUrl() . '/admin/company-settings.php')) . "\n";
 
             $mailer->send();
             return true;

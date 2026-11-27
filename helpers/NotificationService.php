@@ -92,16 +92,28 @@ class NotificationService {
         }
 
         try {
-            $checkStmt = $this->db->prepare("
-                SELECT id FROM notifications 
-                WHERE user_id = :uid AND order_id = :oid AND type = :type AND created_at >= (NOW() - INTERVAL 1 MINUTE)
-                LIMIT 1
-            ");
-            $checkStmt->execute([
-                ':uid' => $userId,
-                ':oid' => $orderId,
-                ':type' => $type
-            ]);
+            if ($orderId !== null) {
+                $checkStmt = $this->db->prepare("
+                    SELECT id FROM notifications 
+                    WHERE user_id = :uid AND order_id = :oid AND type = :type AND created_at >= (NOW() - INTERVAL 1 MINUTE)
+                    LIMIT 1
+                ");
+                $checkStmt->execute([
+                    ':uid' => $userId,
+                    ':oid' => $orderId,
+                    ':type' => $type
+                ]);
+            } else {
+                $checkStmt = $this->db->prepare("
+                    SELECT id FROM notifications 
+                    WHERE user_id = :uid AND order_id IS NULL AND type = :type AND created_at >= (NOW() - INTERVAL 1 MINUTE)
+                    LIMIT 1
+                ");
+                $checkStmt->execute([
+                    ':uid' => $userId,
+                    ':type' => $type
+                ]);
+            }
             if ($checkStmt->fetch()) {
                 return true;
             }
@@ -381,6 +393,50 @@ class NotificationService {
             return true;
         } catch (Exception $e) {
             error_log("onAdminUpdatedOrderStatus error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function onEmailChangeProcessed(array $request, string $status, string $reviewNotes = ''): bool {
+        $companyId = (int)($request['company_id'] ?? 0);
+        if (!$companyId) {
+            return false;
+        }
+
+        try {
+            $recipientIds = $this->getAdminUserIds($companyId);
+            $requestedBy = (int)($request['requested_by'] ?? 0);
+            if ($requestedBy > 0 && !in_array($requestedBy, $recipientIds)) {
+                $recipientIds[] = $requestedBy;
+            }
+            $recipientIds = array_values(array_unique(array_filter(array_map('intval', $recipientIds))));
+            if (empty($recipientIds)) {
+                return false;
+            }
+
+            $newEmail = trim((string)($request['new_email'] ?? ''));
+            $notesSuffix = !empty(trim($reviewNotes)) ? ' Note: ' . trim($reviewNotes) : '';
+
+            if ($status === 'approved') {
+                $type = 'email_change_approved';
+                $title = 'Email Change Approved';
+                $message = "Your business email change request to {$newEmail} has been approved and updated.{$notesSuffix}";
+                $icon = 'fas fa-check-circle text-success';
+            } else {
+                $type = 'email_change_rejected';
+                $title = 'Email Change Rejected';
+                $message = "Your business email change request to {$newEmail} was rejected.{$notesSuffix}";
+                $icon = 'fas fa-times-circle text-danger';
+            }
+
+            $link = 'company-settings.php';
+            foreach ($recipientIds as $userId) {
+                $this->createNotification($userId, $companyId, null, $type, $title, $message, $link, $icon);
+            }
+
+            return true;
+        } catch (Exception $e) {
+            error_log("onEmailChangeProcessed error: " . $e->getMessage());
             return false;
         }
     }

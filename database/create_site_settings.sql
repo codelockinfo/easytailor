@@ -1,0 +1,53 @@
+-- Create site_settings table for Super Admin Global Settings
+CREATE TABLE IF NOT EXISTS `site_settings` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `setting_key` varchar(100) NOT NULL,
+    `setting_value` text NULL,
+    `setting_group` varchar(50) DEFAULT 'general',
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_setting_key` (`setting_key`),
+    KEY `idx_setting_group` (`setting_group`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert default settings
+INSERT INTO `site_settings` (`setting_key`, `setting_value`, `setting_group`) VALUES
+('razorpay_mode', 'test', 'payment'),
+('razorpay_test_key_id', 'rzp_test_RfbZw5apB4THcH', 'payment'),
+('razorpay_test_key_secret', 'CEpjpNKALClK7tuKFf20D9VM', 'payment'),
+('razorpay_live_key_id', '', 'payment'),
+('razorpay_live_key_secret', '', 'payment'),
+('admin_logo', 'assets/images/tailor_logo.png', 'seo_identity'),
+('website_logo', 'assets/images/tailor_logo.png', 'seo_identity'),
+('footer_logo', 'assets/images/tailor_logo.png', 'seo_identity'),
+('favicon_icon', 'favicon.ico', 'seo_identity'),
+('fevicon_logo', 'favicon.ico', 'seo_identity'),
+('favicon_logo', 'favicon.ico', 'seo_identity'),
+('payment_logo', '', 'seo_identity'),
+('seo_title', 'TailorPro - Smart Tailoring Business Management System', 'seo_identity'),
+('seo_description', 'Cloud-based software for tailor shops to manage measurements, orders, and payments.', 'seo_identity'),
+('seo_keywords', 'tailoring software, tailor management, measurement app, tailor invoices', 'seo_identity'),
+('social_facebook', 'https://www.facebook.com/', 'social'),
+('facebook_url', 'https://www.facebook.com/', 'social'),
+('social_twitter', 'https://twitter.com/', 'social'),
+('twitter_url', 'https://twitter.com/', 'social'),
+('social_instagram', 'https://www.instagram.com/', 'social'),
+('instagram_url', 'https://www.instagram.com/', 'social'),
+('social_linkedin', 'https://www.linkedin.com/', 'social'),
+('linkedin_url', 'https://www.linkedin.com/', 'social'),
+('social_youtube', '', 'social'),
+('youtube_link', '', 'social'),
+('youtube_url', '', 'social'),
+('social_whatsapp', '+919876543210', 'social'),
+('whatsapp_url', '+919876543210', 'social'),
+('contact_email', 'contact@tailorpro.in', 'contact'),
+('contact_phone', '+91 98765 43210', 'contact'),
+('contact_whatsapp', '+91 98765 43210', 'contact'),
+('contact_address', 'Surat, Gujarat, India', 'contact'),
+('contact_hours', 'Mon - Sat: 9:00 AM - 7:00 PM', 'contact'),
+('contact_map_url', '', 'contact'),
+('google_analytics_id', 'G-27LLB9QMEV', 'scripts'),
+('custom_head_scripts', '', 'scripts'),
+('custom_footer_scripts', '', 'scripts')
+ON DUPLICATE KEY UPDATE `updated_at` = CURRENT_TIMESTAMP;

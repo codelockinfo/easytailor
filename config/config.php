@@ -311,8 +311,155 @@ foreach ($upload_subdirs as $subdir) {
         mkdir($dir, 0755, true);
     }
 }
-define('RAZORPAY_KEY_ID', getenv('RAZORPAY_KEY_ID') ?: 'rzp_test_RfbZw5apB4THcH');
-define('RAZORPAY_KEY_SECRET', getenv('RAZORPAY_KEY_SECRET') ?: 'CEpjpNKALClK7tuKFf20D9VM');
-define('RAZORPAY_MODE', getenv('RAZORPAY_MODE') ?: 'test'); 
+// Dynamic Razorpay Configuration from Site Settings
+try {
+    if (class_exists('Database')) {
+        $dbConn = (new Database())->getConnection();
+        if ($dbConn) {
+            $stmt = $dbConn->query("SELECT setting_key, setting_value FROM site_settings WHERE setting_group = 'payment'");
+            $paySettings = [];
+            while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $paySettings[$r['setting_key']] = $r['setting_value'];
+            }
+            $activeRzpMode = $paySettings['razorpay_mode'] ?? 'test';
+            $activeRzpKey = ($activeRzpMode === 'live') ? ($paySettings['razorpay_live_key_id'] ?? '') : ($paySettings['razorpay_test_key_id'] ?? '');
+            $activeRzpSecret = ($activeRzpMode === 'live') ? ($paySettings['razorpay_live_key_secret'] ?? '') : ($paySettings['razorpay_test_key_secret'] ?? '');
+
+            if (!defined('RAZORPAY_MODE')) define('RAZORPAY_MODE', $activeRzpMode ?: (getenv('RAZORPAY_MODE') ?: 'test'));
+            if (!defined('RAZORPAY_KEY_ID')) define('RAZORPAY_KEY_ID', $activeRzpKey ?: (getenv('RAZORPAY_KEY_ID') ?: 'rzp_test_RfbZw5apB4THcH'));
+            if (!defined('RAZORPAY_KEY_SECRET')) define('RAZORPAY_KEY_SECRET', $activeRzpSecret ?: (getenv('RAZORPAY_KEY_SECRET') ?: 'CEpjpNKALClK7tuKFf20D9VM'));
+        }
+    }
+} catch (Exception $e) {
+    // Fallback below
+}
+
+if (!defined('RAZORPAY_KEY_ID')) define('RAZORPAY_KEY_ID', getenv('RAZORPAY_KEY_ID') ?: 'rzp_test_RfbZw5apB4THcH');
+if (!defined('RAZORPAY_KEY_SECRET')) define('RAZORPAY_KEY_SECRET', getenv('RAZORPAY_KEY_SECRET') ?: 'CEpjpNKALClK7tuKFf20D9VM');
+if (!defined('RAZORPAY_MODE')) define('RAZORPAY_MODE', getenv('RAZORPAY_MODE') ?: 'test'); 
+
+/**
+ * Global Site Settings & Brand Identity Helpers
+ */
+function get_site_setting($key, $default = null) {
+    if (class_exists('SiteSetting')) {
+        return SiteSetting::get($key, $default);
+    }
+    return $default;
+}
+
+function get_site_logo($type = 'website', $customPrefix = null) {
+    $keyMap = [
+        'website' => 'website_logo',
+        'website_logo' => 'website_logo',
+        'admin' => 'admin_logo',
+        'admin_logo' => 'admin_logo',
+        'footer' => 'footer_logo',
+        'footer_logo' => 'footer_logo',
+        'favicon' => 'favicon_icon',
+        'favicon_icon' => 'favicon_icon',
+        'fevicon_logo' => 'favicon_icon',
+        'favicon_logo' => 'favicon_icon',
+        'payment' => 'payment_logo',
+        'payment_logo' => 'payment_logo',
+    ];
+
+    $settingKey = $keyMap[$type] ?? $type;
+    $defaultFile = ($settingKey === 'favicon_icon') ? 'favicon.ico' : (($settingKey === 'payment_logo') ? '' : 'assets/images/tailor_logo.png');
+    
+    $val = get_site_setting($settingKey, $defaultFile);
+    if (empty($val)) {
+        return '';
+    }
+
+    $val = ltrim($val, '/');
+
+    // Determine path prefix
+    if ($customPrefix !== null) {
+        $prefix = $customPrefix;
+    } else {
+        $script = $_SERVER['SCRIPT_NAME'] ?? '';
+        $prefix = (strpos($script, '/admin/') !== false || strpos($script, '/siteadmin/') !== false) ? '../' : '';
+    }
+
+    $absPath = APP_PATH . $val;
+    $version = file_exists($absPath) ? filemtime($absPath) : time();
+
+    return $prefix . $val . '?v=' . $version;
+}
+
+function render_favicon_links($customPrefix = null) {
+    $favPath = get_site_setting('favicon_icon', 'favicon.ico');
+    if (empty($favPath)) {
+        $favPath = 'favicon.ico';
+    }
+    $favPath = ltrim($favPath, '/');
+
+    if ($customPrefix !== null) {
+        $prefix = $customPrefix;
+    } else {
+        $script = $_SERVER['SCRIPT_NAME'] ?? '';
+        $prefix = (strpos($script, '/admin/') !== false || strpos($script, '/siteadmin/') !== false) ? '../' : '';
+    }
+
+    $absPath = APP_PATH . $favPath;
+    $version = file_exists($absPath) ? filemtime($absPath) : time();
+    $fullUrl = $prefix . $favPath . '?v=' . $version;
+
+    $ext = strtolower(pathinfo($favPath, PATHINFO_EXTENSION));
+    $mime = 'image/x-icon';
+    if ($ext === 'png') {
+        $mime = 'image/png';
+    } elseif ($ext === 'svg') {
+        $mime = 'image/svg+xml';
+    } elseif ($ext === 'jpg' || $ext === 'jpeg') {
+        $mime = 'image/jpeg';
+    } elseif ($ext === 'webp') {
+        $mime = 'image/webp';
+    }
+
+    $html = '<link rel="icon" type="' . $mime . '" href="' . htmlspecialchars($fullUrl) . '" sizes="any">' . "\n";
+    $html .= '    <link rel="shortcut icon" type="' . $mime . '" href="' . htmlspecialchars($fullUrl) . '">' . "\n";
+    $html .= '    <link rel="apple-touch-icon" href="' . htmlspecialchars($fullUrl) . '">' . "\n";
+    return $html;
+}
+
+function render_custom_head_scripts() {
+    $html = '';
+    $gaId = get_site_setting('google_analytics_id', 'G-27LLB9QMEV');
+    if (!empty($gaId)) {
+        $html .= '<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=' . htmlspecialchars($gaId) . '"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag("js", new Date());
+  gtag("config", "' . htmlspecialchars($gaId) . '");
+</script>' . "\n";
+    }
+    $customHead = get_site_setting('custom_head_scripts', '');
+    if (!empty($customHead)) {
+        $html .= $customHead . "\n";
+    }
+    return $html;
+}
+
+function render_custom_footer_scripts() {
+    $customFooter = get_site_setting('custom_footer_scripts', '');
+    return !empty($customFooter) ? $customFooter . "\n" : '';
+}
+
+function render_ad_banner($location = 'header') {
+    if (get_site_setting('advertising_enabled', '0') !== '1') {
+        return '';
+    }
+    if ($location === 'header') {
+        return get_site_setting('advertising_header_banner', '');
+    }
+    if ($location === 'sidebar') {
+        return get_site_setting('advertising_sidebar_code', '');
+    }
+    return '';
+}
 
 ?>

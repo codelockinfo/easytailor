@@ -99,11 +99,8 @@ $seoOptions = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
-    <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-   
-    <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
+    <?php echo render_favicon_links(); ?>
+    <?php echo render_custom_head_scripts(); ?>
     <?php
     if (!defined('GA4_MEASUREMENT_ID')) {
         define('GA4_MEASUREMENT_ID', 'G-27LLB9QMEV');
@@ -1343,7 +1340,7 @@ $seoOptions = [
     <nav class="sidebar">
         <div class="sidebar-header position-relative d-flex align-items-center justify-content-center py-2">
             <a href="<?php echo has_role('tailor') ? 'orders.php' : 'dashboard.php'; ?>" class="sidebar-brand d-flex align-items-center justify-content-center text-decoration-none w-100">
-                <img src="../assets/images/tailor_logo.png" alt="Tailor Pro" class="sidebar-logo-img">
+                <img src="<?php echo htmlspecialchars(get_site_logo('admin')); ?>" alt="Tailor Pro" class="sidebar-logo-img">
             </a>
             <button type="button" class="btn text-white p-1 position-absolute end-0 me-3" id="sidebarClose" aria-label="Close Sidebar" style="top: 50%; transform: translateY(-50%);">
                 <i class="fas fa-times"></i>
@@ -1496,7 +1493,7 @@ $seoOptions = [
                     $headerSearchVal = htmlspecialchars($_GET['search'] ?? '');
                 ?>
                     <a href="dashboard" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
-                        <img src="../assets/images/tailor_logo_color.png?v=<?php echo time(); ?>" alt="Tailor Pro">
+                        <img src="<?php echo htmlspecialchars(get_site_logo('admin')); ?>" alt="Tailor Pro">
                     </a>
                     <div class="position-relative d-none d-lg-block global-search-container" style="width: 340px;">
 
@@ -1522,7 +1519,7 @@ $seoOptions = [
                     </div>
                 <?php elseif (in_array($currScript, ['categories.php', 'cloth-types.php', 'measurements.php', 'customers.php', 'orders.php', 'invoices.php', 'expenses.php', 'reports.php', 'contacts.php', 'company-settings.php', 'users.php'])): ?>
                     <a href="dashboard.php" class="mobile-header-logo d-inline-flex align-items-center d-lg-none" aria-label="Dashboard">
-                        <img src="../assets/images/tailor_logo_color.png?v=<?php echo time(); ?>" alt="Tailor Pro">
+                        <img src="<?php echo htmlspecialchars(get_site_logo('admin')); ?>" alt="Tailor Pro">
                     </a>
                     <div class="d-none d-lg-block">
                         <h4 class="mb-0 page-main-title fw-bold text-dark" style="text-transform: capitalize; font-size: 1.25rem; letter-spacing: -0.3px;">

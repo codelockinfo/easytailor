@@ -13,10 +13,14 @@ class SEOHelper {
      * @return string HTML meta tags
      */
     public static function generateMetaTags($options = []) {
+        $defaultTitle = (function_exists('get_site_setting') && get_site_setting('seo_title')) ? get_site_setting('seo_title') : 'Tailoring Management System | Smart Solution for Tailor Shops';
+        $defaultDesc = (function_exists('get_site_setting') && get_site_setting('seo_description')) ? get_site_setting('seo_description') : 'All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments. Digitalize your tailor shop with smart tools.';
+        $defaultKeywords = (function_exists('get_site_setting') && get_site_setting('seo_keywords')) ? get_site_setting('seo_keywords') : 'tailoring management system, tailor shop software, tailor business software, tailor invoicing system, order management for tailors, tailor ERP, tailor business management app';
+
         $defaults = [
-            'title' => 'Tailoring Management System | Smart Solution for Tailor Shops',
-            'description' => 'All-in-one tailoring management system to manage customers, orders, invoices, employees, and payments. Digitalize your tailor shop with smart tools.',
-            'keywords' => 'tailoring management system, tailor shop software, tailor business software, tailor invoicing system, order management for tailors, tailor ERP, tailor business management app',
+            'title' => $defaultTitle,
+            'description' => $defaultDesc,
+            'keywords' => $defaultKeywords,
             'canonical' => '',
             'og_image' => '',
             'og_type' => 'website',

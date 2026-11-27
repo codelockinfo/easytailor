@@ -1,3 +1,8 @@
+<?php
+if (file_exists(__DIR__ . '/config/config.php')) {
+    require_once __DIR__ . '/config/config.php';
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,9 +45,7 @@
     <meta name="twitter:creator" content="@TailorPro">
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
+    <?php require_once __DIR__ . '/includes/head.php'; ?>
     <meta name="theme-color" content="#0d6efd">
     <meta name="msapplication-TileColor" content="#0d6efd">
     <link rel="preconnect" href="https://fonts.googleapis.com">

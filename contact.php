@@ -39,9 +39,9 @@ $seoOptions = [
             "url" => $baseUrl,
             "contactPoint" => [
                 "@type" => "ContactPoint",
-                "telephone" => "+917600464414",
+                "telephone" => (function_exists('get_site_setting') ? get_site_setting('contact_phone', '+917600464414') : '+917600464414'),
                 "contactType" => "Customer Support",
-                "email" => "codelockinfo@gmail.com",
+                "email" => (function_exists('get_site_setting') ? get_site_setting('contact_email', 'codelockinfo@gmail.com') : 'codelockinfo@gmail.com'),
                 "areaServed" => "IN",
                 "availableLanguage" => ["Hindi", "Gujarati", "English"]
             ]
@@ -89,10 +89,7 @@ $seoOptions = [
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
+    <?php require_once __DIR__ . '/includes/head.php'; ?>
     
     <style>
         :root {
@@ -624,6 +621,16 @@ $seoOptions = [
     </header>
 
     <!-- Top 3 Quick Info Cards -->
+    <?php
+    $cPhone = get_site_setting('contact_phone', '+91 76004 64414');
+    $cPhoneClean = preg_replace('/\s+/', '', $cPhone);
+    $cEmail = get_site_setting('contact_email', 'codelockinfo@gmail.com');
+    $cAddress = get_site_setting('contact_address', 'Silver Business Point, Near VIP Circle, Utran, Surat, Gujarat - 394105, India');
+    $cHours = get_site_setting('contact_hours', 'Mon - Sat: 9:30 AM to 6:30 PM IST');
+    $cWa = get_site_setting('contact_whatsapp', '917600464414');
+    $cWaUrl = (strpos($cWa, 'http') === 0) ? $cWa : ('https://wa.me/' . preg_replace('/\D/', '', $cWa));
+    $cMap = get_site_setting('contact_map_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3719.349176378415!2d72.85966607519965!3d21.218001680486043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be04f0525d88691%3A0xe5323a63ec5156fa!2sSilver%20Business%20Point!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin');
+    ?>
     <div class="container cnt-quick-cards">
         <div class="row g-3">
             <div class="col-md-4">
@@ -633,9 +640,9 @@ $seoOptions = [
                     </div>
                     <div>
                         <h4>Call Our Hotline</h4>
-                        <p>Mon - Sat: 9:30 AM to 6:30 PM IST</p>
-                        <a href="tel:+917600464414" class="cnt-quick-link">
-                            +91 76004 64414 <i class="fas fa-arrow-right"></i>
+                        <p><?php echo htmlspecialchars($cHours); ?></p>
+                        <a href="tel:<?php echo htmlspecialchars($cPhoneClean); ?>" class="cnt-quick-link">
+                            <?php echo htmlspecialchars($cPhone); ?> <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -649,8 +656,8 @@ $seoOptions = [
                     <div>
                         <h4>Email Inquiries</h4>
                         <p>For support, sales & partnerships</p>
-                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=codelockinfo@gmail.com" target="_blank" class="cnt-quick-link">
-                            codelockinfo@gmail.com <i class="fas fa-arrow-right"></i>
+                        <a href="mailto:<?php echo htmlspecialchars($cEmail); ?>" class="cnt-quick-link">
+                            <?php echo htmlspecialchars($cEmail); ?> <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -664,7 +671,7 @@ $seoOptions = [
                     <div>
                         <h4>Instant WhatsApp</h4>
                         <p>Chat directly with our support team</p>
-                        <a href="https://wa.me/917600464414" target="_blank" class="cnt-quick-link text-success">
+                        <a href="<?php echo htmlspecialchars($cWaUrl); ?>" target="_blank" class="cnt-quick-link text-success">
                             Chat Now <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -735,7 +742,7 @@ $seoOptions = [
                         </div>
                         <div class="cnt-detail-content">
                             <h5>Head Office</h5>
-                            <p>Silver Business Point, Near VIP Circle, Utran, Surat, Gujarat - 394105, India</p>
+                            <p><?php echo htmlspecialchars($cAddress); ?></p>
                         </div>
                     </div>
 
@@ -745,7 +752,7 @@ $seoOptions = [
                         </div>
                         <div class="cnt-detail-content">
                             <h5>Telephone / Helpline</h5>
-                            <p><a href="tel:+917600464414">+91 76004 64414</a></p>
+                            <p><a href="tel:<?php echo htmlspecialchars($cPhoneClean); ?>"><?php echo htmlspecialchars($cPhone); ?></a></p>
                         </div>
                     </div>
 
@@ -755,8 +762,7 @@ $seoOptions = [
                         </div>
                         <div class="cnt-detail-content">
                             <h5>Official Email</h5>
-                            <p><a href="https://mail.google.com/mail/?view=cm&fs=1&to=codelockinfo@gmail.com" target="_blank">codelockinfo@gmail.com</a></p>
-                            <small class="text-muted">Support: info@tailorpro.in</small>
+                            <p><a href="mailto:<?php echo htmlspecialchars($cEmail); ?>"><?php echo htmlspecialchars($cEmail); ?></a></p>
                         </div>
                     </div>
 
@@ -766,8 +772,7 @@ $seoOptions = [
                         </div>
                         <div class="cnt-detail-content">
                             <h5>Support Working Hours</h5>
-                            <p>Monday - Saturday: 9:30 AM to 6:30 PM IST</p>
-                            <small class="text-muted">Sunday: Emergency On-Call Support</small>
+                            <p><?php echo htmlspecialchars($cHours); ?></p>
                         </div>
                     </div>
                 </div>
@@ -778,7 +783,7 @@ $seoOptions = [
                         <h4><i class="fab fa-whatsapp me-1"></i> Quick WhatsApp Connect</h4>
                         <p>Need instant onboarding or pricing assistance?</p>
                     </div>
-                    <a href="https://wa.me/917600464414" target="_blank" class="btn-wa-direct">
+                    <a href="<?php echo htmlspecialchars($cWaUrl); ?>" target="_blank" class="btn-wa-direct">
                         <i class="fab fa-whatsapp"></i> Chat Now
                     </a>
                 </div>
@@ -789,14 +794,14 @@ $seoOptions = [
         <!-- Google Map Section -->
         <div class="cnt-map-card cnt-reveal">
             <div class="cnt-map-header">
-                <h4><i class="fas fa-map-marked-alt text-primary"></i> Visit Our Office in Surat</h4>
-                <a href="https://maps.google.com/?q=Silver+Business+Point,+VIP+Circle,+Utran,+Surat" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                    <i class="fas fa-directions me-1"></i> Open Google Maps
+                <h4><i class="fas fa-map-marked-alt text-primary"></i> Visit Our Office</h4>
+                <a href="<?php echo htmlspecialchars($cMap); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="fas fa-directions me-1"></i> Open Map
                 </a>
             </div>
             <iframe 
                 class="cnt-map-iframe"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3719.349176378415!2d72.85966607519965!3d21.218001680486043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be04f0525d88691%3A0xe5323a63ec5156fa!2sSilver%20Business%20Point!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
+                src="<?php echo htmlspecialchars($cMap); ?>" 
                 allowfullscreen="" 
                 loading="lazy" 
                 referrerpolicy="no-referrer-when-downgrade"

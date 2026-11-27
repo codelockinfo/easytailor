@@ -91,10 +91,7 @@ $remainingArticles = !empty($articles) ? array_slice($articles, 1) : [];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
+    <?php require_once __DIR__ . '/includes/head.php'; ?>
 
     <style>
         :root {

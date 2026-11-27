@@ -103,10 +103,6 @@ if (isset($_SESSION['pw_field_errors'])) {
 $page_title = 'Change Password';
 require_once 'includes/header.php';
 ?>
-<link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
 <div id="passwordAlertContainer">
 <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show">

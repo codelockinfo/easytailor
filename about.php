@@ -94,10 +94,7 @@ $seoOptions = [
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
+    <?php require_once __DIR__ . '/includes/head.php'; ?>
 
     <style>
         :root {
@@ -132,8 +129,6 @@ $seoOptions = [
             font-weight: 700;
             letter-spacing: -0.02em;
         }
-
-        /* --- Scroll Reveal Animations --- */
         .ab-reveal {
             opacity: 0;
             transform: translateY(32px);
@@ -144,14 +139,11 @@ $seoOptions = [
             opacity: 1;
             transform: translateY(0);
         }
-
-        /* Stagger Delays */
         .ab-delay-1 { transition-delay: 0.12s; }
         .ab-delay-2 { transition-delay: 0.24s; }
         .ab-delay-3 { transition-delay: 0.36s; }
         .ab-delay-4 { transition-delay: 0.48s; }
 
-        /* Floating 3D Image Animation */
         @keyframes abFloat {
             0%, 100% {
                 transform: translateY(0px) rotate(0deg);

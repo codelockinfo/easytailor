@@ -37,11 +37,8 @@ $seoOptions = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-2821959013351742">
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
-        <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="16x16 32x32 48x48">
-   
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
+    <?php echo render_favicon_links(); ?>
+    <?php echo render_custom_head_scripts(); ?>
     
     <?php
     if (!defined('GA4_MEASUREMENT_ID')) {

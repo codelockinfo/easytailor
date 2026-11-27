@@ -1,4 +1,11 @@
 <?php
+if (!function_exists('get_site_setting')) {
+    if (file_exists(__DIR__ . '/../config/config.php')) {
+        require_once __DIR__ . '/../config/config.php';
+    } elseif (file_exists(__DIR__ . '/../../config/config.php')) {
+        require_once __DIR__ . '/../../config/config.php';
+    }
+}
 
 $isAdmin = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false);
 $basePath = $isAdmin ? '../' : '';
@@ -95,15 +102,25 @@ $currentYear = date('Y');
             <div class="col-lg-4">
                 <div class="footer-brand">
                      <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
-            <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
-        </a>
+                        <?php 
+                        $footerLogo = get_site_logo('footer', $basePath);
+                        if (!empty($footerLogo)): ?>
+                            <img src="<?php echo htmlspecialchars($footerLogo); ?>" alt="TailorPro" style="max-height: 42px; width: auto; margin-bottom: 12px;">
+                        <?php else: ?>
+                            <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
+                        <?php endif; ?>
+                    </a>
                     <p class="brand-description">
-                        The complete tailoring management system for modern businesses. 
-                        Digitalize your workflow and grow your business.
+                        <?php echo htmlspecialchars(get_site_setting('seo_description', 'The complete tailoring management system for modern businesses. Digitalize your workflow and grow your business.')); ?>
                     </p>
-                    <div class="social-links">
-                       
-                    </div>
+                    <?php 
+                    $paymentLogo = get_site_logo('payment', $basePath);
+                    if (!empty($paymentLogo)): ?>
+                        <div class="mt-2">
+                            <span class="d-block small text-muted mb-1">Accepted Payments:</span>
+                            <img src="<?php echo htmlspecialchars($paymentLogo); ?>" alt="Payment Badges" style="max-height: 32px; width: auto;">
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="col-lg-2">
@@ -143,26 +160,75 @@ $currentYear = date('Y');
                         <span class="footer-toggle-icon">+</span>
                     </h5>
                     <div class="footer-toggle-content">
+                        <?php 
+                        $contactEmail = get_site_setting('contact_email', 'codelockinfo@gmail.com');
+                        if (!empty($contactEmail)): ?>
                         <div class="contact-item">
                             <i class="fas fa-envelope me-2"></i>
-                            <span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=codelockinfo@gmail.com" target="_blank">codelockinfo@gmail.com</a></span>
+                            <span><a href="mailto:<?php echo htmlspecialchars($contactEmail); ?>"><?php echo htmlspecialchars($contactEmail); ?></a></span>
                         </div>
+                        <?php endif; ?>
+
+                        <?php 
+                        $contactPhone = get_site_setting('contact_phone', '+917600464414');
+                        if (!empty($contactPhone)): ?>
                         <div class="contact-item">
                             <i class="fas fa-phone me-2"></i>
-                            <span><a href="tel:+917600464414">+917600464414</a></span>
+                            <span><a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $contactPhone)); ?>"><?php echo htmlspecialchars($contactPhone); ?></a></span>
                         </div>
+                        <?php endif; ?>
+
+                        <?php 
+                        $contactAddr = get_site_setting('contact_address', 'Silver business point, near vip circle, utran, Surat - 394105');
+                        if (!empty($contactAddr)): ?>
                         <div class="contact-item">
                             <i class="fas fa-map-marker-alt me-2"></i>
-                            <span>Silver business point, near vip circle, utran, Surat - 394105</span>
+                            <span><?php echo htmlspecialchars($contactAddr); ?></span>
                         </div>
+                        <?php endif; ?>
+
+                        <?php 
+                        $contactHours = get_site_setting('contact_hours');
+                        if (!empty($contactHours)): ?>
+                        <div class="contact-item">
+                            <i class="fas fa-clock me-2"></i>
+                            <span><?php echo htmlspecialchars($contactHours); ?></span>
+                        </div>
+                        <?php endif; ?>
+
                         <div class="mt-3">
                             <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Follow Us:</div>
+                            <?php
+                            $fbUrl = get_site_setting('social_facebook', 'https://www.facebook.com/');
+                            $twUrl = get_site_setting('social_twitter');
+                            $ytUrl = get_site_setting('social_youtube', 'https://www.youtube.com/');
+                            $liUrl = get_site_setting('social_linkedin', 'https://www.linkedin.com/');
+                            $igUrl = get_site_setting('social_instagram', 'https://www.instagram.com/');
+                            $waUrl = get_site_setting('social_whatsapp', '917600464414');
+                            if (!empty($waUrl) && strpos($waUrl, 'http') === false) {
+                                $waClean = preg_replace('/\D/', '', $waUrl);
+                                $waUrl = 'https://wa.me/' . $waClean;
+                            }
+                            ?>
                             <div class="footer-social-icons">
-                                <a href="https://www.facebook.com/" target="_blank" class="footer-social-btn fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                                <a href="https://www.youtube.com/" target="_blank" class="footer-social-btn yt" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                                <a href="https://www.linkedin.com/" target="_blank" class="footer-social-btn li" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                                <a href="https://www.instagram.com/" target="_blank" class="footer-social-btn ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                                <a href="https://wa.me/917600464414" target="_blank" class="footer-social-btn wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <?php if (!empty($fbUrl)): ?>
+                                    <a href="<?php echo htmlspecialchars($fbUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($twUrl)): ?>
+                                    <a href="<?php echo htmlspecialchars($twUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn" style="background:#000;" aria-label="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($ytUrl)): ?>
+                                    <a href="<?php echo htmlspecialchars($ytUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn yt" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($liUrl)): ?>
+                                    <a href="<?php echo htmlspecialchars($liUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn li" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($igUrl)): ?>
+                                    <a href="<?php echo htmlspecialchars($igUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($waUrl)): ?>
+                                    <a href="<?php echo htmlspecialchars($waUrl); ?>" target="_blank" rel="noopener" class="footer-social-btn wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -189,6 +255,7 @@ $currentYear = date('Y');
 </footer>
 <meta name="google-adsense-account" content="ca-pub-2821959013351742">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>
+<?php echo render_custom_footer_scripts(); ?>
 
 <script>
 (function() {

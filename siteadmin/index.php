@@ -157,11 +157,8 @@ if (isset($_SESSION['message'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Change Requests - Site Admin</title>
-    <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
+    <title>Site Admin Panel</title>
+    <?php echo render_favicon_links(); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -179,27 +176,36 @@ if (isset($_SESSION['message'])) {
         :root {
             --primary-color: #4f46e5;
             --secondary-color: #4338ca;
+            --sidebar-width: 236px;
+            --header-height: 62px;
         }
         .sidebar {
-            width: 250px;
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%);
             color: white;
-            padding: 1rem 1.5rem 2rem;
+            padding: 0 0 1.5rem 0;
             display: flex;
             flex-direction: column;
-            box-shadow: 10px 0 25px rgba(79, 70, 229, 0.2);
+            box-shadow: 10px 0 25px rgba(79, 70, 229, 0.15);
             position: sticky;
             top: 0;
             height: 100vh;
             overflow-y: auto;
+            z-index: 1000;
         }
         .brand {
-            padding-bottom: 1rem;
-            margin-bottom: 1.25rem;
+            height: var(--header-height);
+            min-height: var(--header-height);
+            max-height: var(--header-height);
+            padding: 0 1.1rem;
+            margin: 0 0 0.75rem 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            box-sizing: border-box;
         }
         .brand-logo {
             height: 52px;
@@ -235,52 +241,143 @@ if (isset($_SESSION['message'])) {
             margin-right: 1rem;
         }
         .top-header {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            padding: 0 0 1.25rem 0;
-            border-radius: 0;
-            margin-bottom: 0 !important;
-        }
-        .top-header .header-left {
+            background: #ffffff;
+            height: var(--header-height);
+            min-height: var(--header-height);
+            max-height: var(--header-height);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             display: flex;
             align-items: center;
-            margin-bottom: 0;
+            justify-content: space-between;
+            padding: 0 2rem;
+            margin: 0 !important;
+            border: none;
+            border-bottom: 1px solid #edf2f7;
+            z-index: 998;
+            box-sizing: border-box;
+            border-radius: 0 !important;
+        }
+        .page-main-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            margin: 0;
         }
         #pageTitle {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            color: #0f172a;
-            letter-spacing: -0.02em;
+            color: #1e293b;
+            letter-spacing: -0.3px;
             line-height: 1.2;
+            margin: 0;
         }
         #pageSubtitle {
-            color: #475569 !important;
-            font-size: 0.92rem;
+            display: none;
         }
-        .admin-profile-btn {
-            background: #ffffff;
+        .notif-bell-btn {
+            background: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 0.5rem 0.95rem;
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+            color: #64748b;
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 50%;
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
             transition: all 0.2s ease;
+            text-decoration: none;
+            flex-shrink: 0;
+            padding: 0;
+            font-size: 0.95rem;
         }
-        .admin-profile-btn:hover, .admin-profile-btn:focus, .admin-profile-btn.show {
-            background: #ffffff;
-            border-color: #cbd5e1;
-            color: #0f172a;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
-        }
-        .admin-profile-btn i.fa-user-circle {
+        .notif-bell-btn:hover {
+            background: #f1f5f9;
             color: #4f46e5;
-            font-size: 1rem;
+            transform: translateY(-1px);
+        }
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 999px;
+            border: 1.5px solid #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notif-dropdown-menu {
+            border-radius: 14px !important;
+            width: 340px !important;
+            max-width: calc(100vw - 24px) !important;
+            min-width: 300px !important;
+            z-index: 1060;
+            padding: 10px 12px !important;
+            box-shadow: 0 12px 30px -4px rgba(16, 24, 40, 0.12), 0 4px 10px -2px rgba(16, 24, 40, 0.05) !important;
+        }
+        .user-pill-btn {
+            background: transparent;
+            border: none;
+            padding: 2px 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border-radius: 38px;
+            transition: background 0.2s ease;
+            flex-shrink: 0;
+            height: 38px;
+        }
+        .user-pill-btn:hover, .user-pill-btn:focus {
+            background: #f8fafc;
+        }
+        .user-avatar-circle {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            max-width: 38px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        .user-avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-pill-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .user-pill-chevron {
+            font-size: 0.68rem;
+            color: #3b82f6;
+        }
+        .dropdown-toggle::after {
+            display: none !important;
         }
         /* Email Requests Redesign */
         .er-stat-card {
@@ -949,18 +1046,19 @@ if (isset($_SESSION['message'])) {
         }
         .main-content {
             flex: 1;
-            padding: 2rem 2.5rem;
+            padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            width: calc(100% - 250px);
+            width: calc(100% - var(--sidebar-width));
+            background-color: #f8f9fa;
         }
         .content-scroll {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding-right: 0.5rem;
+            padding: 1.5rem 2rem;
         }
         
         /* Mobile and Tablet Responsiveness (Drawer) */
@@ -990,20 +1088,20 @@ if (isset($_SESSION['message'])) {
                 height: 100vh;
                 z-index: 1045;
                 transition: left 0.3s ease-in-out;
-                padding: 1.5rem;
+                padding: 0 0 1.5rem 0;
             }
             .sidebar.show {
                 left: 0;
             }
             .main-content {
                 width: 100%;
-                padding: 1.5rem 1rem;
+                padding: 0;
             }
-            .top-header > .d-flex {
-                align-items: flex-start !important;
+            .top-header {
+                padding: 0 1rem;
             }
-            .top-header .header-left {
-                margin-bottom: 0;
+            .content-scroll {
+                padding: 1.25rem 1rem;
             }
         }
         @media (max-width: 768px) {
@@ -1022,28 +1120,19 @@ if (isset($_SESSION['message'])) {
                 justify-content: space-between;
                 gap: 0.5rem;
             }
-            .top-header > .d-flex > .d-flex {
-                width: auto;
-                justify-content: flex-end;
-                margin-top: 0;
-            }
-            .header-left {
-                width: auto;
-                align-items: center !important;
-            }
             #mobileMenuBtn {
                 margin-top: 0;
                 padding: 0.375rem 0.6rem;
             }
             #pageTitle {
-                font-size: 1.25rem;
+                font-size: 1.15rem;
                 margin-bottom: 0 !important;
             }
             #pageSubtitle {
                 display: none;
             }
             .top-header {
-                padding: 0 0 1rem 0;
+                padding: 0 0.85rem;
             }
         }
         .stat-card {
@@ -1353,9 +1442,9 @@ if (isset($_SESSION['message'])) {
         <aside class="sidebar">
             <div class="brand">
                 <?php 
-                $logoPath = '../assets/images/tailor_logo.png';
-                if (file_exists($logoPath)): ?>
-                    <img src="<?php echo $logoPath; ?>" alt="Tailor Pro" class="brand-logo">
+                $adminLogo = get_site_logo('admin');
+                if (!empty($adminLogo)): ?>
+                    <img src="<?php echo htmlspecialchars($adminLogo); ?>" alt="Tailor Pro" class="brand-logo">
                 <?php else: ?>
                     <i class="fas fa-crown"></i>
                 <?php endif; ?>
@@ -1376,6 +1465,10 @@ if (isset($_SESSION['message'])) {
                 <i class="fas fa-star"></i>
                 Testimonials
             </a>
+            <a href="settings.php" class="nav-link">
+                <i class="fas fa-sliders-h"></i>
+                Global Settings
+            </a>
             <div class="mt-auto">
                 <a href="../admin/logout.php" class="nav-link" onclick="return confirm('Are you sure you want to logout?');">
                     <i class="fas fa-sign-out-alt"></i>
@@ -1387,41 +1480,81 @@ if (isset($_SESSION['message'])) {
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         
         <main class="main-content">
-        <div class="top-header card mb-4">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div class="header-left d-flex align-items-center">
-                    <button class="btn btn-outline-secondary d-lg-none me-3" id="mobileMenuBtn">
-                        <i class="fas fa-bars"></i>
+        <header class="top-header">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-link p-1 text-primary d-lg-none" id="mobileMenuBtn" aria-label="Toggle Navigation" style="font-size: 1.25rem; text-decoration: none; color: #4f46e5 !important; line-height: 1;">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="mb-0 page-main-title fw-bold text-dark" style="text-transform: capitalize; font-size: 1.25rem; letter-spacing: -0.3px;" id="pageTitle"><?php 
+                    echo $current_section === 'company' ? 'Companies' : 
+                        ($current_section === 'contact' ? 'Contact Messages' : 
+                        ($current_section === 'testimonials' ? 'Testimonials' : 'Email Requests')); 
+                ?></h4>
+                <p class="d-none" id="pageSubtitle"><?php 
+                    echo $current_section === 'company' ? 'Overview of all companies onboarded' : 
+                        ($current_section === 'contact' ? 'View all contact form submissions from users' : 
+                        ($current_section === 'testimonials' ? 'Review and manage customer testimonials' : 'Review pending email change requests')); 
+                ?></p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <!-- Notifications Bell -->
+                <div class="dropdown">
+                    <button class="notif-bell-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <?php $unreadNotifCount = $stats['pending'] ?? 0; ?>
+                        <span class="notif-badge" id="headerNotifBadge" style="<?php echo ($unreadNotifCount > 0) ? '' : 'display: none;'; ?>"><?php echo $unreadNotifCount; ?></span>
                     </button>
-                    <div>
-                        <h2 class="mb-1" id="pageTitle"><?php 
-                            echo $current_section === 'company' ? 'Companies' : 
-                                ($current_section === 'contact' ? 'Contact Messages' : 
-                                ($current_section === 'testimonials' ? 'Testimonials' : 'Email Requests')); 
-                        ?></h2>
-                        <p class="text-muted mb-0" id="pageSubtitle"><?php 
-                            echo $current_section === 'company' ? 'Overview of all companies onboarded' : 
-                                ($current_section === 'contact' ? 'View all contact form submissions from users' : 
-                                ($current_section === 'testimonials' ? 'Review and manage customer testimonials' : 'Review pending email change requests')); 
-                        ?></p>
-                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 notif-dropdown-menu">
+                        <li class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <h6 class="mb-0 fw-bold" style="font-size: 0.9rem; color: #1e293b;">Notifications</h6>
+                            <span class="badge bg-danger rounded-pill" style="<?php echo ($unreadNotifCount > 0) ? 'display: inline-block;' : 'display: none;'; ?>; font-size: 0.68rem; padding: 2px 7px;"><?php echo $unreadNotifCount; ?> new</span>
+                        </li>
+                        <div style="max-height: 320px; overflow-y: auto;">
+                            <?php if ($unreadNotifCount > 0): ?>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-start gap-2 p-2 rounded bg-light-subtle" href="index.php?section=requests" style="white-space: normal;">
+                                        <i class="fas fa-envelope-open-text text-primary mt-1" style="font-size: 1rem;"></i>
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size: 0.82rem;">Email Change Requests</div>
+                                            <div class="text-muted text-break" style="font-size: 0.74rem; line-height: 1.35;"><?php echo $unreadNotifCount; ?> pending request(s) awaiting approval</div>
+                                        </div>
+                                    </a>
+                                </li>
+                            <?php else: ?>
+                                <li class="text-center py-4 text-muted" style="font-size: 0.85rem;">
+                                    <i class="fas fa-check-circle text-success mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    All caught up! No notifications.
+                                </li>
+                            <?php endif; ?>
+                        </div>
+                    </ul>
                 </div>
-                <div class="d-flex gap-2">
-                    
-                    <div class="dropdown">
-                        <button class="btn admin-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Admin</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text text-muted small">Site Administrator</span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="../admin/logout.php">Logout</a></li>
-                        </ul>
-                    </div>
+
+                <!-- Admin Profile Pill Dropdown -->
+                <div class="dropdown">
+                    <button class="user-pill-btn dropdown-toggle p-0 p-sm-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar-circle">
+                            <span>AD</span>
+                        </div>
+                        <span class="user-pill-name d-none d-sm-inline">Admin</span>
+                        <i class="fas fa-chevron-down user-pill-chevron ms-1 d-none d-sm-inline"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 12px; min-width: 200px; z-index: 1060;">
+                        <li class="px-3 py-2">
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">Site Administrator</div>
+                            <small class="text-muted text-capitalize" style="font-size: 0.75rem;">Super Admin</small>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item text-danger py-2" href="../admin/logout.php" onclick="return confirm('Are you sure you want to logout?');">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </header>
         <div class="content-scroll">
         <?php if ($message): ?>
             <div class="alert alert-<?php echo $messageType === 'success' ? 'success' : ($messageType === 'error' ? 'danger' : 'info'); ?> alert-dismissible fade show">

@@ -111,10 +111,7 @@ $seoOptions = [
     <?php echo SEOHelper::generateMetaTags($seoOptions); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/favicon(2).png">
+    <?php echo render_favicon_links(); ?>
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -261,10 +258,10 @@ $seoOptions = [
                     <div class="login-header">
                         <a href="../" class="text-decoration-none">
                         <?php
-                        $brandLogo = get_logo_path('footer-logo.png');
-                        if ($brandLogo):
+                        $brandLogo = get_site_logo('admin');
+                        if (!empty($brandLogo)):
                         ?>
-                            <img src="<?php echo $brandLogo; ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 80px; max-width: 200px;">
+                            <img src="<?php echo htmlspecialchars($brandLogo); ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 80px; max-width: 200px;">
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>

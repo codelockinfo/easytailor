@@ -12,7 +12,8 @@ RewriteEngine On
 # This hides the .php extension from users and search engines
 # IMPORTANT: Only redirect if THE_REQUEST actually contains .php (original browser request)
 # Capture the full path including subdirectory from THE_REQUEST
-RewriteCond %{THE_REQUEST} ^[A-Z]+\s/+(.+?)\.php(\?[^\s]*)?\s [NC]
+RewriteCond %{REQUEST_METHOD} !POST [NC]
+RewriteCond %{THE_REQUEST} ^GET\s/+(.+?)\.php(\?[^\s]*)?\s [NC]
 RewriteCond %{REQUEST_URI} !^/.*ajax/ [NC]
 RewriteCond %{REQUEST_URI} !^/.*admin/ajax/ [NC]
 RewriteCond %{REQUEST_URI} !google-callback [NC]

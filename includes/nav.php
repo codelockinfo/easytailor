@@ -1,17 +1,22 @@
 <?php
+if (!function_exists('render_favicon_links')) {
+    if (file_exists(__DIR__ . '/../config/config.php')) {
+        require_once __DIR__ . '/../config/config.php';
+    } elseif (file_exists(__DIR__ . '/../../config/config.php')) {
+        require_once __DIR__ . '/../../config/config.php';
+    }
+}
 
 $isAdmin = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false);
 $basePath = $isAdmin ? '../' : '';
 
 $currentPage = basename($_SERVER['PHP_SELF']);
 
-$faviconLinks = '
+$faviconLinks = function_exists('render_favicon_links') ? render_favicon_links($basePath) : '
     <link rel="icon" type="image/x-icon" href="' . $basePath . 'favicon.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon(2).png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon(2).png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon(2).png">
-    <meta name="google-adsense-account" content="ca-pub-2821959013351742">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';
+    <link rel="icon" type="image/png" sizes="32x32" href="' . $basePath . 'assets/images/favicon(2).png">
+    <link rel="icon" type="image/png" sizes="16x16" href="' . $basePath . 'assets/images/favicon(2).png">
+    <link rel="apple-touch-icon" sizes="180x180" href="' . $basePath . 'assets/images/favicon(2).png">';
 
 $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2821959013351742" crossorigin="anonymous"></script>';
 ?>
@@ -310,7 +315,13 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
 <div class="site-drawer" id="siteDrawer">
     <div class="site-drawer-header">
         <a class="desktop-nav-brand" href="<?php echo $basePath; ?>./" style="text-decoration:none;">
-            <i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span>
+            <?php 
+            $webLogo = get_site_logo('website', $basePath);
+            if (!empty($webLogo)): ?>
+                <img src="<?php echo htmlspecialchars($webLogo); ?>" alt="Tailor Pro" style="max-height: 34px; width: auto;">
+            <?php else: ?>
+                <i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span>
+            <?php endif; ?>
         </a>
         <button class="site-drawer-close" onclick="closeSiteDrawer()" aria-label="Close menu">
             <i class="fas fa-times"></i>
@@ -343,7 +354,13 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-0" id="mainSiteNavbar">
         <div class="container">
             <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>./" style="text-decoration: none;">
-                <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
+                <?php 
+                $webLogo = get_site_logo('website', $basePath);
+                if (!empty($webLogo)): ?>
+                    <img src="<?php echo htmlspecialchars($webLogo); ?>" alt="Tailor Pro" style="max-height: 38px; width: auto;">
+                <?php else: ?>
+                    <span class="desktop-nav-brand"><i class="fas fa-cut me-1" style="color:#6366f1;"></i> Tai<span style="color:#6366f1;">lor</span></span>
+                <?php endif; ?>
             </a>
             
             <div class="d-flex align-items-center d-lg-none gap-2">

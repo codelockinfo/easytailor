@@ -35,6 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     } elseif (!$user || !password_verify($currentPassword, $user['password'])) {
         $errorField = 'current_password';
         $errorMsg = 'Current password is incorrect.';
+    } elseif (function_exists('validate_password_strength') && !($pwdCheck = validate_password_strength($newPassword))['valid']) {
+        $errorField = 'new_password';
+        $errorMsg = $pwdCheck['message'];
     } elseif (strlen($newPassword) < 6) {
         $errorField = 'new_password';
         $errorMsg = 'New password must be at least 6 characters.';
@@ -44,7 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     } else {
         if ($userModel->updatePassword($userId, $newPassword)) {
             $success = true;
-            $errorMsg = 'Password changed successfully';
+            $errorMsg = 'Password changed successfully. Redirecting to login...';
+
+            require_once __DIR__ . '/../../controllers/AuthController.php';
+            $authController = new AuthController();
+            $authController->logout();
         } else {
             $errorMsg = 'Failed to change password';
         }
@@ -55,9 +62,13 @@ while (ob_get_level() > 0) {
     ob_end_clean();
 }
 header('Content-Type: application/json');
-echo json_encode([
+$response = [
     'success' => $success,
     'field' => $errorField,
     'message' => $errorMsg
-]);
+];
+if ($success) {
+    $response['redirect'] = 'login.php?password_changed=1';
+}
+echo json_encode($response);
 exit;

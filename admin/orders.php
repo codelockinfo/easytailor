@@ -532,7 +532,38 @@ $totalOrders = count($allOrders);
 $orders = array_slice($allOrders, $offset, $limit);
 $totalPages = max(1, ceil($totalOrders / $limit));
 $customers = $customerModel->findAll(['status' => 'active'], 'first_name, last_name');
-$measurementCustomers = $measurementModel->getDistinctCustomerNames();
+$rawMeasurementCustomers = $measurementModel->getDistinctCustomerNames();
+
+$allCustNames = [];
+$combinedCustomerList = [];
+foreach ($rawMeasurementCustomers as $mc) {
+    $cName = trim($mc['customer_name'] ?? '');
+    if ($cName !== '' && !isset($allCustNames[strtolower($cName)])) {
+        $allCustNames[strtolower($cName)] = true;
+        $combinedCustomerList[] = [
+            'customer_name' => $cName,
+            'phone_number' => $mc['phone_number'] ?? '',
+            'max_id' => $mc['max_id'] ?? 0
+        ];
+    }
+}
+if (!empty($customers)) {
+    foreach ($customers as $c) {
+        $cName = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+        if (empty($cName) && !empty($c['name'])) {
+            $cName = trim($c['name']);
+        }
+        if ($cName !== '' && !isset($allCustNames[strtolower($cName)])) {
+            $allCustNames[strtolower($cName)] = true;
+            $combinedCustomerList[] = [
+                'customer_name' => $cName,
+                'phone_number' => $c['phone'] ?? ($c['phone_number'] ?? ''),
+                'max_id' => $c['id'] ?? 0
+            ];
+        }
+    }
+}
+$measurementCustomers = $combinedCustomerList;
 $clothTypes = $clothTypeModel->findAll(['status' => 'active'], 'name');
 $tailors = $userModel->findAll(['role' => 'tailor', 'status' => 'active'], 'full_name');
 
@@ -3322,7 +3353,7 @@ function renderCustomerOptions(filterText = '') {
         customerDropdownList.innerHTML = `
             <div class="p-3 text-center text-muted" style="font-size: 0.82rem;">
                 <i class="fas fa-user-slash d-block mb-1 text-secondary" style="font-size: 1.1rem;"></i>
-                No customer found matching "<strong>${escapeHtml(filterText)}</strong>"
+                ${query ? `No customer found matching "<strong>${escapeHtml(filterText)}</strong>"` : 'No customers found.<br><a href="customers.php" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.78rem;"><i class="fas fa-plus me-1"></i>Add Customer</a>'}
             </div>
         `;
         return;
@@ -3595,7 +3626,7 @@ function editOrder(order) {
                             notes: it.notes
                         }, idx === 0);
                     });
-                } else 
+                } else {
                     addOrderItemCard({
                         cloth_type_id: order.cloth_type_id,
                         measurement_id: order.measurement_id,

@@ -42,7 +42,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             if ($userModel->updatePassword($userId, $newPassword)) {
                 $success = true;
-                $errorMsg = 'Password changed successfully';
+                $errorMsg = 'Password changed successfully. Redirecting to login...';
+
+                require_once '../controllers/AuthController.php';
+                $authController = new AuthController();
+                $authController->logout();
+
+                if (!$isAjax) {
+                    header('Location: login.php?password_changed=1');
+                    exit;
+                }
             } else {
                 $errorMsg = 'Failed to change password';
             }
@@ -56,11 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ob_end_clean();
         }
         header('Content-Type: application/json');
-        echo json_encode([
+        $ajaxResponse = [
             'success' => $success,
             'field' => $errorField,
             'message' => $errorMsg
-        ]);
+        ];
+        if ($success) {
+            $ajaxResponse['redirect'] = 'login.php?password_changed=1';
+        }
+        echo json_encode($ajaxResponse);
         exit;
     }
 
@@ -430,19 +443,18 @@ function togglePassword(fieldId, btnEl) {
                 }
                 const data = await res.json();
 
-                if (data.redirect) {
+                if (data.success) {
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Redirecting...';
+                    }
+                    showBannerAlert(data.message || 'Password changed successfully. Redirecting to login...', 'success');
+                    setTimeout(function() {
+                        window.location.href = data.redirect || 'login.php?password_changed=1';
+                    }, 1000);
+                    return;
+                } else if (data.redirect) {
                     window.location.href = data.redirect;
                     return;
-                }
-                if (data.success) {
-                    passwordForm.reset();
-                    Object.keys(FIELD_MAP).forEach(clearFieldError);
-                    if (cpStrengthBar) cpStrengthBar.className = 'password-strength';
-                    ['cp-req-length', 'cp-req-uppercase', 'cp-req-lowercase', 'cp-req-number'].forEach(function(id) {
-                        updateCpRequirement(id, false);
-                    });
-                    if (cpMatchMsg) cpMatchMsg.textContent = '';
-                    showBannerAlert(data.message || 'Password changed successfully', 'success');
                 } else if (data.field) {
                     const target = setFieldError(data.field, data.message);
                     if (target) target.focus();

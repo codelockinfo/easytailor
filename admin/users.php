@@ -1752,23 +1752,23 @@ function updateUsersTable(users) {
             usersTableBody.innerHTML = `
                 <tr>
                     <td colspan="7" class="text-center py-5">
-                        <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
-                            <i class="fas fa-users fa-lg"></i>
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                            <i class="fas fa-search fa-2x"></i>
                         </div>
-                        <div class="fw-semibold text-dark">No users found</div>
-                        <small class="text-muted">Try adjusting your search or role filter.</small>
+                        <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                        <p class="text-muted small mb-0">No users match your search or role filter.</p>
                     </td>
                 </tr>
             `;
         }
         if (userMobileCards) {
             userMobileCards.innerHTML = `
-                <div class="text-center py-5">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
-                        <i class="fas fa-users fa-lg"></i>
+                <div class="text-center py-5" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
                     </div>
-                    <div class="fw-semibold text-dark">No users found</div>
-                    <small class="text-muted">Try adjusting your search or role filter.</small>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">No users match your search or role filter.</p>
                 </div>
             `;
         }

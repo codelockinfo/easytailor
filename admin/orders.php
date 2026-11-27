@@ -1893,7 +1893,7 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="customer_phone" class="form-label fw-semibold">Phone Number *</label>
-                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="15" required>
+                            <input type="text" class="form-control" id="customer_phone" name="customer_phone" placeholder="Enter phone number" maxlength="10" required>
                             <div class="invalid-feedback" id="customerPhoneFeedback">Please enter phone number.</div>
                         </div>
                     </div>
@@ -4177,22 +4177,22 @@ function displayFilterResults(orders) {
         ordersTable.innerHTML = `
             <tr>
                 <td colspan="${isTailor ? '8' : '9'}" class="text-center py-5">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-1">No orders found</h5>
-                    <p class="text-muted small">Try adjusting your filter criteria</p>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
         if (ordersMobileList) {
             ordersMobileList.innerHTML = `
-                <div class="text-center py-5">
-                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8;">
+                <div class="text-center py-5" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-1">No orders found</h5>
-                    <p class="text-muted small">Try adjusting your filter criteria</p>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                    <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </div>
             `;
         }

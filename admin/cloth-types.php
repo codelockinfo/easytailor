@@ -703,11 +703,13 @@ include 'includes/page-header.php';
             </div>
         <?php else: ?>
             <div class="text-center py-5">
-                <i class="fas fa-tshirt fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No cloth types found</h5>
-                <p class="text-muted">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                    <i class="fas fa-search fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                <p class="text-muted small mb-3">
                     <?php if (!empty($search) || !empty($category_filter)): ?>
-                        No cloth types match your search criteria.
+                        No cloth types match your filter criteria.
                     <?php else: ?>
                         Get started by adding your first cloth type.
                     <?php endif; ?>
@@ -1193,17 +1195,21 @@ function displayFilterResults(clothTypes) {
         clothTypesTable.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-5">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted" style="font-size: 0.95rem;">No cloth types found</h5>
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
                     <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </td>
             </tr>
         `;
         if (mobileCardsList) {
             mobileCardsList.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                    <h5 class="text-muted" style="font-size: 0.95rem;">No cloth types found</h5>
+                <div class="text-center py-5" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
                     <p class="text-muted small mb-0">Try adjusting your filter criteria</p>
                 </div>
             `;

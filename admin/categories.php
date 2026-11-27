@@ -338,7 +338,10 @@ include 'includes/page-header.php';
 <div class="d-flex align-items-center gap-2 mb-3">
     <div class="position-relative flex-grow-1">
         <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.9rem;"></i>
-        <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-top: 0.6rem; padding-bottom: 0.6rem; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <input type="text" id="categorySearch" class="form-control" placeholder="Search categories..." autocomplete="off" value="<?php echo htmlspecialchars($search); ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding-left: 2.4rem; padding-right: 2.4rem; padding-top: 0.6rem; padding-bottom: 0.6rem; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <button type="button" id="clearCategorySearch" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted p-0 me-3 border-0 shadow-none" style="display: <?php echo !empty($search) ? 'block' : 'none'; ?>; text-decoration: none;" title="Clear search">
+            <i class="fas fa-times-circle"></i>
+        </button>
     </div>
     <button type="button" class="btn text-white fw-semibold d-inline-flex align-items-center gap-1 text-nowrap px-3" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 14px; font-size: 0.84rem; height: 42px; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);" data-bs-toggle="modal" data-bs-target="#categoryModal">
         <i class="fas fa-plus"></i>
@@ -347,25 +350,25 @@ include 'includes/page-header.php';
 </div>
 <div class="card shadow-sm border-0 mb-3 categories-main-card">
     <div class="card-body p-0">
-        <?php if (!empty($categories)): ?>
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover mb-0 align-middle category-table">
-                    <thead class="cat-table-head">
-                        <tr>
-                            <th class="ps-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span>CATEGORY</span>
-                                    <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" id="sortCategoriesBtn" title="Sort A-Z" style="font-size: 0.75rem; line-height: 1; text-decoration: none;">
-                                        <i class="fas fa-sort" id="sortIcon"></i>
-                                    </button>
-                                </div>
-                            </th>
-                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">DESCRIPTION</th>
-                            <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">STATUS</th>
-                            <th class="text-end pe-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="categoryTableBody">
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-hover mb-0 align-middle category-table">
+                <thead class="cat-table-head">
+                    <tr>
+                        <th class="ps-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">
+                            <div class="d-flex align-items-center gap-2">
+                                <span>CATEGORY</span>
+                                <button type="button" class="btn btn-link p-0 text-muted border-0 shadow-none" id="sortCategoriesBtn" title="Sort A-Z" style="font-size: 0.75rem; line-height: 1; text-decoration: none;">
+                                    <i class="fas fa-sort" id="sortIcon"></i>
+                                </button>
+                            </div>
+                        </th>
+                        <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">DESCRIPTION</th>
+                        <th class="py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">STATUS</th>
+                        <th class="text-end pe-3 py-3" style="background-color: #f8fafc !important; color: #334155 !important; font-size: 0.78rem !important; font-weight: 700 !important; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0 !important;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="categoryTableBody">
+                    <?php if (!empty($categories)): ?>
                         <?php foreach ($categories as $idx => $cat): 
                             $design = getCategoryDesign($cat['name'], $idx);
                             $cleanName = htmlspecialchars(html_entity_decode($cat['name'], ENT_QUOTES, 'UTF-8'));
@@ -399,10 +402,21 @@ include 'includes/page-header.php';
                             </td>
                         </tr>
                         <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-md-none d-flex flex-column gap-3 mb-3" id="categoryMobileCardsList">
+                    <?php endif; ?>
+                    <tr id="noCategoryResultsRow" style="<?php echo empty($categories) ? '' : 'display: none;'; ?>">
+                        <td colspan="4" class="text-center py-5">
+                            <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                                <i class="fas fa-search fa-2x"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                            <p class="text-muted small mb-0" id="noCategoryResultsMsg"><?php echo !empty($search) ? 'No categories found matching your search criteria.' : 'No categories found.'; ?></p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="d-md-none d-flex flex-column gap-3 mb-3" id="categoryMobileCardsList">
+            <?php if (!empty($categories)): ?>
                 <?php foreach ($categories as $idx => $cat): 
                     $design = getCategoryDesign($cat['name'], $idx);
                     $cleanName = htmlspecialchars(html_entity_decode($cat['name'], ENT_QUOTES, 'UTF-8'));
@@ -441,13 +455,15 @@ include 'includes/page-header.php';
                     </div>
                 </div>
                 <?php endforeach; ?>
+            <?php endif; ?>
+            <div id="noCategoryResultsCards" class="text-center py-5 text-muted" style="<?php echo empty($categories) ? '' : 'display: none;'; ?> background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
+                    <i class="fas fa-search fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1" style="font-size: 1rem;">No Data Found</h5>
+                <p class="text-muted small mb-0" id="noCategoryCardsMsg"><?php echo !empty($search) ? 'No categories found matching your search criteria.' : 'No categories found.'; ?></p>
             </div>
-        <?php else: ?>
-            <div class="text-center py-5">
-                <i class="fas fa-tags fa-3x text-muted mb-3"></i>
-                <p class="text-muted">No categories found.</p>
-            </div>
-        <?php endif; ?>
+        </div>
     </div>
 </div>
 <div id="paginationContainer">
@@ -490,12 +506,12 @@ include 'includes/page-header.php';
                     
                     <div class="mb-3">
                         <label for="name" class="form-label">Category Name *</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <input type="text" class="form-control" id="name"  placeholder="Enter Category Name " name="name" required>
                         <div class="invalid-feedback">Please enter a category name.</div>
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                        <textarea class="form-control" id="description" name="description"  placeholder="Enter Category  Description"  rows="2"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
@@ -553,10 +569,23 @@ function deleteCategory(id, name) {
     document.getElementById('deleteCategoryName').textContent = name;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
-document.getElementById('categorySearch')?.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('.category-row, .category-card-row');
-    let visibleCount = 0;
+const categorySearchInput = document.getElementById('categorySearch');
+const clearCategorySearchBtn = document.getElementById('clearCategorySearch');
+
+function filterCategories() {
+    const searchTerm = (categorySearchInput ? categorySearchInput.value : '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.category-row');
+    const cards = document.querySelectorAll('.category-card-row');
+    const noResultsRow = document.getElementById('noCategoryResultsRow');
+    const noResultsCards = document.getElementById('noCategoryResultsCards');
+    const noResultsMsg = document.getElementById('noCategoryResultsMsg');
+    const noCardsMsg = document.getElementById('noCategoryCardsMsg');
+
+    if (clearCategorySearchBtn) {
+        clearCategorySearchBtn.style.display = searchTerm ? 'block' : 'none';
+    }
+
+    let visibleRowCount = 0;
     rows.forEach(row => {
         const nameEl = row.querySelector('.cat-name');
         const descEl = row.querySelector('.cat-desc');
@@ -564,20 +593,57 @@ document.getElementById('categorySearch')?.addEventListener('input', function() 
         const desc = descEl ? descEl.textContent.toLowerCase() : '';
         if (name.includes(searchTerm) || desc.includes(searchTerm)) {
             row.style.display = '';
-            visibleCount++;
+            visibleRowCount++;
         } else {
             row.style.display = 'none';
         }
     });
+
+    let visibleCardCount = 0;
+    cards.forEach(card => {
+        const nameEl = card.querySelector('.cat-name');
+        const descEl = card.querySelector('.cat-desc');
+        const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+        const desc = descEl ? descEl.textContent.toLowerCase() : '';
+        if (name.includes(searchTerm) || desc.includes(searchTerm)) {
+            card.style.display = '';
+            visibleCardCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    const msgText = searchTerm ? 'No categories found matching your search criteria.' : 'No categories found.';
+    if (noResultsMsg) noResultsMsg.textContent = msgText;
+    if (noCardsMsg) noCardsMsg.textContent = msgText;
+
+    if (noResultsRow) {
+        noResultsRow.style.display = (visibleRowCount === 0) ? '' : 'none';
+    }
+    if (noResultsCards) {
+        noResultsCards.style.display = (visibleCardCount === 0) ? '' : 'none';
+    }
+
     const paginationContainer = document.getElementById('paginationContainer');
     if (paginationContainer) {
-        if (searchTerm !== '') {
+        if (searchTerm !== '' || visibleRowCount === 0) {
             paginationContainer.style.display = 'none';
         } else {
             paginationContainer.style.display = 'block';
         }
     }
+}
+
+categorySearchInput?.addEventListener('input', filterCategories);
+
+clearCategorySearchBtn?.addEventListener('click', function() {
+    if (categorySearchInput) {
+        categorySearchInput.value = '';
+        filterCategories();
+        categorySearchInput.focus();
+    }
 });
+
 let sortAscending = true;
 document.getElementById('sortCategoriesBtn')?.addEventListener('click', function(e) {
     e.preventDefault();
@@ -596,6 +662,10 @@ document.getElementById('sortCategoriesBtn')?.addEventListener('click', function
             return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
         });
         rows.forEach(r => tableBody.appendChild(r));
+        const noResultsRow = document.getElementById('noCategoryResultsRow');
+        if (noResultsRow) {
+            tableBody.appendChild(noResultsRow);
+        }
     }
     const mobileCardsList = document.getElementById('categoryMobileCardsList');
     if (mobileCardsList) {
@@ -606,6 +676,10 @@ document.getElementById('sortCategoriesBtn')?.addEventListener('click', function
             return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
         });
         cards.forEach(c => mobileCardsList.appendChild(c));
+        const noResultsCards = document.getElementById('noCategoryResultsCards');
+        if (noResultsCards) {
+            mobileCardsList.appendChild(noResultsCards);
+        }
     }
 });
 

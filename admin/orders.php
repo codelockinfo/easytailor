@@ -101,8 +101,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
                 $customerPhone = !empty($_POST['customer_phone']) ? trim(sanitize_input($_POST['customer_phone'])) : '';
-                if ($customerPhone === '') {
-                    $_SESSION['message'] = 'Please enter a phone number.';
+                $phoneDigits = preg_replace('/\D/', '', $customerPhone);
+                if (strlen($phoneDigits) > 10 && strpos($phoneDigits, '91') === 0) {
+                    $phoneDigits = substr($phoneDigits, 2);
+                }
+                if (!preg_match('/^[0-9]{10}$/', $phoneDigits)) {
+                    $_SESSION['message'] = 'Please enter a valid 10-digit phone number.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                $customerPhone = $phoneDigits;
+
+                $orderDateVal = trim((string)($_POST['order_date'] ?? ''));
+                $dueDateVal = trim((string)($_POST['due_date'] ?? ''));
+                if ($orderDateVal === '' || $dueDateVal === '' || !strtotime($orderDateVal) || !strtotime($dueDateVal)) {
+                    $_SESSION['message'] = 'Please enter valid order date and due date.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                if (strtotime($dueDateVal) < strtotime($orderDateVal)) {
+                    $_SESSION['message'] = 'Due date cannot be earlier than order date.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                if ($advanceAmount < 0 || ($totalAmount > 0 && $advanceAmount > $totalAmount)) {
+                    $_SESSION['message'] = 'Advance amount cannot be negative or greater than total amount.';
                     $_SESSION['messageType'] = 'error';
                     header('Location: orders.php');
                     exit;
@@ -115,8 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'cloth_type_id' => $primaryClothTypeId ?: (int)($_POST['cloth_type_id'] ?? 0),
                     'measurement_id' => $primaryMeasurementId,
                     'assigned_tailor_id' => $primaryTailorId,
-                    'order_date' => $_POST['order_date'],
-                    'due_date' => $_POST['due_date'],
+                    'order_date' => $orderDateVal,
+                    'due_date' => $dueDateVal,
                     'total_amount' => $totalAmount,
                     'advance_amount' => $advanceAmount,
                     'balance_amount' => $balanceAmount,
@@ -285,8 +311,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $balanceAmount = max(0.0, $totalAmount - $advanceAmount);
                 $paymentMethod = !empty($_POST['payment_method']) ? sanitize_input($_POST['payment_method']) : 'cash';
                 $customerPhone = !empty($_POST['customer_phone']) ? trim(sanitize_input($_POST['customer_phone'])) : '';
-                if ($customerPhone === '') {
-                    $_SESSION['message'] = 'Please enter a phone number.';
+                $phoneDigits = preg_replace('/\D/', '', $customerPhone);
+                if (strlen($phoneDigits) > 10 && strpos($phoneDigits, '91') === 0) {
+                    $phoneDigits = substr($phoneDigits, 2);
+                }
+                if (!preg_match('/^[0-9]{10}$/', $phoneDigits)) {
+                    $_SESSION['message'] = 'Please enter a valid 10-digit phone number.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                $customerPhone = $phoneDigits;
+
+                $orderDateVal = trim((string)($_POST['order_date'] ?? ''));
+                $dueDateVal = trim((string)($_POST['due_date'] ?? ''));
+                if ($orderDateVal === '' || $dueDateVal === '' || !strtotime($orderDateVal) || !strtotime($dueDateVal)) {
+                    $_SESSION['message'] = 'Please enter valid order date and due date.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                if (strtotime($dueDateVal) < strtotime($orderDateVal)) {
+                    $_SESSION['message'] = 'Due date cannot be earlier than order date.';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: orders.php');
+                    exit;
+                }
+                if ($advanceAmount < 0 || ($totalAmount > 0 && $advanceAmount > $totalAmount)) {
+                    $_SESSION['message'] = 'Advance amount cannot be negative or greater than total amount.';
                     $_SESSION['messageType'] = 'error';
                     header('Location: orders.php');
                     exit;
@@ -299,8 +351,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'cloth_type_id' => $primaryClothTypeId ?: (int)($_POST['cloth_type_id'] ?? 0),
                     'measurement_id' => $primaryMeasurementId,
                     'assigned_tailor_id' => $primaryTailorId ?: (int)($_POST['assigned_tailor_id'] ?? 0),
-                    'order_date' => $_POST['order_date'],
-                    'due_date' => $_POST['due_date'],
+                    'order_date' => $orderDateVal,
+                    'due_date' => $dueDateVal,
                     'total_amount' => $totalAmount,
                     'advance_amount' => $advanceAmount,
                     'balance_amount' => $balanceAmount,
@@ -724,6 +776,12 @@ if (!function_exists('getCustomerAvatarDesign')) {
 }
 .category-table tbody tr:hover {
     background-color: #f8fafc;
+}
+.category-table tbody tr.empty-state-row:hover,
+.category-table tbody tr.empty-state-row:hover > td {
+    --bs-table-accent-bg: transparent;
+    --bs-table-hover-bg: transparent;
+    background-color: transparent !important;
 }
 .cat-badge-pending {
     background-color: #fffbeb !important;
@@ -1933,12 +1991,12 @@ $hasActiveFilter = (!empty($cloth_type_id_filter) || !empty($status_filter) || !
                         <div class="col-md-6 mb-3">
                             <label for="order_date" class="form-label fw-semibold">Order Date *</label>
                             <input type="date" class="form-control" id="order_date" name="order_date" value="<?php echo date('Y-m-d'); ?>" required>
-                            <div class="invalid-feedback">Please enter order date.</div>
+                            <div class="invalid-feedback" id="orderDateFeedback">Please enter order date.</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="due_date" class="form-label fw-semibold">Due Date *</label>
-                            <input type="date" class="form-control" id="due_date" name="due_date" required>
-                            <div class="invalid-feedback">Please enter due date.</div>
+                            <input type="date" class="form-control" id="due_date" name="due_date" min="<?php echo date('Y-m-d'); ?>" required>
+                            <div class="invalid-feedback" id="dueDateFeedback">Please enter due date.</div>
                         </div>
                     </div>
                     <input type="hidden" id="cloth_type_id" name="cloth_type_id" value="">
@@ -2500,14 +2558,121 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('orderForm')?.querySelectorAll('.item-price-feedback.d-block').forEach(el => el.classList.remove('d-block'));
     }
 
+    function normalizeOrderPhoneDigits(raw) {
+        if (typeof normalizeLocalPhoneDigits === 'function') {
+            return normalizeLocalPhoneDigits(raw, '+91');
+        }
+        let d = String(raw || '').replace(/\D/g, '');
+        if (d.length > 10 && d.startsWith('91')) d = d.slice(2);
+        return d.slice(0, 10);
+    }
+
+    window.syncOrderDueDateMin = function() {
+        const orderDateEl = document.getElementById('order_date');
+        const dueDateEl = document.getElementById('due_date');
+        if (orderDateEl && dueDateEl) {
+            dueDateEl.min = orderDateEl.value || '';
+        }
+    };
+
+    function validateOrderDates(showEmptyErrors = true) {
+        const orderDateEl = document.getElementById('order_date');
+        const dueDateEl = document.getElementById('due_date');
+        const orderDateFb = document.getElementById('orderDateFeedback');
+        const dueDateFb = document.getElementById('dueDateFeedback');
+        window.syncOrderDueDateMin();
+
+        let firstBad = null;
+        if (orderDateEl) {
+            if (!orderDateEl.value) {
+                if (showEmptyErrors) {
+                    if (orderDateFb) orderDateFb.textContent = 'Please enter order date.';
+                    orderDateEl.classList.add('is-invalid');
+                }
+                firstBad = firstBad || orderDateEl;
+            } else {
+                orderDateEl.classList.remove('is-invalid');
+            }
+        }
+
+        if (dueDateEl) {
+            if (!dueDateEl.value) {
+                if (showEmptyErrors) {
+                    if (dueDateFb) dueDateFb.textContent = 'Please enter due date.';
+                    dueDateEl.classList.add('is-invalid');
+                }
+                firstBad = firstBad || dueDateEl;
+            } else if (orderDateEl && orderDateEl.value && dueDateEl.value < orderDateEl.value) {
+                if (dueDateFb) dueDateFb.textContent = 'Due date cannot be earlier than order date.';
+                dueDateEl.classList.add('is-invalid');
+                firstBad = firstBad || dueDateEl;
+            } else {
+                dueDateEl.classList.remove('is-invalid');
+            }
+        }
+        return firstBad;
+    }
+
+    function validateOrderPhoneField() {
+        const phoneInputEl = document.getElementById('customer_phone');
+        const phoneFb = document.getElementById('customerPhoneFeedback');
+        if (!phoneInputEl) return true;
+        const digits = normalizeOrderPhoneDigits(phoneInputEl.value);
+        if (phoneInputEl.value !== digits) {
+            phoneInputEl.value = digits;
+        }
+        if (digits.length !== 10) {
+            if (phoneFb) phoneFb.textContent = digits.length === 0 ? 'Please enter phone number.' : 'Please enter a valid 10-digit phone number.';
+            phoneInputEl.classList.add('is-invalid');
+            return false;
+        }
+        phoneInputEl.classList.remove('is-invalid');
+        return true;
+    }
+
     const orderFormEl = document.getElementById('orderForm');
     if (orderFormEl) {
-        ['customer_phone', 'order_date', 'due_date', 'advance_amount', 'payment_method'].forEach(fieldId => {
+        const phoneInputEl = document.getElementById('customer_phone');
+        if (phoneInputEl) {
+            phoneInputEl.addEventListener('input', function() {
+                const digits = normalizeOrderPhoneDigits(this.value);
+                if (this.value !== digits) this.value = digits;
+                if (this.classList.contains('is-invalid') && digits.length === 10) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+            phoneInputEl.addEventListener('blur', function() {
+                if (this.value.trim() !== '' || this.classList.contains('is-invalid')) {
+                    validateOrderPhoneField();
+                }
+            });
+        }
+
+        document.getElementById('order_date')?.addEventListener('change', function() {
+            validateOrderDates(false);
+        });
+        document.getElementById('due_date')?.addEventListener('change', function() {
+            validateOrderDates(false);
+        });
+        document.getElementById('order_date')?.addEventListener('input', function() {
+            validateOrderDates(false);
+        });
+        document.getElementById('due_date')?.addEventListener('input', function() {
+            validateOrderDates(false);
+        });
+
+        ['advance_amount', 'payment_method'].forEach(fieldId => {
             const el = document.getElementById(fieldId);
             if (!el) return;
-            el.addEventListener(el.tagName === 'SELECT' || el.type === 'date' ? 'change' : 'input', function() {
+            el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', function() {
                 if (this.classList.contains('is-invalid') && this.value.trim() !== '') {
-                    if (this.type !== 'number' || Number(this.value) >= 0) {
+                    if (fieldId === 'advance_amount') {
+                        const tot = parseFloat(document.getElementById('total_amount')?.value || 0);
+                        const adv = Number(this.value);
+                        if (!Number.isNaN(adv) && adv >= 0 && (tot <= 0 || adv <= tot)) {
+                            this.classList.remove('is-invalid');
+                        }
+                    } else {
                         this.classList.remove('is-invalid');
                     }
                 }
@@ -2522,34 +2687,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 firstInvalidEl = document.getElementById('customerSelectBox');
             }
 
-            const phoneInputEl = document.getElementById('customer_phone');
-            if (phoneInputEl) {
-                if (!phoneInputEl.value.trim()) {
-                    phoneInputEl.classList.add('is-invalid');
-                    firstInvalidEl = firstInvalidEl || phoneInputEl;
-                } else {
-                    phoneInputEl.classList.remove('is-invalid');
-                }
+            if (!validateOrderPhoneField()) {
+                firstInvalidEl = firstInvalidEl || document.getElementById('customer_phone');
             }
 
-            const orderDateEl = document.getElementById('order_date');
-            if (orderDateEl) {
-                if (!orderDateEl.value) {
-                    orderDateEl.classList.add('is-invalid');
-                    firstInvalidEl = firstInvalidEl || orderDateEl;
-                } else {
-                    orderDateEl.classList.remove('is-invalid');
-                }
-            }
-
-            const dueDateEl = document.getElementById('due_date');
-            if (dueDateEl) {
-                if (!dueDateEl.value) {
-                    dueDateEl.classList.add('is-invalid');
-                    firstInvalidEl = firstInvalidEl || dueDateEl;
-                } else {
-                    dueDateEl.classList.remove('is-invalid');
-                }
+            const badDateEl = validateOrderDates(true);
+            if (badDateEl) {
+                firstInvalidEl = firstInvalidEl || badDateEl;
             }
 
             const cards = document.querySelectorAll('.order-item-card');
@@ -2609,6 +2753,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (advFb) advFb.textContent = advance < 0 ? 'Advance amount cannot be negative.' : 'Please enter advance amount.';
                     advanceEl.classList.add('is-invalid');
                     firstInvalidEl = firstInvalidEl || advanceEl;
+                } else if (advance > total && total > 0) {
+                    if (advFb) advFb.textContent = 'Advance amount cannot exceed total amount (₹' + total.toFixed(2) + ').';
+                    advanceEl.classList.add('is-invalid');
+                    firstInvalidEl = firstInvalidEl || advanceEl;
                 } else {
                     advanceEl.classList.remove('is-invalid');
                 }
@@ -2634,12 +2782,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (cards.length === 0) {
                 e.preventDefault();
                 showOrderAlert('Please add at least one garment to the order.', 'Garment Required', 'warning');
-                return false;
-            }
-
-            if (advance > total && total > 0) {
-                e.preventDefault();
-                showOrderAlert('Advance amount (₹' + advance.toFixed(2) + ') cannot be greater than Total amount (₹' + total.toFixed(2) + ').', 'Invalid Advance Amount', 'warning');
                 return false;
             }
         });
@@ -3353,7 +3495,7 @@ function renderCustomerOptions(filterText = '') {
         customerDropdownList.innerHTML = `
             <div class="p-3 text-center text-muted" style="font-size: 0.82rem;">
                 <i class="fas fa-user-slash d-block mb-1 text-secondary" style="font-size: 1.1rem;"></i>
-                ${query ? `No customer found matching "<strong>${escapeHtml(filterText)}</strong>"` : 'No customers found.<br><a href="customers.php" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.78rem;"><i class="fas fa-plus me-1"></i>Add Customer</a>'}
+                ${query ? `No customer found matching "<strong>${escapeHtml(filterText)}</strong>"<br>` : 'No customers found.<br>'}<a href="measurements.php?action=create" class="btn btn-sm btn-outline-primary mt-2" style="font-size: 0.78rem;"><i class="fas fa-plus me-1"></i>Add Measurement</a>
             </div>
         `;
         return;
@@ -3583,10 +3725,14 @@ function editOrder(order) {
     if (typeof setCustomerValue === 'function') {
         setCustomerValue(customerName, order.customer_phone || '', false);
     }
+    if (typeof window.clearOrderInlineErrors === 'function') window.clearOrderInlineErrors();
     document.getElementById('order_date').value = order.order_date || '';
     document.getElementById('due_date').value = order.due_date || '';
+    if (typeof window.syncOrderDueDateMin === 'function') window.syncOrderDueDateMin();
     if (document.getElementById('customer_phone')) {
-        document.getElementById('customer_phone').value = order.customer_phone || '';
+        let p = String(order.customer_phone || '').replace(/\D/g, '');
+        if (p.length > 10 && p.startsWith('91')) p = p.slice(2);
+        document.getElementById('customer_phone').value = p.slice(0, 10);
     }
     document.getElementById('total_amount').value = order.total_amount || '';
     document.getElementById('advance_amount').value = (order.advance_amount !== undefined && order.advance_amount !== null) ? order.advance_amount : '0';
@@ -3924,6 +4070,7 @@ if (orderModalEl) {
         if (typeof window.clearOrderInlineErrors === 'function') window.clearOrderInlineErrors();
         const dateEl = document.getElementById('order_date');
         if (dateEl) dateEl.value = '<?php echo date('Y-m-d'); ?>';
+        if (typeof window.syncOrderDueDateMin === 'function') window.syncOrderDueDateMin();
         const phoneEl = document.getElementById('customer_phone');
         if (phoneEl) phoneEl.value = '';
         const waSwitch = document.getElementById('send_whatsapp_invoice');
@@ -4172,9 +4319,10 @@ function showFilterError(errorMessage) {
         filterCount.textContent = 'Error';
     }
     if (ordersTable) {
+        const errorColspan = <?php echo has_role('tailor') ? 9 : 10; ?>;
         ordersTable.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center py-5">
+            <tr class="empty-state-row">
+                <td colspan="${errorColspan}" class="text-center py-5">
                     <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #fef2f2; color: #ef4444;">
                         <i class="fas fa-exclamation-circle fa-2x"></i>
                     </div>
@@ -4206,8 +4354,8 @@ function displayFilterResults(orders) {
     const ordersMobileList = document.getElementById('ordersMobileCardsList');
     if (orders.length === 0) {
         ordersTable.innerHTML = `
-            <tr>
-                <td colspan="${isTailor ? '8' : '9'}" class="text-center py-5">
+            <tr class="empty-state-row">
+                <td colspan="${isTailor ? '9' : '10'}" class="text-center py-5">
                     <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 50%; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;">
                         <i class="fas fa-search fa-2x"></i>
                     </div>

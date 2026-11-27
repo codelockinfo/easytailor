@@ -2956,6 +2956,14 @@ function displayFilterResults(measurements) {
     }
 }
     }, 100);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'create') {
+        const addMeasModalEl = document.getElementById('addMeasurementModal');
+        if (addMeasModalEl && window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(addMeasModalEl).show();
+        }
+    }
 }); // Close the DOMContentLoaded event listener
 </script>
 

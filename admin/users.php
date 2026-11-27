@@ -44,8 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
+                $emailInput = trim(sanitize_input($_POST['email'] ?? ''));
+                if (empty($emailInput) || !filter_var($emailInput, FILTER_VALIDATE_EMAIL)) {
+                    $_SESSION['message'] = 'Please enter a valid email address';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+
                 // Validate email uniqueness (globally unique)
-                if (!empty($_POST['email']) && $userModel->emailExists($_POST['email'])) {
+                if ($userModel->emailExists($emailInput)) {
                     $_SESSION['message'] = 'Email already exists';
                     $_SESSION['messageType'] = 'error';
                     header('Location: users.php');
@@ -59,14 +67,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: users.php');
                     exit;
                 }
+
+                $phoneDigits = preg_replace('/\D/', '', (string)($_POST['phone'] ?? ''));
+                if (strlen($phoneDigits) > 10 && strpos($phoneDigits, '91') === 0) {
+                    $phoneDigits = substr($phoneDigits, 2);
+                }
+                if (!preg_match('/^[0-9]{10}$/', $phoneDigits)) {
+                    $_SESSION['message'] = 'Please enter a valid 10-digit phone number';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
                 
                 $data = [
                     'username' => sanitize_input($_POST['username']),
-                    'email' => sanitize_input($_POST['email']),
+                    'email' => $emailInput,
                     'password' => $_POST['password'],
                     'full_name' => sanitize_input($_POST['full_name']),
                     'role' => $_POST['role'],
-                    'phone' => sanitize_input($_POST['phone']),
+                    'phone' => '+91' . $phoneDigits,
                     'address' => sanitize_input($_POST['address']),
                     'status' => $_POST['status'],
                     'company_id' => $companyId
@@ -95,8 +114,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
+                $emailInput = trim(sanitize_input($_POST['email'] ?? ''));
+                if (empty($emailInput) || !filter_var($emailInput, FILTER_VALIDATE_EMAIL)) {
+                    $_SESSION['message'] = 'Please enter a valid email address';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+
                 // Validate email uniqueness (globally unique, exclude current user)
-                if (!empty($_POST['email']) && $userModel->emailExists($_POST['email'], $userId)) {
+                if ($userModel->emailExists($emailInput, $userId)) {
                     $_SESSION['message'] = 'Email already exists';
                     $_SESSION['messageType'] = 'error';
                     header('Location: users.php');
@@ -111,12 +138,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
+                $phoneDigits = preg_replace('/\D/', '', (string)($_POST['phone'] ?? ''));
+                if (strlen($phoneDigits) > 10 && strpos($phoneDigits, '91') === 0) {
+                    $phoneDigits = substr($phoneDigits, 2);
+                }
+                if (!preg_match('/^[0-9]{10}$/', $phoneDigits)) {
+                    $_SESSION['message'] = 'Please enter a valid 10-digit phone number';
+                    $_SESSION['messageType'] = 'error';
+                    header('Location: users.php');
+                    exit;
+                }
+
                 $data = [
                     'username' => sanitize_input($_POST['username']),
-                    'email' => sanitize_input($_POST['email']),
+                    'email' => $emailInput,
                     'full_name' => sanitize_input($_POST['full_name']),
                     'role' => $_POST['role'],
-                    'phone' => sanitize_input($_POST['phone']),
+                    'phone' => '+91' . $phoneDigits,
                     'address' => sanitize_input($_POST['address']),
                     'status' => $_POST['status']
                 ];
@@ -869,7 +907,7 @@ include 'includes/page-header.php';
 <div class="modal fade" id="userModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
-            <form method="POST" id="userForm">
+            <form method="POST" id="userForm" novalidate>
                 <div class="modal-header border-bottom py-3" style="background: #fafafa;">
                     <h5 class="modal-title fw-bold text-dark" id="userModalTitle">Add User</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -882,22 +920,25 @@ include 'includes/page-header.php';
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="full_name" class="form-label fw-semibold small text-muted">Full Name *</label>
-                            <input type="text" class="form-control" id="full_name" name="full_name" required style="border-radius: 10px;">
+                            <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter full name" required style="border-radius: 10px;">
+                            <div class="invalid-feedback" id="fullNameFeedback">Please enter full name.</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="username" class="form-label fw-semibold small text-muted">Username *</label>
-                            <input type="text" class="form-control" id="username" name="username" required style="border-radius: 10px;">
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required style="border-radius: 10px;">
+                            <div class="invalid-feedback" id="usernameFeedback">Please enter username.</div>
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label fw-semibold small text-muted">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email" required style="border-radius: 10px;">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="e.g., name@example.com" required style="border-radius: 10px;">
+                            <div class="invalid-feedback" id="emailFeedback">Please enter a valid email address (e.g., name@example.com).</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label fw-semibold small text-muted">Phone</label>
-                            <div class="input-group">
+                            <label for="phone" class="form-label fw-semibold small text-muted">Phone *</label>
+                            <div class="input-group has-validation">
                                 <span class="input-group-text" style="border-radius: 10px 0 0 10px;">+91</span>
                                 <input type="tel" 
                                        class="form-control" 
@@ -906,10 +947,10 @@ include 'includes/page-header.php';
                                        placeholder="10-digit mobile number"
                                        pattern="[0-9]{10}"
                                        maxlength="10"
+                                       required
                                        style="border-radius: 0 10px 10px 0;">
+                                <div class="invalid-feedback" id="phoneFeedback">Please enter a valid 10-digit phone number.</div>
                             </div>
-                            <small class="text-muted">Enter 10-digit mobile number (digits only)</small>
-                            <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
                         </div>
                     </div>
                     
@@ -921,6 +962,7 @@ include 'includes/page-header.php';
                                 <option value="admin">Admin - Full access</option>
                                 <option value="tailor">Tailor - Can be assigned to orders</option>
                             </select>
+                            <div class="invalid-feedback" id="roleFeedback">Please select a role.</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label fw-semibold small text-muted">Status *</label>
@@ -928,28 +970,30 @@ include 'includes/page-header.php';
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
+                            <div class="invalid-feedback" id="statusFeedback">Please select a status.</div>
                         </div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="password" class="form-label fw-semibold small text-muted">Password <span id="passwordRequired">*</span></label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;" autocomplete="new-password">
+                        <div class="input-group has-validation">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter password (min. 6 characters)" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;" autocomplete="new-password">
                             <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility('password', this)" style="border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-color: #dee2e6; " title="Show/Hide Password">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            <div class="invalid-feedback" id="passwordFeedback">Password must be at least 6 characters long.</div>
                         </div>
                         <small class="text-muted" id="passwordHelp">Minimum 6 characters</small>
                     </div>
                     
                     <div class="mb-3">
                         <label for="address" class="form-label fw-semibold small text-muted">Address</label>
-                        <textarea class="form-control" id="address" name="address" rows="2" style="border-radius: 10px;"></textarea>
+                        <textarea class="form-control" id="address" name="address" rows="2" placeholder="Enter full address" style="border-radius: 10px;"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-top py-3" style="background: #fafafa;">
                     <button type="button" class="btn btn-light fw-medium px-4" data-bs-dismiss="modal" style="border-radius: 10px; font-size: 0.85rem;">Cancel</button>
-                    <button type="submit" class="btn text-white fw-semibold px-4" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 10px; font-size: 0.85rem; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);">
+                    <button type="submit" id="saveUserBtn" class="btn text-white fw-semibold px-4" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border-radius: 10px; font-size: 0.85rem; border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);">
                         <i class="fas fa-save me-1"></i>Save User
                     </button>
                 </div>
@@ -1435,13 +1479,22 @@ function editUser(user) {
     document.getElementById('username').value = user.username || '';
     document.getElementById('email').value = user.email || '';
     
-    // Handle phone number - remove +91 prefix if present, keep only 10 digits
-    let phoneNumber = user.phone || '';
-    if (phoneNumber.startsWith('+91')) {
-        phoneNumber = phoneNumber.replace('+91', '').trim();
+    // Handle phone number - strip any +91 / 91 prefix, keep only 10 digits
+    const rawPhone = String(user.phone || '').trim();
+    const phoneEl = document.getElementById('phone');
+    const emailEl = document.getElementById('email');
+    if (typeof normalizeLocalPhoneDigits === 'function') {
+        phoneEl.value = normalizeLocalPhoneDigits(rawPhone, '+91');
+    } else {
+        let p = rawPhone;
+        while (p.startsWith('+91')) p = p.slice(3).trim();
+        p = p.replace(/[^0-9]/g, '');
+        if (p.length > 10 && p.startsWith('91')) p = p.slice(2);
+        phoneEl.value = p.slice(0, 10);
     }
-    phoneNumber = phoneNumber.replace(/[^0-9]/g, '').slice(0, 10);
-    document.getElementById('phone').value = phoneNumber;
+    ['full_name', 'username', 'email', 'phone', 'role', 'status', 'password'].forEach(fid => {
+        document.getElementById(fid)?.classList.remove('is-invalid', 'is-valid');
+    });
     document.getElementById('role').value = user.role || '';
     document.getElementById('status').value = user.status || 'active';
     document.getElementById('address').value = user.address || '';
@@ -1498,6 +1551,13 @@ document.getElementById('userModal').addEventListener('hidden.bs.modal', functio
     }
     
     document.getElementById('userForm').reset();
+    ['full_name', 'username', 'email', 'phone', 'role', 'status', 'password'].forEach(fid => {
+        document.getElementById(fid)?.classList.remove('is-invalid', 'is-valid');
+    });
+    const emailFb = document.getElementById('emailFeedback');
+    if (emailFb) emailFb.textContent = 'Please enter a valid email address (e.g., name@example.com).';
+    const userFb = document.getElementById('usernameFeedback');
+    if (userFb) userFb.textContent = 'Please enter username.';
 });
 
 // Helper for HTML escaping
@@ -1542,21 +1602,277 @@ let searchTimeout;
 document.addEventListener('DOMContentLoaded', function() {
     // Setup phone validation
     setupPhoneValidation('phone', '+91');
-    
-    // Update phone value with prefix before form submission
+
+    function setUserFieldInvalid(inputEl, feedbackId, message) {
+        if (!inputEl) return;
+        const fb = feedbackId ? document.getElementById(feedbackId) : null;
+        if (fb && message) fb.textContent = message;
+        inputEl.classList.add('is-invalid');
+    }
+
+    function clearUserFieldInvalid(inputEl) {
+        if (!inputEl) return;
+        inputEl.classList.remove('is-invalid');
+    }
+
+    function isValidUserEmail(value) {
+        const email = (value || '').trim();
+        if (!email || email.length > 254 || /\s/.test(email)) return false;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) return false;
+        const parts = email.split('@');
+        if (parts.length !== 2) return false;
+        if (parts[0].startsWith('.') || parts[0].endsWith('.') || parts[0].includes('..')) return false;
+        if (parts[1].startsWith('.') || parts[1].endsWith('.') || parts[1].includes('..')) return false;
+        return true;
+    }
+
+    function validateFullNameField() {
+        const el = document.getElementById('full_name');
+        if (!el) return true;
+        if (!el.value.trim()) {
+            setUserFieldInvalid(el, 'fullNameFeedback', 'Please enter full name.');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    function validateUsernameField() {
+        const el = document.getElementById('username');
+        if (!el) return true;
+        const val = el.value.trim();
+        if (!val) {
+            setUserFieldInvalid(el, 'usernameFeedback', 'Please enter username.');
+            return false;
+        }
+        if (/\s/.test(val)) {
+            setUserFieldInvalid(el, 'usernameFeedback', 'Username cannot contain spaces.');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    function validateUserEmailField() {
+        const el = document.getElementById('email');
+        if (!el) return true;
+        const val = el.value.trim();
+        if (!val) {
+            setUserFieldInvalid(el, 'emailFeedback', 'Please enter email address.');
+            return false;
+        }
+        if (!isValidUserEmail(val)) {
+            setUserFieldInvalid(el, 'emailFeedback', 'Please enter a valid email address (e.g., name@example.com).');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    function validateUserPhoneField() {
+        const el = document.getElementById('phone');
+        if (!el) return true;
+        const digits = normalizeLocalPhoneDigits(el.value, '+91');
+        if (el.value !== digits) el.value = digits;
+        if (digits.length !== 10) {
+            setUserFieldInvalid(el, 'phoneFeedback', 'Please enter a valid 10-digit phone number.');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    function validateUserRoleField() {
+        const el = document.getElementById('role');
+        if (!el) return true;
+        if (!el.value) {
+            setUserFieldInvalid(el, 'roleFeedback', 'Please select a role.');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    function validateUserStatusField() {
+        const el = document.getElementById('status');
+        if (!el) return true;
+        if (!el.value) {
+            setUserFieldInvalid(el, 'statusFeedback', 'Please select a status.');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    function validateUserPasswordField() {
+        const el = document.getElementById('password');
+        if (!el) return true;
+        const action = document.getElementById('userAction')?.value || 'create';
+        const val = el.value || '';
+        if (action === 'create') {
+            if (!val) {
+                setUserFieldInvalid(el, 'passwordFeedback', 'Please enter a password.');
+                return false;
+            }
+            if (val.length < 6) {
+                setUserFieldInvalid(el, 'passwordFeedback', 'Password must be at least 6 characters long.');
+                return false;
+            }
+        } else if (val.length > 0 && val.length < 6) {
+            setUserFieldInvalid(el, 'passwordFeedback', 'Password must be at least 6 characters long.');
+            return false;
+        }
+        clearUserFieldInvalid(el);
+        return true;
+    }
+
+    async function checkUserUniqueFields({ email = '', username = '' }) {
+        const formData = new FormData();
+        formData.append('csrf_token', document.querySelector('#userForm input[name="csrf_token"]')?.value || '');
+        formData.append('user_id', document.getElementById('userId')?.value || '');
+        formData.append('email', email);
+        formData.append('username', username);
+
+        const res = await fetch('ajax/check_user_unique.php', {
+            method: 'POST',
+            body: formData
+        });
+        if (!res.ok) {
+            throw new Error('Uniqueness check failed');
+        }
+        return await res.json();
+    }
+
+    document.getElementById('full_name')?.addEventListener('blur', validateFullNameField);
+    document.getElementById('full_name')?.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid') && this.value.trim()) clearUserFieldInvalid(this);
+    });
+
+    document.getElementById('username')?.addEventListener('blur', async function() {
+        if (!validateUsernameField()) return;
+        try {
+            const data = await checkUserUniqueFields({ username: this.value.trim() });
+            if (data.success && data.username_exists) {
+                setUserFieldInvalid(this, 'usernameFeedback', 'Username already exists.');
+            }
+        } catch (err) {}
+    });
+    document.getElementById('username')?.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid')) validateUsernameField();
+    });
+
+    document.getElementById('email')?.addEventListener('blur', async function() {
+        if (!validateUserEmailField()) return;
+        try {
+            const data = await checkUserUniqueFields({ email: this.value.trim() });
+            if (data.success && data.email_exists) {
+                setUserFieldInvalid(this, 'emailFeedback', 'Email already exists.');
+            }
+        } catch (err) {}
+    });
+    document.getElementById('email')?.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid') && isValidUserEmail(this.value)) {
+            clearUserFieldInvalid(this);
+        }
+    });
+
+    document.getElementById('phone')?.addEventListener('blur', function() {
+        if (this.value.trim() !== '' || this.classList.contains('is-invalid')) {
+            validateUserPhoneField();
+        }
+    });
+    document.getElementById('phone')?.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid') && normalizeLocalPhoneDigits(this.value, '+91').length === 10) {
+            clearUserFieldInvalid(this);
+        }
+    });
+
+    document.getElementById('role')?.addEventListener('change', validateUserRoleField);
+    document.getElementById('status')?.addEventListener('change', validateUserStatusField);
+    document.getElementById('password')?.addEventListener('blur', function() {
+        if (this.value !== '' || this.classList.contains('is-invalid')) {
+            validateUserPasswordField();
+        }
+    });
+    document.getElementById('password')?.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid')) {
+            validateUserPasswordField();
+        }
+    });
+
     const userForm = document.getElementById('userForm');
-    if (userForm && document.getElementById('phone')) {
-        userForm.addEventListener('submit', function(e) {
-            const phoneInput = document.getElementById('phone');
-            if (phoneInput.value.trim()) {
-                const phoneValue = getPhoneWithPrefix('phone', '+91');
-                if (!validatePhoneNumber('phone', '+91')) {
-                    e.preventDefault();
-                    phoneInput.focus();
-                    alert('Please enter a valid 10-digit phone number.');
+    if (userForm) {
+        let isSubmittingValidatedUser = false;
+        userForm.addEventListener('submit', async function(e) {
+            if (isSubmittingValidatedUser) {
+                return true;
+            }
+            e.preventDefault();
+
+            const checks = [
+                { ok: validateFullNameField(), el: document.getElementById('full_name') },
+                { ok: validateUsernameField(), el: document.getElementById('username') },
+                { ok: validateUserEmailField(), el: document.getElementById('email') },
+                { ok: validateUserPhoneField(), el: document.getElementById('phone') },
+                { ok: validateUserRoleField(), el: document.getElementById('role') },
+                { ok: validateUserStatusField(), el: document.getElementById('status') },
+                { ok: validateUserPasswordField(), el: document.getElementById('password') }
+            ];
+
+            const firstFail = checks.find(c => !c.ok);
+            if (firstFail) {
+                firstFail.el?.focus();
+                return false;
+            }
+
+            const saveBtn = document.getElementById('saveUserBtn');
+            const origBtnHtml = saveBtn ? saveBtn.innerHTML : '';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Validating...';
+            }
+
+            try {
+                const emailEl = document.getElementById('email');
+                const usernameEl = document.getElementById('username');
+                const data = await checkUserUniqueFields({
+                    email: emailEl ? emailEl.value.trim() : '',
+                    username: usernameEl ? usernameEl.value.trim() : ''
+                });
+
+                let uniqueFailedEl = null;
+                if (data.success) {
+                    if (data.username_exists) {
+                        setUserFieldInvalid(usernameEl, 'usernameFeedback', 'Username already exists.');
+                        uniqueFailedEl = uniqueFailedEl || usernameEl;
+                    }
+                    if (data.email_exists) {
+                        setUserFieldInvalid(emailEl, 'emailFeedback', 'Email already exists.');
+                        uniqueFailedEl = uniqueFailedEl || emailEl;
+                    }
+                }
+
+                if (uniqueFailedEl) {
+                    uniqueFailedEl.focus();
                     return false;
                 }
-                phoneInput.value = phoneValue;
+
+                if (emailEl) emailEl.value = emailEl.value.trim();
+                if (usernameEl) usernameEl.value = usernameEl.value.trim();
+                const fullNameEl = document.getElementById('full_name');
+                if (fullNameEl) fullNameEl.value = fullNameEl.value.trim();
+
+                isSubmittingValidatedUser = true;
+                userForm.submit();
+            } catch (err) {
+                isSubmittingValidatedUser = true;
+                userForm.submit();
+            } finally {
+                if (!isSubmittingValidatedUser && saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = origBtnHtml;
+                }
             }
         });
     }

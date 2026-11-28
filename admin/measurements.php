@@ -109,7 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $name = sanitize_input($_POST['name'] ?? '');
                 $phone = sanitize_input($_POST['phone_number'] ?? '');
-                $email = sanitize_input($_POST['email'] ?? '');
+                $email = trim(sanitize_input($_POST['email'] ?? ''));
+                if ($email !== '' && (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254 || strpos($email, '..') !== false)) {
+                    $_SESSION['error_message'] = 'Please enter a valid email address (e.g., name@example.com).';
+                    smart_redirect('measurements.php');
+                    break;
+                }
                 $address = sanitize_input($_POST['address'] ?? '');
                 $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
                 $notes = sanitize_input($_POST['notes'] ?? '');
@@ -222,7 +227,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $name = sanitize_input($_POST['name'] ?? '');
                 $phone = sanitize_input($_POST['phone_number'] ?? '');
-                $email = sanitize_input($_POST['email'] ?? '');
+                $email = trim(sanitize_input($_POST['email'] ?? ''));
+                if ($email !== '' && (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254 || strpos($email, '..') !== false)) {
+                    $_SESSION['error_message'] = 'Please enter a valid email address (e.g., name@example.com).';
+                    smart_redirect('measurements.php');
+                    break;
+                }
                 $address = sanitize_input($_POST['address'] ?? '');
                 $dob = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
                 $notes = sanitize_input($_POST['notes'] ?? '');
@@ -924,11 +934,15 @@ include 'includes/page-header.php';
                 <?php endforeach; ?>
             </div>
 
-            <div id="paginationContainer">
+            <div id="paginationContainer" class="<?php echo $totalPages > 1 ? 'p-3' : ''; ?>">
             <?php if ($totalPages > 1): ?>
                 <nav aria-label="Measurements pagination">
-                    <ul class="pagination justify-content-center">
-                        <?php if ($page > 1): ?>
+                    <ul class="pagination justify-content-center mb-0">
+                        <?php if ($page <= 1): ?>
+                            <li class="page-item disabled">
+                                <span class="page-link" aria-disabled="true">Previous</span>
+                            </li>
+                        <?php else: ?>
                             <li class="page-item">
                                 <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>">Previous</a>
                             </li>
@@ -940,7 +954,11 @@ include 'includes/page-header.php';
                             </li>
                         <?php endfor; ?>
                         
-                        <?php if ($page < $totalPages): ?>
+                        <?php if ($page >= $totalPages): ?>
+                            <li class="page-item disabled">
+                                <span class="page-link" aria-disabled="true">Next</span>
+                            </li>
+                        <?php else: ?>
                             <li class="page-item">
                                 <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&customer_id=<?php echo urlencode($customer_id); ?>&cloth_type_id=<?php echo urlencode($cloth_type_id); ?>">Next</a>
                             </li>
@@ -990,7 +1008,7 @@ include 'includes/page-header.php';
 </div>
 <div class="modal fade" id="addMeasurementModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <form method="POST" id="measurementForm" class="modal-content" onsubmit="debugFormSubmission(event)">
+        <form method="POST" id="measurementForm" class="modal-content" onsubmit="debugFormSubmission(event)" novalidate>
             <div class="modal-header">
                     <h5 class="modal-title">
                         <?php echo $editMeasurement ? 'Edit Measurement' : 'Add New Measurement'; ?>
@@ -1017,6 +1035,7 @@ include 'includes/page-header.php';
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address"
                                        value="<?php echo htmlspecialchars($editMeasurement['email'] ?? ''); ?>">
+                                <div class="invalid-feedback" id="measurementEmailFeedback">Please enter a valid email address (e.g., name@example.com).</div>
                             </div>
                         </div>
                     </div>
@@ -1784,6 +1803,37 @@ function renderGarmentDefaultFields(garmentId) {
     renderSingleFieldRow(container, garmentId, 'length', '', 'text', null, true);
 }
 
+function isValidMeasurementEmail(value) {
+    const email = (value || '').trim();
+    if (!email || email.length > 254 || /\s/.test(email)) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) return false;
+    const parts = email.split('@');
+    if (parts.length !== 2) return false;
+    if (parts[0].startsWith('.') || parts[0].endsWith('.') || parts[0].includes('..')) return false;
+    if (parts[1].startsWith('.') || parts[1].endsWith('.') || parts[1].includes('..')) return false;
+    return true;
+}
+
+function validateMeasurementEmailField() {
+    const el = document.getElementById('email');
+    if (!el) return true;
+    const val = el.value.trim();
+    if (!val) {
+        el.classList.remove('is-invalid');
+        return true;
+    }
+    if (!isValidMeasurementEmail(val)) {
+        const fb = document.getElementById('measurementEmailFeedback');
+        if (fb) fb.textContent = 'Please enter a valid email address (e.g., name@example.com).';
+        el.classList.add('is-invalid');
+        return false;
+    }
+    el.value = val;
+    el.classList.remove('is-invalid');
+    return true;
+}
+
 let isMeasurementSubmitting = false;
 
 // Form validation before submission
@@ -1793,10 +1843,17 @@ function debugFormSubmission(event) {
         return false;
     }
 
+    const isEmailValid = validateMeasurementEmailField();
     const name = document.getElementById('name').value.trim();
     if (!name) {
         showMeasurementAlert('Please enter customer name.', 'Customer Name Required', 'warning', document.getElementById('name'));
         if (event) event.preventDefault();
+        return false;
+    }
+
+    if (!isEmailValid) {
+        if (event) event.preventDefault();
+        document.getElementById('email')?.focus();
         return false;
     }
 
@@ -1922,7 +1979,10 @@ function editCustomerMeasurements(group) {
     
     if (document.getElementById('customer_id')) document.getElementById('customer_id').value = group.customer_id || '';
     if (document.getElementById('name')) document.getElementById('name').value = group.name || '';
-    if (document.getElementById('email')) document.getElementById('email').value = group.email || '';
+    if (document.getElementById('email')) {
+        document.getElementById('email').value = group.email || '';
+        document.getElementById('email').classList.remove('is-invalid');
+    }
     if (document.getElementById('phone_number')) document.getElementById('phone_number').value = group.phone_number || '';
     if (document.getElementById('address')) document.getElementById('address').value = group.address || '';
     if (document.getElementById('date_of_birth')) document.getElementById('date_of_birth').value = group.date_of_birth || '';
@@ -2003,6 +2063,7 @@ document.getElementById('addMeasurementModal').addEventListener('hidden.bs.modal
     }
     
     document.getElementById('measurementForm').reset();
+    document.getElementById('email')?.classList.remove('is-invalid');
     
     const container = document.getElementById('garmentsContainer');
     if (container) container.innerHTML = '';
@@ -2021,6 +2082,20 @@ document.getElementById('addMeasurementModal').addEventListener('hidden.bs.modal
 
 // Initialise garment blocks on page load
 window.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            validateMeasurementEmailField();
+        });
+        emailInput.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                const val = this.value.trim();
+                if (!val || isValidMeasurementEmail(val)) {
+                    this.classList.remove('is-invalid');
+                }
+            }
+        });
+    }
     <?php if ($editMeasurement): ?>
         addGarmentBlock(<?php echo (int)$editMeasurement['cloth_type_id']; ?>, <?php echo json_encode($editMeasurement['measurement_data'] ?? []); ?>);
         const addBtn = document.getElementById('addGarmentBtnWrapper');
@@ -2043,6 +2118,7 @@ document.getElementById('customer_id')?.addEventListener('change', function() {
                 if (data.success && data.customer) {
                     document.getElementById('name').value = data.customer.name || '';
                     document.getElementById('email').value = data.customer.email || '';
+                    document.getElementById('email').classList.remove('is-invalid');
                     if (document.getElementById('phone_number')) document.getElementById('phone_number').value = data.customer.phone || '';
                     document.getElementById('address').value = data.customer.address || '';
                     document.getElementById('date_of_birth').value = data.customer.date_of_birth || '';
@@ -2055,6 +2131,7 @@ document.getElementById('customer_id')?.addEventListener('change', function() {
         // Clear fields
         document.getElementById('name').value = '';
         document.getElementById('email').value = '';
+        document.getElementById('email').classList.remove('is-invalid');
         if (document.getElementById('phone_number')) document.getElementById('phone_number').value = '';
         document.getElementById('address').value = '';
         document.getElementById('date_of_birth').value = '';

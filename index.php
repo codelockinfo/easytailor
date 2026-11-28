@@ -83,7 +83,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
         }
     }
     </style>
-    <link href="assets/css/desktop-redesign3.css?v=1793716000" rel="stylesheet">
+    <link href="assets/css/desktop-redesign3.css?v=1793716001" rel="stylesheet">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -1413,20 +1413,20 @@ if (file_exists(__DIR__ . '/config/config.php')) {
             </div>
             <div class="interactive-action-container">
                 <div class="action-tabs-list">
-                    <button type="button" class="action-tab-btn active" data-index="0" data-img="assets/images/dashboard-screen.png?v=2" data-url="app.easytailor.com/dashboard" data-title="Powerful Dashboard" data-desc="Get a complete real-time overview of your tailoring business with revenue charts, order status tracking, and quick actions." data-bullets='["Real-time revenue & order analytics", "Quick action shortcuts for orders & bills", "Track pending & completed deliveries"]'>
+                    <button type="button" class="action-tab-btn active" data-index="0" data-img="assets/images/dashboard-screen.png?v=3" data-url="app.easytailor.com/dashboard" data-title="Powerful Dashboard" data-desc="Get a complete real-time overview of your tailoring business with revenue charts, order status tracking, and quick actions." data-bullets='["Real-time revenue & order analytics", "Quick action shortcuts for orders & bills", "Track pending & completed deliveries"]'>
                         <span class="tab-btn-content"><i class="fas fa-th-large"></i> <span>Dashboard</span></span>
                         <span class="tab-progress-line"></span>
                     </button>
-                    <button type="button" class="action-tab-btn" data-index="1" data-img="assets/images/orders-screen.png?v=2" data-url="app.easytailor.com/orders" data-title="Order Management" data-desc="Track, manage and update customer tailoring orders with due dates, cloth types, and tailor assignments." data-bullets='["Real-time status tracking (Pending, In Progress, Delivered)", "Track due dates, cloth types & pricing", "Assign orders to specific tailors"]'>
+                    <button type="button" class="action-tab-btn" data-index="1" data-img="assets/images/orders-screen.png?v=3" data-url="app.easytailor.com/orders" data-title="Order Management" data-desc="Track, manage and update customer tailoring orders with due dates, cloth types, and tailor assignments." data-bullets='["Real-time status tracking (Pending, In Progress, Delivered)", "Track due dates, cloth types & pricing", "Assign orders to specific tailors"]'>
                         <span class="tab-btn-content"><i class="fas fa-box-open"></i> <span>Order Management</span></span>
                         <span class="tab-progress-line"></span>
                     </button>
-                    <button type="button" class="action-tab-btn" data-index="2" data-img="assets/images/invoices-screen.png?v=2" data-url="app.easytailor.com/invoices" data-title="Invoice Generation" data-desc="Track customer billings, payment balances, tax calculation, and financial receipts seamlessly." data-bullets='["Track total, paid & pending invoice amounts", "Automated GST/tax & balance calculation", "Generate print receipts & WhatsApp sharing"]'>
-                        <span class="tab-btn-content"><i class="fas fa-file-invoice-dollar"></i> <span>Invoice Generation</span></span>
+                    <button type="button" class="action-tab-btn" data-index="2" data-img="assets/images/customers-screen.png?v=4" data-url="app.easytailor.com/customers" data-title="Customer Profiles" data-desc="Manage your client relationships, phone contacts, location history, and linked garment orders in one place." data-bullets='["Store client phone numbers, emails & addresses", "Track total & active order count per client", "Quick customer search by code or mobile"]'>
+                        <span class="tab-btn-content"><i class="fas fa-users-gear"></i> <span>Customer Profiles</span></span>
                         <span class="tab-progress-line"></span>
                     </button>
-                    <button type="button" class="action-tab-btn" data-index="3" data-img="assets/images/customers-screen.png?v=2" data-url="app.easytailor.com/customers" data-title="Customer Profiles" data-desc="Manage your client relationships, phone contacts, location history, and linked garment orders in one place." data-bullets='["Store client phone numbers, emails & addresses", "Track total & active order count per client", "Quick customer search by code or mobile"]'>
-                        <span class="tab-btn-content"><i class="fas fa-users-gear"></i> <span>Customer Profiles</span></span>
+                    <button type="button" class="action-tab-btn" data-index="3" data-img="assets/images/tailor-dashboard-screen.png?v=1" data-url="app.easytailor.com/tailor/orders" data-title="Tailor Side Dashboard" data-desc="Dedicated workspace for tailors to view their assigned orders, check measurements, and update garment progress." data-bullets='["View only orders assigned to each tailor", "Quick access to customer garment measurements", "Update order status & track due dates live"]'>
+                        <span class="tab-btn-content"><i class="fas fa-cut"></i> <span>Tailor Side Dashboard</span></span>
                         <span class="tab-progress-line"></span>
                     </button>
                 </div>
@@ -1436,7 +1436,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                     
                         <!-- Browser Body with Image -->
                         <div class="action-mockup-body">
-                            <img id="actionScreenImg" src="assets/images/dashboard-screen.png?v=2" alt="Dashboard Preview" class="img-fluid">
+                            <img id="actionScreenImg" src="assets/images/dashboard-screen.png?v=3" alt="Dashboard Preview" class="img-fluid">
                         </div>
                     </div>
                     <button type="button" class="action-screen-nav-btn next" id="actionScreenNext" aria-label="Next Screenshot"><i class="fas fa-chevron-right"></i></button>
@@ -1968,8 +1968,6 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                 const coverImg = isDefaultImage ? defaultCover : tailor.shop_image;
                 const shopName = tailor.shop_name || 'Tailor Shop';
                 const ownerName = tailor.owner_name || 'Tailor Specialist';
-                const initialLetter = (shopName.trim().charAt(0) || 'T').toUpperCase();
-                const hasCustomLogo = tailor.shop_image && !isDefaultImage;
 
                 const rating = tailor.rating ? parseFloat(tailor.rating).toFixed(1) : '5.0';
                 const reviewCount = tailor.total_reviews || 0;
@@ -1996,14 +1994,6 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                                 <img src="${coverImg}" alt="${shopName}" onerror="this.onerror=null; this.src='assets/images/default-tailor-shop.jpg';">
                                 <div class="tailor-card-badges">
                                     ${tailor.is_featured ? '<span class="badge-pill badge-featured"><i class="fas fa-crown"></i> Featured</span>' : ''}
-                                </div>
-                                <div class="tailor-avatar-badge" title="${shopName}">
-                                    ${hasCustomLogo ? `
-                                        <img src="${tailor.shop_image}" alt="${shopName}" class="tailor-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="tailor-avatar-initial" style="display:none;">${initialLetter}</div>
-                                    ` : `
-                                        <div class="tailor-avatar-initial">${initialLetter}</div>
-                                    `}
                                 </div>
                             </div>
                             <div class="tailor-slider-body">

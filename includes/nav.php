@@ -147,11 +147,29 @@ $googleAdSenseScript = '<script async src="https://pagead2.googlesyndication.com
     font-weight: 500 !important;
     color: #475569 !important;
     padding: 8px 16px !important;
+    position: relative;
     transition: all 0.2s ease !important;
 }
 .navbar-nav .nav-link:hover,
 .navbar-nav .nav-link.active {
     color: #4f46e5 !important;
+}
+
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 2px;
+    left: 50%;
+    background: #4f46e5;
+    border-radius: 2px;
+    transition: all 0.22s ease;
+}
+.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link.active::after {
+    width: calc(100% - 32px);
+    left: 16px;
 }
 
 /* Action Buttons */

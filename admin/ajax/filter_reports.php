@@ -136,6 +136,7 @@ try {
         'total' => 0,
         'total_amount' => 0,
         'total_cash_in' => 0,
+        'total_cash_in_count' => 0,
         'total_cash_out' => 0,
         'by_category' => [],
         'by_payment_method' => []
@@ -155,6 +156,7 @@ try {
         
         if ($method === 'cash_in') {
             $filteredExpenseStats['total_cash_in'] += $amount;
+            $filteredExpenseStats['total_cash_in_count']++;
         } else {
             // Actual expenses (cash_out)
             $filteredExpenseStats['total']++;
@@ -259,7 +261,7 @@ try {
         }
         $monthlyRevenue[] = [
             'month' => $date->format('M Y'),
-            'revenue' => $revenue + $cashInTotal
+            'revenue' => $cashInTotal
         ];
         $monthlyExpenses[] = [
             'month' => $date->format('M Y'),
@@ -294,7 +296,7 @@ try {
             ];
         }
     }
-    $totalInflow = $filteredInvoiceStats['total_amount'] + $filteredExpenseStats['total_cash_in'];
+    $totalInflow = $filteredExpenseStats['total_cash_in'];
     $totalExpenses = $filteredExpenseStats['total_amount'];
     $netProfit = $totalInflow - $totalExpenses;
 
@@ -309,6 +311,7 @@ try {
                 'revenue' => [
                     'total_amount' => format_currency($totalInflow),
                     'paid' => $filteredInvoiceStats['paid'],
+                    'cash_in_count' => $filteredExpenseStats['total_cash_in_count'],
                     'cash_in' => $filteredExpenseStats['total_cash_in'] > 0 ? format_currency($filteredExpenseStats['total_cash_in']) : null
                 ],
                 'expenses' => [

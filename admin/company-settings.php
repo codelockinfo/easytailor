@@ -997,7 +997,6 @@ select.form-select.settings-input,
                                        required>
                                 <div class="invalid-feedback" id="phoneInvalidFeedback">Please enter a valid 10-digit mobile number (starts with 6, 7, 8, or 9).</div>
                             </div>
-                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Enter 10-digit mobile number (digits only)</small>
                         </div>
                     </div>
                     

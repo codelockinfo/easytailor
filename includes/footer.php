@@ -103,7 +103,7 @@ $currentYear = date('Y');
 .footer-social-btn.tw { background: #000000 !important; }
 .footer-social-btn.wa { background: #25d366 !important; }
 </style>
-<footer id="contact" class="footer-section py-3 d-none d-md-block">
+<footer id="contact" class="footer-section pt-3 pb-0 d-none d-md-block">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4">

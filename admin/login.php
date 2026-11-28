@@ -127,6 +127,10 @@ $seoOptions = [
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        .login-header a,
+        .login-header a img {
+            color: #ffffff !important;
+        }
         .login-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -256,12 +260,12 @@ $seoOptions = [
             <div class="col-md-6 col-lg-4">
                 <div class="card login-card border-0">
                     <div class="login-header">
-                        <a href="../" class="text-decoration-none">
+                        <a href="../" class="text-decoration-none text-white">
                         <?php
                         $brandLogo = get_site_logo('admin');
                         if (!empty($brandLogo)):
                         ?>
-                            <img src="<?php echo htmlspecialchars($brandLogo); ?>" alt="<?php echo APP_NAME; ?>" class="" style="max-height: 80px; max-width: 200px;">
+                            <img src="<?php echo htmlspecialchars($brandLogo); ?>" alt="<?php echo APP_NAME; ?>" class="text-white" style="max-height: 80px; max-width: 200px; color: #ffffff;">
                         <?php else: ?>
                             <i class="fas fa-cut fa-3x mb-3"></i>
                         <?php endif; ?>

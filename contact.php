@@ -507,8 +507,8 @@ $seoOptions = [
             color: #ffffff;
         }
 
-        /* Map Embed Card */
-        .cnt-map-card {
+        /* FAQ Card */
+        .cnt-faq-card {
             background: #ffffff;
             border: 1px solid var(--cnt-card-border);
             border-radius: var(--cnt-radius);
@@ -516,27 +516,51 @@ $seoOptions = [
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
             margin-top: 35px;
         }
-        .cnt-map-header {
-            padding: 18px 24px;
+        .cnt-faq-header {
+            padding: 20px 24px;
             background: #ffffff;
             border-bottom: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
         }
-        .cnt-map-header h4 {
-            font-size: 1rem;
-            margin: 0;
+        .cnt-faq-header h4 {
+            font-size: 1.05rem;
+            margin: 0 0 2px 0;
             display: flex;
             align-items: center;
             gap: 8px;
             color: var(--cnt-heading);
         }
-        .cnt-map-iframe {
-            width: 100%;
-            height: 320px;
-            border: none;
-            display: block;
+        .cnt-faq-header p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .cnt-faq-accordion .accordion-item {
+            border-color: #f1f5f9;
+        }
+        .cnt-faq-accordion .accordion-button {
+            padding: 16px 24px;
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--cnt-heading);
+            background: #ffffff;
+            box-shadow: none;
+        }
+        .cnt-faq-accordion .accordion-button:not(.collapsed) {
+            color: #4f46e5;
+            background: #f8fafc;
+            box-shadow: none;
+        }
+        .cnt-faq-accordion .accordion-body {
+            padding: 14px 24px 18px;
+            font-size: 0.9rem;
+            color: #475569;
+            line-height: 1.65;
+            background: #ffffff;
         }
 
         .is-invalid {
@@ -629,7 +653,6 @@ $seoOptions = [
     $cHours = get_site_setting('contact_hours', 'Mon - Sat: 9:30 AM to 6:30 PM IST');
     $cWa = get_site_setting('contact_whatsapp', '917600464414');
     $cWaUrl = (strpos($cWa, 'http') === 0) ? $cWa : ('https://wa.me/' . preg_replace('/\D/', '', $cWa));
-    $cMap = get_site_setting('contact_map_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3719.349176378415!2d72.85966607519965!3d21.218001680486043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be04f0525d88691%3A0xe5323a63ec5156fa!2sSilver%20Business%20Point!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin');
     ?>
     <div class="container cnt-quick-cards">
         <div class="row g-3">
@@ -791,22 +814,67 @@ $seoOptions = [
 
         </div>
 
-        <!-- Google Map Section -->
-        <div class="cnt-map-card cnt-reveal">
-            <div class="cnt-map-header">
-                <h4><i class="fas fa-map-marked-alt text-primary"></i> Visit Our Office</h4>
-                <a href="<?php echo htmlspecialchars($cMap); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                    <i class="fas fa-directions me-1"></i> Open Map
+        <!-- Frequently Asked Questions Section -->
+        <div class="cnt-faq-card cnt-reveal">
+            <div class="cnt-faq-header">
+                <div>
+                    <h4><i class="fas fa-circle-question text-primary"></i> Frequently Asked Questions</h4>
+                    <p>Quick answers about setup, pricing, and support for your tailor shop.</p>
+                </div>
+                <a href="admin/register.php" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                    <i class="fas fa-rocket me-1"></i> Start Free
                 </a>
             </div>
-            <iframe 
-                class="cnt-map-iframe"
-                src="<?php echo htmlspecialchars($cMap); ?>" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade"
-                title="Office Location Map">
-            </iframe>
+            <div class="accordion accordion-flush cnt-faq-accordion" id="contactFaqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqHead1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqCol1" aria-expanded="true" aria-controls="faqCol1">
+                            Is there a free plan available to try the software?
+                        </button>
+                    </h2>
+                    <div id="faqCol1" class="accordion-collapse collapse show" aria-labelledby="faqHead1" data-bs-parent="#contactFaqAccordion">
+                        <div class="accordion-body">
+                            Yes! You can register for free with no credit card required. Our Starter plan lets you manage customers, digital measurements, orders, and tailor assignments right away.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqHead2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCol2" aria-expanded="false" aria-controls="faqCol2">
+                            How do I schedule a live demo or onboarding walkthrough?
+                        </button>
+                    </h2>
+                    <div id="faqCol2" class="accordion-collapse collapse" aria-labelledby="faqHead2" data-bs-parent="#contactFaqAccordion">
+                        <div class="accordion-body">
+                            Select <strong>"Request a Live Demo"</strong> in the contact form above or message us directly on WhatsApp. Our onboarding team typically responds within 2 hours during working hours.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqHead3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCol3" aria-expanded="false" aria-controls="faqCol3">
+                            Can my tailors and staff access their assigned orders from mobile?
+                        </button>
+                    </h2>
+                    <div id="faqCol3" class="accordion-collapse collapse" aria-labelledby="faqHead3" data-bs-parent="#contactFaqAccordion">
+                        <div class="accordion-body">
+                            Yes, the platform is 100% mobile-responsive and cloud-based. Each tailor gets their own dedicated dashboard showing only their assigned garments, measurements, and due dates.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqHead4">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCol4" aria-expanded="false" aria-controls="faqCol4">
+                            What languages does customer support speak?
+                        </button>
+                    </h2>
+                    <div id="faqCol4" class="accordion-collapse collapse" aria-labelledby="faqHead4" data-bs-parent="#contactFaqAccordion">
+                        <div class="accordion-body">
+                            Our customer support and onboarding team assists tailor shops in <strong>English, Hindi, and Gujarati</strong> via phone, email, and WhatsApp.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 

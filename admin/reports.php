@@ -25,9 +25,10 @@ $invoiceStats = $invoiceModel->getInvoiceStats();
 $expenseStats = $expenseModel->getExpenseStats();
 $customerStats = $customerModel->getCustomerStats();
 
-$invoiceRevenue = (float)($invoiceStats['total_amount'] ?? 0);
 $cashInRevenue = (float)($expenseStats['total_cash_in'] ?? 0);
-$totalInflow = $invoiceRevenue + $cashInRevenue;
+$cashInCount = (int)($expenseStats['total_cash_in_count'] ?? 0);
+$totalInflow = $cashInRevenue;
+// $totalInflow set from cash in revenue only
 $totalExpenses = (float)($expenseStats['total_amount'] ?? 0);
 $netProfitVal = $totalInflow - $totalExpenses;
 
@@ -39,14 +40,14 @@ for ($i = 11; $i >= 0; $i--) {
     $year = date('Y', strtotime($date));
     $month = date('m', strtotime($date));
     
-    $orderRev = (float)$orderModel->getMonthlyRevenue($year, $month);
+    // Monthly revenue uses cash_in from expenses only
     $expense = $expenseModel->getMonthlyExpenseStats($year, $month);
     $cashInMonth = (float)($expense['total_cash_in'] ?? 0);
     $expMonth = (float)($expense['total_expenses'] ?? ($expense['total_amount'] ?? 0));
     
     $monthlyRevenue[] = [
         'month' => date('M Y', strtotime($date)),
-        'revenue' => $orderRev + $cashInMonth
+        'revenue' => $cashInMonth
     ];
     
     $monthlyExpenses[] = [
@@ -224,7 +225,7 @@ include 'includes/page-header.php';
                 <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">TOTAL REVENUE</span>
                 <div class="fs-4 fw-bold text-success mt-1" id="totalRevenue"><?php echo format_currency($totalInflow); ?></div>
                 <div class="text-muted" style="font-size: 0.72rem;" id="paidInvoices">
-                    <?php echo $invoiceStats['paid']; ?> paid invoices<?php if ($cashInRevenue > 0): ?> <span class="text-success">(+<?php echo format_currency($cashInRevenue); ?> in)</span><?php endif; ?>
+                    <?php echo $cashInCount; ?> <?php echo $cashInCount === 1 ? 'cash in' : 'cash ins'; ?>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #dcfce7; color: #16a34a; font-size: 0.95rem;">
@@ -251,7 +252,7 @@ include 'includes/page-header.php';
             <div>
                 <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">NET PROFIT</span>
                 <div class="fs-4 fw-bold <?php echo $netProfitVal >= 0 ? 'text-primary' : 'text-danger'; ?> mt-1" id="netProfit"><?php echo format_currency($netProfitVal); ?></div>
-                <div class="text-muted" style="font-size: 0.72rem;">Total Inflow - Expenses</div>
+                <div class="text-muted" style="font-size: 0.72rem;">Cash In - Cash Out</div>
             </div>
             <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 10px; background: #ede9fe; color: #9333ea; font-size: 0.95rem;">
                 <i class="fas fa-chart-line"></i>
@@ -811,7 +812,8 @@ function updateKeyMetrics(data) {
     document.getElementById('totalCustomers').textContent = data.stats.customers.total;
     document.getElementById('customersThisMonth').textContent = '+' + data.stats.customers.this_month + ' this month';
     document.getElementById('totalRevenue').textContent = data.stats.revenue.total_amount;
-    document.getElementById('paidInvoices').innerHTML = data.stats.revenue.paid + ' paid invoices' + (data.stats.revenue.cash_in ? ` <span class="text-success">(+${data.stats.revenue.cash_in} in)</span>` : '');
+    const cashInCount = Number(data.stats.revenue.cash_in_count || 0);
+    document.getElementById('paidInvoices').textContent = cashInCount + (cashInCount === 1 ? ' cash in' : ' cash ins');
     document.getElementById('totalExpenses').textContent = data.stats.expenses.total_amount;
     document.getElementById('expenseTransactions').textContent = data.stats.expenses.total + ' expenses';
     const netEl = document.getElementById('netProfit');

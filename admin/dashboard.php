@@ -1418,10 +1418,10 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
                         <small class="text-muted" style="font-size: 0.72rem;">Annual earnings and revenue growth trends</small>
                     </div>
                     <div class="dropdown">
-                        <button class="btn btn-sm rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border: 1px solid #e2e8f0; font-size: 0.75rem;" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1 bg-white text-dark shadow-xs" style="border: 1px solid #e2e8f0; font-size: 0.75rem;" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-calendar-alt text-muted me-1" style="font-size: 0.70rem;"></i> <span id="revenuePeriodLabel">This Year</span> <i class="fas fa-chevron-down ms-1" style="font-size: 0.62rem;"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px; font-size: 0.8rem;">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm revenue-period-menu" style="border-radius: 12px; font-size: 0.8rem; min-width: 132px; padding: 6px; margin-top: 6px !important;">
                             <li><a class="dropdown-item active revenue-period-option" href="#" data-period="this_year" data-label="This Year">This Year</a></li>
                             <li><a class="dropdown-item revenue-period-option" href="#" data-period="last_year" data-label="Last Year">Last Year</a></li>
                         </ul>
@@ -1495,6 +1495,16 @@ $morningCounts['ready'] = (int)($countsRow['ready_count'] ?? 0);
 <style>
 .transition-hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.revenue-period-menu.show {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.revenue-period-menu .revenue-period-option {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 8px;
 }
 .transition-hover:hover {
     transform: translateY(-3px);
@@ -1754,6 +1764,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             document.querySelectorAll('.revenue-period-option').forEach(el => el.classList.remove('active'));
             this.classList.add('active');
+            this.blur();
 
             if (revenuePeriodLabel) {
                 revenuePeriodLabel.textContent = label;

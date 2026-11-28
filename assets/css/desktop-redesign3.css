@@ -3970,7 +3970,7 @@ body.home-page .navbar.sticky-top, .navbar.fixed-top {
 .footer-section {
     background: #ffffff !important;
     border-top: 1px solid #eef2f6 !important;
-    padding: 60px 0 25px 0 !important;
+    padding: 60px 0 0 0 !important;
 }
 
 .footer-brand .brand-name {

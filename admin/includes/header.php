@@ -424,12 +424,16 @@ $seoOptions = [
         .dropdown-item:focus i {
             color: #4f46e5 !important;
         }
+        .dropdown-menu .dropdown-item:active:not(.active):not(.text-danger),
+        .dropdown-item:active:not(.active):not(.text-danger) {
+            background: #eef2ff !important;
+            background-color: #eef2ff !important;
+            color: #4f46e5 !important;
+        }
         .dropdown-menu .dropdown-item.active,
-        .dropdown-menu .dropdown-item:active,
         .dropdown-menu .dropdown-item.active:hover,
         .dropdown-menu .dropdown-item.active:focus,
         .dropdown-item.active,
-        .dropdown-item:active,
         .dropdown-item.active:hover,
         .dropdown-item.active:focus {
             background: #4f46e5 !important;
@@ -437,9 +441,7 @@ $seoOptions = [
             color: #ffffff !important;
         }
         .dropdown-menu .dropdown-item.active *,
-        .dropdown-menu .dropdown-item:active *,
         .dropdown-item.active *,
-        .dropdown-item:active *,
         .dropdown-menu .dropdown-item.text-danger.active,
         .dropdown-menu .dropdown-item.text-danger:active,
         .dropdown-item.text-danger.active,

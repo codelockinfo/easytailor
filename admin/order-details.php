@@ -1310,7 +1310,7 @@ function updateOrderItemStatus(itemId, status, orderId) {
                 btn.style.pointerEvents = 'auto';
 
                 // Update active checkmarks in this button's dropdown
-                const parentDropdown = btn.closest('.dropdown');
+                const parentDropdown = btn._itemStatusMenu || btn.closest('.dropdown');
                 if (parentDropdown) {
                     const items = parentDropdown.querySelectorAll('.dropdown-item');
                     items.forEach(it => {
@@ -1479,8 +1479,127 @@ document.addEventListener('visibilitychange', function() {
 });
 
 startSingleOrderSyncTimer();
+
+(function() {
+    let activeFloatingToggle = null;
+    let activeFloatingMenu = null;
+
+    function positionGarmentStatusDropdown(toggle, menu) {
+        if (!toggle || !menu || !menu.classList.contains('show')) return;
+        const toggleRect = toggle.getBoundingClientRect();
+        if (toggleRect.width === 0 && toggleRect.height === 0) return;
+
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '9999';
+        menu.style.pointerEvents = 'auto';
+        menu.style.minWidth = '165px';
+        menu.style.margin = '0';
+        menu.style.right = 'auto';
+        menu.style.bottom = 'auto';
+        menu.style.transform = 'none';
+        menu.style.inset = 'auto';
+        menu.style.visibility = 'visible';
+        menu.style.opacity = '1';
+
+        const menuWidth = menu.offsetWidth || 165;
+        const menuHeight = menu.offsetHeight || 220;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const gap = 6;
+
+        let top = toggleRect.bottom + gap;
+        if (top + menuHeight > viewportHeight - 10) {
+            if (toggleRect.top - menuHeight - gap >= 10) {
+                top = toggleRect.top - menuHeight - gap;
+            } else {
+                top = Math.max(10, viewportHeight - menuHeight - 10);
+            }
+        }
+
+        let left = toggleRect.right - menuWidth;
+        if (left + menuWidth > viewportWidth - 10) {
+            left = viewportWidth - menuWidth - 10;
+        }
+        if (left < 10) {
+            left = 10;
+        }
+
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+
+    document.addEventListener('shown.bs.dropdown', function(e) {
+        const toggle = e.target;
+        if (!toggle || !toggle.classList.contains('item-status-badge-btn')) return;
+        const dropdown = toggle.closest('.dropdown');
+        if (!dropdown) return;
+        const menu = toggle._itemStatusMenu || dropdown.querySelector('.dropdown-menu');
+        if (!menu) return;
+
+        toggle._itemStatusMenu = menu;
+        if (!menu._origParent) {
+            menu._origParent = dropdown;
+            menu._origNextSibling = menu.nextSibling;
+        }
+        if (menu.parentElement !== document.body) {
+            document.body.appendChild(menu);
+        }
+
+        activeFloatingToggle = toggle;
+        activeFloatingMenu = menu;
+        positionGarmentStatusDropdown(toggle, menu);
+        requestAnimationFrame(function() {
+            positionGarmentStatusDropdown(toggle, menu);
+        });
+    });
+
+    document.addEventListener('hidden.bs.dropdown', function(e) {
+        const toggle = e.target;
+        const menu = toggle && toggle._itemStatusMenu;
+        if (!menu) return;
+
+        if (activeFloatingMenu === menu) {
+            activeFloatingToggle = null;
+            activeFloatingMenu = null;
+        }
+
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+        menu.style.position = '';
+        menu.style.transform = '';
+        menu.style.inset = '';
+        menu.style.margin = '';
+
+        if (menu._origParent && menu._origParent.isConnected) {
+            if (menu._origNextSibling && menu._origNextSibling.parentNode === menu._origParent) {
+                menu._origParent.insertBefore(menu, menu._origNextSibling);
+            } else {
+                menu._origParent.appendChild(menu);
+            }
+        } else if (menu.parentElement === document.body) {
+            menu.remove();
+        }
+    });
+
+    window.addEventListener('scroll', function() {
+        if (activeFloatingToggle && activeFloatingMenu) {
+            positionGarmentStatusDropdown(activeFloatingToggle, activeFloatingMenu);
+        }
+    }, true);
+
+    window.addEventListener('resize', function() {
+        if (activeFloatingToggle && activeFloatingMenu) {
+            positionGarmentStatusDropdown(activeFloatingToggle, activeFloatingMenu);
+        }
+    });
+})();
 </script>
 <style>
+.garments-main-card:hover {
+    transform: none !important;
+}
 @media (max-width: 767.98px) {
     .garments-main-card {
         background: transparent !important;

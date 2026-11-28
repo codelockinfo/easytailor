@@ -305,7 +305,7 @@ body.announcement-visible {
         position: absolute;
         width: 0;
         height: 2px;
-        bottom: -5px;
+        bottom: 2px;
         left: 50%;
         background: var(--primary-color);
         transition: var(--transition);
@@ -1891,7 +1891,7 @@ body.announcement-visible {
 }
 .footer-section {
     padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
+        padding-bottom: 0 !important;
         background: #ffffff !important;
         color: #4a5568 !important;
         margin-bottom: 0 !important;

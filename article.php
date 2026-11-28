@@ -252,6 +252,10 @@ $seoOptions = [
         }
 
         .art-hero .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            row-gap: 0.35rem;
             background: transparent;
             padding: 0;
             margin-bottom: 1.25rem;
@@ -267,6 +271,11 @@ $seoOptions = [
             color: #ffffff;
             text-decoration: underline;
         }
+        .art-hero .breadcrumb-item {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.4;
+        }
         .art-hero .breadcrumb-item.active {
             color: rgba(255, 255, 255, 0.95);
             font-size: 0.9rem;
@@ -275,12 +284,32 @@ $seoOptions = [
             overflow: hidden;
             text-overflow: ellipsis;
             display: inline-block;
-            vertical-align: bottom;
+            max-width: none;
+            overflow: visible;
+            display: inline-flex;
+            align-items: center;
+        }
+        .art-breadcrumb-current {
+            max-width: 320px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+        }
+        .art-hero .breadcrumb-item + .breadcrumb-item {
+            padding-left: 0.65rem;
         }
         .art-hero .breadcrumb-item + .breadcrumb-item::before {
-            color: rgba(255, 255, 255, 0.5);
-            content: "›";
-            font-size: 1.1rem;
+            float: none;
+            padding-right: 0.65rem;
+            color: rgba(255, 255, 255, 0.55);
+            content: "\f054";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 0.62rem;
+            display: inline-flex;
+            align-items: center;
+
             line-height: 1;
         }
 
@@ -1174,7 +1203,7 @@ $seoOptions = [
                             <li class="breadcrumb-item"><a href="./"><i class="fas fa-home me-1"></i>Home</a></li>
                             <li class="breadcrumb-item"><a href="blog"><i class="fas fa-newspaper me-1"></i>Blog</a></li>
                             <li class="breadcrumb-item"><a href="blog?category=<?php echo urlencode($article['category']); ?>"><?php echo htmlspecialchars($article['category']); ?></a></li>
-                            <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($article['title']); ?></li>
+                            <li class="breadcrumb-item active" aria-current="page"><span class="art-breadcrumb-current"><?php echo htmlspecialchars($article['title']); ?></span></li>
                         </ol>
                     </nav>
 
